@@ -21,10 +21,15 @@ function Chips({ value, onChange, label }: { value: string[]; onChange: (v: stri
       <legend>{label}</legend>
       <div className="row wrap">
         {options.map((m) => (
-          <label className="check" key={m}>
-            <input type="checkbox" checked={value.includes(m)} onChange={(e) => onChange(e.target.checked ? [...value, m] : value.filter((x) => x !== m))} />
+          <button
+            type="button"
+            key={m}
+            className={`chip toggle ${value.includes(m) ? 'on' : ''}`}
+            aria-pressed={value.includes(m)}
+            onClick={() => onChange(value.includes(m) ? value.filter((x) => x !== m) : [...value, m])}
+          >
             {t(`muscle.${m}`, { defaultValue: m })}
-          </label>
+          </button>
         ))}
       </div>
     </fieldset>
@@ -215,13 +220,9 @@ export function ExerciseEdit() {
           ))}
         </ul>
       )}
-      <div className="sticky-actions">
-        <button className="primary" onClick={() => void save()}>{t('common.save')}</button>
-        <button className="outline" onClick={() => nav(-1)}>
-          {t('common.cancel')}
-        </button>
-        {id && (
-          <>
+      {id && (
+        <section className="card">
+          <div className="actions" style={{ marginTop: 0 }}>
             <button className="outline" onClick={() => void variation()}>
               {t('exercise.variation')}
             </button>
@@ -229,8 +230,16 @@ export function ExerciseEdit() {
             <button className="danger" onClick={() => void remove()}>
               {t('common.delete')}
             </button>
-          </>
-        )}
+          </div>
+        </section>
+      )}
+      <div className="wk-nav">
+        <button className="outline" onClick={() => nav(-1)}>
+          {t('common.cancel')}
+        </button>
+        <button className="primary" onClick={() => void save()}>
+          {t('common.save')}
+        </button>
       </div>
     </div>
   );

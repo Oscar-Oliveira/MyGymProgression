@@ -74,10 +74,10 @@ test('hypertrophy: top of the range → choose reps up → next workout 9–13 a
   await logChest(page, [12, 12, 12]);
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
 
-  await expect(page.getByText('Treadmill Warm-up: done')).toBeVisible();
-  await expect(page.getByText('Machine Chest Press: ready to progress — load or reps?')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Treadmill Warm-up' }).getByText('Done as planned', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Ready to progress — load or reps?', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '⬆ Reps 9–13' }).click();
-  await expect(page.getByText('Machine Chest Press: reps 9–13 at 20 kg')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Reps 9–13 at 20 kg', { exact: true })).toBeVisible();
 
   await tab(page, 'Home');
   await expect(page.getByText('3 × 9–13 reps · 20 kg')).toBeVisible();
@@ -93,7 +93,7 @@ test('hypertrophy: choose load up → next workout at the new load, goal = range
   await logChest(page, [12, 12, 12]);
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
   await page.getByRole('button', { name: '⬆ Load 22.5 kg' }).click();
-  await expect(page.getByText('Machine Chest Press: up to 22.5 kg')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Up to 22.5 kg', { exact: true })).toBeVisible();
   await tab(page, 'Home');
   await page.getByRole('button', { name: /Start workout/ }).click();
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
@@ -109,19 +109,19 @@ test('strength (fixed 5×5): all sets done → load goes up automatically, undo 
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   for (let i = 0; i < 5; i++) await chest.getByRole('button', { name: '✓ Set done' }).click();
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
-  await expect(page.getByText('Machine Chest Press: up to 22.5 kg')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Up to 22.5 kg', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
-  await expect(page.getByText('Machine Chest Press: kept at 20 kg (increase undone)')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Kept at 20 kg (increase undone)', { exact: true })).toBeVisible();
 });
 
 test('missed reps → asks keep or step back → step back lowers the load', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [9, 7, 6]);
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
-  await expect(page.getByText('Machine Chest Press: missed reps — keep or step back?')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Missed reps — keep or step back?', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Keep 20 kg' })).toBeVisible();
   await page.getByRole('button', { name: '⬇ Down to 17.5 kg' }).click();
-  await expect(page.getByText('Machine Chest Press: down to 17.5 kg')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Down to 17.5 kg', { exact: true })).toBeVisible();
 });
 
 test('within the range with skipped set → keeps the load without asking', async ({ page }) => {
@@ -129,7 +129,7 @@ test('within the range with skipped set → keeps the load without asking', asyn
   await logChest(page, [10, 9]);
   await page.getByRole('button', { name: 'Skip set' }).click();
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
-  await expect(page.getByText('Machine Chest Press: keep 20 kg')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Keep 20 kg', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Down to/ })).toHaveCount(0);
 });
 
@@ -152,7 +152,7 @@ test('demo data → analysis → export → delete all → import restores data'
   await expect(page.getByRole('link', { name: /Treadmill Warm-up.*Fixed/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Romanian Deadlift.*50 kg/ })).toBeVisible();
   await tab(page, 'Home');
-  await expect(page.getByText('Romanian Deadlift: ready to progress — load or reps?')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Romanian Deadlift' }).getByText('Ready to progress — load or reps?', { exact: true })).toBeVisible();
 
   await more(page, /^Settings/);
   const download = page.waitForEvent('download');
@@ -168,7 +168,7 @@ test('demo data → analysis → export → delete all → import restores data'
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await expect(page.getByText('Import completed.')).toBeVisible();
   await tab(page, 'History');
-  await expect(page.getByRole('list').getByRole('listitem')).toHaveCount(12);
+  await expect(page.locator('a.nav-row')).toHaveCount(12);
 });
 
 test('invalid import file shows an error', async ({ page }) => {

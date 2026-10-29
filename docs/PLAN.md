@@ -23,6 +23,7 @@ Source requirements: [`context.md`](../context.md).
 | D12 | Corrections recreate undecided progression decisions; decided ones are kept. Home shows a pending decision once. | 2026-10-29 |
 | D13 | Rest times removed (prescriptions, records, editor, CSV); a rest timer is out of scope. Schema v5 / database v3 strip old rest fields. | 2026-10-29 |
 | D14 | Code review fixes: substitution respects its "block" setting; manual target edits keep a reps-up range; "last time" ignores substituted sessions; undo only while the change is still current; deleting a workout undoes its still-current progression changes. Adherence shown again in Analysis. | 2026-10-29 |
+| D15 | Design system: one exercise item (image + name + detail) everywhere an exercise appears; one status label (⬆ Sobe, ＝ Mantém, ⬇ Desce, ! Decidir, ✓ Cumprido); full-width rows with › instead of underlined links; secondary actions in ⋯ menus; edit forms as aligned tables with headers once. Built-in exercises get images from their library equivalent. | 2026-10-29 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 

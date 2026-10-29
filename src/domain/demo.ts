@@ -4,7 +4,12 @@ import { emptyDataSet, type DataSet } from './interchange';
 import type { Exercise, PlanItem, ProgressionState, Workout, WorkoutEntry } from './types';
 import { decide, finishWorkout, lastEntryFinder, startWorkout } from './workout';
 
-const byEn = (list: Exercise[], en: string) => list.find((e) => e.name === en || e.aliases.includes(en));
+/** Finds an exercise by any of its names (built-in list or imported library). */
+const byName = (list: Exercise[], names: string[]) => {
+  // Built-in exercises first: they carry the demo's metrics (e.g. treadmill speed and incline).
+  const sorted = [...list].sort((a, b) => Number(b.tags.includes('seed')) - Number(a.tags.includes('seed')));
+  return names.map((n) => sorted.find((e) => e.name === n || e.aliases.includes(n))).find(Boolean);
+};
 
 function simulate(entry: WorkoutEntry, session: number, sinceChange: number): WorkoutEntry {
   const working = entry.prescription.filter((p) => p.kind === 'working');
@@ -32,8 +37,11 @@ function simulate(entry: WorkoutEntry, session: number, sinceChange: number): Wo
   return { ...entry, sets };
 }
 
+/** Library names used when a built-in exercise was merged into a library one. */
+const ALTERNATIVES: Record<string, string[]> = { 'Machine Chest Press': ['Lever Chest Press'], 'Lat Pulldown': ['Cable Wide-Grip Lat Pulldown'] };
+
 export function generateDemo(exercises: Exercise[], weeks = 6, now = new Date()): DataSet {
-  const pick = (en: string) => byEn(exercises, en);
+  const pick = (en: string) => byName(exercises, [en, ...(ALTERNATIVES[en] ?? [])]);
   const { plan, version } = newPlan('Demo Upper / Lower');
   plan.description = 'Demo data';
   const a = newDay('A · Upper');

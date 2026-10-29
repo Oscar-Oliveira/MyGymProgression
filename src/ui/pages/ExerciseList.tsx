@@ -7,10 +7,10 @@ import { repo } from '../../data/repo';
 import { exerciseGroup } from '../../domain/library';
 import { MUSCLE_GROUPS, type MuscleGroup } from '../../domain/types';
 import { matches } from '../components/ExercisePicker';
-import { Thumb } from '../components/Thumb';
+import { ExerciseItem, ThumbStack } from '../components/ExerciseItem';
 import { tr } from '../util';
 
-const MAX_RESULTS = 200;
+const PAGE = 60;
 
 export function ExerciseList() {
   const { t } = useTranslation();
@@ -20,12 +20,23 @@ export function ExerciseList() {
   const [equip, setEquip] = useState('');
   const [inactive, setInactive] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [limit, setLimit] = useState(PAGE);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const e of all ?? []) if (e.active || inactive) c[exerciseGroup(e)] = (c[exerciseGroup(e)] ?? 0) + 1;
     return c;
   }, [all, inactive]);
+  // Three images per group, from common exercises (those with a translated name first).
+  const samples = useMemo(() => {
+    const out: Record<string, { name: string; thumb?: string }[]> = {};
+    for (const e of [...(all ?? [])].sort((a, b) => Number(!!b.aliases.length) - Number(!!a.aliases.length))) {
+      if (!e.thumb || !e.active) continue;
+      const g = exerciseGroup(e);
+      if ((out[g] ??= []).length < 3) out[g].push({ name: e.name, thumb: e.thumb });
+    }
+    return out;
+  }, [all]);
   const equipment = useMemo(() => [...new Set((all ?? []).map((e) => e.equipment).filter(Boolean))].sort(), [all]);
   const list = useMemo(
     () =>
@@ -35,7 +46,7 @@ export function ExerciseList() {
     [all, q, group, equip, inactive],
   );
   if (!all) return null;
-  const showing = q || group || equip ? list.slice(0, MAX_RESULTS) : [];
+  const showing = q || group || equip ? list.slice(0, limit) : [];
   const importLib = async () => {
     setBusy(true);
     await repo.seedOrImport();
@@ -51,7 +62,7 @@ export function ExerciseList() {
         </Link>
       </div>
 
-      <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => setQ(e.target.value)} />
+      <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => (setQ(e.target.value), setLimit(PAGE))} />
 
       {all.length === 0 ? (
         <div className="empty" style={{ marginTop: '1rem' }}>
@@ -63,11 +74,11 @@ export function ExerciseList() {
       ) : (
         <>
           <div className="seg" role="tablist" aria-label={t('exercise.groups')} style={{ margin: '0.75rem 0 0.5rem' }}>
-            <button role="tab" aria-selected={!group} className={!group ? 'on' : ''} onClick={() => setGroup('')}>
+            <button role="tab" aria-selected={!group} className={!group ? 'on' : ''} onClick={() => (setGroup(''), setLimit(PAGE))}>
               {t('common.all')}
             </button>
             {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-              <button key={g} role="tab" aria-selected={group === g} className={group === g ? 'on' : ''} onClick={() => setGroup(g)}>
+              <button key={g} role="tab" aria-selected={group === g} className={group === g ? 'on' : ''} onClick={() => (setGroup(g), setLimit(PAGE))}>
                 {t(`group.${g}`)} <small style={{ color: 'inherit', opacity: 0.7 }}>{counts[g]}</small>
               </button>
             ))}
@@ -90,33 +101,36 @@ export function ExerciseList() {
             <section className="card">
               <h2>{t('exercise.groups')}</h2>
               {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-                <button key={g} className="lib-row" style={{ width: '100%', background: 'transparent', borderRadius: 0, justifyContent: 'flex-start' }} onClick={() => setGroup(g)}>
-                  <span className="main" style={{ textAlign: 'left' }}>
-                    <span className="name">{t(`group.${g}`)}</span>
+                <button key={g} className="nav-row group-row" onClick={() => (setGroup(g), setLimit(PAGE))}>
+                  <ThumbStack items={samples[g] ?? []} />
+                  <span className="main">
+                    <span className="title">{t(`group.${g}`)}</span>
+                    <span className="meta">{t('exercise.count', { count: counts[g] })}</span>
                   </span>
-                  <span className="muted">{t('exercise.count', { count: counts[g] })} ›</span>
+                  <span className="chev" aria-hidden="true">
+                    ›
+                  </span>
                 </button>
               ))}
             </section>
           ) : (
             <section className="card">
-              <p className="muted">
-                {t('exercise.count', { count: list.length })}
-                {list.length > MAX_RESULTS && ` · ${t('exercise.refine', { n: MAX_RESULTS })}`}
-              </p>
+              <p className="muted">{t('exercise.count', { count: list.length })}</p>
               {showing.map((e) => (
-                <Link key={e.id} to={`/exercises/${e.id}`} className="lib-row">
-                  <Thumb src={e.thumb} name={e.name} size={56} />
-                  <span className="main">
-                    <span className="name">{e.name}</span>
-                    {!e.active && <span className="badge"> {t('exercise.inactive')}</span>}
-                    <br />
-                    <span className="sub">
-                      {tr(t, 'equipment', e.equipment)} · {e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')}
-                    </span>
-                  </span>
-                </Link>
+                <ExerciseItem
+                  key={e.id}
+                  to={`/exercises/${e.id}`}
+                  name={e.name}
+                  thumb={e.thumb}
+                  sub={[tr(t, 'equipment', e.equipment), e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')].filter(Boolean).join(' · ')}
+                  trailing={!e.active ? <span className="pill">{t('exercise.inactive')}</span> : undefined}
+                />
               ))}
+              {list.length > showing.length && (
+                <button className="outline xl" style={{ marginTop: '0.75rem' }} onClick={() => setLimit(limit + PAGE)}>
+                  {t('exercise.showMore', { n: Math.min(PAGE, list.length - showing.length), left: list.length - showing.length })}
+                </button>
+              )}
               {!list.length && <p className="muted">{t('exercise.noResults')}</p>}
             </section>
           )}

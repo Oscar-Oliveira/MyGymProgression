@@ -613,7 +613,7 @@ export const LIBRARY_PT: Record<string, LibraryTranslation> = {
     ],
   },
   'walking-on-treadmill-7u2': {
-    name: 'Caminhada na passadeira',
+    name: 'Caminhar na passadeira',
     overview: 'Caminhar na passadeira é um exercício cardiovascular de baixo impacto. Melhora a saúde do coração e ajuda no controlo do peso. Velocidade e inclinação ajustam-se a cada pessoa.',
     steps: [
       'Escolha o modo "Início rápido" ou "Manual" e aumente aos poucos até um ritmo de caminhada confortável.',

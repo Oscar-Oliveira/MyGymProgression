@@ -3,41 +3,51 @@ import { useTranslation } from 'react-i18next';
 import type { MetricDef, MetricKey, ProgressionConfig, ProgressionStrategy, SetKind, SetPrescription } from '../../domain/types';
 import { METRIC_KEYS } from '../../domain/types';
 import { DEFAULT_CRITERIA, isBuiltin, METRIC_UNITS } from '../../domain/units';
-import { metricLabel } from '../util';
+import { metricLabel, metricShort } from '../util';
 import { NumInput } from './NumInput';
 
 export function MetricsEditor({ metrics, onChange }: { metrics: MetricDef[]; onChange: (m: MetricDef[]) => void }) {
   const { t } = useTranslation();
   const set = (i: number, patch: Partial<MetricDef>) => onChange(metrics.map((m, j) => (j === i ? { ...m, ...patch } : m)));
   const unused = METRIC_KEYS.filter((k) => !metrics.some((m) => m.key === k));
+  const cols = { gridTemplateColumns: 'minmax(0, 1.6fr) minmax(4.5rem, 1fr) 4.5rem 2.2rem' };
   return (
-    <div className="stack-sm">
-      {metrics.map((m, i) => (
-        <div className="row wrap" key={m.key}>
-          {isBuiltin(m.key) ? (
-            <strong className="w-8">{metricLabel(t, m.key)}</strong>
-          ) : (
-            <input aria-label={t('exercise.customLabel')} className="w-8" value={m.label ?? ''} onChange={(e) => set(i, { label: e.target.value })} />
-          )}
-          {isBuiltin(m.key) ? (
-            <select aria-label={t('exercise.unit')} value={m.unit} onChange={(e) => set(i, { unit: e.target.value })}>
-              {METRIC_UNITS[m.key].map((u) => (
-                <option key={u}>{u}</option>
-              ))}
-            </select>
-          ) : (
-            <input aria-label={t('exercise.unit')} className="w-4" value={m.unit} onChange={(e) => set(i, { unit: e.target.value })} />
-          )}
-          <label className="check">
-            <input type="checkbox" checked={m.required} onChange={(e) => set(i, { required: e.target.checked })} /> {t('exercise.required')}
-          </label>
-          <button type="button" className="ghost" onClick={() => onChange(metrics.filter((_, j) => j !== i))}>
-            {t('common.remove')}
-          </button>
+    <div>
+      {metrics.length > 0 && (
+        <div className="gtable" role="table">
+          <div className="gtable-row head" role="row" style={cols}>
+            <span role="columnheader">{t('exercise.metric')}</span>
+            <span role="columnheader">{t('exercise.unit')}</span>
+            <span role="columnheader">{t('exercise.required')}</span>
+            <span />
+          </div>
+          {metrics.map((m, i) => (
+            <div className="gtable-row" role="row" key={m.key} style={cols}>
+              {isBuiltin(m.key) ? (
+                <strong>{metricLabel(t, m.key)}</strong>
+              ) : (
+                <input aria-label={t('exercise.customLabel')} placeholder={t('exercise.customLabel')} value={m.label ?? ''} onChange={(e) => set(i, { label: e.target.value })} />
+              )}
+              {isBuiltin(m.key) ? (
+                <select aria-label={`${t('exercise.unit')} ${metricLabel(t, m.key)}`} value={m.unit} onChange={(e) => set(i, { unit: e.target.value })}>
+                  {METRIC_UNITS[m.key].map((u) => (
+                    <option key={u}>{u}</option>
+                  ))}
+                </select>
+              ) : (
+                <input aria-label={t('exercise.unit')} value={m.unit} onChange={(e) => set(i, { unit: e.target.value })} />
+              )}
+              <input type="checkbox" className="big-check" aria-label={`${t('exercise.required')} ${metricLabel(t, m.key, metrics)}`} checked={m.required} onChange={(e) => set(i, { required: e.target.checked })} />
+              <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${metricLabel(t, m.key, metrics)}`} onClick={() => onChange(metrics.filter((_, j) => j !== i))}>
+                ✕
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
       <select
         aria-label={t('exercise.addMetric')}
+        style={{ marginTop: '0.6rem' }}
         value=""
         onChange={(e) => {
           const k = e.target.value;
@@ -69,43 +79,55 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
       else s.targets[key] = tgt;
       return s;
     });
+  // Reps take two columns (min–max); every other metric one column.
+  const cols = { gridTemplateColumns: `1.6rem minmax(4.6rem, 1fr) ${metrics.map((m) => (m.key === 'reps' ? 'minmax(0, 1.6fr)' : 'minmax(0, 1fr)')).join(' ')} 2.2rem` };
   return (
-    <div className="stack-sm">
-      {sets.map((s, i) => (
-        <div className="set-rx" key={i}>
-          <span className="muted">{t('prescription.setN', { n: i + 1 })}</span>
-          <select aria-label={t('prescription.kind')} value={s.kind} onChange={(e) => upd(i, (x) => ({ ...x, kind: e.target.value as SetKind }))}>
-            {KINDS.map((k) => (
-              <option key={k} value={k}>
-                {t(`setKind.${k}`)}
-              </option>
+    <div>
+      {sets.length > 0 && (
+        <div className="gtable" role="table">
+          <div className="gtable-row head" role="row" style={cols}>
+            <span role="columnheader">#</span>
+            <span role="columnheader">{t('prescription.kind')}</span>
+            {metrics.map((m) => (
+              <span key={m.key} role="columnheader" title={metricLabel(t, m.key, metrics)}>
+                {metricShort(t, m.key, metrics)}
+                {m.unit !== 'reps' && <small>{m.unit}</small>}
+              </span>
             ))}
-          </select>
-          {metrics.map((m) =>
-            m.key === 'reps' ? (
-              <span key={m.key} className="field-inline">
-                <span>{metricLabel(t, m.key, metrics)}</span>
-                <NumInput label={`${metricLabel(t, m.key)} ${t('prescription.min')}`} placeholder={t('prescription.min')} value={s.targets.reps?.min ?? s.targets.reps?.value} onChange={(v) => setTarget(i, 'reps', 'min', v)} />
-                –
-                <NumInput label={`${metricLabel(t, m.key)} ${t('prescription.max')}`} placeholder={t('prescription.max')} value={s.targets.reps?.max} onChange={(v) => setTarget(i, 'reps', 'max', v)} />
-              </span>
-            ) : (
-              <span key={m.key} className="field-inline">
-                <span>
-                  {metricLabel(t, m.key, metrics)} <small>({m.unit})</small>
-                </span>
-                <NumInput label={metricLabel(t, m.key, metrics)} placeholder={t('prescription.target')} value={s.targets[m.key]?.value} onChange={(v) => setTarget(i, m.key, 'value', v)} />
-              </span>
-            ),
-          )}
-          <button type="button" className="ghost" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
-            ✕
-          </button>
+            <span />
+          </div>
+          {sets.map((s, i) => (
+            <div className="gtable-row" role="row" key={i} style={cols}>
+              <span className="n">{i + 1}</span>
+              <select aria-label={`${t('prescription.kind')} ${i + 1}`} value={s.kind} onChange={(e) => upd(i, (x) => ({ ...x, kind: e.target.value as SetKind }))}>
+                {KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {t(`setKindShort.${k}`)}
+                  </option>
+                ))}
+              </select>
+              {metrics.map((m) =>
+                m.key === 'reps' ? (
+                  <span key={m.key} className="range">
+                    <NumInput label={`${metricLabel(t, m.key)} ${t('prescription.min')} ${i + 1}`} placeholder={t('prescription.min')} value={s.targets.reps?.min ?? s.targets.reps?.value} onChange={(v) => setTarget(i, 'reps', 'min', v)} />
+                    <span aria-hidden="true">–</span>
+                    <NumInput label={`${metricLabel(t, m.key)} ${t('prescription.max')} ${i + 1}`} placeholder={t('prescription.max')} value={s.targets.reps?.max} onChange={(v) => setTarget(i, 'reps', 'max', v)} />
+                  </span>
+                ) : (
+                  <NumInput key={m.key} label={`${metricLabel(t, m.key, metrics)} ${i + 1}`} placeholder={t('prescription.target')} value={s.targets[m.key]?.value} onChange={(v) => setTarget(i, m.key, 'value', v)} />
+                ),
+              )}
+              <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
+                ✕
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
       <button
         type="button"
-        className="outline"
+        className="outline sm"
+        style={{ marginTop: '0.6rem' }}
         onClick={() => onChange([...sets, sets.length ? structuredClone(sets[sets.length - 1]) : { kind: 'working', targets: {} }])}
       >
         + {t('prescription.addSet')}

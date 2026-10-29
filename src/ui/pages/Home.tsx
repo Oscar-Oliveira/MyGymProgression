@@ -6,13 +6,14 @@ import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
 import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { DecisionCard, rxLine } from '../progress';
-import { Thumb } from '../components/Thumb';
-import { fmtDate, useSettings } from '../util';
+import { ExerciseItem } from '../components/ExerciseItem';
+import { fmtDate, useSettings, useThumbs } from '../util';
 
 export function Home() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const s = useSettings();
+  const thumbOf = useThumbs();
   const data = useLiveQuery(async () => {
     const [exercises, plans, versions, workouts, states, events] = await Promise.all([
       db.exercises.toArray(),
@@ -74,25 +75,17 @@ export function Home() {
           <p className="eyebrow">{t('home.next')}</p>
           <h1>{day.name}</h1>
           <p className="muted">{plan.name}</p>
-          <ul className="list" style={{ margin: '0.6rem 0 1rem' }}>
+          <div style={{ margin: '0.6rem 0 1rem' }}>
             {preview.entries.map((e) => (
-              <li key={e.id} className="row between">
-                <span className="row">
-                  <Thumb src={e.exercise.thumb} name={e.exercise.name} size={36} />
-                  {e.exercise.name}
-                </span>
-                <small className="num">{rxLine(e, t, s.language)}</small>
-              </li>
+              <ExerciseItem key={e.id} name={e.exercise.name} thumb={thumbOf(e.exerciseId, e.exercise.thumb)} sub={rxLine(e, t, s.language)} size="sm" to={`/exercises/${e.exerciseId}`} />
             ))}
-          </ul>
+          </div>
           <button className="primary xl" onClick={() => void start()}>
             ▶ {t('home.start')}
           </button>
-          <p style={{ textAlign: 'center', marginTop: '0.6rem' }}>
-            <Link to="/train" className="muted">
-              {t('home.otherDay')}
-            </Link>
-          </p>
+          <Link to="/train" className="btn ghost xl" style={{ marginTop: '0.25rem' }}>
+            {t('home.otherDay')}
+          </Link>
         </section>
       ) : (
         <section className="hero stack">
@@ -115,7 +108,9 @@ export function Home() {
 
       {pending.length > 0 && (
         <section>
-          <h2>{t('home.decide')}</h2>
+          <div className="section-head">
+            <h2>{t('home.decide')}</h2>
+          </div>
           {pending.map((ev) => {
             const e = entryOf(ev.entryId);
             return e ? <DecisionCard key={ev.id} entry={e} ev={ev} /> : null;
@@ -125,13 +120,11 @@ export function Home() {
 
       {last && (
         <section className="card">
-          <div className="row between">
+          <div className="section-head">
             <h2>{t('home.last')}</h2>
-            <Link to={`/workout/${last.id}`} className="muted">
-              {fmtDate(last.startedAt, s.language)} ›
-            </Link>
+            <Link to={`/workout/${last.id}`}>{fmtDate(last.startedAt, s.language)} ›</Link>
           </div>
-          <div className="col">
+          <div>
             {/* Pending decisions are shown above, once. */}
             {last.entries
               .filter((e) => !pending.some((p) => p.entryId === e.id))

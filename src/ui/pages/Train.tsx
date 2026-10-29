@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { nextDay } from '../../domain/workout';
+import { ThumbStack } from '../components/ExerciseItem';
 
 /** Choose what to train: an active workout opens directly; otherwise every day of every active plan. */
 export function Train() {
@@ -14,6 +15,7 @@ export function Train() {
     plans: (await db.plans.toArray()).filter((p) => p.status === 'active'),
     versions: await db.planVersions.toArray(),
     workouts: await db.workouts.toArray(),
+    exercises: new Map((await db.exercises.toArray()).map((e) => [e.id, e])),
   }));
   if (!data) return null;
   if (data.active) return <Navigate to={`/workout/${data.active.id}`} replace />;
@@ -37,23 +39,36 @@ export function Train() {
         if (!v) return null;
         const next = nextDay(v, data.workouts);
         return (
-          <section className="card" key={p.id}>
-            <p className="eyebrow">{p.name}</p>
-            <div className="col">
-              {v.days.map((d) => (
-                <button key={d.id} className={`${d.id === next?.id ? 'primary' : 'outline'} xl`} disabled={!d.items.length} onClick={() => void start(p.id, d.id)}>
-                  <span>{d.name}</span>
-                  <small style={{ color: 'inherit', opacity: 0.8 }}>
-                    · {t('train.exercises', { count: d.items.length })}
-                    {d.id === next?.id && ` · ${t('train.next')}`}
-                  </small>
-                </button>
-              ))}
-            </div>
+          <section key={p.id}>
+            <p className="month">{p.name}</p>
+            {v.days.map((d) => {
+              const items = d.items.map((i) => data.exercises.get(i.exerciseId)).filter((e) => !!e);
+              const isNext = d.id === next?.id;
+              return (
+                <div key={d.id} className={`card day-card ${isNext ? 'next' : ''}`}>
+                  <div className="row between">
+                    <div>
+                      <h2 style={{ margin: 0 }}>{d.name}</h2>
+                      <small>
+                        {t('train.exercises', { count: d.items.length })}
+                        {isNext && ` · ${t('train.next')}`}
+                      </small>
+                    </div>
+                    <ThumbStack items={items.map((e) => ({ name: e.name, thumb: e.thumb }))} />
+                  </div>
+                  <p className="help" style={{ margin: '0.5rem 0 0.75rem' }}>
+                    {items.map((e) => e.name).join(' · ')}
+                  </p>
+                  <button className={isNext ? 'primary xl' : 'outline xl'} disabled={!d.items.length} onClick={() => void start(p.id, d.id)}>
+                    ▶ {t('home.start')}
+                  </button>
+                </div>
+              );
+            })}
           </section>
         );
       })}
-      <button className="outline xl" onClick={() => void start()}>
+      <button className="ghost xl" onClick={() => void start()}>
         + {t('workout.free')}
       </button>
     </div>

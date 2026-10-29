@@ -1,14 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
 import { adherence, completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type EntryMetrics } from '../../domain/analysis';
 import { currentTarget } from '../../domain/progression';
 import type { MetricKey, WorkoutEntry } from '../../domain/types';
-import { fmtMetric, TrendMark, type Trend } from '../progress';
-import { Thumb } from '../components/Thumb';
-import { distOut, fmtNum, fmtSeconds, loadOut, tr, useSettings } from '../util';
+import { fmtMetric, TrendPill, type Trend } from '../progress';
+import { ExerciseItem } from '../components/ExerciseItem';
+import { distOut, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
 
 const PERIODS = [28, 84, 182, 0] as const;
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
@@ -37,6 +36,7 @@ function Spark({ values }: { values: number[] }) {
 export function Analysis() {
   const { t } = useTranslation();
   const s = useSettings();
+  const thumbOf = useThumbs();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(84);
   const [planId, setPlanId] = useState('');
   const data = useLiveQuery(
@@ -134,28 +134,28 @@ export function Analysis() {
         <section className="card">
           <h2>{t('analysis.byExercise')}</h2>
           {rows.map((r) => (
-            <Link key={r.id} to={`/exercises/${r.id}`} className="ex-row">
-              <TrendMark trend={r.trend} />
-              <Thumb src={r.last.exercise.thumb} name={r.name} size={40} />
-              <div className="main">
-                <div className="name">{r.name}</div>
-                <div className="sub">
-                  {r.fixed
-                    ? `${t('analysis.fixed')} · ${t('analysis.completionShort', { pct: fmtNum(r.rate * 100, s.language, 0) })}`
-                    : `${t(r.main.label)}: ${fmtMain(r.main.key, r.series[0])} → ${fmtMain(r.main.key, r.series[r.series.length - 1])}`}
-                  {' · '}
-                  {t('analysis.sessionsN', { count: r.sessions })}
-                  {r.stalled && <span className="badge warn"> {t('analysis.stalledShort')}</span>}
-                </div>
-              </div>
-              {!r.fixed && <Spark values={r.series} />}
-              {!r.fixed && r.step && r.target !== undefined && (
-                <div className="now">
-                  {fmtMetric(r.last.exercise.metrics, r.step.metric, r.target, s.language)}
-                  <div className="sub">{t('analysis.now')}</div>
-                </div>
-              )}
-            </Link>
+            <ExerciseItem
+              key={r.id}
+              to={`/exercises/${r.id}`}
+              name={r.name}
+              thumb={thumbOf(r.id, r.last.exercise.thumb)}
+              sub={
+                r.fixed
+                  ? `${t('analysis.fixed')} · ${t('analysis.completionShort', { pct: fmtNum(r.rate * 100, s.language, 0) })}`
+                  : `${t(r.main.label)}: ${fmtMain(r.main.key, r.series[0])} → ${fmtMain(r.main.key, r.series[r.series.length - 1])}`
+              }
+              trailing={
+                <span className="col" style={{ alignItems: 'flex-end', gap: '0.25rem' }}>
+                  {!r.fixed && r.step && r.target !== undefined && <strong className="now">{fmtMetric(r.last.exercise.metrics, r.step.metric, r.target, s.language)}</strong>}
+                  {r.stalled ? <span className="pill warn">{t('analysis.stalledShort')}</span> : <TrendPill trend={r.trend} />}
+                </span>
+              }
+            >
+              <span className="xitem-sub row">
+                {!r.fixed && <Spark values={r.series} />}
+                {t('analysis.sessionsN', { count: r.sessions })}
+              </span>
+            </ExerciseItem>
           ))}
         </section>
       )}

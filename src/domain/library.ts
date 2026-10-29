@@ -226,7 +226,50 @@ export function mergeLibrary(
       added.push(toExercise(rec, settings, pt));
     }
   }
+  // Built-in exercises not matched above get the image, video and how-to of their library equivalent.
+  const bySlug = new Map(records.map((r) => [normalizeRecord(r).slug, normalizeRecord(r)]));
+  const updatedIds = new Set(updated.map((e) => e.id));
+  for (const ex of existing) {
+    if (ex.source || updatedIds.has(ex.id)) continue;
+    const slug = [ex.name, ...ex.aliases].map((n) => BUILTIN_LIBRARY_SLUG[n]).find(Boolean);
+    const rec = slug && bySlug.get(slug);
+    if (!rec) continue;
+    updated.push(illustrate(ex, rec, settings.language === 'pt' ? translations[rec.slug] : undefined));
+  }
   return { added, updated };
+}
+
+/**
+ * Library entry that illustrates each built-in exercise (by its English name).
+ * Built-in exercises keep their own settings; they only get the image, video and how-to.
+ */
+export const BUILTIN_LIBRARY_SLUG: Record<string, string> = {
+  'Barbell Bench Press': 'bench-press-7', 'Incline Dumbbell Press': 'dumbbell-incline-bench-press-6i6', 'Machine Chest Press': 'lever-chest-press-0t',
+  'Push-up': 'push-up-1j', 'Cable Fly': 'upper-chest-crossovers-46', 'Barbell Back Squat': 'full-squat-n', 'Leg Press': 'sled-45-leg-press-1o',
+  'Romanian Deadlift': 'romanian-deadlift-65', Deadlift: 'deadlift-2', 'Leg Extension': 'lever-leg-extension-0b', 'Lying Leg Curl': 'lever-lying-leg-curl-0c',
+  'Barbell Hip Thrust': 'hip-thrust-39', 'Walking Lunge': 'walking-lunge-fm', 'Standing Calf Raise': 'lever-standing-calf-raise-7sa', 'Pull-up': 'pull-up-1i',
+  'Lat Pulldown': 'cable-wide-grip-lat-pulldown-7v7', 'Barbell Row': 'bent-over-row-9', 'Seated Cable Row': 'cable-seated-row-7ty',
+  'One-arm Dumbbell Row': 'one-arm-row-3u', 'Overhead Press': 'standing-military-press-31', 'Dumbbell Shoulder Press': 'dumbbell-seated-shoulder-press-6kp',
+  'Lateral Raise': 'lateral-raise-96', 'Face Pull': 'band-face-pull-6y2', 'Barbell Curl': 'barbell-curl-1', 'Dumbbell Curl': 'biceps-curl-8j',
+  'Hammer Curl': 'hammer-curl-8v', 'Triceps Pushdown': 'triceps-pushdown-7e', 'Overhead Triceps Extension': 'overhead-triceps-extension-7h',
+  Dips: 'chest-dip-88', Plank: 'front-plank-6m3', 'Side Plank': 'side-plank-6t1', 'Hanging Leg Raise': 'hanging-leg-raise-6mk',
+  'Cable Crunch': 'cable-kneeling-crunch-641', 'Treadmill Warm-up': 'walking-on-treadmill-7u2', 'Treadmill Walking': 'walking-on-treadmill-7u2',
+  Running: 'run-on-treadmill-7so', 'Stationary Bike': 'stationary-bike-walk-6vm', 'Rowing Machine': 'rowing-6ee', 'Hip Mobility Routine': 'standing-hip-circle-8pc',
+  "Farmer's Walk": 'dumbbell-farmers-carry-82k',
+};
+
+/** Media and how-to of a library record for an exercise that keeps its own identity and settings. */
+function illustrate(ex: Exercise, rec: LibraryRecord, pt?: LibraryTranslation): Exercise {
+  return {
+    ...ex,
+    thumb: ex.thumb ?? (rec.thumb || undefined),
+    image: ex.image ?? (rec.imageUrl || undefined),
+    video: ex.video ?? (youtubeUrl(rec.video) || undefined),
+    overview: ex.overview ?? (pt?.overview ?? (rec.overview || undefined)),
+    steps: ex.steps?.length ? ex.steps : (pt?.steps ?? rec.steps),
+    muscleDetail: ex.muscleDetail ?? { primary: rec.primary, secondary: rec.secondary },
+    updatedAt: nowIso(),
+  };
 }
 
 /** Related exercises of an exercise: the source's related list, else same group and equipment. */

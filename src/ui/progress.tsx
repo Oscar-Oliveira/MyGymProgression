@@ -9,16 +9,19 @@ import { canRevert } from '../domain/workout';
 import { currentTarget } from '../domain/progression';
 import type { MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
 import { NumInput } from './components/NumInput';
-import { fmtNum, fmtValue, metricLabel, reasonText, useSettings } from './util';
+import { fmtNum, fmtValue, metricLabel, reasonText, useSettings, useThumbs } from './util';
+import { ExerciseItem } from './components/ExerciseItem';
 
 export type Trend = 'up' | 'same' | 'down' | 'ask' | 'done' | 'short';
-const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '✓' };
+const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '!' };
 const TREND_CLASS: Record<Trend, string> = { up: 'up', same: '', down: 'down', ask: 'warn', done: 'up', short: 'warn' };
 
-export function TrendMark({ trend }: { trend: Trend }) {
+/** The status label used everywhere: ⬆ Up, ＝ Keep, ⬇ Down, ! Decide, ✓ Done. */
+export function TrendPill({ trend }: { trend: Trend }) {
+  const { t } = useTranslation();
   return (
-    <span className={`trend ${TREND_CLASS[trend]}`} aria-hidden="true">
-      {TREND_ICON[trend]}
+    <span className={`pill ${TREND_CLASS[trend]}`}>
+      {TREND_ICON[trend]} {t(`trend.${trend}`)}
     </span>
   );
 }
@@ -156,10 +159,11 @@ function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: 
   }
 }
 
-/** Decision card shown after a workout: applied increase (undo), missed reps (keep / step back), or keep. */
+/** Decision card shown after a workout: applied increase (undo), missed reps (keep / step back), ready (load / reps), or keep. */
 export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?: ProgressionEvent; compact?: boolean }) {
   const { t } = useTranslation();
   const s = useSettings();
+  const thumbOf = useThumbs();
   const [custom, setCustom] = useState(false);
   const [value, setValue] = useState<number | undefined>(ev?.suggestion?.to);
   const state = useLiveQuery(() => (ev ? db.progressionStates.get(ev.lineageId) : undefined), [ev?.lineageId]);
@@ -168,65 +172,71 @@ export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?:
   const { what, why } = decisionText(entry, ev, t, s.language);
   const metrics = entry.exercise.metrics;
   const sug = ev?.suggestion;
+  const pending = !compact && ev?.decision === 'pending';
+  const pill = <TrendPill trend={trend} />;
+  const item = (
+    <ExerciseItem name={entry.exercise.name} thumb={thumbOf(entry.exerciseId, entry.exercise.thumb)} sub={what} trailing={pill} size={compact ? 'sm' : 'md'}>
+      {compact && why && <span className="xitem-sub">{why}</span>}
+    </ExerciseItem>
+  );
+  if (compact) return item;
+  const fmt = (v: number) => (sug ? fmtMetric(metrics, sug.metric, v, s.language) : '');
   return (
-    <div className={compact ? 'decision' : `card decision ${trend === 'up' ? 'up' : trend === 'ask' ? 'warn' : ''}`} aria-label={entry.exercise.name}>
-      <TrendMark trend={trend} />
-      <div className="body">
-        <div className="what">
-          {entry.exercise.name}: {what}
-        </div>
-        <div className="why">{why}</div>
-        {!compact && ev?.decision === 'pending' && ev.outcome === 'ready' && (
-          <div className="row wrap" style={{ marginTop: '0.6rem' }}>
-            {sug && (
-              <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
-                ⬆ {t('decide.loadBtn', { value: fmtMetric(metrics, sug.metric, sug.to, s.language) })}
-              </button>
-            )}
-            {ev.repsOption && (
-              <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'repsUp' })}>
-                ⬆ {t('decide.repsBtn', { range: `${ev.repsOption.to.min}–${ev.repsOption.to.max}` })}
-              </button>
-            )}
-            <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
-              {t('decide.keepPlain')}
+    <section className={`card decision-card ${trend === 'up' ? 'up' : trend === 'ask' ? 'warn' : ''}`} aria-label={entry.exercise.name}>
+      {item}
+      {why && <p className="why">{why}</p>}
+      {pending && ev.outcome === 'ready' && (
+        <div className="actions">
+          {sug && (
+            <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
+              ⬆ {t('decide.loadBtn', { value: fmt(sug.to) })}
             </button>
-          </div>
-        )}
-        {!compact && ev?.decision === 'pending' && ev.outcome !== 'ready' && (
-          <div className="col" style={{ marginTop: '0.6rem' }}>
-            <div className="row wrap">
-              <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
-                {sug ? t('decide.keepBtn', { value: fmtMetric(metrics, sug.metric, sug.from, s.language) }) : t('decide.keepPlain')}
+          )}
+          {ev.repsOption && (
+            <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'repsUp' })}>
+              ⬆ {t('decide.repsBtn', { range: `${ev.repsOption.to.min}–${ev.repsOption.to.max}` })}
+            </button>
+          )}
+          <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
+            {t('decide.keepPlain')}
+          </button>
+        </div>
+      )}
+      {pending && ev.outcome !== 'ready' && (
+        <>
+          <div className="actions">
+            {sug && (
+              <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'stepBack' })}>
+                ⬇ {t('decide.downBtn', { value: fmt(sug.to) })}
               </button>
-              {sug && (
-                <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'stepBack' })}>
-                  ⬇ {t('decide.downBtn', { value: fmtMetric(metrics, sug.metric, sug.to, s.language) })}
-                </button>
-              )}
-              {sug && (
-                <button className="ghost sm" onClick={() => setCustom(!custom)}>
-                  {t('decide.other')}
-                </button>
-              )}
-            </div>
-            {custom && sug && (
-              <div className="row wrap">
-                <NumInput label={metricLabel(t, sug.metric, metrics)} value={value} onChange={setValue} />
-                <span className="muted">{unitOf(metrics, sug.metric)}</span>
-                <button className="sm" disabled={value === undefined} onClick={() => void repo.decide(ev.id, { kind: 'set', value: value!, reason: '' })}>
-                  {t('common.save')}
-                </button>
-              </div>
+            )}
+            <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
+              {sug ? t('decide.keepBtn', { value: fmt(sug.from) }) : t('decide.keepPlain')}
+            </button>
+            {sug && (
+              <button className="ghost" aria-expanded={custom} onClick={() => setCustom(!custom)}>
+                {t('decide.other')}
+              </button>
             )}
           </div>
-        )}
-      </div>
-      {undoable && (
-        <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
-          {t('decide.undo')}
-        </button>
+          {custom && sug && (
+            <div className="actions">
+              <NumInput label={metricLabel(t, sug.metric, metrics)} value={value} onChange={setValue} />
+              <span className="muted">{unitOf(metrics, sug.metric)}</span>
+              <button className="primary" disabled={value === undefined} onClick={() => void repo.decide(ev.id, { kind: 'set', value: value!, reason: '' })}>
+                {t('common.save')}
+              </button>
+            </div>
+          )}
+        </>
       )}
-    </div>
+      {undoable && (
+        <div className="actions">
+          <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
+            ↶ {t('decide.undo')}
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

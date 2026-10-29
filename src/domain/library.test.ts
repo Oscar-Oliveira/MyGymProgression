@@ -92,6 +92,17 @@ describe('library import', () => {
     expect(added[0].equipment).toBe('');
   });
 
+  it('built-in exercises get the image of their library equivalent, keeping their settings', () => {
+    const own = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Supino com barra', aliases: ['Barbell Bench Press'] });
+    const other = rec({ sid: '99', name: 'Barbell Bench Press Variant' });
+    const { updated } = mergeLibrary([own], [rec({ name: 'Something else' }), other], DEFAULT_SETTINGS);
+    const u = updated.find((e) => e.id === own.id)!;
+    expect(u.thumb).toBe('library/thumbs/2.webp');
+    expect(u.video).toContain('youtube');
+    expect(u.source).toBeUndefined();
+    expect(u.defaultSets).toEqual(own.defaultSets);
+  });
+
   it('muscle keys and groups', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');

@@ -49,11 +49,11 @@ export function createRepo(db: GymDB) {
       return { added: added.length, updated: updated.length };
     },
 
-    /** Starter exercises: the external library when available, else the built-in list. */
+    /** Starter exercises: the built-in list, then the external library (when available) adds images and more exercises. */
     async seedOrImport(): Promise<number> {
+      const seeded = await this.seedLibrary();
       const lib = await loadLibrary();
-      if (lib) return (await this.importLibrary(lib.exercises)).added;
-      return this.seedLibrary();
+      return seeded + (lib ? (await this.importLibrary(lib.exercises)).added : 0);
     },
 
     async saveExercise(ex: Exercise) {

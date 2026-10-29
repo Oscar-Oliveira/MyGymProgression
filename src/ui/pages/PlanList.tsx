@@ -7,14 +7,21 @@ import { repo } from '../../data/repo';
 import { duplicatePlan, newPlan } from '../../domain/factory';
 import type { Plan } from '../../domain/types';
 import { Empty } from '../components/Bits';
+import { ThumbStack } from '../components/ExerciseItem';
+import { Modal } from '../components/Modal';
 
 export function PlanList() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const [archived, setArchived] = useState(false);
-  const plans = useLiveQuery(() => db.plans.toArray(), []);
-  const versions = useLiveQuery(() => db.planVersions.toArray(), []);
-  if (!plans || !versions) return null;
+  const [menu, setMenu] = useState<Plan>();
+  const data = useLiveQuery(async () => ({
+    plans: await db.plans.toArray(),
+    versions: await db.planVersions.toArray(),
+    exercises: new Map((await db.exercises.toArray()).map((e) => [e.id, e])),
+  }));
+  if (!data) return null;
+  const { plans, versions, exercises } = data;
   const list = plans.filter((p) => archived || p.status === 'active').sort((a, b) => a.name.localeCompare(b.name));
 
   const create = async () => {
@@ -22,61 +29,72 @@ export function PlanList() {
     await repo.createPlan(plan, version);
     nav(`/plans/${plan.id}`);
   };
-  const dup = async (p: Plan) => {
-    const v = versions.find((x) => x.id === p.currentVersionId)!;
-    const d = duplicatePlan(p, v, t('plan.duplicateName', { name: p.name }));
-    await repo.createPlan(d.plan, d.version);
-  };
-  const toggleArchive = (p: Plan) => db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' });
-  const remove = async (p: Plan) => {
-    if (confirm(t('common.confirmDelete', { name: p.name }))) await repo.deletePlan(p.id);
+  const act = async (f: () => Promise<unknown>) => {
+    setMenu(undefined);
+    await f();
   };
 
   return (
-    <div className="stack">
-      <div className="row between wrap">
+    <div>
+      <div className="page-head">
         <h1>{t('plan.title')}</h1>
-        <button className="primary" onClick={() => void create()}>+ {t('plan.new')}</button>
+        <button className="primary" onClick={() => void create()}>
+          + {t('plan.new')}
+        </button>
       </div>
-      <label className="check">
-        <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} /> {t('plan.showArchived')}
-      </label>
       {list.length === 0 ? (
         <Empty>{t('plan.empty')}</Empty>
       ) : (
-        <div className="card">
-          <ul className="list">
-            {list.map((p) => {
-              const v = versions.find((x) => x.id === p.currentVersionId);
-              return (
-                <li key={p.id} className="row between wrap">
-                  <span>
-                    <Link to={`/plans/${p.id}`}>
-                      <strong>{p.name}</strong>
-                    </Link>{' '}
-                    {p.status === 'archived' && <span className="badge neutral">{t('plan.archived')}</span>}
-                    <br />
-                    <small>
-                      {t(`goal.${p.goal}`)} · {v?.days.length ?? 0} {t('plan.days').toLowerCase()} · {t('plan.version', { n: v?.number ?? 1 })}
-                      {p.phase && ` · ${p.phase}`}
-                    </small>
-                  </span>
-                  <span className="row wrap">
-                    <button className="ghost" onClick={() => void dup(p)}>
-                      {t('common.duplicate')}
-                    </button>
-                    <button className="ghost" onClick={() => void toggleArchive(p)}>
-                      {p.status === 'active' ? t('common.archive') : t('common.unarchive')}
-                    </button>
-                    <button className="ghost" onClick={() => void remove(p)}>
-                      {t('common.delete')}
-                    </button>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        list.map((p) => {
+          const v = versions.find((x) => x.id === p.currentVersionId);
+          const items = (v?.days ?? []).flatMap((d) => d.items).map((i) => exercises.get(i.exerciseId)).filter((e) => !!e);
+          return (
+            <div key={p.id} className="card nav-row" style={{ padding: '0.8rem 1rem', marginBottom: '0.5rem' }}>
+              <Link to={`/plans/${p.id}`} className="main" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <span className="title">
+                  {p.name} {p.status === 'archived' && <span className="pill">{t('plan.archived')}</span>}
+                </span>
+                <span className="meta">
+                  <span className="pill">{t(`goal.${p.goal}`)}</span>
+                  {(v?.days ?? []).map((d) => d.name).join(' · ') || t('plan.noDays')}
+                </span>
+                <span className="meta">
+                  <ThumbStack items={items.map((e) => ({ name: e.name, thumb: e.thumb }))} />
+                </span>
+              </Link>
+              <button className="ghost" aria-label={`${t('plan.actions')} ${p.name}`} onClick={() => setMenu(p)}>
+                ⋯
+              </button>
+            </div>
+          );
+        })
+      )}
+      <label className="check">
+        <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} /> {t('plan.showArchived')}
+      </label>
+
+      {menu && (
+        <Modal title={menu.name} onClose={() => setMenu(undefined)}>
+          <div className="sheet">
+            <button
+              onClick={() =>
+                void act(async () => {
+                  const v = versions.find((x) => x.id === menu.currentVersionId)!;
+                  const d = duplicatePlan(menu, v, t('plan.duplicateName', { name: menu.name }));
+                  await repo.createPlan(d.plan, d.version);
+                })
+              }
+            >
+              {t('common.duplicate')}
+            </button>
+            <button onClick={() => void act(() => db.plans.put({ ...menu, status: menu.status === 'active' ? 'archived' : 'active' }))}>
+              {menu.status === 'active' ? t('common.archive') : t('common.unarchive')}
+            </button>
+            <button className="danger" onClick={() => void act(async () => confirm(t('common.confirmDelete', { name: menu.name })) && repo.deletePlan(menu.id))}>
+              {t('common.delete')}
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

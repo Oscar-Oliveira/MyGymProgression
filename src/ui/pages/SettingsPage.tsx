@@ -63,8 +63,9 @@ function ImportPanel() {
 
   return (
     <div className="stack-sm">
-      <label>
-        {t('settings.chooseFile')}
+      {/* The native file control is hidden; the label is the visible, translated button. */}
+      <label className="btn btn-outline file-btn">
+        ⤒ {t('settings.chooseFile')}
         <input type="file" accept="application/json,.json" onChange={(e) => void onFile(e.target.files?.[0])} />
       </label>
       {errors.length > 0 && (
@@ -188,85 +189,117 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="stack">
-      <h1>{t('settings.title')}</h1>
-      <section className="card form-grid">
-        <label>
-          {t('settings.language')}
+    <div>
+      <div className="page-head">
+        <h1>{t('settings.title')}</h1>
+      </div>
+
+      <div className="section-head">
+        <h2>{t('settings.preferences')}</h2>
+      </div>
+      <section className="card">
+        <label className="setting-row">
+          <span>{t('settings.language')}</span>
           <select value={s.language} onChange={(e) => void repo.saveSettings({ language: e.target.value as 'pt' | 'en' })}>
             <option value="pt">Português (PT)</option>
             <option value="en">English</option>
           </select>
         </label>
-        <label>
-          {t('settings.loadUnit')}
+        <label className="setting-row">
+          <span>{t('settings.loadUnit')}</span>
           <select value={s.loadUnit} onChange={(e) => void repo.saveSettings({ loadUnit: e.target.value as 'kg' | 'lb' })}>
             <option>kg</option>
             <option>lb</option>
           </select>
         </label>
-        <label>
-          {t('settings.distanceUnit')}
+        <label className="setting-row">
+          <span>{t('settings.distanceUnit')}</span>
           <select value={s.distanceUnit} onChange={(e) => void repo.saveSettings({ distanceUnit: e.target.value as 'km' | 'mi' })}>
             <option>km</option>
             <option>mi</option>
           </select>
         </label>
-        <label>
-          {t('settings.stalledThreshold')}
+        <label className="setting-row">
+          <span>{t('settings.stalledThreshold')}</span>
           <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
         </label>
       </section>
 
-      <section className="card stack-sm">
+      <div className="section-head">
         <h2>{t('settings.data')}</h2>
-        <p className="help">{t('settings.privacy')}</p>
-        <p className="help">{persisted ? t('settings.persisted') : t('settings.notPersisted')}</p>
-        <h3>{t('settings.export')}</h3>
-        <div className="row wrap">
-          <button className="primary" onClick={() => void exportJson('full')}>{t('settings.exportFull')}</button>
-          <button className="outline" onClick={() => void exportJson('library')}>
-            {t('settings.exportLibrary')}
-          </button>
-          <button className="outline" onClick={() => void exportJson('plans')}>
-            {t('settings.exportPlans')}
-          </button>
-        </div>
-        <div className="row wrap">
-          <button className="outline" onClick={() => void csv('sets')}>
-            {t('settings.csvSets')}
-          </button>
-          <button className="outline" onClick={() => void csv('workouts')}>
-            {t('settings.csvWorkouts')}
-          </button>
-          <button className="outline" onClick={() => void csv('events')}>
-            {t('settings.csvEvents')}
+      </div>
+      <section className="card">
+        <p className="help">
+          {t('settings.privacy')} {persisted ? t('settings.persisted') : t('settings.notPersisted')}
+        </p>
+        <div className="actions">
+          <button className="primary" onClick={() => void exportJson('full')}>
+            ⤓ {t('settings.exportFull')}
           </button>
         </div>
         <p className="help">
-          {t('settings.formatDoc')} {s.lastBackupAt && `· ${t('dashboard.backupReminder', { date: fmtDate(s.lastBackupAt, s.language) })}`}
+          {s.lastBackupAt ? t('dashboard.backupReminder', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}
         </p>
-        <h3>{t('settings.import')}</h3>
+        <details>
+          <summary>{t('settings.export')}</summary>
+          <div className="actions" style={{ marginTop: 0 }}>
+            <button className="outline sm" onClick={() => void exportJson('library')}>
+              {t('settings.exportLibrary')}
+            </button>
+            <button className="outline sm" onClick={() => void exportJson('plans')}>
+              {t('settings.exportPlans')}
+            </button>
+            <button className="outline sm" onClick={() => void csv('sets')}>
+              {t('settings.csvSets')}
+            </button>
+            <button className="outline sm" onClick={() => void csv('workouts')}>
+              {t('settings.csvWorkouts')}
+            </button>
+            <button className="outline sm" onClick={() => void csv('events')}>
+              {t('settings.csvEvents')}
+            </button>
+          </div>
+          <p className="help">{t('settings.formatDoc')}</p>
+        </details>
+      </section>
+
+      <div className="section-head">
+        <h2>{t('settings.import')}</h2>
+      </div>
+      <section className="card">
         <ImportPanel />
       </section>
 
-      <section className="card stack-sm">
-        <div className="row wrap">
+      <div className="section-head">
+        <h2>{t('settings.library')}</h2>
+      </div>
+      <section className="card">
+        <div className="actions" style={{ marginTop: 0 }}>
           <button className="outline" onClick={() => void importLibrary()}>
             {t('settings.importLibrary')}
           </button>
           <button className="outline" onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))}>
             {t('settings.seed')}
           </button>
-          <button className="outline" onClick={() => void demo()}>
+          <button className="ghost" onClick={() => void demo()}>
             {t('settings.demo')}
           </button>
-          <span className="spacer" />
-          <button className="danger" onClick={() => void reset()}>
-            {t('settings.reset')}
-          </button>
         </div>
-        {msg && <p role="status">{msg}</p>}
+        {msg && (
+          <p role="status" className="help">
+            {msg}
+          </p>
+        )}
+      </section>
+
+      <div className="section-head">
+        <h2>{t('settings.danger')}</h2>
+      </div>
+      <section className="card">
+        <p className="help">{t('settings.resetConfirm')}</p>
+        <button className="danger" onClick={() => void reset()}>
+          {t('settings.reset')}
+        </button>
       </section>
     </div>
   );

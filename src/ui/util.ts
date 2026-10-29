@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { TFunction } from 'i18next';
+import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { DEFAULT_SETTINGS } from '../domain/factory';
 import type { MetricDef, MetricKey, Reason, Settings } from '../domain/types';
@@ -9,9 +10,27 @@ export function useSettings(): Settings {
   return useLiveQuery(() => repo.getSettings(), [], DEFAULT_SETTINGS);
 }
 
+/** Current image of each exercise, so older records also show the images added later. */
+export function useThumbs(): (exerciseId: string, fallback?: string) => string | undefined {
+  const map = useLiveQuery(async () => {
+    const m = new Map<string, string>();
+    await db.exercises.each((e) => {
+      if (e.thumb) m.set(e.id, e.thumb);
+    });
+    return m;
+  }, []);
+  return (id, fallback) => map?.get(id) ?? fallback;
+}
+
 export function metricLabel(t: TFunction, key: MetricKey, defs?: MetricDef[]): string {
   if (key.startsWith('custom:')) return defs?.find((d) => d.key === key)?.label || key.slice(7);
   return t(`metric.${key}`);
+}
+
+/** Short label for table headers (e.g. "Vel." for speed). */
+export function metricShort(t: TFunction, key: MetricKey, defs?: MetricDef[]): string {
+  if (key.startsWith('custom:')) return metricLabel(t, key, defs);
+  return t(`metricShort.${key}`);
 }
 
 /** Translates a known key in a group (muscle, equipment); returns the raw text for user-defined values. */

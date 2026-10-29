@@ -12,7 +12,8 @@ import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, progressHint, rxLine, setsLine, setText } from '../progress';
-import { fmtDate, fmtNum, metricLabel, useSettings } from '../util';
+import { fmtDate, fmtNum, fmtSeconds, metricLabel, metricShort, useSettings, useThumbs } from '../util';
+import { ExerciseItem } from '../components/ExerciseItem';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -115,7 +116,7 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
     <section aria-label={entry.exercise.name}>
       {entry.group && <span className="badge">{t('plan.group')} {entry.group}</span>}
       <div className="row" style={{ alignItems: 'center' }}>
-        <Thumb src={entry.exercise.thumb ?? thumbOf(entry.exerciseId)} name={entry.exercise.name} size={64} />
+        <Thumb src={thumbOf(entry.exerciseId) ?? entry.exercise.thumb} name={entry.exercise.name} size={64} />
         <h1 className="ex-title">{entry.exercise.name}</h1>
       </div>
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
@@ -161,35 +162,48 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
   );
 }
 
-function CorrectionEditor({ draft, onChange }: { draft: Workout; onChange: (w: Workout) => void }) {
+function CorrectionEditor({ draft, onChange, thumbOf }: { draft: Workout; onChange: (w: Workout) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
   const { t } = useTranslation();
   const upSet = (ei: number, si: number, patch: Partial<SetRecord>) =>
     onChange({ ...draft, entries: draft.entries.map((e, i) => (i === ei ? { ...e, sets: e.sets.map((x, j) => (j === si ? { ...x, ...patch } : x)) } : e)) });
   return (
     <div>
-      {draft.entries.map((e, ei) => (
-        <section className="card" key={e.id} aria-label={e.exercise.name}>
-          <h3>{e.exercise.name}</h3>
-          <div className="col">
-            {e.sets.map((x, si) => (
-              <div key={x.id} className="set-rx">
-                <strong style={{ width: '1.5rem' }}>{si + 1}</strong>
-                {e.exercise.metrics.map((m) => (
-                  <span key={m.key} className="field-inline">
-                    <span>
-                      {metricLabel(t, m.key, e.exercise.metrics)} {m.unit !== 'reps' && `(${m.unit})`}
-                    </span>
-                    <NumInput label={`${metricLabel(t, m.key, e.exercise.metrics)} ${si + 1}`} value={x.values[m.key]} onChange={(v) => upSet(ei, si, { values: { ...x.values, [m.key]: v } })} />
+      {draft.entries.map((e, ei) => {
+        const metrics = e.exercise.metrics;
+        const cols = { gridTemplateColumns: `2rem repeat(${metrics.length}, minmax(0, 1fr)) 3.2rem` };
+        return (
+          <section className="card" key={e.id} aria-label={e.exercise.name}>
+            <ExerciseItem name={e.exercise.name} thumb={thumbOf(e.exerciseId, e.exercise.thumb)} size="sm" />
+            <div className="gtable" role="table">
+              <div className="gtable-row head" role="row" style={cols}>
+                <span role="columnheader">#</span>
+                {metrics.map((m) => (
+                  <span key={m.key} role="columnheader" title={metricLabel(t, m.key, metrics)}>
+                    {metricShort(t, m.key, metrics)}
+                    {m.unit !== 'reps' && <small>{m.unit}</small>}
                   </span>
                 ))}
-                <label className="check">
-                  <input type="checkbox" checked={x.status === 'done'} onChange={(ev) => upSet(ei, si, { status: ev.target.checked ? 'done' : 'skipped' })} /> {t('setStatus.done')}
-                </label>
+                <span role="columnheader">{t('setStatus.done')}</span>
               </div>
-            ))}
-          </div>
-        </section>
-      ))}
+              {e.sets.map((x, si) => (
+                <div key={x.id} className="gtable-row" role="row" style={cols}>
+                  <span className="n">{si + 1}</span>
+                  {metrics.map((m) => (
+                    <NumInput key={m.key} label={`${metricLabel(t, m.key, metrics)} ${si + 1}`} value={x.values[m.key]} onChange={(v) => upSet(ei, si, { values: { ...x.values, [m.key]: v } })} />
+                  ))}
+                  <input
+                    type="checkbox"
+                    className="big-check"
+                    aria-label={`${t('setStatus.done')} ${si + 1}`}
+                    checked={x.status === 'done'}
+                    onChange={(ev) => upSet(ei, si, { status: ev.target.checked ? 'done' : 'skipped' })}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -199,6 +213,7 @@ export function WorkoutPage() {
   const { id } = useParams();
   const nav = useNavigate();
   const s = useSettings();
+  const thumbOf = useThumbs();
   const stored = useLiveQuery(() => db.workouts.get(id!), [id]);
   const ctx = useLiveQuery(async () => {
     const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
@@ -246,6 +261,8 @@ export function WorkoutPage() {
   const upEntry = (e: WorkoutEntry) => update({ ...draft, entries: draft.entries.map((x) => (x.id === e.id ? e : x)) });
   const entryDone = (e: WorkoutEntry) => e.sets.length > 0 && e.sets.every((x) => x.status !== 'pending');
   const pendingSets = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.status === 'pending').length, 0);
+  const doneWorking = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0);
+  const totalWorking = draft.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
 
   const pick = async (ex: Exercise) => {
     const mode = picker;
@@ -282,8 +299,11 @@ export function WorkoutPage() {
           <div className="wk-chips" role="tablist">
             {draft.entries.map((e, i) => (
               <button key={e.id} role="tab" aria-selected={i === cur} className={`wk-chip ${i === cur ? 'cur' : entryDone(e) ? 'done' : ''}`} onClick={() => setCur(i)}>
-                {entryDone(e) ? '✓ ' : ''}
-                {e.exercise.name}
+                <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={22} />
+                <span>
+                  {entryDone(e) ? '✓ ' : ''}
+                  {e.exercise.name}
+                </span>
               </button>
             ))}
           </div>
@@ -364,7 +384,7 @@ export function WorkoutPage() {
       {editing ? (
         <>
           <p className="help">{t('workout.correctHelp')}</p>
-          <CorrectionEditor draft={draft} onChange={setDraft} />
+          <CorrectionEditor draft={draft} onChange={setDraft} thumbOf={thumbOf} />
           <div className="wk-nav">
             <button className="outline" onClick={() => (setEditing(false), setDraft(stored))}>
               {t('common.cancel')}
@@ -376,7 +396,25 @@ export function WorkoutPage() {
         </>
       ) : (
         <>
-          <h2>{t('workout.nextTime')}</h2>
+          <div className="grid3" style={{ margin: '0.25rem 0 0.5rem' }}>
+            <div className="stat">
+              <div className="value">{draft.entries.length}</div>
+              <div className="label">{t('nav.exercises')}</div>
+            </div>
+            <div className="stat">
+              <div className="value">
+                {doneWorking}/{totalWorking}
+              </div>
+              <div className="label">{t('analysis.workingSets')}</div>
+            </div>
+            <div className="stat">
+              <div className="value">{draft.endedAt ? fmtSeconds((Date.parse(draft.endedAt) - Date.parse(draft.startedAt)) / 1000) : '—'}</div>
+              <div className="label">{t('analysis.duration')}</div>
+            </div>
+          </div>
+          <div className="section-head">
+            <h2>{t('workout.nextTime')}</h2>
+          </div>
           {draft.entries.map((e) => (
             <DecisionCard key={e.id} entry={e} ev={ctx.events.find((x) => x.entryId === e.id)} />
           ))}
@@ -385,12 +423,13 @@ export function WorkoutPage() {
             <summary>{t('workout.details')}</summary>
             {draft.entries.map((e) => (
               <div key={e.id} style={{ marginBottom: '0.6rem' }}>
-                <strong>
-                  <Link to={`/exercises/${e.exerciseId}`}>{e.exercise.name}</Link>
-                </strong>
-                <div className="help">
-                  {t('workout.prescribed')}: {rxLine(e, t, s.language)}
-                </div>
+                <ExerciseItem
+                  name={e.exercise.name}
+                  thumb={thumbOf(e.exerciseId, e.exercise.thumb)}
+                  sub={`${t('workout.prescribed')}: ${rxLine(e, t, s.language)}`}
+                  size="sm"
+                  to={`/exercises/${e.exerciseId}`}
+                />
                 <div className="num">
                   {e.sets.map((x, i) => (
                     <div key={x.id} className={x.status === 'skipped' ? 'muted' : ''}>

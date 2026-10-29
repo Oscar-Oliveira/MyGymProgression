@@ -5,7 +5,7 @@ import { db } from '../../data/db';
 import type { Exercise } from '../../domain/types';
 import { tr } from '../util';
 import { Modal } from './Modal';
-import { Thumb } from './Thumb';
+import { ExerciseItem } from './ExerciseItem';
 
 export const matches = (e: Exercise, q: string) => {
   const n = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -32,18 +32,13 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
       <ul className="pick-list">
         {shown.map((e) => (
           <li key={e.id}>
-            <button type="button" className="lib-row" style={{ flexDirection: 'row', alignItems: 'center' }} onClick={() => onPick(e)}>
-              <Thumb src={e.thumb} name={e.name} size={44} />
-              <span className="main">
-              <strong>
-                {preferred.includes(e.id) && '★ '}
-                {e.name}
-              </strong>
-              <small>
-                {' '}
-                {e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')} · {tr(t, 'equipment', e.equipment)}
-              </small>
-              </span>
+            <button type="button" className="pick" onClick={() => onPick(e)}>
+              <ExerciseItem
+                name={`${preferred.includes(e.id) ? '★ ' : ''}${e.name}`}
+                thumb={e.thumb}
+                size="sm"
+                sub={[tr(t, 'equipment', e.equipment), e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')].filter(Boolean).join(' · ')}
+              />
             </button>
           </li>
         ))}
