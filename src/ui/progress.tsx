@@ -1,0 +1,199 @@
+// Shared texts and components that explain progression to the user.
+import type { TFunction } from 'i18next';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { repo } from '../data/repo';
+import { currentTarget } from '../domain/progression';
+import type { MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
+import { NumInput } from './components/NumInput';
+import { fmtNum, fmtValue, metricLabel, reasonText, useSettings } from './util';
+
+export type Trend = 'up' | 'same' | 'down' | 'ask' | 'done' | 'short';
+export const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '✓' };
+export const TREND_CLASS: Record<Trend, string> = { up: 'up', same: '', down: 'down', ask: 'warn', done: 'up', short: 'warn' };
+
+export function TrendMark({ trend }: { trend: Trend }) {
+  return (
+    <span className={`trend ${TREND_CLASS[trend]}`} aria-hidden="true">
+      {TREND_ICON[trend]}
+    </span>
+  );
+}
+
+const unitOf = (metrics: MetricDef[], k: MetricKey) => metrics.find((m) => m.key === k)?.unit ?? '';
+export const fmtMetric = (metrics: MetricDef[], k: MetricKey, v: number | undefined, lang: string) => fmtValue(v, unitOf(metrics, k), lang);
+
+/** "12 · 11 · 10 × 40 kg" for reps+load, otherwise the values of each set joined. */
+export function setsLine(sets: SetRecord[], metrics: MetricDef[], lang: string): string {
+  const done = sets.filter((s) => s.kind === 'working' && s.status === 'done');
+  if (!done.length) return '—';
+  const hasReps = metrics.some((m) => m.key === 'reps');
+  const loads = [...new Set(done.map((s) => s.values.load))];
+  if (hasReps && metrics.some((m) => m.key === 'load') && loads.length === 1 && loads[0] !== undefined) {
+    return `${done.map((s) => fmtNum(s.values.reps, lang)).join(' · ')} × ${fmtMetric(metrics, 'load', loads[0], lang)}`;
+  }
+  return done.map((s) => setText(s, metrics, lang)).join('  ·  ');
+}
+
+export function setText(s: SetRecord, metrics: MetricDef[], lang: string): string {
+  const v = s.values;
+  if (v.reps !== undefined && v.load !== undefined) return `${fmtNum(v.reps, lang)} × ${fmtMetric(metrics, 'load', v.load, lang)}`;
+  return metrics
+    .filter((m) => v[m.key] !== undefined)
+    .map((m) => (m.key === 'reps' ? `${fmtNum(v.reps, lang)} reps` : fmtValue(v[m.key], m.unit, lang)))
+    .join(' · ');
+}
+
+/** Short prescription: "3 × 8–12 · 40 kg". */
+export function rxLine(entry: Pick<WorkoutEntry, 'prescription' | 'exercise'>, t: TFunction, lang: string): string {
+  const working = entry.prescription.filter((s) => s.kind === 'working');
+  const first = working[0];
+  if (!first) return '—';
+  const metrics = entry.exercise.metrics;
+  const parts = metrics.flatMap((m) => {
+    const x = first.targets[m.key];
+    if (!x) return [];
+    if (m.key === 'reps') return [x.value !== undefined ? `${x.value} reps` : `${x.min ?? '?'}${x.max !== undefined ? `–${x.max}` : '+'} reps`];
+    return x.value !== undefined ? [fmtValue(x.value, m.unit, lang)] : [];
+  });
+  const warm = entry.prescription.filter((s) => s.kind === 'warmup').length;
+  return `${warm ? `${warm} ${t('setKind.warmup').toLowerCase()} + ` : ''}${working.length} × ${parts.join(' · ') || '—'}`;
+}
+
+/** What the user must do today to progress, e.g. "12 reps in every set → 42.5 kg next time". */
+export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): string {
+  const cfg = entry.progression;
+  const metrics = entry.exercise.metrics;
+  if (cfg.strategy === 'none') return t('hint.fixed');
+  if (cfg.strategy === 'manual') return t('hint.manual');
+  const s = cfg.steps[0];
+  if (!s) return t('hint.manual');
+  const from = currentTarget(entry.prescription, s.metric);
+  const to = from !== undefined ? Math.round((from + s.increment) * 100) / 100 : undefined;
+  const capped = s.cap !== undefined && from !== undefined && from >= s.cap;
+  if (cfg.strategy === 'double') {
+    const max = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.max;
+    if (max === undefined || to === undefined) return t('hint.manual');
+    if (capped) return t('hint.cap');
+    return t('hint.double', { max, to: fmtMetric(metrics, s.metric, to, lang) });
+  }
+  if (from === undefined || to === undefined) return t('hint.manual');
+  if (capped) return t('hint.cap');
+  return t('hint.target', { target: fmtMetric(metrics, s.metric, from, lang), to: fmtMetric(metrics, s.metric, to, lang) });
+}
+
+/** Trend for an entry and its event, for summaries and lists. */
+export function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
+  if (ev) {
+    if (ev.decision === 'applied') return 'up';
+    if (ev.decision === 'pending') return 'ask';
+    if (ev.decision === 'stepped_back') return 'down';
+    if (ev.decision === 'overridden' && ev.suggestion) return ev.after[ev.suggestion.metric]! > ev.before[ev.suggestion.metric]! ? 'up' : ev.after[ev.suggestion.metric]! < ev.before[ev.suggestion.metric]! ? 'down' : 'same';
+    return 'same';
+  }
+  if (entry.progression.strategy === 'none') return entry.evaluation?.completion === 'complete' ? 'done' : 'short';
+  return 'same';
+}
+
+function mainValue(entry: WorkoutEntry, targets?: Partial<Record<MetricKey, number>>): { metric: MetricKey; value: number } | undefined {
+  const metric = entry.progression.steps[0]?.metric;
+  if (!metric) return undefined;
+  const value = targets?.[metric] ?? currentTarget(entry.prescription, metric);
+  return value === undefined ? undefined : { metric, value };
+}
+
+const firstReason = (t: TFunction, reasons: Reason[], metrics: MetricDef[]) => (reasons[0] ? reasonText(t, reasons[0], metrics) : '');
+
+/** One line "what happens next" and one line "why" for an evaluated entry. */
+export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: TFunction, lang: string): { what: string; why: string } {
+  const metrics = entry.exercise.metrics;
+  const evn = entry.evaluation;
+  const sets = setsLine(entry.sets, metrics, lang);
+  if (!evn) return { what: '', why: sets };
+  if (entry.progression.strategy === 'none') {
+    return { what: evn.completion === 'complete' ? t('decide.doneFixed') : t('decide.shortFixed'), why: sets };
+  }
+  const val = (targets?: Partial<Record<MetricKey, number>>) => {
+    const m = mainValue(entry, targets);
+    return m ? fmtMetric(metrics, m.metric, m.value, lang) : '';
+  };
+  if (ev?.decision === 'applied') return { what: t('decide.up', { value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
+  if (ev?.decision === 'reverted') return { what: t('decide.reverted', { value: val(ev.after) }), why: sets };
+  if (ev?.decision === 'pending') return { what: t('decide.missed'), why: `${sets} — ${firstReason(t, evn.reasons, metrics)}` };
+  if (ev?.decision === 'kept') return { what: t('decide.keep', { value: val(ev.after) }), why: sets };
+  if (ev?.decision === 'stepped_back') return { what: t('decide.down', { value: val(ev.after) }), why: sets };
+  if (ev?.decision === 'overridden') return { what: t('decide.set', { value: val(ev.after) }), why: ev.decisionReason || sets };
+  const keep = t('decide.keep', { value: val() });
+  switch (evn.outcome) {
+    case 'progress':
+      return { what: keep, why: `${sets} — ${t('reason.reps_improved_short')}` };
+    case 'keep':
+      return { what: keep, why: `${sets} — ${t('decide.building')}` };
+    case 'incomplete':
+      return { what: keep, why: firstReason(t, evn.reasons, metrics) };
+    case 'restricted':
+      return { what: keep, why: evn.reasons.filter((r) => r.code !== 'top_reached').map((r) => reasonText(t, r, metrics)).join(' ') };
+    case 'at_cap':
+      return { what: t('hint.cap'), why: sets };
+    case 'manual':
+      return { what: t('hint.manual'), why: sets };
+    default:
+      return { what: keep, why: sets };
+  }
+}
+
+/** Decision card shown after a workout: applied increase (undo), missed reps (keep / step back), or keep. */
+export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?: ProgressionEvent; compact?: boolean }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const [custom, setCustom] = useState(false);
+  const [value, setValue] = useState<number | undefined>(ev?.suggestion?.to);
+  const trend = trendOf(entry, ev);
+  const { what, why } = decisionText(entry, ev, t, s.language);
+  const metrics = entry.exercise.metrics;
+  const sug = ev?.suggestion;
+  return (
+    <div className={compact ? 'decision' : `card decision ${trend === 'up' ? 'up' : trend === 'ask' ? 'warn' : ''}`} aria-label={entry.exercise.name}>
+      <TrendMark trend={trend} />
+      <div className="body">
+        <div className="what">
+          {entry.exercise.name}: {what}
+        </div>
+        <div className="why">{why}</div>
+        {!compact && ev?.decision === 'pending' && (
+          <div className="col" style={{ marginTop: '0.6rem' }}>
+            <div className="row wrap">
+              <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
+                {sug ? t('decide.keepBtn', { value: fmtMetric(metrics, sug.metric, sug.from, s.language) }) : t('decide.keepPlain')}
+              </button>
+              {sug && (
+                <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'stepBack' })}>
+                  ⬇ {t('decide.downBtn', { value: fmtMetric(metrics, sug.metric, sug.to, s.language) })}
+                </button>
+              )}
+              {sug && (
+                <button className="ghost sm" onClick={() => setCustom(!custom)}>
+                  {t('decide.other')}
+                </button>
+              )}
+            </div>
+            {custom && sug && (
+              <div className="row wrap">
+                <NumInput label={metricLabel(t, sug.metric, metrics)} value={value} onChange={setValue} />
+                <span className="muted">{unitOf(metrics, sug.metric)}</span>
+                <button className="sm" disabled={value === undefined} onClick={() => void repo.decide(ev.id, { kind: 'set', value: value!, reason: '' })}>
+                  {t('common.save')}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {!compact && ev?.decision === 'applied' && (
+        <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
+          {t('decide.undo')}
+        </button>
+      )}
+    </div>
+  );
+}

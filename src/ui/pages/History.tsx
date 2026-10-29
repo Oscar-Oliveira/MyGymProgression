@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
-import { Empty, OutcomeBadge } from '../components/Bits';
+import { Empty } from '../components/Bits';
 import { fmtDate, useSettings } from '../util';
 
 export function History() {
@@ -21,7 +21,7 @@ export function History() {
             {workouts.map((w) => {
               const done = w.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0);
               const total = w.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
-              const recs = w.entries.filter((e) => e.evaluation?.outcome === 'increase_recommended').length;
+              const recs = w.entries.filter((e) => e.evaluation?.outcome === 'increase').length;
               return (
                 <li key={w.id} className="row between wrap">
                   <span>
@@ -36,8 +36,8 @@ export function History() {
                     </small>
                   </span>
                   <span className="row">
-                    {recs > 0 && <OutcomeBadge outcome="increase_recommended" />}
-                    <span className={`badge ${w.status === 'completed' ? 'good' : w.status === 'in_progress' ? 'ok' : 'warn'}`}>{t(`workout.status.${w.status}`)}</span>
+                    {recs > 0 && <span className="badge up">⬆ {recs}</span>}
+                    <span className={`badge ${w.status === 'completed' ? 'up' : w.status === 'in_progress' ? '' : 'warn'}`}>{t(`workout.status.${w.status}`)}</span>
                   </span>
                 </li>
               );

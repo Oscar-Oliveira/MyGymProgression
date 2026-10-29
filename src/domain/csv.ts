@@ -17,7 +17,7 @@ export function setsCsv(workouts: Workout[]): string {
   const header = [
     'workout_id', 'date', 'plan', 'day', 'workout_status', 'entry_no', 'exercise_id', 'exercise', 'substituted_for', 'set_no', 'kind', 'status',
     ...keys.flatMap((k) => [k, `${k}_unit`]),
-    'load_mode', 'rir', 'rpe', 'rest_s', 'notes',
+    'load_mode', 'goal', 'rest_s', 'notes',
   ];
   const rows: unknown[][] = [];
   for (const w of workouts) {
@@ -27,7 +27,7 @@ export function setsCsv(workouts: Workout[]): string {
         rows.push([
           w.id, w.startedAt, w.planName, w.dayName, w.status, ei + 1, e.exerciseId, e.exercise.name, e.substitutedFor, si + 1, s.kind, s.status,
           ...keys.flatMap((k) => (s.values[k] === undefined ? ['', ''] : [s.values[k], units[k] ?? ''])),
-          e.exercise.loadMode, s.rir, s.rpe, s.restSec, s.notes,
+          e.exercise.loadMode, s.goal ? JSON.stringify(s.goal) : '', s.restSec, s.notes,
         ]);
       });
     });
@@ -46,10 +46,10 @@ export function workoutsCsv(workouts: Workout[]): string {
 }
 
 export function eventsCsv(events: ProgressionEvent[], names: Record<string, string>): string {
-  const header = ['event_id', 'created_at', 'workout_id', 'exercise_id', 'exercise', 'strategy', 'outcome', 'metric', 'from', 'to', 'decision', 'decision_reason', 'before', 'after', 'reasons'];
+  const header = ['event_id', 'created_at', 'workout_id', 'exercise_id', 'exercise', 'strategy', 'outcome', 'metric', 'from', 'to', 'direction', 'decision', 'decision_reason', 'before', 'after', 'reasons'];
   const rows = events.map((e) => [
     e.id, e.createdAt, e.workoutId, e.exerciseId, names[e.exerciseId] ?? '', e.strategy, e.outcome,
-    e.recommendation?.metric, e.recommendation?.from, e.recommendation?.to, e.decision, e.decisionReason,
+    e.suggestion?.metric, e.suggestion?.from, e.suggestion?.to, e.suggestion?.kind, e.decision, e.decisionReason,
     JSON.stringify(e.before), JSON.stringify(e.after), e.reasons.map((r) => r.code).join('|'),
   ]);
   return toCsv(header, rows);

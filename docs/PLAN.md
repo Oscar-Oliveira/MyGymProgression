@@ -15,11 +15,15 @@ Source requirements: [`context.md`](../context.md).
 | D4 | MVP includes the **offline-capable installable PWA** and the **estimated 1RM** feature. | 2026-10-29 |
 | D5 | Rest timer, body measurements, cloud sync, reminders, sharing, wearables and AI analysis are **excluded** from the MVP (backlog). | 2026-10-29 |
 | D6 | Plan approved with recommended defaults. Q1: seed ~40 common exercises (optional, from Settings and first-run). Q2: progression per plan item. Q3: missing RIR does not block. Q4: stalled after 3 sessions (configurable). | 2026-10-29 |
+| D7 | RIR and RPE removed from the app (records, plans, rules). Data schema v2 with automatic migration. | 2026-10-29 |
+| D8 | Progression rule: all sets reach the target (double: top of range) → the target goes up **automatically** (undo available). Within the range or sets skipped → keep, no question. A completed set below the minimum (missed reps) → the app asks: keep, or step back one increment. Pain/technique/substitution block an increase. | 2026-10-29 |
+| D9 | Each set shows today's goal: last time + 1 rep at the same load (up to the range max); after a load change, the range minimum. | 2026-10-29 |
+| D10 | UI redesign: follows system light/dark, large numbers; 4 tabs (Home · Train · History · More); workout shows one exercise at a time with one-tap "Set done"; focused Home; simple plan editor (advanced options folded); analysis per exercise. | 2026-10-29 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 
 - A1. Default unit is **kg** and the default load mode is **total load**. Both can be changed in Settings. Lb and per-side loads are supported for each exercise.
-- A2. The app **recommends** progression and does not apply it automatically. A load or target increase takes effect only after the user confirms it (outcome "Load increased").
+- A2. ~~The app only recommends progression.~~ Superseded by D8: increases are applied automatically and can be undone.
 - A3. Edits to completed workouts are allowed. Each edit is kept in a **revision log**.
 - A4. Media are stored as **URLs only** (image/video links). The app does not upload files in the MVP, so backups stay small.
 - A5. Progression state is tracked **per plan item**. The same exercise can have different rep ranges in different plans. See open question Q2.

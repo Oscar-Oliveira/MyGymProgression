@@ -1,4 +1,9 @@
 // Progression engine. Pure functions, no UI or storage dependencies.
+//
+// Rules (D8):
+// - All working sets reach the target (double: top of the rep range) → increase (applied automatically, can be undone).
+// - Within the range, or sets skipped → keep.
+// - A completed set below the minimum (missing reps) → missed: the user chooses keep or step back one increment.
 import type {
   Completion,
   Evaluation,
@@ -7,9 +12,9 @@ import type {
   ProgressionConfig,
   ProgressionStep,
   Reason,
-  Recommendation,
   SetPrescription,
   SetRecord,
+  Suggestion,
 } from './types';
 import { round } from './units';
 
@@ -66,18 +71,12 @@ export function evaluateCompletion(prescription: SetPrescription[], sets: SetRec
   return { completion: reasons.length ? 'below_target' : 'complete', reasons };
 }
 
-function restrictions(input: EvalInput, ps: Pair[]): Reason[] {
+function blockers(input: EvalInput): Reason[] {
   const { criteria } = input.config;
   const out: Reason[] = [];
+  if (input.substituted && criteria.blockOnSubstitution) out.push({ code: 'substituted' });
   if (input.pain && criteria.blockOnPain) out.push({ code: 'pain' });
   if (input.technique && criteria.blockOnTechnique) out.push({ code: 'technique' });
-  if (criteria.useRir) {
-    for (const { index, p, r } of ps) {
-      if (p.rir !== undefined && r.rir !== undefined && r.rir < p.rir) {
-        out.push({ code: 'rir_below_target', params: { set: index, rir: r.rir, target: p.rir } });
-      }
-    }
-  }
   return out;
 }
 
@@ -85,84 +84,96 @@ function sumMetric(sets: SetRecord[], metric: MetricKey): number {
   return workingDone(sets).reduce((a, s) => a + (s.values[metric] ?? 0), 0);
 }
 
-function currentTarget(prescription: SetPrescription[], metric: MetricKey): number | undefined {
+export function currentTarget(prescription: SetPrescription[], metric: MetricKey): number | undefined {
   return workingPrescribed(prescription)[0]?.targets[metric]?.value;
 }
 
-function step(from: number, s: ProgressionStep): number {
+const up = (from: number, s: ProgressionStep): number => {
   const to = round(from + s.increment);
   return s.cap !== undefined ? Math.min(to, s.cap) : to;
+};
+const down = (from: number, s: ProgressionStep): number => Math.max(0, round(from - s.increment));
+
+const result = (input: EvalInput, outcome: Outcome, completion: Completion, reasons: Reason[], suggestion?: Suggestion): Evaluation => ({
+  strategy: input.config.strategy,
+  outcome,
+  completion,
+  reasons,
+  ...(suggestion ? { suggestion } : {}),
+});
+
+/** Step-back suggestion for a metric, if a current target and an increment exist. */
+function stepBack(input: EvalInput, s: ProgressionStep | undefined): Suggestion | undefined {
+  if (!s || s.increment <= 0) return undefined;
+  const from = currentTarget(input.prescription, s.metric);
+  if (from === undefined || from <= 0) return undefined;
+  return { metric: s.metric, from, to: down(from, s), kind: 'decrease' };
 }
 
-const result = (
-  input: EvalInput,
-  outcome: Outcome,
-  completion: Completion,
-  reasons: Reason[],
-  recommendation?: Recommendation,
-): Evaluation => ({ strategy: input.config.strategy, outcome, completion, reasons, ...(recommendation ? { recommendation } : {}) });
-
 function evaluateDouble(input: EvalInput, completion: Completion, completionReasons: Reason[]): Evaluation {
-  const s = input.config.steps[0] ?? { metric: 'load', increment: 0 };
-  const pm = s.metric;
+  const s = input.config.steps[0];
+  const pm = s?.metric ?? 'load';
   const ps = pairs(input.prescription, input.sets);
 
+  if (input.substituted) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
+
+  const missed = ps.flatMap(({ index, p, r }) => {
+    const min = p.targets.reps?.min ?? p.targets.reps?.value;
+    const reps = r.values.reps ?? 0;
+    return min !== undefined && reps < min ? [{ code: 'set_below_min', params: { set: index, reps, min } }] : [];
+  });
+  if (missed.length) return result(input, 'missed', completion, missed, stepBack(input, s));
   if (completion === 'incomplete') return result(input, 'incomplete', completion, completionReasons);
-  if (input.substituted && input.config.criteria.blockOnSubstitution) {
-    return result(input, 'restricted', completion, [{ code: 'substituted' }]);
-  }
 
   const loadBelow = completionReasons.filter((r) => r.params?.metric === pm);
-  if (loadBelow.length) return result(input, 'below_target', completion, loadBelow);
+  if (loadBelow.length) return result(input, 'restricted', completion, loadBelow);
 
-  const repReasons = completionReasons.filter((r) => r.params?.metric === 'reps');
   const belowMax: Reason[] = [];
   for (const { index, p, r } of ps) {
     const max = p.targets.reps?.max;
-    if (max === undefined) return result(input, completion === 'complete' ? 'completed_as_prescribed' : 'below_target', completion, [{ code: 'no_rep_max' }]);
+    if (max === undefined) return result(input, 'keep', completion, [{ code: 'no_rep_max' }]);
     const reps = r.values.reps ?? 0;
     if (reps < max) belowMax.push({ code: 'set_below_max', params: { set: index, reps, max } });
   }
-
   if (belowMax.length) {
-    if (repReasons.length) return result(input, 'below_target', completion, repReasons);
     const prev = input.previous;
     const sameLoad = prev && currentTarget(prev.prescription, pm) === currentTarget(input.prescription, pm);
     if (prev && sameLoad && sumMetric(input.sets, 'reps') > sumMetric(prev.sets, 'reps')) {
       return result(input, 'progress', completion, [{ code: 'reps_improved' }, ...belowMax]);
     }
-    return result(input, 'completed_as_prescribed', completion, belowMax);
+    return result(input, 'keep', completion, belowMax);
   }
 
-  const blocked = restrictions(input, ps);
+  const blocked = blockers(input);
   if (blocked.length) return result(input, 'restricted', completion, [{ code: 'top_reached' }, ...blocked]);
-
+  if (!s) return result(input, 'keep', completion, [{ code: 'top_reached' }]);
   const from = currentTarget(input.prescription, pm) ?? Math.max(...ps.map((x) => x.r.values[pm] ?? 0));
   if (s.cap !== undefined && from >= s.cap - EPS) {
-    return result(input, 'completed_as_prescribed', completion, [{ code: 'top_reached' }, { code: 'cap_reached', params: { metric: pm } }]);
+    return result(input, 'at_cap', completion, [{ code: 'top_reached' }, { code: 'cap_reached', params: { metric: pm } }]);
   }
-  const reasons: Reason[] = [{ code: 'top_reached' }];
-  if (ps.some((x) => x.p.rir !== undefined && x.r.rir === undefined)) reasons.push({ code: 'rir_not_recorded' });
-  return result(input, 'increase_recommended', completion, reasons, { metric: pm, from, to: step(from, s) });
+  return result(input, 'increase', completion, [{ code: 'top_reached' }], { metric: pm, from, to: up(from, s), kind: 'increase' });
 }
 
 function evaluateTargets(input: EvalInput, completion: Completion, completionReasons: Reason[]): Evaluation {
-  const ps = pairs(input.prescription, input.sets);
-  if (completion === 'incomplete') return result(input, 'incomplete', completion, completionReasons);
-  if (input.substituted && input.config.criteria.blockOnSubstitution) {
-    return result(input, 'restricted', completion, [{ code: 'substituted' }]);
+  if (input.substituted) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
+  const stepMetrics = new Set(input.config.steps.map((s) => s.metric));
+  const missed = completionReasons.filter((r) => r.code === 'set_below_target' && stepMetrics.has(r.params?.metric as MetricKey));
+  if (missed.length) {
+    const s = input.config.steps.find((x) => x.metric === missed[0].params?.metric);
+    return result(input, 'missed', completion, missed, stepBack(input, s));
   }
-  if (completion === 'below_target') return result(input, 'below_target', completion, completionReasons);
-  const blocked = restrictions(input, ps);
+  if (completion === 'incomplete') return result(input, 'incomplete', completion, completionReasons);
+  if (completion === 'below_target') return result(input, 'keep', completion, completionReasons);
+  const blocked = blockers(input);
   if (blocked.length) return result(input, 'restricted', completion, [{ code: 'targets_met' }, ...blocked]);
 
   for (const s of input.config.steps) {
     const from = currentTarget(input.prescription, s.metric);
     if (from === undefined) continue;
     if (s.cap !== undefined && from >= s.cap - EPS) continue;
-    return result(input, 'increase_recommended', completion, [{ code: 'targets_met' }], { metric: s.metric, from, to: step(from, s) });
+    return result(input, 'increase', completion, [{ code: 'targets_met' }], { metric: s.metric, from, to: up(from, s), kind: 'increase' });
   }
-  return result(input, 'completed_as_prescribed', completion, [{ code: 'targets_met' }, { code: 'caps_reached' }]);
+  return result(input, 'at_cap', completion, [{ code: 'targets_met' }, { code: 'caps_reached' }]);
 }
 
 export function evaluate(input: EvalInput): Evaluation {
@@ -177,6 +188,33 @@ export function evaluate(input: EvalInput): Evaluation {
     default:
       return evaluateTargets(input, completion, reasons);
   }
+}
+
+/**
+ * Today's goal per prescribed set. Double progression: last time + 1 rep (up to the range max) at the same load;
+ * after a load change or without history: the range minimum. Other metrics: the target value.
+ */
+export function setGoals(config: ProgressionConfig, prescription: SetPrescription[], previous?: { prescription: SetPrescription[]; sets: SetRecord[] }) {
+  const pm = config.steps[0]?.metric ?? 'load';
+  const sameLoad = previous && currentTarget(previous.prescription, pm) === currentTarget(prescription, pm);
+  const counters: Record<string, number> = {};
+  return prescription.map((p) => {
+    const i = counters[p.kind] ?? 0;
+    counters[p.kind] = i + 1;
+    const goal: Partial<Record<MetricKey, number>> = {};
+    for (const [k, t] of Object.entries(p.targets) as [MetricKey, NonNullable<SetPrescription['targets'][MetricKey]>][]) {
+      if (t.value !== undefined) goal[k] = t.value;
+    }
+    const r = p.targets.reps;
+    if (r) {
+      const prevReps = previous?.sets.filter((x) => x.kind === p.kind && x.status === 'done')[i]?.values.reps;
+      const min = r.min ?? r.value;
+      if (config.strategy === 'double' && p.kind === 'working' && sameLoad && prevReps !== undefined && min !== undefined) {
+        goal.reps = Math.max(min, r.max !== undefined ? Math.min(r.max, prevReps + 1) : prevReps + 1);
+      } else if (min !== undefined) goal.reps = min;
+    }
+    return goal;
+  });
 }
 
 /**

@@ -24,29 +24,29 @@ function setup() {
     w.entries[1].sets = w.entries[1].sets.map((s, i) => ({ ...s, values: { ...s.values, reps: benchReps[i] }, status: 'done' }));
     const res = finishWorkout(w, false, lastEntry, states);
     history.push(res.workout);
+    for (const st of res.states) states.set(st.lineageId, st);
     return res;
   };
   return { bench, warm, plan, version, day, states, history, session, exercises, lastEntry };
 }
 
 describe('workout flow', () => {
-  it('runs the §6.3 sequence end to end, and the next session uses the accepted load', () => {
+  it('runs the §6.3 sequence; success applies the increase; next session targets the new load from the minimum', () => {
     const t = setup();
-    expect(t.session([10, 9, 8]).events[0].outcome).toBe('completed_as_prescribed');
+    expect(t.session([10, 9, 8]).events[0].outcome).toBe('keep');
+    const s2 = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    expect(s2.entries[1].sets.map((x) => x.goal?.reps)).toEqual([11, 10, 9]);
     expect(t.session([11, 10, 9]).events[0].outcome).toBe('progress');
     const r = t.session([12, 12, 12]);
     const ev = r.events.find((e) => e.exerciseId === t.bench.id)!;
-    expect(ev.decision).toBe('pending');
-    const d = decide(ev, t.states.get(ev.lineageId), { kind: 'accept' });
-    expect(d.event.decision).toBe('accepted');
-    expect(d.event.before).toEqual({ load: 40 });
-    expect(d.state.targets.load).toBe(42.5);
-    t.states.set(d.state.lineageId, d.state);
+    expect(ev.decision).toBe('applied');
+    expect(ev.before).toEqual({ load: 40 });
+    expect(ev.after).toEqual({ load: 42.5 });
+    expect(t.states.get(ev.lineageId)?.targets.load).toBe(42.5);
 
     const next = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
     expect(next.entries[1].prescription[0].targets.load?.value).toBe(42.5);
-    expect(next.entries[1].sets[0].values.load).toBe(42.5);
-    expect(next.entries[1].sets[0].values.reps).toBe(12);
+    expect(next.entries[1].sets[0].values).toEqual({ reps: 8, load: 42.5 });
     // History keeps the old prescription.
     expect(t.history[0].entries[1].prescription[0].targets.load?.value).toBe(40);
   });
@@ -84,15 +84,24 @@ describe('workout flow', () => {
     expect(substitute(w.entries[1], t.bench).substitutedFor).toBeUndefined();
   });
 
-  it('override and defer decisions', () => {
+  it('decisions: revert an increase, keep or step back after missed reps, set a value', () => {
     const t = setup();
-    const ev = t.session([12, 12, 12]).events[0];
-    const o = decide(ev, undefined, { kind: 'override', value: 41, reason: 'only 1 kg plates' });
-    expect(o.state.targets.load).toBe(41);
-    expect(o.event.decisionReason).toBe('only 1 kg plates');
-    const d = decide(ev, undefined, { kind: 'defer' });
-    expect(d.event.decision).toBe('deferred');
-    expect(d.state.targets.load).toBe(40);
+    const inc = t.session([12, 12, 12]).events[0];
+    const rev = decide(inc, t.states.get(inc.lineageId), { kind: 'revert' });
+    expect(rev.event.decision).toBe('reverted');
+    expect(rev.state.targets.load).toBe(40);
+
+    const t2 = setup();
+    const missed = t2.session([9, 7, 6]).events[0];
+    expect(missed.outcome).toBe('missed');
+    expect(missed.decision).toBe('pending');
+    expect(decide(missed, undefined, { kind: 'keep' }).state.targets.load).toBe(40);
+    const back = decide(missed, undefined, { kind: 'stepBack' });
+    expect(back.event.decision).toBe('stepped_back');
+    expect(back.state.targets.load).toBe(37.5);
+    const set = decide(missed, undefined, { kind: 'set', value: 38, reason: '1 kg plates' });
+    expect(set.state.targets.load).toBe(38);
+    expect(set.event.decisionReason).toBe('1 kg plates');
   });
 
   it('manual adjustment logs before/after', () => {
@@ -163,8 +172,9 @@ describe('demo data', () => {
     const ex = seedExercises({ language: 'en', loadUnit: 'kg', distanceUnit: 'km' });
     const d = generateDemo(ex, 6, new Date('2026-10-29T12:00:00Z'));
     expect(d.workouts).toHaveLength(12);
-    expect(d.progressionEvents.some((e) => e.decision === 'accepted' && e.recommendation?.metric === 'load')).toBe(true);
-    expect(d.progressionEvents.some((e) => e.decision === 'accepted' && e.recommendation?.metric === 'duration')).toBe(true);
+    expect(d.progressionEvents.some((e) => e.decision === 'applied' && e.suggestion?.metric === 'load')).toBe(true);
+    expect(d.progressionEvents.some((e) => e.decision === 'applied' && e.suggestion?.metric === 'duration')).toBe(true);
+    expect(d.progressionEvents.filter((e) => e.decision === 'pending')).toHaveLength(1);
     const warm = ex.find((e) => e.name === 'Treadmill Warm-up')!;
     expect(d.progressionEvents.some((e) => e.exerciseId === warm.id)).toBe(false);
     const warmEntries = d.workouts.flatMap((w) => w.entries).filter((e) => e.exerciseId === warm.id);

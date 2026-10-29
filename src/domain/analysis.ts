@@ -6,7 +6,7 @@ import { hasMetric, toCanonical } from './units';
 export const E1RM_MAX_REPS = 12;
 export const SECONDARY_MUSCLE_WEIGHT = 0.5;
 const PROGRESSIVE: ProgressionStrategy[] = ['double', 'duration', 'distance', 'intensity', 'multi'];
-const NO_PROGRESS: Outcome[] = ['completed_as_prescribed', 'below_target'];
+const NO_PROGRESS: Outcome[] = ['keep', 'missed'];
 
 /** Epley estimate: load × (1 + reps / 30). Only for 1–12 reps. This is an estimate, not a measured maximum. */
 export function e1rm(load: number, reps: number): number | undefined {
@@ -208,7 +208,7 @@ export interface StalledItem {
 
 /**
  * An item is stalled when its last `threshold` evaluated sessions all had outcome
- * "completed_as_prescribed" or "below_target". Only progression-enabled strategies are checked,
+ * "keep" (no rep progress) or "missed". Only progression-enabled strategies are checked,
  * so fixed (none) and manual exercises are never flagged.
  */
 export function stalledItems(workouts: Workout[], threshold: number): StalledItem[] {

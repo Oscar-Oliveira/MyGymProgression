@@ -12,13 +12,17 @@ export const matches = (e: Exercise, q: string) => {
   return !needle || [e.name, ...e.aliases, ...e.tags].some((s) => n(s).includes(needle));
 };
 
-export function ExercisePicker({ onPick, onClose, exclude = [] }: { onPick: (e: Exercise) => void; onClose: () => void; exclude?: string[] }) {
+/** Exercise search. `preferred` ids (e.g. plan substitutes) are listed first. */
+export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }: { onPick: (e: Exercise) => void; onClose: () => void; exclude?: string[]; preferred?: string[] }) {
   const { t } = useTranslation();
   const [q, setQ] = useState('');
   const all = useLiveQuery(() => db.exercises.toArray(), [], []);
   const list = useMemo(
-    () => all.filter((e) => e.active && !exclude.includes(e.id) && matches(e, q)).sort((a, b) => a.name.localeCompare(b.name)),
-    [all, q, exclude],
+    () =>
+      all
+        .filter((e) => e.active && !exclude.includes(e.id) && matches(e, q))
+        .sort((a, b) => Number(preferred.includes(b.id)) - Number(preferred.includes(a.id)) || a.name.localeCompare(b.name)),
+    [all, q, exclude, preferred],
   );
   return (
     <Modal title={t('picker.title')} onClose={onClose}>
@@ -27,7 +31,10 @@ export function ExercisePicker({ onPick, onClose, exclude = [] }: { onPick: (e: 
         {list.map((e) => (
           <li key={e.id}>
             <button type="button" onClick={() => onPick(e)}>
-              <strong>{e.name}</strong>
+              <strong>
+                {preferred.includes(e.id) && '★ '}
+                {e.name}
+              </strong>
               <small>
                 {t(`category.${e.category}`)} · {e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')} · {tr(t, 'equipment', e.equipment)}
               </small>

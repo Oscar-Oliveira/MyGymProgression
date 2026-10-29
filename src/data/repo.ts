@@ -105,9 +105,10 @@ export function createRepo(db: GymDB) {
       await db.transaction('rw', db.workouts, db.progressionEvents, db.progressionStates, async () => {
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
-        const { workout, events } = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
-        await db.workouts.put(workout);
-        await db.progressionEvents.bulkAdd(events);
+        const res = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
+        await db.workouts.put(res.workout);
+        await db.progressionEvents.bulkAdd(res.events);
+        await db.progressionStates.bulkPut(res.states);
       });
     },
 
@@ -131,7 +132,7 @@ export function createRepo(db: GymDB) {
       await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, async () => {
         await db.workouts.delete(id);
         await db.revisions.where('workoutId').equals(id).delete();
-        // Decided events stay as progression history; undecided ones are removed.
+        // Applied and decided events stay as progression history; undecided ones are removed.
         const evs = await db.progressionEvents.where('workoutId').equals(id).toArray();
         await db.progressionEvents.bulkDelete(evs.filter((e) => e.decision === 'pending' || e.decision === 'none').map((e) => e.id));
       });

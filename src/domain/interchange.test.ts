@@ -106,3 +106,24 @@ describe('CSV', () => {
     expect(eventsCsv(d.progressionEvents, { [d.exercises[0].id]: 'Bench' })).toContain('Bench');
   });
 });
+
+describe('schema migration v1 → v2', () => {
+  it('imports a v1 file: drops RIR/RPE, maps outcomes and decisions', () => {
+    const d = sample();
+    const b = JSON.parse(JSON.stringify(buildBundle(d, 'full', 'x')));
+    b.schemaVersion = 1;
+    b.data.exercises[0].defaultSets[0].rir = 2;
+    b.data.exercises[0].progression.criteria.useRir = true;
+    b.data.workouts[0].entries[0].sets[0].rpe = 8;
+    b.data.workouts[0].entries[0].evaluation = { strategy: 'double', outcome: 'below_target', completion: 'complete', reasons: [] };
+    b.data.progressionEvents[0] = { ...b.data.progressionEvents[0], outcome: 'increase_recommended', decision: 'deferred', recommendation: { metric: 'load', from: 20, to: 22.5 } };
+    delete b.data.progressionEvents[0].suggestion;
+    const r = parseBundle(JSON.stringify(b));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.migratedFrom).toBe(1);
+    expect(r.bundle.data.exercises[0].defaultSets[0]).not.toHaveProperty('rir');
+    expect(r.bundle.data.workouts[0].entries[0].evaluation?.outcome).toBe('missed');
+    expect(r.bundle.data.progressionEvents[0]).toMatchObject({ outcome: 'increase', decision: 'kept', suggestion: { kind: 'increase', to: 22.5 } });
+  });
+});

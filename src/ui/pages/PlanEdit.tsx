@@ -5,17 +5,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { newDay, newPlanItem } from '../../domain/factory';
-import { initialTargets } from '../../domain/progression';
-import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState } from '../../domain/types';
-import { ProgressionEditor } from '../components/Editors';
-import { PrescriptionEditor } from '../components/Editors';
+import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription } from '../../domain/types';
+import { PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { ExercisePicker } from '../components/ExercisePicker';
-import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
 import { metricLabel } from '../util';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed', 'other'];
 const ROLES: ItemRole[] = ['warmup', 'main', 'optional'];
+type Targets = Partial<Record<MetricKey, number>>;
 
 function move<T>(arr: T[], i: number, d: number): T[] {
   const j = i + d;
@@ -25,40 +23,152 @@ function move<T>(arr: T[], i: number, d: number): T[] {
   return copy;
 }
 
-/** Metrics whose current target can be adjusted: progression variables, or (manual) any fixed-value target. */
-function adjustableMetrics(item: PlanItem, ex: Exercise): MetricKey[] {
-  const cfg = item.progression ?? ex.progression;
-  if (cfg.steps.length) return cfg.steps.map((s) => s.metric);
-  const w = item.sets.find((s) => s.kind === 'working');
-  return (Object.keys(w?.targets ?? {}) as MetricKey[]).filter((k) => w?.targets[k]?.value !== undefined);
+const working = (sets: SetPrescription[]) => sets.filter((s) => s.kind === 'working');
+
+/** Applies a change to every working set; other sets are not changed. */
+function eachWorking(sets: SetPrescription[], f: (s: SetPrescription) => SetPrescription): SetPrescription[] {
+  return sets.map((s) => (s.kind === 'working' ? f(structuredClone(s)) : s));
 }
 
-function AdjustModal({ item, ex, state, onClose }: { item: PlanItem; ex: Exercise; state?: ProgressionState; onClose: () => void }) {
+function setCount(sets: SetPrescription[], n: number): SetPrescription[] {
+  const w = working(sets);
+  const template = w[w.length - 1] ?? { kind: 'working' as const, targets: {} };
+  const others = sets.filter((s) => s.kind !== 'working');
+  const next = Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => w[i] ?? structuredClone(template));
+  return [...others.filter((s) => s.kind === 'warmup'), ...next, ...others.filter((s) => s.kind === 'backoff')];
+}
+
+interface ItemProps {
+  item: PlanItem;
+  ex: Exercise;
+  state?: ProgressionState;
+  edits?: Targets;
+  exercises: Map<string, Exercise>;
+  onChange: (i: PlanItem) => void;
+  onTarget: (metric: MetricKey, v: number | undefined) => void;
+  onRemove: () => void;
+  onMove: (d: number) => void;
+  onAddSubstitute: () => void;
+}
+
+function ItemCard({ item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute }: ItemProps) {
   const { t } = useTranslation();
-  const keys = adjustableMetrics(item, ex);
-  const base = state?.targets ?? initialTargets({ ...(item.progression ?? ex.progression), steps: keys.map((k) => ({ metric: k, increment: 0 })) }, item.sets);
-  const [vals, setVals] = useState<Partial<Record<MetricKey, number>>>(base);
-  const [reason, setReason] = useState('');
-  const save = async () => {
-    await repo.manualAdjust(item.lineageId, ex.id, vals, reason, (item.progression ?? ex.progression).strategy);
-    onClose();
+  const cfg = item.progression ?? ex.progression;
+  const first = working(item.sets)[0];
+  const step = cfg.steps[0];
+  const hasReps = ex.metrics.some((m) => m.key === 'reps');
+  const valueMetrics = ex.metrics.filter((m) => m.key !== 'reps' && (first?.targets[m.key]?.value !== undefined || m.key === step?.metric || m.key === 'load'));
+  const valueOf = (k: MetricKey) => edits?.[k] ?? state?.targets[k] ?? first?.targets[k]?.value;
+  const setValue = (k: MetricKey, v: number | undefined) => {
+    if (state?.targets[k] !== undefined) return onTarget(k, v);
+    onChange({ ...item, sets: eachWorking(item.sets, (s) => ({ ...s, targets: { ...s.targets, [k]: v === undefined ? undefined : { value: v } } })) });
   };
+  const setReps = (field: 'min' | 'max', v: number | undefined) =>
+    onChange({ ...item, sets: eachWorking(item.sets, (s) => ({ ...s, targets: { ...s.targets, reps: { min: s.targets.reps?.min ?? s.targets.reps?.value, max: s.targets.reps?.max, [field]: v } } })) });
+  const setIncrement = (v: number | undefined) => {
+    if (!step) return;
+    onChange({ ...item, progression: { ...cfg, steps: [{ ...step, increment: v ?? 0 }, ...cfg.steps.slice(1)] } });
+  };
+
   return (
-    <Modal title={t('progression.adjust')} onClose={onClose}>
-      <div className="stack-sm">
-        {keys.map((k) => (
-          <label key={k}>
-            {metricLabel(t, k, ex.metrics)} ({ex.metrics.find((m) => m.key === k)?.unit})
-            <NumInput label={metricLabel(t, k, ex.metrics)} value={vals[k]} onChange={(v) => setVals({ ...vals, [k]: v })} />
-          </label>
-        ))}
-        <label>
-          {t('progression.reason')}
-          <input value={reason} onChange={(e) => setReason(e.target.value)} />
-        </label>
-        <button onClick={() => void save()}>{t('common.save')}</button>
+    <section className="card item" aria-label={ex.name}>
+      <div className="item-head">
+        {item.group && <span className="group">{item.group}</span>}
+        <span className="name">{ex.name}</span>
+        <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>
+          ↑
+        </button>
+        <button className="ghost sm" aria-label={t('common.moveDown')} onClick={() => onMove(1)}>
+          ↓
+        </button>
+        <button className="ghost sm" aria-label={`${t('common.remove')} ${ex.name}`} onClick={onRemove}>
+          ✕
+        </button>
       </div>
-    </Modal>
+      <small className="muted">
+        {t(`strategy.${cfg.strategy}`)}
+        {item.role !== 'main' && ` · ${t(`role.${item.role}`)}`}
+      </small>
+      <div className="item-grid">
+        <span className="field-inline">
+          <span>{t('plan.sets')}</span>
+          <NumInput label={`${ex.name} ${t('plan.sets')}`} value={working(item.sets).length} onChange={(v) => v && onChange({ ...item, sets: setCount(item.sets, v) })} />
+        </span>
+        {hasReps && (
+          <span className="field-inline">
+            <span>{t('plan.reps')}</span>
+            <span className="row">
+              <NumInput label={`${ex.name} ${t('plan.repsMin')}`} value={first?.targets.reps?.min ?? first?.targets.reps?.value} onChange={(v) => setReps('min', v)} />
+              –
+              <NumInput label={`${ex.name} ${t('plan.repsMax')}`} value={first?.targets.reps?.max} onChange={(v) => setReps('max', v)} />
+            </span>
+          </span>
+        )}
+        {valueMetrics.map((m) => (
+          <span key={m.key} className="field-inline">
+            <span>
+              {metricLabel(t, m.key, ex.metrics)} ({m.unit}){state?.targets[m.key] !== undefined && ` · ${t('plan.current')}`}
+            </span>
+            <NumInput label={`${ex.name} ${metricLabel(t, m.key, ex.metrics)}`} value={valueOf(m.key)} onChange={(v) => setValue(m.key, v)} />
+          </span>
+        ))}
+        {step && (
+          <span className="field-inline">
+            <span>
+              {t('plan.increment')} ({ex.metrics.find((m) => m.key === step.metric)?.unit})
+            </span>
+            <NumInput label={`${ex.name} ${t('plan.increment')}`} value={step.increment} onChange={setIncrement} />
+          </span>
+        )}
+      </div>
+
+      <details>
+        <summary>{t('plan.advanced')}</summary>
+        <div className="stack">
+          <div className="row wrap">
+            <label>
+              {t('plan.role')}
+              <select value={item.role} onChange={(e) => onChange({ ...item, role: e.target.value as ItemRole })}>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {t(`role.${r}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t('plan.group')}
+              <input style={{ width: '5rem' }} placeholder="A" value={item.group ?? ''} onChange={(e) => onChange({ ...item, group: e.target.value.trim() || undefined })} />
+            </label>
+          </div>
+          <div>
+            <h3>{t('plan.setBySet')}</h3>
+            <PrescriptionEditor sets={item.sets} metrics={ex.metrics} onChange={(sets) => onChange({ ...item, sets })} />
+          </div>
+          <div>
+            <h3>{t('strategy.label')}</h3>
+            <ProgressionEditor config={cfg} metrics={ex.metrics} onChange={(progression) => onChange({ ...item, progression })} />
+          </div>
+          <div>
+            <h3>{t('plan.substitutes')}</h3>
+            <div className="row wrap">
+              {item.substitutes.map((sid) => (
+                <button key={sid} className="chip" onClick={() => onChange({ ...item, substitutes: item.substitutes.filter((x) => x !== sid) })}>
+                  {exercises.get(sid)?.name ?? '?'} ✕
+                </button>
+              ))}
+              <button className="chip" onClick={onAddSubstitute}>
+                + {t('common.add')}
+              </button>
+            </div>
+          </div>
+          <label>
+            {t('common.notes')}
+            <input value={item.notes} onChange={(e) => onChange({ ...item, notes: e.target.value })} />
+          </label>
+        </div>
+      </details>
+    </section>
   );
 }
 
@@ -75,8 +185,9 @@ export function PlanEdit() {
   const states = useLiveQuery(async () => new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s])), []);
   const [plan, setPlan] = useState<Plan>();
   const [days, setDays] = useState<PlanDay[]>([]);
-  const [picker, setPicker] = useState<{ day: number; item?: number }>();
-  const [adjust, setAdjust] = useState<PlanItem>();
+  const [dayIdx, setDayIdx] = useState(0);
+  const [edits, setEdits] = useState<Record<string, Targets>>({});
+  const [picker, setPicker] = useState<{ item?: string }>();
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
@@ -86,43 +197,50 @@ export function PlanEdit() {
     }
   }, [stored, plan]);
   if (!stored || !exercises || !states) return null;
-  if (!stored.plan || !plan || !stored.version) return <p>{t('plan.empty')}</p>;
+  if (!stored.plan || !plan || !stored.version) return <p className="empty">{t('plan.empty')}</p>;
   const version = stored.version;
   const meta = (p: Plan) => JSON.stringify({ ...p, updatedAt: '', currentVersionId: '' });
-  const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan);
+  const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan) || Object.keys(edits).length > 0;
+  const day = days[Math.min(dayIdx, days.length - 1)];
 
-  const upDay = (i: number, f: (d: PlanDay) => PlanDay) => setDays(days.map((d, j) => (j === i ? f(structuredClone(d)) : d)));
-  const upItem = (di: number, ii: number, patch: Partial<PlanItem>) => upDay(di, (d) => ({ ...d, items: d.items.map((x, j) => (j === ii ? { ...x, ...patch } : x)) }));
+  const upDay = (f: (d: PlanDay) => PlanDay) => setDays(days.map((d) => (d.id === day.id ? f(structuredClone(d)) : d)));
+  const upItem = (it: PlanItem) => upDay((d) => ({ ...d, items: d.items.map((x) => (x.id === it.id ? it : x)) }));
 
   const save = async () => {
     if (!plan.name.trim()) return;
     await repo.savePlan(plan, days);
+    for (const [lineage, targets] of Object.entries(edits)) {
+      const it = days.flatMap((d) => d.items).find((x) => x.lineageId === lineage);
+      const ex = it && exercises.get(it.exerciseId);
+      if (it && ex) await repo.manualAdjust(lineage, ex.id, targets, t('plan.editReason'), (it.progression ?? ex.progression).strategy);
+    }
+    setEdits({});
     setMsg(t('common.saved'));
     setTimeout(() => setMsg(''), 1500);
   };
-  const startDay = async (dayId: string) => {
-    if (dirty) await repo.savePlan(plan, days);
-    nav(`/workout/${await repo.startWorkout(plan.id, dayId)}`);
+  const startDay = async () => {
+    if (dirty) await save();
+    nav(`/workout/${await repo.startWorkout(plan.id, day.id)}`);
   };
   const pick = (ex: Exercise) => {
     if (!picker) return;
-    if (picker.item === undefined) upDay(picker.day, (d) => ({ ...d, items: [...d.items, newPlanItem(ex)] }));
-    else {
-      const it = days[picker.day].items[picker.item];
-      upItem(picker.day, picker.item, { substitutes: [...it.substitutes, ex.id] });
-    }
+    if (picker.item) {
+      const it = day.items.find((x) => x.id === picker.item);
+      if (it) upItem({ ...it, substitutes: [...it.substitutes, ex.id] });
+    } else upDay((d) => ({ ...d, items: [...d.items, newPlanItem(ex)] }));
     setPicker(undefined);
+  };
+  const addDay = () => {
+    setDays([...days, newDay(`${t('plan.day')} ${String.fromCharCode(65 + days.length)}`)]);
+    setDayIdx(days.length);
   };
 
   return (
-    <div className="stack">
-      <h1>{plan.name || t('plan.new')}</h1>
-      {version.locked && dirty && <p className="help">{t('plan.versionLocked', { n: version.number, next: version.number + 1 })}</p>}
-      <section className="card form-grid">
-        <label>
-          {t('plan.name')}
-          <input value={plan.name} onChange={(e) => setPlan({ ...plan, name: e.target.value })} />
-        </label>
+    <div>
+      <div className="page-head">
+        <input aria-label={t('plan.name')} style={{ fontSize: '1.4rem', fontWeight: 800, flex: 1 }} value={plan.name} onChange={(e) => setPlan({ ...plan, name: e.target.value })} />
+      </div>
+      <div className="row wrap">
         <label>
           {t('goal.label')}
           <select value={plan.goal} onChange={(e) => setPlan({ ...plan, goal: e.target.value as PlanGoal })}>
@@ -133,29 +251,44 @@ export function PlanEdit() {
             ))}
           </select>
         </label>
-        <label>
-          {t('plan.phase')}
-          <input value={plan.phase} onChange={(e) => setPlan({ ...plan, phase: e.target.value })} />
-        </label>
-        <label>
-          {t('common.description')}
-          <textarea value={plan.description} onChange={(e) => setPlan({ ...plan, description: e.target.value })} />
-        </label>
-        <p className="muted">{t('plan.version', { n: version.number })}</p>
-      </section>
+        <small className="muted">{t('plan.version', { n: version.number })}</small>
+      </div>
+      <details>
+        <summary>{t('plan.more')}</summary>
+        <div className="form-grid">
+          <label>
+            {t('plan.phase')}
+            <input value={plan.phase} onChange={(e) => setPlan({ ...plan, phase: e.target.value })} />
+          </label>
+          <label>
+            {t('common.description')}
+            <textarea value={plan.description} onChange={(e) => setPlan({ ...plan, description: e.target.value })} />
+          </label>
+        </div>
+      </details>
+      {version.locked && dirty && <p className="help">{t('plan.versionLocked', { next: version.number + 1 })}</p>}
 
-      <h2>{t('plan.days')}</h2>
-      {days.length === 0 && <p className="muted">{t('plan.noDays')}</p>}
-      {days.map((d, di) => (
-        <section className="card stack-sm" key={d.id}>
-          <div className="row wrap">
-            <label>
+      <div className="seg" role="tablist" style={{ margin: '0.75rem 0' }}>
+        {days.map((d, i) => (
+          <button key={d.id} role="tab" aria-selected={d.id === day?.id} className={d.id === day?.id ? 'on' : ''} onClick={() => setDayIdx(i)}>
+            {d.name || '—'}
+          </button>
+        ))}
+        <button onClick={addDay}>+ {t('plan.addDay')}</button>
+      </div>
+
+      {!day ? (
+        <div className="empty">{t('plan.noDays')}</div>
+      ) : (
+        <>
+          <div className="row wrap" style={{ marginBottom: '0.75rem' }}>
+            <label style={{ flex: 1 }}>
               {t('plan.dayName')}
-              <input value={d.name} onChange={(e) => upDay(di, (x) => ({ ...x, name: e.target.value }))} />
+              <input value={day.name} onChange={(e) => upDay((d) => ({ ...d, name: e.target.value }))} />
             </label>
             <label>
               {t('plan.weekday')}
-              <select value={d.weekday ?? ''} onChange={(e) => upDay(di, (x) => ({ ...x, weekday: e.target.value === '' ? undefined : Number(e.target.value) }))}>
+              <select value={day.weekday ?? ''} onChange={(e) => upDay((d) => ({ ...d, weekday: e.target.value === '' ? undefined : Number(e.target.value) }))}>
                 <option value="">—</option>
                 {(t('weekday', { returnObjects: true }) as string[]).map((w, i) => (
                   <option key={w} value={i}>
@@ -164,132 +297,51 @@ export function PlanEdit() {
                 ))}
               </select>
             </label>
-            <span className="spacer" />
-            <button className="ghost" aria-label={t('common.moveUp')} onClick={() => setDays(move(days, di, -1))}>
-              ↑
-            </button>
-            <button className="ghost" aria-label={t('common.moveDown')} onClick={() => setDays(move(days, di, 1))}>
-              ↓
-            </button>
-            <button className="ghost" onClick={() => confirm(t('common.confirmDelete', { name: d.name })) && setDays(days.filter((_, j) => j !== di))}>
-              {t('common.remove')}
-            </button>
-            {d.items.length > 0 && <button onClick={() => void startDay(d.id)}>▶ {t('plan.startDay')}</button>}
           </div>
 
-          {d.items.length === 0 && <p className="muted">{t('plan.noItems')}</p>}
-          {d.items.map((it, ii) => {
+          {day.items.length === 0 && <p className="empty">{t('plan.noItems')}</p>}
+          {day.items.map((it, i) => {
             const ex = exercises.get(it.exerciseId);
             if (!ex) return null;
-            const cfg = it.progression ?? ex.progression;
-            const st = states.get(it.lineageId);
             return (
-              <details className="card" key={it.id} open={!it.sets.length}>
-                <summary className="row wrap">
-                  {it.group && <span className="group">{it.group}</span>}
-                  <strong>{ex.name}</strong>
-                  <small>
-                    {it.sets.filter((s) => s.kind === 'working').length} × · {t(`role.${it.role}`)} · {t(`strategy.${cfg.strategy}`)}
-                    {st && ` · ${Object.entries(st.targets).map(([k, v]) => `${metricLabel(t, k as MetricKey, ex.metrics)} ${v}`).join(', ')}`}
-                  </small>
-                </summary>
-                <div className="stack-sm">
-                  <div className="row wrap">
-                    <label>
-                      {t('plan.role')}
-                      <select value={it.role} onChange={(e) => upItem(di, ii, { role: e.target.value as ItemRole })}>
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {t(`role.${r}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      {t('plan.group')}
-                      <input className="w-4" placeholder="A" value={it.group ?? ''} onChange={(e) => upItem(di, ii, { group: e.target.value.trim() || undefined })} />
-                    </label>
-                    <span className="spacer" />
-                    <button className="ghost" aria-label={t('common.moveUp')} onClick={() => upDay(di, (x) => ({ ...x, items: move(x.items, ii, -1) }))}>
-                      ↑
-                    </button>
-                    <button className="ghost" aria-label={t('common.moveDown')} onClick={() => upDay(di, (x) => ({ ...x, items: move(x.items, ii, 1) }))}>
-                      ↓
-                    </button>
-                    <button className="ghost" onClick={() => upDay(di, (x) => ({ ...x, items: x.items.filter((_, j) => j !== ii) }))}>
-                      {t('common.remove')}
-                    </button>
-                  </div>
-                  <PrescriptionEditor sets={it.sets} metrics={ex.metrics} onChange={(sets) => upItem(di, ii, { sets })} />
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      checked={!!it.progression}
-                      onChange={(e) => upItem(di, ii, { progression: e.target.checked ? structuredClone(ex.progression) : undefined })}
-                    />
-                    {t('plan.customProgression')}
-                  </label>
-                  {it.progression ? (
-                    <ProgressionEditor config={it.progression} metrics={ex.metrics} onChange={(progression) => upItem(di, ii, { progression })} />
-                  ) : (
-                    <p className="help">
-                      {t(`strategy.${ex.progression.strategy}`)}: {t(`strategy.help.${ex.progression.strategy}`)}
-                    </p>
-                  )}
-                  {cfg.strategy !== 'none' && (
-                    <div className="row wrap">
-                      <span>
-                        {t('plan.state')}:{' '}
-                        {st ? Object.entries(st.targets).map(([k, v]) => `${metricLabel(t, k as MetricKey, ex.metrics)} ${v}`).join(', ') : '—'}
-                      </span>
-                      <button className="secondary" onClick={() => setAdjust(it)}>
-                        {t('progression.adjust')}
-                      </button>
-                    </div>
-                  )}
-                  <div>
-                    <strong>{t('plan.substitutes')}:</strong>{' '}
-                    {it.substitutes.map((sid) => (
-                      <span key={sid} className="tag">
-                        {exercises.get(sid)?.name ?? sid}{' '}
-                        <button className="ghost" aria-label={t('common.remove')} onClick={() => upItem(di, ii, { substitutes: it.substitutes.filter((x) => x !== sid) })}>
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                    <button className="ghost" onClick={() => setPicker({ day: di, item: ii })}>
-                      + {t('common.add')}
-                    </button>
-                  </div>
-                  <label>
-                    {t('common.notes')}
-                    <input value={it.notes} onChange={(e) => upItem(di, ii, { notes: e.target.value })} />
-                  </label>
-                </div>
-              </details>
+              <ItemCard
+                key={it.id}
+                item={it}
+                ex={ex}
+                state={states.get(it.lineageId)}
+                edits={edits[it.lineageId]}
+                exercises={exercises}
+                onChange={upItem}
+                onTarget={(k, v) => v !== undefined && setEdits({ ...edits, [it.lineageId]: { ...edits[it.lineageId], [k]: v } })}
+                onRemove={() => upDay((d) => ({ ...d, items: d.items.filter((x) => x.id !== it.id) }))}
+                onMove={(dd) => upDay((d) => ({ ...d, items: move(d.items, i, dd) }))}
+                onAddSubstitute={() => setPicker({ item: it.id })}
+              />
             );
           })}
-          <button className="secondary" onClick={() => setPicker({ day: di })}>
+          <button className="outline xl" onClick={() => setPicker({})}>
             + {t('plan.addExercise')}
           </button>
-        </section>
-      ))}
-      <button className="secondary" onClick={() => setDays([...days, newDay(`${t('plan.dayName')} ${days.length + 1}`)])}>
-        + {t('plan.addDay')}
-      </button>
+          <div className="row wrap" style={{ marginTop: '0.75rem' }}>
+            <button className="danger sm" onClick={() => confirm(t('common.confirmDelete', { name: day.name })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
+              {t('plan.removeDay')}
+            </button>
+          </div>
+        </>
+      )}
 
-      <div className="sticky-actions">
-        <button disabled={!dirty} onClick={() => void save()}>
-          {t('common.save')}
+      <div className="wk-nav">
+        <button className={dirty ? 'primary' : 'outline'} disabled={!dirty} onClick={() => void save()}>
+          {msg || (dirty ? t('common.save') : t('common.saved'))}
         </button>
-        {dirty && <span className="muted">{t('plan.unsaved')}</span>}
-        {msg && <span role="status">{msg}</span>}
+        {day && day.items.length > 0 && (
+          <button className="outline" onClick={() => void startDay()}>
+            ▶ {t('plan.startDay')}
+          </button>
+        )}
       </div>
 
       {picker && <ExercisePicker onPick={pick} onClose={() => setPicker(undefined)} />}
-      {adjust && exercises.get(adjust.exerciseId) && (
-        <AdjustModal item={adjust} ex={exercises.get(adjust.exerciseId)!} state={states.get(adjust.lineageId)} onClose={() => setAdjust(undefined)} />
-      )}
     </div>
   );
 }

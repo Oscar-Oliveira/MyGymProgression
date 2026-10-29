@@ -1,41 +1,17 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { TFunction } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import type { Exercise, MetricDef, ProgressionEvent, SetPrescription, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
+import type { Exercise, MetricDef, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
-import { addSet, entryAdHoc, adHocLineage, substitute } from '../../domain/workout';
-import { EvaluationView } from '../components/Bits';
+import { addSet, adHocLineage, entryAdHoc, substitute } from '../../domain/workout';
 import { ExercisePicker } from '../components/ExercisePicker';
+import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
-import { fmtDate, fmtNum, fmtValue, metricLabel, useSettings } from '../util';
-import { formatSet } from './ExerciseDetail';
-
-/** Short text of a prescription, e.g. "3 × 8–12 reps · 40 kg · RIR 2". */
-export function rxSummary(rx: SetPrescription[], metrics: MetricDef[], t: TFunction, lang: string): string {
-  const working = rx.filter((s) => s.kind === 'working');
-  const first = working[0];
-  const parts: string[] = [];
-  const warm = rx.filter((s) => s.kind === 'warmup').length;
-  if (warm) parts.push(`${warm} × ${t('setKind.warmup')}`);
-  if (first) {
-    const tg = metrics
-      .map((m) => {
-        const x = first.targets[m.key];
-        if (!x) return undefined;
-        if (m.key === 'reps') return x.value !== undefined ? `${x.value} reps` : `${x.min ?? '?'}${x.max !== undefined ? `–${x.max}` : '+'} reps`;
-        return x.value !== undefined ? fmtValue(x.value, m.unit, lang) : undefined;
-      })
-      .filter(Boolean);
-    parts.push(`${working.length} × ${tg.join(' · ') || '—'}`);
-    if (first.rir !== undefined) parts.push(`RIR ${first.rir}`);
-    if (first.restSec) parts.push(`${first.restSec}s`);
-  }
-  return parts.join(' · ');
-}
+import { DecisionCard, progressHint, rxLine, setsLine, setText } from '../progress';
+import { fmtDate, fmtNum, metricLabel, useSettings } from '../util';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -44,240 +20,174 @@ function stepFor(m: MetricDef): number {
   return 1;
 }
 
-interface EntryProps {
-  entry: WorkoutEntry;
-  previous?: WorkoutEntry;
-  exercises: Map<string, Exercise>;
-  substitutes: string[];
-  onChange: (e: WorkoutEntry) => void;
-  onRemove: () => void;
-  onMove: (d: number) => void;
-}
-
-function EntryCard({ entry, previous, exercises, substitutes, onChange, onRemove, onMove }: EntryProps) {
+function BigStepper({ def, metrics, value, goal, onChange }: { def: MetricDef; metrics: MetricDef[]; value?: number; goal?: number; onChange: (v: number | undefined) => void }) {
   const { t } = useTranslation();
   const s = useSettings();
-  const [picking, setPicking] = useState(false);
-  const metrics = entry.exercise.metrics;
-  const hasReps = metrics.some((m) => m.key === 'reps');
-  const upSet = (i: number, patch: Partial<SetRecord>) => onChange({ ...entry, sets: entry.sets.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
-  const prescribedFor = (i: number) => {
-    const kind = entry.sets[i].kind;
-    const n = entry.sets.slice(0, i).filter((x) => x.kind === kind).length;
-    return entry.prescription.filter((p) => p.kind === kind)[n];
-  };
-  const workingDone = entry.sets.filter((x) => x.kind === 'working' && x.status === 'done').length;
-  const workingRx = entry.prescription.filter((p) => p.kind === 'working').length;
-  const original = entry.substitutedFor ? exercises.get(entry.substitutedFor) : undefined;
-
+  const step = stepFor(def);
+  const label = metricLabel(t, def.key, metrics);
+  const bump = (d: number) => onChange(Math.max(0, Math.round(((value ?? 0) + d) * 100) / 100));
   return (
-    <section className={`card entry ${workingDone >= workingRx && workingRx > 0 ? 'done' : ''}`} aria-label={entry.exercise.name}>
-      <div className="row between wrap">
-        <h3>
-          {entry.group && <span className="group">{entry.group} </span>}
-          {entry.exercise.name}
-          {entry.role !== 'main' && <small> · {t(`role.${entry.role}`)}</small>}
-        </h3>
-        <small>{t('workout.setsDone', { done: workingDone, total: workingRx })}</small>
+    <div className="bigstep">
+      <span className="lbl">
+        {label} {def.unit !== 'reps' && <span>({def.unit})</span>}
+      </span>
+      <div className="ctl">
+        <button type="button" aria-label={`${label} −${step}`} onClick={() => bump(-step)}>
+          −
+        </button>
+        <NumInput label={label} value={value} onChange={onChange} />
+        <button type="button" aria-label={`${label} +${step}`} onClick={() => bump(step)}>
+          +
+        </button>
       </div>
-      {original && <p className="help">{t('workout.substitutedFor', { name: original.name })}</p>}
-      <p className="help">
-        {t('workout.prescribed')}: {rxSummary(entry.prescription, metrics, t, s.language)} · {t(`strategy.${entry.progression.strategy}`)}
-        {entry.exercise.loadMode === 'perSide' && ` · ${t('workout.perSide')}`}
-      </p>
-      {previous && (
-        <p className="help">
-          {t('workout.previous')}: {previous.sets.filter((x) => x.status === 'done' && x.kind === 'working').map((x) => formatSet(x, previous.exercise.metrics, s.language)).join(', ') || '—'}
-        </p>
-      )}
-      {entry.sets.map((set, i) => {
-        const rx = prescribedFor(i);
-        const errors = metrics.map((m) => validateValue(m, set.values[m.key]));
-        const blocked = errors.some(Boolean);
+      {goal !== undefined && <span className="goal">{t('workout.goal', { value: fmtNum(goal, s.language) })}</span>}
+    </div>
+  );
+}
+
+function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntry; activeId?: string; onActivate: (id: string) => void; onChange: (e: WorkoutEntry) => void }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const metrics = entry.exercise.metrics;
+  const up = (id: string, patch: Partial<SetRecord>) => onChange({ ...entry, sets: entry.sets.map((x) => (x.id === id ? { ...x, ...patch } : x)) });
+  let working = 0;
+  return (
+    <div className="sets">
+      {entry.sets.map((set) => {
+        const label = set.kind === 'working' ? String(++working) : t(`setKind.${set.kind}`).slice(0, 1);
+        const min = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.min;
+        const miss = set.status === 'done' && set.kind === 'working' && min !== undefined && (set.values.reps ?? 0) < min;
+        if (set.id === activeId) {
+          const blocked = metrics.some((m) => validateValue(m, set.values[m.key]));
+          return (
+            <div key={set.id} className="set active" role="group" aria-label={t('workout.setN', { n: label })}>
+              <div className="top">
+                <span className="n">{label}</span>
+                <strong>{set.kind === 'working' ? t('workout.setN', { n: label }) : t(`setKind.${set.kind}`)}</strong>
+              </div>
+              <div className="steppers">
+                {metrics.map((m) => (
+                  <BigStepper key={m.key} def={m} metrics={metrics} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
+                ))}
+              </div>
+              <div className="row">
+                <button className="primary xl" disabled={blocked} onClick={() => up(set.id, { status: 'done' })}>
+                  ✓ {t('workout.setDone')}
+                </button>
+              </div>
+              <div className="row between">
+                <button className="ghost sm" onClick={() => up(set.id, { status: 'skipped' })}>
+                  {t('workout.skip')}
+                </button>
+                {!entry.prescription[entry.sets.indexOf(set)] && (
+                  <button className="ghost sm" onClick={() => onChange({ ...entry, sets: entry.sets.filter((x) => x.id !== set.id) })}>
+                    {t('common.remove')}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }
         return (
-          <div key={set.id} className={`set-row ${set.status}`}>
-            <span className="idx" title={t(`setKind.${set.kind}`)}>
-              {set.kind === 'working' ? i + 1 - entry.sets.slice(0, i).filter((x) => x.kind !== 'working').length : t(`setKind.${set.kind}`).slice(0, 1)}
-            </span>
-            {metrics.map((m, mi) => (
-              <span key={m.key} className="field-inline">
-                <span>
-                  {metricLabel(t, m.key, metrics)} <small>{m.unit !== 'reps' && m.unit}</small>
-                </span>
-                <NumInput
-                  label={`${metricLabel(t, m.key, metrics)} ${i + 1}`}
-                  stepper={m.key === 'reps' || m.key === 'load'}
-                  step={stepFor(m)}
-                  value={set.values[m.key]}
-                  invalid={set.status === 'done' && !!errors[mi]}
-                  onChange={(v) => upSet(i, { values: { ...set.values, [m.key]: v } })}
-                />
-              </span>
-            ))}
-            {hasReps && (
-              <span className="field-inline">
-                <span>{t('workout.rir')}</span>
-                <NumInput label={`${t('workout.rir')} ${i + 1}`} value={set.rir} placeholder={rx?.rir !== undefined ? String(rx.rir) : ''} onChange={(v) => upSet(i, { rir: v })} />
-              </span>
-            )}
-            {hasReps && (
-              <span className="field-inline">
-                <span>{t('workout.rpe')}</span>
-                <NumInput label={`${t('workout.rpe')} ${i + 1}`} value={set.rpe} placeholder={rx?.rpe !== undefined ? String(rx.rpe) : ''} onChange={(v) => upSet(i, { rpe: v })} />
-              </span>
-            )}
-            <span className="spacer" />
-            {set.status === 'done' ? (
-              <button className="secondary done-btn" onClick={() => upSet(i, { status: 'pending' })}>
-                ✓ {t('workout.undo')}
-              </button>
-            ) : (
-              <>
-                <button className="done-btn" disabled={blocked} onClick={() => upSet(i, { status: 'done' })}>
-                  ✓ {t('workout.done')}
-                </button>
-                <button className="ghost" onClick={() => upSet(i, { status: set.status === 'skipped' ? 'pending' : 'skipped' })}>
-                  {set.status === 'skipped' ? t('workout.undo') : t('workout.skip')}
-                </button>
-              </>
-            )}
-            {!rx && (
-              <button className="ghost" aria-label={t('common.remove')} onClick={() => onChange({ ...entry, sets: entry.sets.filter((_, j) => j !== i) })}>
-                ✕
-              </button>
-            )}
-          </div>
+          <button key={set.id} className={`set ${set.status} ${miss ? 'miss' : ''}`} onClick={() => onActivate(set.id)} aria-label={`${t('workout.setN', { n: label })}: ${set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language)}`}>
+            <span className="n">{set.status === 'done' ? '✓' : label}</span>
+            <span className="v">{set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—'}</span>
+            {set.status === 'pending' && set.goal?.reps !== undefined && <span className="g">{t('workout.goal', { value: set.goal.reps })}</span>}
+          </button>
         );
       })}
-      <div className="row wrap">
-        <button className="secondary" onClick={() => onChange(addSet(entry, 'working'))}>
+    </div>
+  );
+}
+
+function EntryFocus({ entry, previous, onChange, onSubstitute }: { entry: WorkoutEntry; previous?: WorkoutEntry; onChange: (e: WorkoutEntry) => void; onSubstitute: () => void }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const [chosen, setChosen] = useState<string>();
+  const [notes, setNotes] = useState(!!entry.notes);
+  const firstPending = entry.sets.find((x) => x.status === 'pending')?.id;
+  const chosenSet = entry.sets.find((x) => x.id === chosen);
+  // The chosen set stays open until it is marked done or skipped; otherwise the first pending set is open.
+  const activeId = chosenSet?.status === 'pending' ? chosen : firstPending;
+
+  return (
+    <section aria-label={entry.exercise.name}>
+      {entry.group && <span className="badge">{t('plan.group')} {entry.group}</span>}
+      <h1 className="ex-title">{entry.exercise.name}</h1>
+      {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
+      <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
+      <div className="ex-last">
+        {t('workout.lastTime')}: {previous ? setsLine(previous.sets, previous.exercise.metrics, s.language) : t('workout.firstTime')}
+      </div>
+      <div className="hint">{progressHint(entry, t, s.language)}</div>
+
+      <SetList
+        entry={entry}
+        activeId={activeId}
+        onActivate={(id) => {
+          const x = entry.sets.find((y) => y.id === id);
+          if (x && x.status !== 'pending') onChange({ ...entry, sets: entry.sets.map((y) => (y.id === id ? { ...y, status: 'pending' } : y)) });
+          setChosen(id);
+        }}
+        onChange={(e) => {
+          onChange(e);
+          setChosen(undefined);
+        }}
+      />
+
+      <div className="wk-actions">
+        <button className="chip" onClick={() => onChange(addSet(entry, 'working'))}>
           + {t('workout.addSet')}
         </button>
-        <button className="ghost" onClick={() => onChange({ ...addSet(entry, 'warmup') })}>
-          + {t('setKind.warmup')}
-        </button>
-        <button className="ghost" onClick={() => setPicking(true)}>
+        <button className="chip" onClick={onSubstitute}>
           ⇄ {t('workout.substitute')}
         </button>
-        <label className="check">
-          <input type="checkbox" checked={entry.pain} onChange={(e) => onChange({ ...entry, pain: e.target.checked })} /> {t('workout.pain')}
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={entry.technique} onChange={(e) => onChange({ ...entry, technique: e.target.checked })} /> {t('workout.technique')}
-        </label>
+        <button className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
+          {t('workout.pain')}
+        </button>
+        <button className={`chip ${entry.technique ? 'on' : ''}`} aria-pressed={entry.technique} onClick={() => onChange({ ...entry, technique: !entry.technique })}>
+          {t('workout.technique')}
+        </button>
+        <button className={`chip ${notes ? 'on' : ''}`} onClick={() => setNotes(!notes)}>
+          {t('common.notes')}
+        </button>
       </div>
-      <details>
-        <summary>{t('common.notes')} / …</summary>
-        <div className="stack-sm">
-          <textarea aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />
-          <div className="row wrap">
-            <button className="ghost" onClick={() => onMove(-1)}>
-              ↑ {t('common.moveUp')}
-            </button>
-            <button className="ghost" onClick={() => onMove(1)}>
-              ↓ {t('common.moveDown')}
-            </button>
-            <button className="danger" onClick={onRemove}>
-              {t('workout.removeEntry')}
-            </button>
-          </div>
-        </div>
-      </details>
-      {picking && (
-        <SubstitutePicker
-          substitutes={substitutes}
-          exercises={exercises}
-          onPick={(ex) => {
-            onChange(substitute(entry, ex));
-            setPicking(false);
-          }}
-          onClose={() => setPicking(false)}
-        />
-      )}
+      {notes && <textarea style={{ marginTop: '0.6rem' }} aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />}
     </section>
   );
 }
 
-function SubstitutePicker({ substitutes, exercises, onPick, onClose }: { substitutes: string[]; exercises: Map<string, Exercise>; onPick: (e: Exercise) => void; onClose: () => void }) {
+function CorrectionEditor({ draft, onChange }: { draft: Workout; onChange: (w: Workout) => void }) {
   const { t } = useTranslation();
-  const [all, setAll] = useState(substitutes.length === 0);
-  if (all) return <ExercisePicker onPick={onPick} onClose={onClose} />;
+  const upSet = (ei: number, si: number, patch: Partial<SetRecord>) =>
+    onChange({ ...draft, entries: draft.entries.map((e, i) => (i === ei ? { ...e, sets: e.sets.map((x, j) => (j === si ? { ...x, ...patch } : x)) } : e)) });
   return (
-    <ExercisePickerShort title={t('plan.substitutes')} items={substitutes.map((id) => exercises.get(id)).filter((e): e is Exercise => !!e)} onPick={onPick} onMore={() => setAll(true)} onClose={onClose} />
-  );
-}
-
-function ExercisePickerShort({ title, items, onPick, onMore, onClose }: { title: string; items: Exercise[]; onPick: (e: Exercise) => void; onMore: () => void; onClose: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <div className="card" role="dialog" aria-label={title}>
-      <h3>{title}</h3>
-      <div className="row wrap">
-        {items.map((e) => (
-          <button key={e.id} className="secondary" onClick={() => onPick(e)}>
-            {e.name}
-          </button>
-        ))}
-        <button className="ghost" onClick={onMore}>
-          {t('common.all')}…
-        </button>
-        <button className="ghost" onClick={onClose}>
-          {t('common.cancel')}
-        </button>
-      </div>
+    <div>
+      {draft.entries.map((e, ei) => (
+        <section className="card" key={e.id} aria-label={e.exercise.name}>
+          <h3>{e.exercise.name}</h3>
+          <div className="col">
+            {e.sets.map((x, si) => (
+              <div key={x.id} className="set-rx">
+                <strong style={{ width: '1.5rem' }}>{si + 1}</strong>
+                {e.exercise.metrics.map((m) => (
+                  <span key={m.key} className="field-inline">
+                    <span>
+                      {metricLabel(t, m.key, e.exercise.metrics)} {m.unit !== 'reps' && `(${m.unit})`}
+                    </span>
+                    <NumInput label={`${metricLabel(t, m.key, e.exercise.metrics)} ${si + 1}`} value={x.values[m.key]} onChange={(v) => upSet(ei, si, { values: { ...x.values, [m.key]: v } })} />
+                  </span>
+                ))}
+                <label className="check">
+                  <input type="checkbox" checked={x.status === 'done'} onChange={(ev) => upSet(ei, si, { status: ev.target.checked ? 'done' : 'skipped' })} /> {t('setStatus.done')}
+                </label>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
-}
-
-function RecommendationBox({ ev, metrics }: { ev: ProgressionEvent; metrics: MetricDef[] }) {
-  const { t } = useTranslation();
-  const [other, setOther] = useState(false);
-  const [value, setValue] = useState<number | undefined>(ev.recommendation?.to);
-  const [reason, setReason] = useState('');
-  const rec = ev.recommendation;
-  if (!rec) return null;
-  const unit = metrics.find((m) => m.key === rec.metric)?.unit ?? '';
-  const label = t('progression.recommendation', { metric: metricLabel(t, rec.metric, metrics), from: `${rec.from} ${unit}`, to: `${rec.to} ${unit}` });
-  if (ev.decision !== 'pending') {
-    return (
-      <p className="help">
-        {label} — <strong>{t(`decision.${ev.decision}`)}</strong>
-        {ev.decision === 'overridden' && ` (${ev.after[rec.metric]} ${unit})`}
-        {ev.decisionReason && ` — ${ev.decisionReason}`}
-      </p>
-    );
-  }
-  return (
-    <div className="rec stack-sm" role="group" aria-label={t('outcome.increase_recommended')}>
-      <strong>{label}</strong>
-      <div className="row wrap">
-        <button onClick={() => void repo.decide(ev.id, { kind: 'accept' })}>{t('progression.accept', { to: `${rec.to} ${unit}` })}</button>
-        <button className="secondary" onClick={() => setOther(!other)}>
-          {t('progression.overrideWith')}
-        </button>
-        <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'defer' })}>
-          {t('progression.defer')}
-        </button>
-      </div>
-      {other && (
-        <div className="row wrap">
-          <NumInput label={metricLabel(t, rec.metric, metrics)} value={value} onChange={setValue} />
-          <input aria-label={t('progression.reason')} placeholder={t('progression.reason')} value={reason} onChange={(e) => setReason(e.target.value)} />
-          <button disabled={value === undefined || Number.isNaN(value)} onClick={() => void repo.decide(ev.id, { kind: 'override', value: value!, reason })}>
-            {t('common.save')}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function moveItem<T>(arr: T[], i: number, d: number): T[] {
-  const j = i + d;
-  if (j < 0 || j >= arr.length) return arr;
-  const c = [...arr];
-  [c[i], c[j]] = [c[j], c[i]];
-  return c;
 }
 
 export function WorkoutPage() {
@@ -295,197 +205,242 @@ export function WorkoutPage() {
     return { exercises, version, others, events, revisions };
   }, [id, stored?.planVersionId, stored?.startedAt]);
   const [draft, setDraft] = useState<Workout>();
+  const [cur, setCur] = useState(0);
   const [editing, setEditing] = useState(false);
-  const [picking, setPicking] = useState(false);
+  const [picker, setPicker] = useState<'add' | 'sub'>();
+  const [menu, setMenu] = useState(false);
   const loadedFor = useRef<string>(undefined);
 
   useEffect(() => {
     if (stored && (loadedFor.current !== `${stored.id}:${stored.status}` || (!editing && stored.status !== 'in_progress'))) {
+      if (loadedFor.current !== `${stored.id}:${stored.status}`) {
+        const first = stored.entries.findIndex((e) => e.sets.some((x) => x.status === 'pending'));
+        setCur(first < 0 ? 0 : first);
+      }
       loadedFor.current = `${stored.id}:${stored.status}`;
       setDraft(stored);
     }
   }, [stored, editing]);
 
-  if (stored === undefined && ctx) return <p>{t('history.empty')}</p>;
+  if (stored === undefined && ctx) return <p className="empty">{t('history.empty')}</p>;
   if (!draft || !ctx) return null;
   const active = draft.status === 'in_progress';
-  const editable = active || editing;
 
   const previousOf = (e: WorkoutEntry) => {
     const sorted = [...ctx.others].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
     for (const w of sorted) {
-      const p = w.entries.find((x) => x.lineageId === e.lineageId);
+      const p = w.entries.find((x) => x.lineageId === e.lineageId && x.exerciseId === e.exerciseId);
       if (p) return p;
     }
     return undefined;
   };
-  const substitutesOf = (e: WorkoutEntry) => ctx.version?.days.flatMap((d) => d.items).find((i) => i.lineageId === e.lineageId)?.substitutes ?? [];
-
   const update = (w: Workout) => {
     setDraft(w);
     if (active) void repo.saveWorkout(w);
   };
-  const upEntry = (i: number, e: WorkoutEntry) => update({ ...draft, entries: draft.entries.map((x, j) => (j === i ? e : x)) });
+  const entry = draft.entries[Math.min(cur, draft.entries.length - 1)];
+  const upEntry = (e: WorkoutEntry) => update({ ...draft, entries: draft.entries.map((x) => (x.id === e.id ? e : x)) });
+  const entryDone = (e: WorkoutEntry) => e.sets.length > 0 && e.sets.every((x) => x.status !== 'pending');
+  const pendingSets = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.status === 'pending').length, 0);
 
-  const addExercise = async (ex: Exercise) => {
-    setPicking(false);
+  const pick = async (ex: Exercise) => {
+    const mode = picker;
+    setPicker(undefined);
+    if (mode === 'sub' && entry) return upEntry(substitute(entry, ex));
     const lineage = adHocLineage(ex.id);
-    const state = await db.progressionStates.get(lineage);
-    update({ ...draft, entries: [...draft.entries, entryAdHoc(ex, state, await repo.lastEntry(lineage))] });
+    const e = entryAdHoc(ex, await db.progressionStates.get(lineage), await repo.lastEntry(lineage));
+    update({ ...draft, entries: [...draft.entries, e] });
+    setCur(draft.entries.length);
   };
-  const finish = async (interrupted: boolean) => {
+  const finish = async (interrupted = false) => {
+    if (!interrupted && pendingSets > 0 && !confirm(t('workout.finishPending', { count: pendingSets }))) return;
+    setMenu(false);
     await repo.finishWorkout(draft, interrupted);
     window.scrollTo(0, 0);
   };
-  const discard = async () => {
-    if (!confirm(t('workout.discardConfirm'))) return;
-    await repo.discardWorkout(draft.id);
-    nav('/');
-  };
-  const saveCorrection = async () => {
-    await repo.correctWorkout(draft);
-    setEditing(false);
-  };
-  const remove = async () => {
-    if (!confirm(t('workout.deleteConfirm'))) return;
-    await repo.deleteWorkout(draft.id);
-    nav('/history');
-  };
 
-  return (
-    <div className="stack">
-      <div className="row between wrap">
-        <div>
-          <h1>
-            {draft.planName ?? t('workout.free')}
-            {draft.dayName && ` · ${draft.dayName}`}
-          </h1>
-          <small>
-            {t('workout.started', { date: fmtDate(draft.startedAt, s.language, true) })} · {t(`workout.status.${draft.status}`)}
-          </small>
-        </div>
-        {!active && !editing && (
-          <div className="row wrap">
-            <button className="secondary" onClick={() => setEditing(true)}>
-              {t('workout.correct')}
-            </button>
-            <button className="danger" onClick={() => void remove()}>
-              {t('common.delete')}
+  if (active) {
+    const subs = ctx.version?.days.flatMap((d) => d.items).find((i) => i.lineageId === entry?.lineageId)?.substitutes ?? [];
+    return (
+      <div>
+        <div className="wk-head">
+          <div className="row between">
+            <Link to="/" className="btn ghost" aria-label={t('nav.home')}>
+              ‹
+            </Link>
+            <span className="title">
+              {draft.dayName ?? t('workout.free')} · {draft.entries.length ? `${Math.min(cur, draft.entries.length - 1) + 1}/${draft.entries.length}` : ''}
+            </span>
+            <button className="ghost" aria-label={t('workout.menu')} onClick={() => setMenu(true)}>
+              ⋯
             </button>
           </div>
-        )}
-      </div>
-      {active && <p className="help">{t('workout.sessionOnly')}</p>}
+          <div className="wk-chips" role="tablist">
+            {draft.entries.map((e, i) => (
+              <button key={e.id} role="tab" aria-selected={i === cur} className={`wk-chip ${i === cur ? 'cur' : entryDone(e) ? 'done' : ''}`} onClick={() => setCur(i)}>
+                {entryDone(e) ? '✓ ' : ''}
+                {e.exercise.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {editable ? (
+        {entry ? (
+          <EntryFocus key={entry.id} entry={entry} previous={previousOf(entry)} onChange={upEntry} onSubstitute={() => setPicker('sub')} />
+        ) : (
+          <div className="empty">
+            <p>{t('workout.noEntries')}</p>
+          </div>
+        )}
+
+        <div className="wk-nav">
+          {cur > 0 && (
+            <button className="outline" onClick={() => setCur(cur - 1)}>
+              ‹ {t('workout.prev')}
+            </button>
+          )}
+          {cur < draft.entries.length - 1 ? (
+            <button className={entry && entryDone(entry) ? 'primary' : 'outline'} onClick={() => setCur(cur + 1)}>
+              {t('workout.next')} ›
+            </button>
+          ) : (
+            <button className={pendingSets === 0 ? 'primary' : 'outline'} onClick={() => void finish()}>
+              ✓ {t('workout.finish')}
+            </button>
+          )}
+        </div>
+
+        {menu && (
+          <Modal title={t('workout.menu')} onClose={() => setMenu(false)}>
+            <div className="sheet">
+              <button onClick={() => (setMenu(false), setPicker('add'))}>+ {t('workout.addExercise')}</button>
+              {entry && (
+                <button onClick={() => (setMenu(false), update({ ...draft, entries: draft.entries.filter((x) => x.id !== entry.id) }), setCur(Math.max(0, cur - 1)))}>
+                  {t('workout.removeEntry')}
+                </button>
+              )}
+              <button onClick={() => void finish(false)}>✓ {t('workout.finish')}</button>
+              <button onClick={() => void finish(true)}>{t('workout.interrupt')}</button>
+              <button
+                className="danger"
+                onClick={async () => {
+                  if (!confirm(t('workout.discardConfirm'))) return;
+                  await repo.discardWorkout(draft.id);
+                  nav('/');
+                }}
+              >
+                {t('workout.discard')}
+              </button>
+            </div>
+          </Modal>
+        )}
+        {picker === 'add' && <ExercisePicker onPick={(ex) => void pick(ex)} onClose={() => setPicker(undefined)} />}
+        {picker === 'sub' && <ExercisePicker preferred={subs} onPick={(ex) => void pick(ex)} onClose={() => setPicker(undefined)} />}
+      </div>
+    );
+  }
+
+  // Finished workout: summary with decisions, or correction mode.
+  return (
+    <div>
+      <div className="page-head">
+        <div>
+          <p className="eyebrow">{fmtDate(draft.startedAt, s.language, true)}</p>
+          <h1>
+            {draft.status === 'completed' ? '✓ ' : ''}
+            {draft.dayName ?? t('workout.free')}
+          </h1>
+          <small>
+            {draft.planName && `${draft.planName} · `}
+            {t(`workout.status.${draft.status}`)}
+          </small>
+        </div>
+      </div>
+
+      {editing ? (
         <>
-          {draft.entries.length === 0 && <p className="muted">{t('workout.noEntries')}</p>}
-          {draft.entries.map((e, i) => (
-            <EntryCard
-              key={e.id}
-              entry={e}
-              previous={previousOf(e)}
-              exercises={ctx.exercises}
-              substitutes={substitutesOf(e)}
-              onChange={(x) => upEntry(i, x)}
-              onRemove={() => update({ ...draft, entries: draft.entries.filter((_, j) => j !== i) })}
-              onMove={(d) => update({ ...draft, entries: moveItem(draft.entries, i, d) })}
-            />
-          ))}
-          <button className="secondary" onClick={() => setPicking(true)}>
-            + {t('workout.addExercise')}
-          </button>
-          <label>
-            {t('common.notes')}
-            <textarea value={draft.notes} onChange={(e) => update({ ...draft, notes: e.target.value })} />
-          </label>
-          <div className="sticky-actions">
-            {active ? (
-              <>
-                <button onClick={() => void finish(false)}>✓ {t('workout.finish')}</button>
-                <button className="secondary" onClick={() => void finish(true)}>
-                  {t('workout.interrupt')}
-                </button>
-                <span className="spacer" />
-                <button className="danger" onClick={() => void discard()}>
-                  {t('workout.discard')}
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => void saveCorrection()}>{t('workout.saveCorrection')}</button>
-                <button
-                  className="secondary"
-                  onClick={() => {
-                    setEditing(false);
-                    setDraft(stored);
-                  }}
-                >
-                  {t('common.cancel')}
-                </button>
-              </>
-            )}
+          <p className="help">{t('workout.correctHelp')}</p>
+          <CorrectionEditor draft={draft} onChange={setDraft} />
+          <div className="wk-nav">
+            <button className="outline" onClick={() => (setEditing(false), setDraft(stored))}>
+              {t('common.cancel')}
+            </button>
+            <button className="primary" onClick={() => void repo.correctWorkout(draft).then(() => setEditing(false))}>
+              {t('workout.saveCorrection')}
+            </button>
           </div>
         </>
       ) : (
         <>
-          <h2>{t('workout.summary')}</h2>
-          {draft.entries.map((e) => {
-            const ev = ctx.events.find((x) => x.entryId === e.id);
-            return (
-              <section className="card" key={e.id}>
-                <h3>
-                  {e.group && <span className="group">{e.group} </span>}
+          <h2>{t('workout.nextTime')}</h2>
+          {draft.entries.map((e) => (
+            <DecisionCard key={e.id} entry={e} ev={ctx.events.find((x) => x.entryId === e.id)} />
+          ))}
+          {draft.notes && <p className="card">{draft.notes}</p>}
+          <details className="card tight">
+            <summary>{t('workout.details')}</summary>
+            {draft.entries.map((e) => (
+              <div key={e.id} style={{ marginBottom: '0.6rem' }}>
+                <strong>
                   <Link to={`/exercises/${e.exerciseId}`}>{e.exercise.name}</Link>
-                  {e.substitutedFor && <small> ({t('workout.substitutedFor', { name: ctx.exercises.get(e.substitutedFor)?.name ?? '?' })})</small>}
-                </h3>
-                <p className="help">
-                  {t('workout.prescribed')}: {rxSummary(e.prescription, e.exercise.metrics, t, s.language)}
-                </p>
-                <ul className="list">
+                </strong>
+                <div className="help">
+                  {t('workout.prescribed')}: {rxLine(e, t, s.language)}
+                </div>
+                <div className="num">
                   {e.sets.map((x, i) => (
-                    <li key={x.id} className={x.status === 'skipped' ? 'muted' : ''}>
-                      {x.kind !== 'working' && `${t(`setKind.${x.kind}`)} · `}
-                      {i + 1}. {x.status === 'skipped' ? t('setStatus.skipped') : formatSet(x, e.exercise.metrics, s.language)}
-                      {x.rir !== undefined && ` · RIR ${fmtNum(x.rir, s.language)}`}
-                      {x.rpe !== undefined && ` · RPE ${fmtNum(x.rpe, s.language)}`}
-                    </li>
+                    <div key={x.id} className={x.status === 'skipped' ? 'muted' : ''}>
+                      {i + 1}. {x.status === 'skipped' ? t('setStatus.skipped') : setText(x, e.exercise.metrics, s.language)}
+                      {x.goal?.reps !== undefined && x.status === 'done' && <small> ({t('workout.goal', { value: x.goal.reps })})</small>}
+                    </div>
                   ))}
-                </ul>
+                </div>
                 {(e.pain || e.technique) && (
-                  <p className="error">
+                  <small className="error">
                     {e.pain && t('workout.pain')} {e.technique && t('workout.technique')}
-                  </p>
+                  </small>
                 )}
                 {e.notes && <p className="muted">{e.notes}</p>}
-                {e.evaluation && <EvaluationView ev={e.evaluation} metrics={e.exercise.metrics} />}
-                {ev && <RecommendationBox ev={ev} metrics={e.exercise.metrics} />}
-              </section>
-            );
-          })}
-          {draft.notes && <p className="card">{draft.notes}</p>}
+              </div>
+            ))}
+          </details>
           {ctx.revisions.length > 0 && (
-            <section className="card">
-              <h2>{t('workout.revisions')}</h2>
+            <details className="card tight">
+              <summary>
+                {t('workout.revisions')} ({ctx.revisions.length})
+              </summary>
               <ul className="list">
                 {ctx.revisions.map((r) => (
                   <li key={r.id}>
-                    <details>
-                      <summary>{t('workout.revisionAt', { date: fmtDate(r.at, s.language, true) })}</summary>
-                      {r.previous.entries.map((e) => (
-                        <p key={e.id} className="help">
-                          {e.exercise.name}: {e.sets.filter((x) => x.status === 'done').map((x) => formatSet(x, e.exercise.metrics, s.language)).join(', ')}
-                        </p>
-                      ))}
-                    </details>
+                    <small>{t('workout.revisionAt', { date: fmtDate(r.at, s.language, true) })}</small>
+                    {r.previous.entries.map((e) => (
+                      <div key={e.id} className="help">
+                        {e.exercise.name}: {setsLine(e.sets, e.exercise.metrics, s.language)}
+                      </div>
+                    ))}
                   </li>
                 ))}
               </ul>
-            </section>
+            </details>
           )}
+          <div className="row wrap" style={{ marginTop: '1rem' }}>
+            <button className="outline" onClick={() => setEditing(true)}>
+              {t('workout.correct')}
+            </button>
+            <span className="spacer" />
+            <button
+              className="danger"
+              onClick={async () => {
+                if (!confirm(t('workout.deleteConfirm'))) return;
+                await repo.deleteWorkout(draft.id);
+                nav('/history');
+              }}
+            >
+              {t('common.delete')}
+            </button>
+          </div>
         </>
       )}
-      {picking && <ExercisePicker onPick={(ex) => void addExercise(ex)} onClose={() => setPicking(false)} />}
     </div>
   );
 }

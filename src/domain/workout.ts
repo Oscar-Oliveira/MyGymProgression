@@ -1,5 +1,5 @@
 // Workout use-case logic: start from a plan day, session edits, finish, progression decisions. Pure functions.
-import { applyTargets, evaluate, initialTargets } from './progression';
+import { applyTargets, evaluate, initialTargets, setGoals } from './progression';
 import { nowIso, uid } from './factory';
 import type {
   Exercise,
@@ -9,6 +9,7 @@ import type {
   PlanDay,
   PlanItem,
   PlanVersion,
+  ProgressionConfig,
   ProgressionEvent,
   ProgressionState,
   SetPrescription,
@@ -45,42 +46,35 @@ export function snapshot(ex: Exercise): ExerciseSnapshot {
 export const adHocLineage = (exerciseId: string) => `exercise:${exerciseId}`;
 
 /**
- * Pre-fills a set from the prescription: a fixed target value first (e.g. the current working load),
- * then the value from the same set last session, then the range minimum.
+ * Creates the session sets. Each set gets today's goal (see setGoals) and is pre-filled with it,
+ * so a set done as planned needs one tap. Metrics without a goal take last session's value.
  */
-function prefill(p: SetPrescription, index: number, previous?: WorkoutEntry): SetRecord {
-  const prev = previous?.sets.filter((s) => s.kind === p.kind)[index];
-  const values: SetRecord['values'] = {};
-  const keys = new Set<MetricKey>([...(Object.keys(p.targets) as MetricKey[]), ...(Object.keys(prev?.values ?? {}) as MetricKey[])]);
-  for (const k of keys) {
-    const t = p.targets[k];
-    const v = t?.value ?? prev?.values[k] ?? t?.min;
-    if (v !== undefined) values[k] = v;
-  }
-  return { id: uid(), kind: p.kind, values, status: 'pending', notes: '' };
-}
-
-function setsFor(prescription: SetPrescription[], previous?: WorkoutEntry): SetRecord[] {
+function setsFor(prescription: SetPrescription[], config: ProgressionConfig, previous?: WorkoutEntry): SetRecord[] {
+  const goals = setGoals(config, prescription, previous);
   const counters: Record<string, number> = {};
-  return prescription.map((p) => {
+  return prescription.map((p, n) => {
     const i = counters[p.kind] ?? 0;
     counters[p.kind] = i + 1;
-    return prefill(p, i, previous);
+    const prev = previous?.sets.filter((s) => s.kind === p.kind && s.status === 'done')[i];
+    const values: SetRecord['values'] = { ...(prev?.values ?? {}), ...goals[n] };
+    return { id: uid(), kind: p.kind, values, goal: goals[n], status: 'pending', notes: '' };
   });
 }
 
 export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry): WorkoutEntry {
   const prescription = applyTargets(item.sets, state?.targets);
+  const progression = structuredClone(item.progression ?? ex.progression);
+  const prev = previous?.exerciseId === ex.id ? previous : undefined;
   return {
     id: uid(),
     exerciseId: ex.id,
     exercise: snapshot(ex),
     lineageId: item.lineageId,
     prescription,
-    progression: structuredClone(item.progression ?? ex.progression),
+    progression,
     group: item.group,
     role: item.role,
-    sets: setsFor(prescription, previous),
+    sets: setsFor(prescription, progression, prev),
     pain: false,
     technique: false,
     notes: item.notes,
@@ -89,15 +83,17 @@ export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionS
 
 export function entryAdHoc(ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry): WorkoutEntry {
   const prescription = applyTargets(ex.defaultSets, state?.targets);
+  const progression = structuredClone(ex.progression);
+  const prev = previous?.exerciseId === ex.id ? previous : undefined;
   return {
     id: uid(),
     exerciseId: ex.id,
     exercise: snapshot(ex),
     lineageId: adHocLineage(ex.id),
     prescription,
-    progression: structuredClone(ex.progression),
+    progression,
     role: ex.category === 'warmup' ? 'warmup' : 'main',
-    sets: setsFor(prescription, previous),
+    sets: setsFor(prescription, progression, prev),
     pain: false,
     technique: false,
     notes: '',
@@ -175,61 +171,75 @@ export function evaluateWorkout(w: Workout, previous: (lineageId: string) => Wor
   return { ...w, entries };
 }
 
+/**
+ * Finishes a workout: evaluates every entry and creates one progression event per progressive entry.
+ * An increase is applied at once (decision "applied", can be reverted). Missed reps wait for the user ("pending").
+ */
 export function finishWorkout(
   w: Workout,
   interrupted: boolean,
   previous: (lineageId: string) => WorkoutEntry | undefined,
   states: Map<string, ProgressionState>,
-): { workout: Workout; events: ProgressionEvent[] } {
+): { workout: Workout; events: ProgressionEvent[]; states: ProgressionState[] } {
   const now = nowIso();
   const evaluated = evaluateWorkout(w, previous);
   const workout: Workout = { ...evaluated, status: workoutStatus(evaluated, interrupted), endedAt: now, updatedAt: now };
+  const changed: ProgressionState[] = [];
   const events: ProgressionEvent[] = workout.entries
     .filter((e) => e.lineageId && e.evaluation && e.progression.strategy !== 'none')
     .map((e) => {
-      const targets = states.get(e.lineageId!)?.targets ?? initialTargets(e.progression, e.prescription);
+      const ev = e.evaluation!;
+      const before = states.get(e.lineageId!)?.targets ?? initialTargets(e.progression, e.prescription);
+      let after = { ...before };
+      if (ev.outcome === 'increase' && ev.suggestion) {
+        after = { ...before, [ev.suggestion.metric]: ev.suggestion.to };
+        changed.push({ lineageId: e.lineageId!, exerciseId: e.exerciseId, targets: after, updatedAt: now });
+      }
       return {
         id: uid(),
         workoutId: workout.id,
         entryId: e.id,
         lineageId: e.lineageId!,
         exerciseId: e.exerciseId,
-        strategy: e.evaluation!.strategy,
-        outcome: e.evaluation!.outcome,
-        recommendation: e.evaluation!.recommendation,
-        reasons: e.evaluation!.reasons,
-        decision: e.evaluation!.recommendation ? 'pending' : 'none',
-        before: { ...targets },
-        after: { ...targets },
+        strategy: ev.strategy,
+        outcome: ev.outcome,
+        suggestion: ev.suggestion,
+        reasons: ev.reasons,
+        decision: ev.outcome === 'increase' ? 'applied' : ev.outcome === 'missed' ? 'pending' : 'none',
+        before: { ...before },
+        after,
         createdAt: now,
-      };
+        ...(ev.outcome === 'increase' ? { decidedAt: now } : {}),
+      } satisfies ProgressionEvent;
     });
-  return { workout, events };
+  return { workout, events, states: changed };
 }
 
-export type DecisionInput = { kind: 'accept' } | { kind: 'override'; value: number; reason: string } | { kind: 'defer'; reason?: string };
+export type DecisionInput = { kind: 'keep' } | { kind: 'stepBack' } | { kind: 'revert' } | { kind: 'set'; value: number; reason: string };
 
-/** Applies a user decision to a pending recommendation and returns the updated event and state. */
+/** Applies a user decision to an event and returns the updated event and progression state. */
 export function decide(event: ProgressionEvent, state: ProgressionState | undefined, input: DecisionInput): { event: ProgressionEvent; state: ProgressionState } {
   const now = nowIso();
-  const rec = event.recommendation;
-  const base: ProgressionState = state ?? { lineageId: event.lineageId, exerciseId: event.exerciseId, targets: rec ? { [rec.metric]: rec.from } : {}, updatedAt: now };
-  if (!rec || input.kind === 'defer') {
-    return { event: { ...event, decision: 'deferred', decisionReason: input.kind === 'defer' ? input.reason : undefined, decidedAt: now }, state: base };
+  const base: ProgressionState = state ?? { lineageId: event.lineageId, exerciseId: event.exerciseId, targets: { ...event.before }, updatedAt: now };
+  const s = event.suggestion;
+  const withTargets = (targets: ProgressionState['targets']): ProgressionState => ({ ...base, targets, updatedAt: now });
+  switch (input.kind) {
+    case 'keep':
+      return { event: { ...event, decision: 'kept', after: { ...event.before }, decidedAt: now }, state: withTargets({ ...base.targets, ...event.before }) };
+    case 'revert':
+      return { event: { ...event, decision: 'reverted', after: { ...event.before }, decidedAt: now }, state: withTargets({ ...base.targets, ...event.before }) };
+    case 'stepBack': {
+      if (!s) return { event, state: base };
+      const targets = { ...base.targets, [s.metric]: s.to };
+      return { event: { ...event, decision: 'stepped_back', after: targets, decidedAt: now }, state: withTargets(targets) };
+    }
+    case 'set': {
+      const metric = s?.metric ?? (Object.keys(event.before)[0] as MetricKey | undefined);
+      if (!metric) return { event, state: base };
+      const targets = { ...base.targets, [metric]: input.value };
+      return { event: { ...event, decision: 'overridden', decisionReason: input.reason, after: targets, decidedAt: now }, state: withTargets(targets) };
+    }
   }
-  const value = input.kind === 'accept' ? rec.to : input.value;
-  const targets = { ...base.targets, [rec.metric]: value };
-  return {
-    event: {
-      ...event,
-      decision: input.kind === 'accept' ? 'accepted' : 'overridden',
-      decisionReason: input.kind === 'override' ? input.reason : undefined,
-      before: { ...base.targets },
-      after: targets,
-      decidedAt: now,
-    },
-    state: { ...base, targets, updatedAt: now },
-  };
 }
 
 /** Manual change of current targets outside a recommendation (manual progression or correction). */

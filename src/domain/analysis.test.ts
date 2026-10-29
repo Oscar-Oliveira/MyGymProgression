@@ -105,16 +105,16 @@ describe('stalledItems', () => {
       3,
     );
   it('flags progression-enabled items without progress for 3 sessions', () => {
-    expect(run('double', ['completed_as_prescribed', 'below_target', 'completed_as_prescribed'])).toHaveLength(1);
+    expect(run('double', ['keep', 'missed', 'keep'])).toHaveLength(1);
   });
   it('does not flag when there was progress', () => {
-    expect(run('double', ['completed_as_prescribed', 'progress', 'completed_as_prescribed'])).toHaveLength(0);
+    expect(run('double', ['keep', 'progress', 'keep'])).toHaveLength(0);
   });
   it('never flags non-progressive exercises (treadmill warm-up)', () => {
     expect(run('none', ['no_progression', 'no_progression', 'no_progression', 'no_progression'])).toHaveLength(0);
   });
   it('needs at least threshold sessions', () => {
-    expect(run('duration', ['completed_as_prescribed', 'completed_as_prescribed'])).toHaveLength(0);
+    expect(run('duration', ['keep', 'keep'])).toHaveLength(0);
   });
 });
 

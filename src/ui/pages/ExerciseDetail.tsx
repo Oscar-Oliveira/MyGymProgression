@@ -187,13 +187,8 @@ export function ExerciseDetail() {
               .map((e) => (
                 <li key={e.id}>
                   {fmtDate(e.createdAt, s.language)} · <strong>{t(`decision.${e.decision}`)}</strong>{' '}
-                  {e.recommendation && t('progression.recommendation', { metric: metricLabel(t, e.recommendation.metric, metrics), from: e.recommendation.from, to: e.recommendation.to })}
-                  {(e.decision === 'accepted' || e.decision === 'overridden') && (
-                    <small>
-                      {' '}
-                      → {Object.entries(e.after).map(([k, v]) => `${metricLabel(t, k as MetricDef['key'], metrics)} ${v}`).join(', ')}
-                    </small>
-                  )}
+                  {Object.entries(e.before).map(([k, v]) => `${metricLabel(t, k as MetricDef['key'], metrics)} ${v}`).join(', ')}
+                  {JSON.stringify(e.after) !== JSON.stringify(e.before) && ` → ${Object.entries(e.after).map(([, v]) => v).join(', ')}`}
                   {e.decisionReason && <small> — {e.decisionReason}</small>}
                 </li>
               ))}

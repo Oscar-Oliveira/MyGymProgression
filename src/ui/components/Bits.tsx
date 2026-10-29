@@ -1,15 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { Evaluation, MetricDef, Outcome } from '../../domain/types';
-import { reasonText } from '../util';
+import type { Outcome } from '../../domain/types';
 
 const TONE: Record<Outcome, string> = {
-  increase_recommended: 'good',
-  progress: 'good',
-  completed_as_prescribed: 'ok',
-  no_progression: 'neutral',
-  manual: 'neutral',
-  below_target: 'warn',
+  increase: 'up',
+  progress: 'up',
+  keep: '',
+  at_cap: '',
+  no_progression: '',
+  manual: '',
+  missed: 'warn',
   incomplete: 'warn',
   restricted: 'warn',
 };
@@ -17,23 +17,6 @@ const TONE: Record<Outcome, string> = {
 export function OutcomeBadge({ outcome }: { outcome: Outcome }) {
   const { t } = useTranslation();
   return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${outcome}`)}</span>;
-}
-
-export function EvaluationView({ ev, metrics }: { ev: Evaluation; metrics?: MetricDef[] }) {
-  const { t } = useTranslation();
-  return (
-    <div className="eval">
-      <OutcomeBadge outcome={ev.outcome} />
-      {ev.strategy === 'none' && <span className="badge neutral">{t(`completion.${ev.completion}`)}</span>}
-      {ev.reasons.length > 0 && (
-        <ul className="reasons">
-          {ev.reasons.map((r, i) => (
-            <li key={i}>{reasonText(t, r, metrics)}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {

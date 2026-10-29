@@ -27,7 +27,7 @@ function simulate(entry: WorkoutEntry, session: number, sinceChange: number): Wo
       v.speed ??= 5.5;
       v.incline ??= 1;
     }
-    return { ...s, values: v, rir: entry.progression.strategy === 'double' ? 2 : undefined, status: 'done' as const };
+    return { ...s, values: v, status: 'done' as const };
   });
   return { ...entry, sets };
 }
@@ -74,22 +74,24 @@ export function generateDemo(exercises: Exercise[], weeks = 6, now = new Date())
       w = { ...w, startedAt: date.toISOString(), entries: w.entries.map((e) => simulate(e, session, since.get(e.lineageId!) ?? 0)) };
       if (session === 7) w.entries[2] = { ...w.entries[2], pain: true };
       if (session === 9) w.entries[2].sets[2] = { ...w.entries[2].sets[2], status: 'skipped' };
+      // Last session: missed reps on the first main exercise, left for the user to decide (keep or step back).
+      if (session === weeks * 2 - 1) {
+        const e = w.entries[1];
+        const min = e.prescription[2]?.targets.reps?.min;
+        if (min !== undefined) e.sets[2] = { ...e.sets[2], values: { ...e.sets[2].values, reps: min - 2 } };
+      }
       const res = finishWorkout(w, false, last, states);
       const end = new Date(date.getTime() + 65 * 60000).toISOString();
       const workout = { ...res.workout, endedAt: end, updatedAt: end };
       workouts.push(workout);
+      for (const st of res.states) {
+        states.set(st.lineageId, st);
+        since.set(st.lineageId, -1);
+      }
       for (const ev of res.events) {
         since.set(ev.lineageId, (since.get(ev.lineageId) ?? 0) + 1);
-        if (ev.decision !== 'pending') {
-          events.push({ ...ev, createdAt: end });
-          continue;
-        }
-        const d = decide({ ...ev, createdAt: end }, states.get(ev.lineageId), session === 10 ? { kind: 'defer' } : { kind: 'accept' });
-        events.push({ ...d.event, decidedAt: end });
-        if (d.event.decision === 'accepted') {
-          states.set(d.state.lineageId, d.state);
-          since.set(ev.lineageId, 0);
-        }
+        // Missed reps: the demo user keeps the load.
+        events.push(ev.decision === 'pending' && session !== weeks * 2 - 1 ? { ...decide({ ...ev, createdAt: end }, states.get(ev.lineageId), { kind: 'keep' }).event, decidedAt: end } : { ...ev, createdAt: end, ...(ev.decidedAt ? { decidedAt: end } : {}) });
       }
       session++;
     }

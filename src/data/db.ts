@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { v1to2 } from '../domain/migrations';
 import type { Exercise, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
 
 export class GymDB extends Dexie {
@@ -23,6 +24,15 @@ export class GymDB extends Dexie {
       progressionEvents: 'id, workoutId, lineageId, exerciseId, createdAt, decision',
       revisions: 'id, workoutId, at',
       settings: 'id',
+    });
+    // v2: RIR/RPE removed, new progression outcomes and decisions (see domain/migrations.ts).
+    this.version(2).stores({}).upgrade(async (tx) => {
+      const up = (o: object) => o as Record<string, unknown>;
+      await tx.table('exercises').toCollection().modify((e, ref) => void (ref.value = v1to2.exercise(up(e))));
+      await tx.table('planVersions').toCollection().modify((v, ref) => void (ref.value = v1to2.planVersion(up(v))));
+      await tx.table('workouts').toCollection().modify((w, ref) => void (ref.value = v1to2.workout(up(w))));
+      await tx.table('progressionEvents').toCollection().modify((e, ref) => void (ref.value = v1to2.event(up(e))));
+      await tx.table('revisions').toCollection().modify((r, ref) => void (ref.value = v1to2.revision(up(r))));
     });
   }
 }

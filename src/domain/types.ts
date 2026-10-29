@@ -29,8 +29,6 @@ export type SetKind = 'warmup' | 'working' | 'backoff';
 export interface SetPrescription {
   kind: SetKind;
   targets: Partial<Record<MetricKey, Target>>;
-  rir?: number;
-  rpe?: number;
   restSec?: number;
 }
 
@@ -47,8 +45,6 @@ export interface ProgressionCriteria {
   blockOnPain: boolean;
   blockOnTechnique: boolean;
   blockOnSubstitution: boolean;
-  /** When true, a recorded RIR below the target RIR blocks progression. A missing RIR never blocks (D6/Q3). */
-  useRir: boolean;
 }
 
 export interface ProgressionConfig {
@@ -148,8 +144,8 @@ export interface SetRecord {
   id: string;
   kind: SetKind;
   values: Partial<Record<MetricKey, number>>;
-  rir?: number;
-  rpe?: number;
+  /** Today's goal for this set, computed at workout start (e.g. last time + 1 rep). */
+  goal?: Partial<Record<MetricKey, number>>;
   restSec?: number;
   status: SetStatus;
   notes: string;
@@ -165,15 +161,15 @@ export interface ExerciseSnapshot {
   secondaryMuscles: string[];
 }
 
-export type Outcome =
-  | 'completed_as_prescribed'
-  | 'progress'
-  | 'increase_recommended'
-  | 'below_target'
-  | 'incomplete'
-  | 'restricted'
-  | 'manual'
-  | 'no_progression';
+/**
+ * increase: targets met, the next target goes up automatically.
+ * progress / keep: within the range, the target stays (reps are being built).
+ * incomplete: sets were skipped or missing, the target stays.
+ * restricted: an increase was blocked (pain, technique, substitution, lower load).
+ * missed: reps (or the progressed value) fell below the minimum; the user chooses keep or step back.
+ * at_cap: targets met, but the configured cap is reached.
+ */
+export type Outcome = 'increase' | 'progress' | 'keep' | 'incomplete' | 'restricted' | 'missed' | 'at_cap' | 'manual' | 'no_progression';
 
 export type Completion = 'complete' | 'incomplete' | 'below_target';
 
@@ -182,17 +178,18 @@ export interface Reason {
   params?: Record<string, string | number>;
 }
 
-export interface Recommendation {
+export interface Suggestion {
   metric: MetricKey;
   from: number;
   to: number;
+  kind: 'increase' | 'decrease';
 }
 
 export interface Evaluation {
   strategy: ProgressionStrategy;
   outcome: Outcome;
   completion: Completion;
-  recommendation?: Recommendation;
+  suggestion?: Suggestion;
   reasons: Reason[];
 }
 
@@ -231,7 +228,12 @@ export interface Workout {
   updatedAt: string;
 }
 
-export type Decision = 'pending' | 'accepted' | 'overridden' | 'deferred' | 'none';
+/**
+ * applied: an increase was applied automatically. reverted: the user undid it.
+ * pending: missed reps, waiting for keep / step back. kept / stepped_back: the user's answer.
+ * overridden: the user set a value manually. none: nothing to decide.
+ */
+export type Decision = 'applied' | 'reverted' | 'pending' | 'kept' | 'stepped_back' | 'overridden' | 'none';
 
 export interface ProgressionEvent {
   id: string;
@@ -242,7 +244,7 @@ export interface ProgressionEvent {
   exerciseId: string;
   strategy: ProgressionStrategy;
   outcome: Outcome;
-  recommendation?: Recommendation;
+  suggestion?: Suggestion;
   reasons: Reason[];
   decision: Decision;
   decisionReason?: string;

@@ -119,7 +119,7 @@ export function hasMetric(metrics: MetricDef[], key: MetricKey): boolean {
   return metrics.some((d) => d.key === key);
 }
 
-export const DEFAULT_CRITERIA = { blockOnPain: true, blockOnTechnique: true, blockOnSubstitution: true, useRir: true };
+export const DEFAULT_CRITERIA = { blockOnPain: true, blockOnTechnique: true, blockOnSubstitution: true };
 
 /** Default prescription and progression suggested for a preset. */
 export function presetDefaults(preset: MeasurementPreset, loadUnit = 'kg'): { sets: SetPrescription[]; progression: ProgressionConfig } {

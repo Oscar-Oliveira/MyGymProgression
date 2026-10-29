@@ -99,10 +99,6 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
             ),
           )}
           <span className="field-inline">
-            <span>{t('prescription.rir')}</span>
-            <NumInput label={t('prescription.rir')} value={s.rir} onChange={(v) => upd(i, (x) => ({ ...x, rir: v }))} />
-          </span>
-          <span className="field-inline">
             <span>{t('prescription.rest')}</span>
             <NumInput label={t('prescription.rest')} value={s.restSec} onChange={(v) => upd(i, (x) => ({ ...x, restSec: v }))} />
           </span>
@@ -208,7 +204,7 @@ export function ProgressionEditor({ config, metrics, onChange }: { config: Progr
       {showSteps && (
         <fieldset>
           <legend>{t('progression.criteria')}</legend>
-          {(['blockOnPain', 'blockOnTechnique', 'blockOnSubstitution', 'useRir'] as const).map((k) => (
+          {(['blockOnPain', 'blockOnTechnique', 'blockOnSubstitution'] as const).map((k) => (
             <label className="check" key={k}>
               <input type="checkbox" checked={criteria[k]} onChange={(e) => onChange({ ...config, criteria: { ...criteria, [k]: e.target.checked } })} /> {t(`progression.${k}`)}
             </label>

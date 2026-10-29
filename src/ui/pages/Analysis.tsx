@@ -3,228 +3,193 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
-import { adherence, completionByExercise, exerciseHistory, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type PeriodSummary } from '../../domain/analysis';
-import { Empty } from '../components/Bits';
+import { completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type EntryMetrics } from '../../domain/analysis';
+import { currentTarget } from '../../domain/progression';
+import type { MetricKey, WorkoutEntry } from '../../domain/types';
+import { fmtMetric, TrendMark, type Trend } from '../progress';
 import { distOut, fmtNum, fmtSeconds, loadOut, tr, useSettings } from '../util';
-import { ExerciseCharts } from './ExerciseDetail';
 
+const PERIODS = [28, 84, 182, 0] as const;
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
-const addDays = (iso: string, n: number) => isoDay(new Date(Date.parse(iso) + n * 86400000));
+
+/** The main performance number of an entry, chosen by its metrics: top load, longest set, distance or reps. */
+function mainMetric(e: WorkoutEntry): { key: 'topLoad' | 'maxDuration' | 'totalDistance' | 'totalReps'; label: string } {
+  const has = (k: MetricKey) => e.exercise.metrics.some((m) => m.key === k);
+  if (has('load') && has('reps')) return { key: 'topLoad', label: 'analysis.topLoad' };
+  if (has('duration')) return { key: 'maxDuration', label: 'analysis.maxDuration' };
+  if (has('distance')) return { key: 'totalDistance', label: 'analysis.distance' };
+  return { key: 'totalReps', label: 'analysis.totalReps' };
+}
+
+function Spark({ values }: { values: number[] }) {
+  if (values.length < 2) return <svg className="spark" aria-hidden="true" />;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 80 + 2},${max === min ? 15 : 27 - ((v - min) / (max - min)) * 24}`).join(' ');
+  return (
+    <svg className="spark" viewBox="0 0 84 30" aria-hidden="true">
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export function Analysis() {
   const { t } = useTranslation();
   const s = useSettings();
-  const [to, setTo] = useState(isoDay(new Date()));
-  const [from, setFrom] = useState(addDays(isoDay(new Date()), -55));
+  const [days, setDays] = useState<(typeof PERIODS)[number]>(84);
   const [planId, setPlanId] = useState('');
-  const [exerciseId, setExerciseId] = useState('');
-  const data = useLiveQuery(async () => ({ workouts: await db.workouts.toArray(), plans: await db.plans.toArray(), versions: await db.planVersions.toArray() }), []);
+  const data = useLiveQuery(async () => ({ workouts: await db.workouts.toArray(), plans: await db.plans.toArray(), states: await db.progressionStates.toArray() }), []);
 
   const computed = useMemo(() => {
     if (!data) return undefined;
-    const f = { from, to, planId: planId || undefined, exerciseId: exerciseId || undefined };
-    const current = filterWorkouts(data.workouts, f);
-    const len = (Date.parse(to) - Date.parse(from)) / 86400000 + 1;
-    const prev = filterWorkouts(data.workouts, { ...f, from: addDays(from, -len), to: addDays(from, -1) });
-    const exercises = new Map<string, string>();
-    for (const w of data.workouts) for (const e of w.entries) exercises.set(e.exerciseId, e.exercise.name);
-    return {
-      current,
-      summary: periodSummary(current),
-      previous: periodSummary(prev),
-      muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]),
-      completion: completionByExercise(current),
-      stalled: stalledItems(data.workouts, s.stalledThreshold),
-      exercises: [...exercises].sort((a, b) => a[1].localeCompare(b[1])),
-    };
-  }, [data, from, to, planId, exerciseId, s.stalledThreshold]);
+    const from = days ? isoDay(new Date(Date.now() - (days - 1) * 86400000)) : undefined;
+    const current = filterWorkouts(data.workouts, { from, planId: planId || undefined }).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    const stalled = new Set(stalledItems(data.workouts, s.stalledThreshold).map((x) => x.exerciseId));
+    const byEx = new Map<string, { entry: WorkoutEntry; m: EntryMetrics }[]>();
+    for (const w of current) for (const e of w.entries) byEx.set(e.exerciseId, [...(byEx.get(e.exerciseId) ?? []), { entry: e, m: entryMetrics(e) }]);
+    const rows = [...byEx].map(([id, list]) => {
+      const last = list[list.length - 1].entry;
+      const main = mainMetric(last);
+      const series = list.map((x) => x.m[main.key]).filter((v): v is number => v !== undefined);
+      const fixed = last.progression.strategy === 'none';
+      const step = last.progression.steps[0];
+      // Current target: the progression state (after any increase), else the last prescription.
+      const state = data.states.find((x) => x.lineageId === last.lineageId);
+      const target = step ? (state?.targets[step.metric] ?? currentTarget(last.prescription, step.metric)) : undefined;
+      let trend: Trend = 'same';
+      if (fixed) trend = list.every((x) => x.m.completionRate >= 1) ? 'done' : 'short';
+      else if (series.length >= 2) trend = series[series.length - 1] > series[0] ? 'up' : series[series.length - 1] < series[0] ? 'down' : 'same';
+      const rate = list.reduce((a, x) => a + Math.min(x.m.doneWorkingSets, x.m.prescribedWorkingSets), 0) / Math.max(1, list.reduce((a, x) => a + x.m.prescribedWorkingSets, 0));
+      return { id, name: last.exercise.name, sessions: list.length, main, series, last, fixed, step, target, trend, rate, stalled: stalled.has(id) };
+    });
+    rows.sort((a, b) => Number(a.fixed) - Number(b.fixed) || b.sessions - a.sessions || a.name.localeCompare(b.name));
+    return { current, rows, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
+  }, [data, days, planId, s.stalledThreshold]);
   if (!data || !computed) return null;
-
-  const { summary, previous, muscles, completion, stalled } = computed;
+  const { rows, summary, muscles, completion } = computed;
   const maxMuscle = Math.max(1, ...muscles.map(([, v]) => v));
-  const history = exerciseId ? exerciseHistory(computed.current, exerciseId) : [];
-  const rows: [keyof PeriodSummary, string, (v: number) => string][] = [
-    ['workouts', t('analysis.workouts'), (v) => fmtNum(v, s.language)],
-    ['workingSets', t('analysis.workingSets'), (v) => fmtNum(v, s.language)],
-    ['volume', `${t('analysis.volume')} (${s.loadUnit})`, (v) => fmtNum(loadOut(v, s), s.language, 0)],
-    ['duration', `${t('analysis.duration')} (h:mm:ss)`, (v) => fmtSeconds(v)],
-    ['distance', `${t('analysis.distance')} (${s.distanceUnit})`, (v) => fmtNum(distOut(v, s), s.language)],
-    ['completionRate', t('analysis.completionRate'), (v) => `${fmtNum(v * 100, s.language, 0)}%`],
-  ];
-  const activePlans = data.plans.filter((p) => !planId || p.id === planId);
+
+  const fmtMain = (key: string, v: number | undefined) =>
+    key === 'topLoad' ? `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}` : key === 'maxDuration' ? fmtSeconds(v) : key === 'totalDistance' ? `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}` : fmtNum(v, s.language);
 
   return (
-    <div className="stack">
-      <h1>{t('analysis.title')}</h1>
-      <section className="card form-grid" aria-label={t('analysis.filters')}>
-        <label>
-          {t('common.from')}
-          <input type="date" value={from} max={to} onChange={(e) => e.target.value && setFrom(e.target.value)} />
-        </label>
-        <label>
-          {t('common.to')}
-          <input type="date" value={to} min={from} onChange={(e) => e.target.value && setTo(e.target.value)} />
-        </label>
-        <label>
+    <div>
+      <div className="page-head">
+        <h1>{t('analysis.title')}</h1>
+      </div>
+      <div className="seg" role="tablist" aria-label={t('analysis.period')}>
+        {PERIODS.map((p) => (
+          <button key={p} role="tab" aria-selected={days === p} className={days === p ? 'on' : ''} onClick={() => setDays(p)}>
+            {t(`analysis.p${p}`)}
+          </button>
+        ))}
+      </div>
+      {data.plans.length > 1 && (
+        <label style={{ margin: '0.6rem 0' }}>
           {t('analysis.plan')}
           <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
             <option value="">{t('common.all')}</option>
             {data.plans.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} ({t(`goal.${p.goal}`)})
+                {p.name}
               </option>
             ))}
           </select>
         </label>
-        <label>
-          {t('analysis.exercise')}
-          <select value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
-            <option value="">{t('common.all')}</option>
-            {computed.exercises.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
+      )}
 
-      {summary.workouts === 0 ? (
-        <Empty>{t('analysis.noData')}</Empty>
+      <div className="grid3" style={{ margin: '0.8rem 0' }}>
+        <div className="stat">
+          <div className="value">{summary.workouts}</div>
+          <div className="label">{t('analysis.workouts')}</div>
+        </div>
+        <div className="stat">
+          <div className="value">{summary.workingSets}</div>
+          <div className="label">{t('analysis.workingSets')}</div>
+        </div>
+        <div className="stat">
+          <div className="value">{fmtNum(summary.completionRate * 100, s.language, 0)}%</div>
+          <div className="label">{t('analysis.completionRate')}</div>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="empty">{t('analysis.noData')}</div>
       ) : (
-        <>
-          <section className="card">
-            <h2>{t('analysis.overview')}</h2>
-            <p className="help">{t('analysis.compare')}</p>
-            <table>
-              <tbody>
-                {rows.map(([k, label, f]) => {
-                  const d = summary[k] - previous[k];
-                  return (
-                    <tr key={k}>
-                      <th>{label}</th>
-                      <td className="num">{f(summary[k])}</td>
-                      <td className="num muted">
-                        {previous.workouts > 0 && (d >= 0 ? '▲ ' : '▼ ') + f(Math.abs(d))}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
-
-          {exerciseId && (
-            <section className="card">
-              <h2>
-                <Link to={`/exercises/${exerciseId}`}>{computed.exercises.find(([id]) => id === exerciseId)?.[1]}</Link>
-              </h2>
-              <ExerciseCharts history={history} t={t} />
-            </section>
-          )}
-          {!exerciseId && <p className="help">{t('analysis.chooseExercise')}</p>}
-
-          <div className="grid">
-            <section className="card">
-              <h2>{t('analysis.adherence')}</h2>
-              <table>
-                <tbody>
-                  {activePlans.map((p) => {
-                    const v = data.versions.find((x) => x.id === p.currentVersionId);
-                    const n = filterWorkouts(data.workouts, { from, to, planId: p.id }).length;
-                    const a = adherence(n, v?.days.length ?? 0, from, to);
-                    return (
-                      <tr key={p.id}>
-                        <th>{p.name}</th>
-                        <td className="num">{a === undefined ? '—' : `${fmtNum(a * 100, s.language, 0)}%`}</td>
-                        <td className="muted">
-                          {n} · {t('analysis.perWeek', { n: v?.days.length ?? 0 })}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </section>
-            <section className="card">
-              <h2>{t('analysis.stalled')}</h2>
-              {stalled.length === 0 ? (
-                <p className="muted">{t('analysis.stalledNone')}</p>
-              ) : (
-                <ul className="list">
-                  {stalled.map((x) => (
-                    <li key={x.lineageId}>
-                      <Link to={`/exercises/${x.exerciseId}`}>{x.name}</Link> <small>({x.sessions})</small>
-                    </li>
-                  ))}
-                </ul>
+        <section className="card">
+          <h2>{t('analysis.byExercise')}</h2>
+          {rows.map((r) => (
+            <Link key={r.id} to={`/exercises/${r.id}`} className="ex-row">
+              <TrendMark trend={r.trend} />
+              <div className="main">
+                <div className="name">{r.name}</div>
+                <div className="sub">
+                  {r.fixed
+                    ? `${t('analysis.fixed')} · ${t('analysis.completionShort', { pct: fmtNum(r.rate * 100, s.language, 0) })}`
+                    : `${t(r.main.label)}: ${fmtMain(r.main.key, r.series[0])} → ${fmtMain(r.main.key, r.series[r.series.length - 1])}`}
+                  {' · '}
+                  {t('analysis.sessionsN', { count: r.sessions })}
+                  {r.stalled && <span className="badge warn"> {t('analysis.stalledShort')}</span>}
+                </div>
+              </div>
+              {!r.fixed && <Spark values={r.series} />}
+              {!r.fixed && r.step && r.target !== undefined && (
+                <div className="now">
+                  {fmtMetric(r.last.exercise.metrics, r.step.metric, r.target, s.language)}
+                  <div className="sub">{t('analysis.now')}</div>
+                </div>
               )}
-            </section>
-          </div>
+            </Link>
+          ))}
+        </section>
+      )}
 
-          <section className="card">
-            <h2>{t('analysis.muscles')}</h2>
+      {summary.workouts > 0 && (
+        <details className="card tight">
+          <summary>{t('analysis.moreDetails')}</summary>
+          <h3>{t('analysis.muscles')}</h3>
+          <table>
+            <tbody>
+              {muscles.map(([m, v]) => (
+                <tr key={m}>
+                  <th>{tr(t, 'muscle', m)}</th>
+                  <td className="num">{fmtNum(v, s.language, 1)}</td>
+                  <td style={{ width: '55%' }}>
+                    <div className="bar" style={{ width: `${(v / maxMuscle) * 100}%` }} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <h3 style={{ marginTop: '1rem' }}>{t('analysis.completion')}</h3>
+          <div className="table-wrap">
             <table>
               <tbody>
-                {muscles.map(([m, v]) => (
-                  <tr key={m}>
-                    <th>{tr(t, 'muscle', m)}</th>
-                    <td className="num">{fmtNum(v, s.language, 1)}</td>
-                    <td style={{ width: '60%' }}>
-                      <div className="bar" style={{ width: `${(v / maxMuscle) * 100}%` }} />
+                {completion.map((c) => (
+                  <tr key={c.exerciseId}>
+                    <td>{c.name}</td>
+                    <td className="num">
+                      {fmtNum(c.rate * 100, s.language, 0)}% <small>({c.done}/{c.prescribed})</small>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </section>
-
-          <section className="card">
-            <h2>{t('analysis.completion')}</h2>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t('analysis.exercise')}</th>
-                    <th>{t('strategy.label')}</th>
-                    <th className="num">{t('analysis.sessions')}</th>
-                    <th className="num">{t('analysis.completionRate')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {completion.map((c) => (
-                    <tr key={c.exerciseId}>
-                      <td>
-                        <button className="ghost" onClick={() => setExerciseId(c.exerciseId)}>
-                          {c.name}
-                        </button>
-                      </td>
-                      <td>{c.strategy === 'none' ? <span className="tag">{t('analysis.fixed')}</span> : t(`strategy.${c.strategy}`)}</td>
-                      <td className="num">{c.sessions}</td>
-                      <td className="num">
-                        {fmtNum(c.rate * 100, s.language, 0)}% <small>({c.done}/{c.prescribed})</small>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
+          </div>
+          <p className="help" style={{ marginTop: '1rem' }}>
+            {t('analysis.volume')}: {fmtNum(loadOut(summary.volume, s), s.language, 0)} {s.loadUnit} · {t('analysis.duration')}: {fmtSeconds(summary.duration)}
+          </p>
+          <h3 style={{ marginTop: '1rem' }}>{t('analysis.formulas')}</h3>
+          <ul className="help">
+            <li>{t('analysis.formula.trend')}</li>
+            <li>{t('analysis.formula.volume')}</li>
+            <li>{t('analysis.formula.e1rm')}</li>
+            <li>{t('analysis.formula.completion')}</li>
+            <li>{t('analysis.formula.stalled', { n: s.stalledThreshold })}</li>
+            <li>{t('analysis.formula.muscles')}</li>
+          </ul>
+        </details>
       )}
-
-      <section className="card">
-        <h2>{t('analysis.formulas')}</h2>
-        <ul className="help">
-          <li>{t('analysis.formula.volume')}</li>
-          <li>{t('analysis.formula.e1rm')}</li>
-          <li>{t('analysis.formula.completion')}</li>
-          <li>{t('analysis.formula.adherence')}</li>
-          <li>{t('analysis.formula.stalled', { n: s.stalledThreshold })}</li>
-          <li>{t('analysis.formula.muscles')}</li>
-          <li>{t('analysis.formula.pace')}</li>
-        </ul>
-      </section>
     </div>
   );
 }

@@ -40,15 +40,51 @@ describe('repo (IndexedDB)', () => {
     expect(await repo.seedLibrary()).toBe(0);
   });
 
-  it('full cycle: start locks version, finish creates events, accept updates next session', async () => {
+  it('full cycle: start locks version, success applies the increase, next session uses it; undo reverts', async () => {
     const { plan, day } = await setupPlan();
     await doSession(plan.id, day.id, [12, 12, 12]);
     expect((await db.planVersions.get(plan.currentVersionId))!.locked).toBe(true);
     const ev = (await db.progressionEvents.toArray())[0];
-    expect(ev.outcome).toBe('increase_recommended');
-    await repo.decide(ev.id, { kind: 'accept' });
+    expect(ev.outcome).toBe('increase');
+    expect(ev.decision).toBe('applied');
     const id2 = await repo.startWorkout(plan.id, day.id);
-    expect((await db.workouts.get(id2))!.entries[0].prescription[0].targets.load?.value).toBe(42.5);
+    const w2 = (await db.workouts.get(id2))!;
+    expect(w2.entries[0].prescription[0].targets.load?.value).toBe(42.5);
+    expect(w2.entries[0].sets.map((s) => s.goal?.reps)).toEqual([8, 8, 8]);
+    await repo.discardWorkout(id2);
+    await repo.decide(ev.id, { kind: 'revert' });
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(40);
+  });
+
+  it('missed reps wait for a decision; step back lowers the load', async () => {
+    const { plan, day } = await setupPlan();
+    await doSession(plan.id, day.id, [9, 7, 6]);
+    const ev = (await db.progressionEvents.toArray())[0];
+    expect(ev.decision).toBe('pending');
+    await repo.decide(ev.id, { kind: 'stepBack' });
+    expect((await db.progressionEvents.get(ev.id))!.decision).toBe('stepped_back');
+    const id2 = await repo.startWorkout(plan.id, day.id);
+    expect((await db.workouts.get(id2))!.entries[0].prescription[0].targets.load?.value).toBe(37.5);
+  });
+
+  it('migrates a v1 database (RIR/RPE, old outcomes) to v2', async () => {
+    const name = `test-${crypto.randomUUID()}`;
+    const { default: Dexie } = await import('dexie');
+    const old = new Dexie(name);
+    old.version(1).stores({ exercises: 'id', plans: 'id', planVersions: 'id', progressionStates: 'lineageId', workouts: 'id', progressionEvents: 'id', revisions: 'id', settings: 'id' });
+    await old.table('progressionEvents').add({ id: 'e1', lineageId: 'L', exerciseId: 'X', strategy: 'double', outcome: 'increase_recommended', recommendation: { metric: 'load', from: 40, to: 42.5 }, reasons: [], decision: 'accepted', before: {}, after: {}, createdAt: '2026-01-01T00:00:00Z' });
+    await old.table('workouts').add({ id: 'w1', startedAt: '2026-01-01T00:00:00Z', status: 'completed', notes: '', updatedAt: '2026-01-01T00:00:00Z', entries: [{ id: 'n', prescription: [{ kind: 'working', targets: {}, rir: 2 }], progression: { strategy: 'double', steps: [], criteria: { blockOnPain: true, blockOnTechnique: true, blockOnSubstitution: true, useRir: true } }, sets: [{ id: 's', kind: 'working', values: { reps: 10 }, rir: 1, status: 'done', notes: '' }], evaluation: { strategy: 'double', outcome: 'completed_as_prescribed', completion: 'complete', reasons: [] } }] });
+    old.close();
+    const db2 = new GymDB(name);
+    const ev = (await db2.progressionEvents.get('e1'))!;
+    expect(ev.outcome).toBe('increase');
+    expect(ev.decision).toBe('applied');
+    expect(ev.suggestion).toEqual({ metric: 'load', from: 40, to: 42.5, kind: 'increase' });
+    const w = (await db2.workouts.get('w1'))!;
+    expect(w.entries[0].sets[0]).not.toHaveProperty('rir');
+    expect(w.entries[0].prescription[0]).not.toHaveProperty('rir');
+    expect(w.entries[0].progression.criteria).not.toHaveProperty('useRir');
+    expect(w.entries[0].evaluation?.outcome).toBe('keep');
   });
 
   it('plan edit after use creates a new version; old workout keeps its version and prescription', async () => {
@@ -70,10 +106,10 @@ describe('repo (IndexedDB)', () => {
     const { plan, day } = await setupPlan();
     const wid = await doSession(plan.id, day.id, [12, 12, 11]);
     const w = (await db.workouts.get(wid))!;
-    expect(w.entries[0].evaluation?.outcome).toBe('completed_as_prescribed');
+    expect(w.entries[0].evaluation?.outcome).toBe('keep');
     w.entries[0].sets[2].values.reps = 12;
     await repo.correctWorkout(w);
-    expect((await db.workouts.get(wid))!.entries[0].evaluation?.outcome).toBe('increase_recommended');
+    expect((await db.workouts.get(wid))!.entries[0].evaluation?.outcome).toBe('increase');
     const revs = await db.revisions.where('workoutId').equals(wid).toArray();
     expect(revs).toHaveLength(1);
     expect(revs[0].previous.entries[0].sets[2].values.reps).toBe(11);

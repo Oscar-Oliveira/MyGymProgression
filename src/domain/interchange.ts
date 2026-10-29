@@ -1,6 +1,7 @@
 // Export/import logic for the versioned JSON interchange format. Pure functions; storage is done in src/data.
 import type { Exercise, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
 import { bundleSchema, FORMAT_ID, SCHEMA_VERSION } from './schema';
+import { v1to2 } from './migrations';
 
 export interface DataSet {
   exercises: Exercise[];
@@ -55,11 +56,10 @@ export function buildBundle(all: DataSet, scope: Scope, appVersion: string, now 
   return { format: FORMAT_ID, schemaVersion: SCHEMA_VERSION, exportedAt: now, app: { version: appVersion }, scope, data };
 }
 
-/**
- * Migrations from older schema versions. Each function upgrades raw JSON by one version.
- * Version 1 is the first version, so the map is empty.
- */
-const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string, unknown>> = {};
+/** Migrations from older schema versions. Each function upgrades raw JSON by one version. */
+const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string, unknown>> = {
+  1: v1to2.bundle,
+};
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };
 

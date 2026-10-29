@@ -20,12 +20,15 @@ const parse = (s: string): number | undefined => {
   return Number.isFinite(n) ? n : NaN;
 };
 
+/** Shows the decimal separator of the page language (PT uses ","). */
+const show = (v: number | undefined) => (v === undefined ? '' : document.documentElement.lang === 'pt' ? String(v).replace('.', ',') : String(v));
+
 /** Number input that accepts "," and "." as decimal separators and keeps partial text while typing. */
 export function NumInput({ value, onChange, label, step = 1, stepper, placeholder, invalid, className, id }: Props) {
-  const [text, setText] = useState(value === undefined ? '' : String(value));
+  const [text, setText] = useState(show(value));
   useEffect(() => {
     const parsed = parse(text);
-    if (parsed !== value && !(Number.isNaN(parsed) && value === undefined)) setText(value === undefined ? '' : String(value));
+    if (parsed !== value && !(Number.isNaN(parsed) && value === undefined)) setText(show(value));
   }, [value]);
 
   // Unparseable text is shown as invalid and reported as undefined, so NaN is never stored.
