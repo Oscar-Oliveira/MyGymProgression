@@ -11,9 +11,9 @@ export const en = {
   category: { compound: 'Compound', isolation: 'Isolation', cardio: 'Cardio', warmup: 'Warm-up', mobility: 'Mobility', other: 'Other' },
   muscle: {
     chest: 'Chest', back: 'Back', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms', core: 'Core', quads: 'Quadriceps',
-    hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', adductors: 'Adductors', cardio: 'Cardio', full_body: 'Full body',
+    hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', adductors: 'Adductors', neck: 'Neck', cardio: 'Cardio', full_body: 'Full body',
   },
-  equipment: { barbell: 'Barbell', dumbbell: 'Dumbbell', machine: 'Machine', cable: 'Cable', bodyweight: 'Bodyweight', kettlebell: 'Kettlebell', band: 'Band', treadmill: 'Treadmill', bike: 'Bike', rower: 'Rower', other: 'Other', smith: 'Smith machine', sled: 'Sled machine', ez_bar: 'EZ bar', stability_ball: 'Stability ball', medicine_ball: 'Medicine ball', suspension: 'Suspension', weighted: 'Weighted', rope: 'Rope', trap_bar: 'Trap bar' },
+  equipment: { barbell: 'Barbell', dumbbell: 'Dumbbell', machine: 'Machine', cable: 'Cable', bodyweight: 'Bodyweight', kettlebell: 'Kettlebell', band: 'Band', treadmill: 'Treadmill', bike: 'Bike', rower: 'Rower', other: 'Other', assisted: 'Assisted', ab_wheel: 'Ab wheel', battle_rope: 'Battle rope', foam_roller: 'Foam roller', massage_ball: 'Massage ball', hammer: 'Hammer', stick: 'Stick', vibration_plate: 'Vibration plate', bosu: 'Bosu ball', smith: 'Smith machine', sled: 'Sled machine', ez_bar: 'EZ bar', stability_ball: 'Stability ball', medicine_ball: 'Medicine ball', suspension: 'Suspension', weighted: 'Weighted', rope: 'Rope', trap_bar: 'Trap bar' },
   group: { chest: 'Chest', back: 'Back', shoulders: 'Shoulders', arms: 'Arms', legs: 'Legs', core: 'Core', cardio: 'Cardio', other: 'Other' },
   preset: {
     label: 'Measurement type', reps_load: 'Reps and load', bodyweight: 'Bodyweight reps', duration: 'Duration', distance: 'Distance',

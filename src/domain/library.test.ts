@@ -78,6 +78,20 @@ describe('library import', () => {
     expect(relatedOf(own, all).length).toBe(3);
   });
 
+  it('broken or style body parts fall back to the main muscle', () => {
+    expect(toExercise(rec({ bodyParts: ['n', 'u', 'l', 'l'] }), DEFAULT_SETTINGS).group).toBe('chest');
+    const yoga = toExercise(rec({ bodyParts: ['Yoga'], primary: ['Hamstrings'] }), DEFAULT_SETTINGS);
+    expect(yoga.group).toBe('legs');
+    expect(yoga.category).toBe('mobility');
+  });
+
+  it('tolerates string or missing list fields in the file', () => {
+    const bad = { ...rec(), bodyParts: 'null', equipment: null, related: undefined } as unknown as LibraryRecord;
+    const { added } = mergeLibrary([], [bad], DEFAULT_SETTINGS);
+    expect(added[0].group).toBe('chest');
+    expect(added[0].equipment).toBe('');
+  });
+
   it('muscle keys and groups', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');

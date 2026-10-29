@@ -31,32 +31,60 @@ export interface LibraryTranslation {
 
 export const SOURCE_NAME = 'Exsercise.com';
 
+/** Lists in the source file can be missing, null, or a plain string (e.g. "null"). */
+const asList = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.length > 0) : typeof v === 'string' && v && v.toLowerCase() !== 'null' ? [v] : [];
+
+/** Makes a record from the file safe to use: every list field becomes a list of strings. */
+export function normalizeRecord(r: LibraryRecord): LibraryRecord {
+  return {
+    ...r,
+    sid: String(r.sid),
+    name: String(r.name ?? '').trim(),
+    bodyParts: asList(r.bodyParts),
+    equipment: asList(r.equipment),
+    primary: asList(r.primary),
+    secondary: asList(r.secondary),
+    steps: asList(r.steps),
+    tips: asList(r.tips),
+    related: asList(r.related),
+    overview: typeof r.overview === 'string' ? r.overview : '',
+    type: typeof r.type === 'string' ? r.type : '',
+    video: typeof r.video === 'string' ? r.video : '',
+  };
+}
+
 const BODY_GROUP: Record<string, MuscleGroup> = {
   chest: 'chest', back: 'back', shoulders: 'shoulders', neck: 'shoulders',
   'upper arms': 'arms', triceps: 'arms', biceps: 'arms', forearms: 'arms',
   quadriceps: 'legs', thighs: 'legs', hamstrings: 'legs', calves: 'legs', hips: 'legs', 'lower legs': 'legs', glutes: 'legs',
-  waist: 'core', abs: 'core', cardio: 'cardio',
+  waist: 'core', abs: 'core', cardio: 'cardio', plyometrics: 'cardio',
 };
+
+/** Body parts that describe a training style rather than a muscle. */
+const STYLE_CATEGORY: Record<string, ExerciseCategory> = { yoga: 'mobility', stretching: 'mobility', plyometrics: 'cardio', cardio: 'cardio' };
 
 const EQUIPMENT: Record<string, string> = {
   barbell: 'barbell', dumbbell: 'dumbbell', cable: 'cable', 'leverage machine': 'machine', 'smith machine': 'smith', 'sled machine': 'sled',
   'ez barbell': 'ez_bar', 'body weight': 'bodyweight', band: 'band', 'resistance band': 'band', kettlebell: 'kettlebell', 'stability ball': 'stability_ball',
   'medicine ball': 'medicine_ball', suspension: 'suspension', weighted: 'weighted', rope: 'rope', 'trap bar': 'trap_bar', treadmill: 'treadmill',
-  'stationary bike': 'bike', rower: 'rower', 'battling ropes': 'rope', 'bosu ball': 'stability_ball', 'olympic barbell': 'barbell',
+  'stationary bike': 'bike', rower: 'rower', 'battling ropes': 'battle_rope', 'battling rope': 'battle_rope', 'bosu ball': 'bosu', 'olympic barbell': 'barbell',
+  assisted: 'assisted', 'wheel roller': 'ab_wheel', 'power sled': 'sled', roll: 'foam_roller', rollball: 'massage_ball', hammer: 'hammer', stick: 'stick', 'vibrate plate': 'vibration_plate',
 };
 
 /** Detailed muscle name → app muscle key (used by analysis). */
 const MUSCLE_KEY: [RegExp, string][] = [
   [/pectoralis|serratus/i, 'chest'],
-  [/deltoid|levator scapulae|trapezius upper/i, 'shoulders'],
+  [/splenius|sternocleidomastoid/i, 'neck'],
+  [/deltoid|levator scapulae|trapezius upper|subscapularis/i, 'shoulders'],
   [/latissimus|teres|infraspinatus|trapezius|rhomboid|erector spinae|back/i, 'back'],
   [/biceps|brachialis$/i, 'biceps'],
   [/brachioradialis|wrist|forearm|flexor|extensor/i, 'forearms'],
   [/triceps/i, 'triceps'],
   [/rectus abdominis|oblique|transvers|iliopsoas|abdomin/i, 'core'],
-  [/gluteus|glute/i, 'glutes'],
+  [/gluteus|glute|hip external rotators/i, 'glutes'],
   [/adductor|pectineous|gracilis/i, 'adductors'],
-  [/hamstring|biceps femoris|semitendinosus/i, 'hamstrings'],
+  [/hamstring|biceps femoris|semitendinosus|popliteus/i, 'hamstrings'],
   [/quadricep|sartorius|tensor fasciae|rectus femoris|vastus/i, 'quads'],
   [/gastrocnemius|soleus|calf|tibialis/i, 'calves'],
 ];
@@ -74,16 +102,22 @@ export const MUSCLE_DETAIL_PT: Record<string, string> = {
   'Teres Minor': 'Redondo menor', 'Tibialis Anterior': 'Tibial anterior', 'Trapezius Lower Fibers': 'Trapézio (fibras inferiores)',
   'Trapezius Middle Fibers': 'Trapézio (fibras médias)', 'Trapezius Upper Fibers': 'Trapézio (fibras superiores)', 'Triceps Brachii': 'Tríceps braquial',
   'Wrist Extensors': 'Extensores do punho', 'Wrist Flexors': 'Flexores do punho', Rhomboids: 'Romboides', 'Transverse Abdominis': 'Transverso abdominal',
+  'Deep Hip External Rotators': 'Rotadores externos profundos da anca', Gracilis: 'Grácil', Popliteus: 'Popliteu', 'Serratus Ante': 'Serrátil anterior',
+  Splenius: 'Esplénio', Sternocleidomastoid: 'Esternocleidomastoideu', Subscapularis: 'Subescapular',
 };
 
 const norm = (s: string) => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 
-export function groupOf(rec: Pick<LibraryRecord, 'bodyParts'>): MuscleGroup {
-  for (const b of rec.bodyParts) {
+/** Source body parts, without broken single-letter values (a "null" string split into letters). */
+const bodyParts = (rec: Pick<LibraryRecord, 'bodyParts'>) => rec.bodyParts.filter((b) => b.length > 1);
+
+export function groupOf(rec: Pick<LibraryRecord, 'bodyParts' | 'primary'>): MuscleGroup {
+  for (const b of bodyParts(rec)) {
     const g = BODY_GROUP[b.toLowerCase()];
     if (g) return g;
   }
-  return 'other';
+  // Training-style body parts (yoga, weightlifting, full body): use the main muscle.
+  return exerciseGroup({ primaryMuscles: muscleKeys(rec.primary), category: 'other' });
 }
 
 export function equipmentOf(rec: Pick<LibraryRecord, 'equipment'>): string {
@@ -110,6 +144,8 @@ function presetOf(rec: LibraryRecord, equipment: string): MeasurementPreset {
 }
 
 function categoryOf(rec: LibraryRecord, group: MuscleGroup, preset: MeasurementPreset): ExerciseCategory {
+  const style = bodyParts(rec).map((b) => STYLE_CATEGORY[b.toLowerCase()]).find(Boolean);
+  if (style) return style;
   if (group === 'cardio' || preset === 'duration_distance') return 'cardio';
   return muscleKeys(rec.primary).length + muscleKeys(rec.secondary).length >= 3 ? 'compound' : 'isolation';
 }
@@ -168,7 +204,9 @@ export function mergeLibrary(
   const added: Exercise[] = [];
   const updated: Exercise[] = [];
   const used = new Set<string>();
-  for (const rec of records) {
+  for (const raw of records) {
+    const rec = normalizeRecord(raw);
+    if (!rec.name) continue;
     const pt = translations[rec.slug];
     const match = bySource.get(rec.sid) ?? byName.get(norm(rec.name)) ?? (pt ? byName.get(norm(pt.name)) : undefined);
     if (match && !used.has(match.id)) {
@@ -207,7 +245,7 @@ export function exerciseGroup(ex: Pick<Exercise, 'group' | 'primaryMuscles' | 'c
   const m = ex.primaryMuscles[0];
   const map: Record<string, MuscleGroup> = {
     chest: 'chest', back: 'back', shoulders: 'shoulders', biceps: 'arms', triceps: 'arms', forearms: 'arms',
-    quads: 'legs', hamstrings: 'legs', glutes: 'legs', calves: 'legs', adductors: 'legs', core: 'core', cardio: 'cardio',
+    quads: 'legs', hamstrings: 'legs', glutes: 'legs', calves: 'legs', adductors: 'legs', core: 'core', cardio: 'cardio', neck: 'shoulders',
   };
   return (m && map[m]) || 'other';
 }

@@ -13,9 +13,9 @@ export const pt: Resources = {
   category: { compound: 'Composto', isolation: 'Isolamento', cardio: 'Cardio', warmup: 'Aquecimento', mobility: 'Mobilidade', other: 'Outro' },
   muscle: {
     chest: 'Peito', back: 'Costas', shoulders: 'Ombros', biceps: 'Bíceps', triceps: 'Tríceps', forearms: 'Antebraços', core: 'Core', quads: 'Quadríceps',
-    hamstrings: 'Isquiotibiais', glutes: 'Glúteos', calves: 'Gémeos', adductors: 'Adutores', cardio: 'Cardio', full_body: 'Corpo inteiro',
+    hamstrings: 'Isquiotibiais', glutes: 'Glúteos', calves: 'Gémeos', adductors: 'Adutores', neck: 'Pescoço', cardio: 'Cardio', full_body: 'Corpo inteiro',
   },
-  equipment: { barbell: 'Barra', dumbbell: 'Halteres', machine: 'Máquina', cable: 'Cabo', bodyweight: 'Peso corporal', kettlebell: 'Kettlebell', band: 'Elástico', treadmill: 'Passadeira', bike: 'Bicicleta', rower: 'Remo', other: 'Outro', smith: 'Máquina Smith', sled: 'Máquina de trenó', ez_bar: 'Barra EZ', stability_ball: 'Bola de estabilidade', medicine_ball: 'Bola medicinal', suspension: 'Suspensão', weighted: 'Com peso', rope: 'Corda', trap_bar: 'Barra hexagonal' },
+  equipment: { barbell: 'Barra', dumbbell: 'Halteres', machine: 'Máquina', cable: 'Cabo', bodyweight: 'Peso corporal', kettlebell: 'Kettlebell', band: 'Elástico', treadmill: 'Passadeira', bike: 'Bicicleta', rower: 'Remo', other: 'Outro', assisted: 'Assistido', ab_wheel: 'Roda abdominal', battle_rope: 'Cordas de batalha', foam_roller: 'Rolo de espuma', massage_ball: 'Bola de massagem', hammer: 'Martelo', stick: 'Bastão', vibration_plate: 'Plataforma vibratória', bosu: 'Bosu', smith: 'Máquina Smith', sled: 'Máquina de trenó', ez_bar: 'Barra EZ', stability_ball: 'Bola de estabilidade', medicine_ball: 'Bola medicinal', suspension: 'Suspensão', weighted: 'Com peso', rope: 'Corda', trap_bar: 'Barra hexagonal' },
   group: { chest: 'Peito', back: 'Costas', shoulders: 'Ombros', arms: 'Braços', legs: 'Pernas', core: 'Core', cardio: 'Cardio', other: 'Outros' },
   preset: {
     label: 'Tipo de medição', reps_load: 'Repetições e carga', bodyweight: 'Repetições (peso corporal)', duration: 'Duração', distance: 'Distância',
