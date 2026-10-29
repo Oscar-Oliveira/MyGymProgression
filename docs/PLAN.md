@@ -1,0 +1,296 @@
+# MyGymProgression — Requirements and Implementation Plan (Phase 1–2)
+
+Status: **Approved 2026-10-29** (recommended defaults accepted).
+Source requirements: [`context.md`](../context.md).
+
+---
+
+## 1. Confirmed decisions
+
+| # | Decision | Date |
+|---|---|---|
+| D1 | Single user, **local-only** storage in the browser (IndexedDB). No server, no accounts. Portability through JSON backup/import. | 2026-10-29 |
+| D2 | Stack: **React + TypeScript PWA** (Vite). Android later via **Capacitor**, with a separate gym-optimised mobile UI that reuses the domain and storage code. | 2026-10-29 |
+| D3 | UI is **bilingual (PT-PT and EN)** through i18n. | 2026-10-29 |
+| D4 | MVP includes the **offline-capable installable PWA** and the **estimated 1RM** feature. | 2026-10-29 |
+| D5 | Rest timer, body measurements, cloud sync, reminders, sharing, wearables and AI analysis are **excluded** from the MVP (backlog). | 2026-10-29 |
+| D6 | Plan approved with recommended defaults. Q1: seed ~40 common exercises (optional, from Settings and first-run). Q2: progression per plan item. Q3: missing RIR does not block. Q4: stalled after 3 sessions (configurable). | 2026-10-29 |
+
+## 2. Assumptions (reversible defaults — correct me if wrong)
+
+- A1. Default unit is **kg** and the default load mode is **total load**. Both can be changed in Settings. Lb and per-side loads are supported for each exercise.
+- A2. The app **recommends** progression and does not apply it automatically. A load or target increase takes effect only after the user confirms it (outcome "Load increased").
+- A3. Edits to completed workouts are allowed. Each edit is kept in a **revision log**.
+- A4. Media are stored as **URLs only** (image/video links). The app does not upload files in the MVP, so backups stay small.
+- A5. Progression state is tracked **per plan item**. The same exercise can have different rep ranges in different plans. See open question Q2.
+- A6. "Next workout" is the next training day in the plan sequence after the last completed day. A weekday is optional.
+
+## 3. Open questions (needed before or during M2–M4)
+
+- Q1. **Seed library:** start with an empty library, or include about 40 common exercises (PT/EN names, muscles, equipment)?
+- Q2. **Progression scope:** per plan item (recommended, A5) or one global state per exercise?
+- Q3. **Double-progression strictness:** if a set has a target RIR and the user does not record RIR, should the set (a) count as eligible (recommended) or (b) block the load increase?
+- Q4. **Stagnation threshold:** flag a progression-enabled exercise as stalled after **3** sessions without rep or target progress at the same prescription? (Default 3, configurable.)
+
+---
+
+## 4. Users and main workflows
+
+The user is one person who trains for hypertrophy and/or strength and also does cardio, warm-up and mobility work. During a session the user logs on a phone. The user plans and analyses on desktop or phone.
+
+```mermaid
+flowchart LR
+  L[Exercise library] --> P[Plan + versions]
+  P --> S[Start workout from plan day]
+  L --> S
+  S --> R[Record sets / metrics]
+  R --> F[Finish workout]
+  F --> E[Progression engine evaluates]
+  E --> D{User decision}
+  D -->|accept| PS[Progression state updated]
+  D -->|override / defer| LOG[Decision + reason logged]
+  PS --> S
+  F --> A[Analysis & charts]
+  L & P & F --> X[Export / Import JSON, CSV]
+```
+
+### Prioritised user stories (MVP = Must)
+
+| Priority | Story |
+|---|---|
+| Must | Create, edit, search, filter, deactivate and duplicate (as a variation) exercises. |
+| Must | Configure the measurement metrics, units and progression strategy of each exercise. |
+| Must | Create, duplicate, edit, archive and delete plans with ordered days, exercises, supersets and set prescriptions. |
+| Must | Start a workout from a plan day, change it for that session only, and record each set. |
+| Must | Record substitutions, skipped sets, pain/technique flags, RIR/RPE and notes. |
+| Must | See a progression recommendation with its reasons after each exercise or workout. Accept, override (with a reason) or defer it. |
+| Must | View exercise history, trends suited to the metric type, PRs, volume, e1RM, adherence and completion rates. |
+| Must | Export and import a full backup (JSON) with preview, validation and conflict resolution. Export sets and workouts as CSV. |
+| Must | Use the app offline and install it on a phone (PWA). Switch between PT and EN. |
+| Should | Dashboard with the next planned workout and recent progress. |
+| Should | Filter the analysis by date range, exercise, plan, goal and muscle group. Compare two periods. |
+| Could | Partial export (library only, plans only). |
+
+## 5. Navigation
+
+```mermaid
+flowchart TD
+  Home[Dashboard] --> Lib[Exercises]
+  Home --> Plans
+  Home --> Active[Active workout]
+  Home --> Hist[History]
+  Home --> An[Analysis]
+  Home --> Set[Settings & Data]
+  Lib --> ExD[Exercise detail / edit / history]
+  Plans --> PlD[Plan editor: versions, days, items]
+  PlD --> Active
+  Hist --> WD[Workout detail / correct / revisions]
+  Set --> IO[Import / Export / Backup]
+```
+
+The active-workout screen is mobile-first: one exercise card at a time, the prescription next to the actual input fields, large number steppers, and "copy previous set" with one tap.
+
+---
+
+## 6. Data model
+
+There are three separate layers: **definition** (Exercise), **prescription** (PlanVersion → PlanItem) and **actual record** (Workout → Entry → Set). Each workout stores a **snapshot** of the exercise metrics and of the prescription. Later edits therefore do not change the meaning of history.
+
+```mermaid
+erDiagram
+  EXERCISE ||--o{ EXERCISE : "variationOf"
+  PLAN ||--|{ PLAN_VERSION : has
+  PLAN_VERSION ||--|{ PLAN_DAY : has
+  PLAN_DAY ||--|{ PLAN_ITEM : "ordered items"
+  PLAN_ITEM }o--|| EXERCISE : uses
+  PLAN_ITEM ||--|{ SET_PRESCRIPTION : has
+  PLAN_ITEM ||--o| PROGRESSION_STATE : "current targets"
+  WORKOUT }o--o| PLAN_VERSION : "started from"
+  WORKOUT ||--|{ WORKOUT_ENTRY : has
+  WORKOUT_ENTRY }o--|| EXERCISE : "performed (snapshot)"
+  WORKOUT_ENTRY ||--|{ SET_RECORD : has
+  WORKOUT_ENTRY ||--o| PROGRESSION_EVENT : produces
+  WORKOUT ||--o{ REVISION : "edit log"
+```
+
+Key entities (abbreviated):
+
+- **Exercise**: `id, name, aliases[], primaryMuscles[], secondaryMuscles[], equipment, category (compound|isolation|cardio|warmup|mobility|other), instructions, safetyNotes, personalNotes, tags[], links[], active, variationOf?, metrics: MetricDef[], loadMode (total|perSide), defaultPrescription, progression: ProgressionConfig, createdAt, updatedAt`.
+- **MetricDef**: `key (reps|load|duration|distance|speed|incline|resistance|calories|custom:<name>), unit, required, min?, max?, step?`. **Measurement-type presets** fill these fields: reps+load, bodyweight reps (+ optional added load), duration, distance, duration+distance, speed+incline (+ duration/distance), resistance, time+reps, custom.
+- **ProgressionConfig**: `strategy (double|duration|distance|intensity|multi|manual|none), eligibleVariables[], increments {metric: value}, caps?, criteria {requireAllSets, requireRirAtLeast?, blockOnPain, blockOnTechnique, blockOnSubstitution}`.
+- **Plan**: `id, name, description, goal (hypertrophy|strength|mixed|other), phase?, status (active|archived), currentVersionId`.
+- **PlanVersion** (immutable after a workout uses it; editing such a version creates a new version): `id, planId, number, createdAt, days[]`.
+- **PlanItem**: `id, lineageId (stable across versions), exerciseId, order, groupId? (superset), role (warmup|main|optional), sets: SetPrescription[], progression override?, substitutes[], notes`.
+- **SetPrescription**: `kind (warmup|working|backoff), targets {metric: {min?, max?, value?}}, rir?, rpe?, restSec?`.
+- **ProgressionState**: keyed by `lineageId`. Holds the current working targets (for example `load = 42.5 kg`, `duration = 600 s`). The plan defines the rules and the start values. The state holds the current values, so a load increase does not create a new plan version.
+- **Workout**: `id, startedAt, endedAt?, planId?, planVersionId?, dayId?, status (planned|in_progress|completed|partial|interrupted), notes, entries[]`.
+- **WorkoutEntry**: `id, exerciseId, exerciseSnapshot, planItemLineageId?, prescriptionSnapshot, substitutedForExerciseId?, order, groupId?, sets[], pain?, techniqueIssue?, notes`.
+- **SetRecord**: `id, kind, values {metric: number}, unitsSnapshot, rir?, rpe?, restSec?, status (done|skipped), notes`.
+- **ProgressionEvent**: `id, workoutId, entryId, lineageId, strategy, outcome, recommendation?, reasons[], decision (accepted|overridden|deferred|n/a), decisionReason?, before, after, decidedAt`.
+- **Revision**: `id, workoutId, at, changedFields, previousValue` (correction history).
+
+Internal storage uses **canonical units** (kg, seconds, metres, km/h, %). The original unit is kept in each record, so the app can display and export values in the recorded unit without loss.
+
+---
+
+## 7. Progression engine
+
+The engine is a pure TypeScript module: `evaluate(prescription, config, state, entry, previousEntries) → { outcome, recommendation?, reasons[] }`. It has no UI or database dependency and has full unit tests.
+
+### 7.1 Outcomes (context §6.5)
+
+`completed_as_prescribed`, `rep_progress`, `increase_recommended`, `increased` (after confirmation), `below_target`, `incomplete`, `restricted` (technique/effort/pain), `manual_adjustment`, `no_progression`.
+
+### 7.2 Double-progression decision order
+
+```mermaid
+flowchart TD
+  A[Entry finished] --> B{strategy = double?}
+  B -- no --> Z[Other strategy / no_progression]
+  B -- yes --> C{All prescribed working sets done?}
+  C -- no --> I[incomplete — keep load]
+  C -- yes --> S{Substituted?}
+  S -- yes --> R1[restricted — no increase]
+  S -- no --> D{Any working set load below working load?}
+  D -- yes --> BT[below_target — keep load]
+  D -- no --> E{Every working set reps ≥ range max?}
+  E -- no --> F{Any set reps < range min?}
+  F -- yes --> BT
+  F -- no --> G{Reps improved vs last session at same load?}
+  G -- yes --> RP[rep_progress — keep load]
+  G -- no --> CP[completed_as_prescribed — keep load]
+  E -- yes --> H{Pain / technique flag, or RIR below target?}
+  H -- yes --> R2[restricted — explain which condition]
+  H -- no --> UP[increase_recommended: load + increment, rounded to equipment step]
+```
+
+Rules and edge cases:
+
+- Only **working** sets are evaluated. Warm-up and back-off sets are recorded and are not evaluated.
+- Extra sets above the prescription do not block eligibility.
+- If a new plan version changes the rep range, the next evaluation uses the new range.
+- The increment and rounding use the exercise's unit and load mode (per-side or total).
+- Missed sessions never cause an increase. Progression depends only on completed performance.
+- After the user accepts, the next prescription shows the new load. The goal is to build reps again from the lower end of the range.
+
+### 7.3 Other strategies
+
+- **Duration / distance / intensity**: every working set reaches the target value of the eligible variable → recommend target + increment, up to an optional cap.
+- **Multi-variable**: an ordered list of variables, each with an increment and a cap. The engine progresses the first variable until it reaches its cap, then the next variable. The UI shows which variable progresses.
+- **Manual**: no recommendation. Changes to targets and the reasons for them are logged.
+- **None**: completion is evaluated (`completed_as_prescribed` or `incomplete` or `below_target`). There is **never** a recommendation and the exercise is **never** flagged as stalled.
+
+---
+
+## 8. Analysis (formulas documented in-app)
+
+| Metric | Applies to | Definition |
+|---|---|---|
+| Working-set volume | reps+load | Σ(load × reps) over working sets. It is not computed for duration or distance exercises. |
+| e1RM (estimate) | reps+load, reps ≤ 12 | Epley: `load × (1 + reps/30)`. Always labelled "estimated". |
+| PRs | per metric | Max load at ≥ N reps, max reps at a load, longest duration, longest distance, best pace. |
+| Cardio trends | duration/distance/speed/incline | Per-session values and pace = duration / distance. |
+| Completion rate | all, mainly fixed exercises | Completed prescribed sets / prescribed sets. |
+| Adherence | plans | Completed workouts / planned workouts in a period. |
+| Stagnation | progression-enabled only | No rep or target progress over Q4 sessions at the same prescription. |
+| Muscle distribution | all | Working sets per primary muscle (secondary muscle = 0.5, documented). |
+
+Filters: date range, exercise, plan, goal, muscle group. Period-over-period comparison. Charts label actual, derived and estimated values differently.
+
+---
+
+## 9. Persistence, backup, import/export
+
+- **Dexie (IndexedDB)** with versioned schema migrations. On first start the app calls `navigator.storage.persist()` to request persistent storage. The app shows a "last backup" reminder.
+- **Interchange format** (documented in `docs/data-format.md` with a JSON Schema):
+  `{ format: "mygymprogression", schemaVersion: 1, exportedAt, app: {version}, data: { exercises, plans, planVersions, progressionStates, workouts, progressionEvents, revisions, settings } }`
+- **Import flow**:
+  1. Parse the file.
+  2. Validate it with zod and show errors with JSON paths.
+  3. Migrate older schema versions.
+  4. Show a preview diff: new, identical or conflicting records.
+  5. Choose a mode. **Merge** resolves each conflict by skip, overwrite or keep both. **Replace** creates an automatic backup first and needs explicit confirmation.
+  6. Commit in a single transaction.
+- Duplicate detection uses the `id` first. For exercises without a matching id, it also checks the normalised name and equipment.
+- **CSV export**: `workouts.csv`, `sets.csv` (one row per set, one column per metric, with units) and `progression_events.csv`.
+- Partial export: library only, or plans only.
+
+## 10. Architecture
+
+```mermaid
+flowchart TB
+  subgraph UI[src/ui — React, react-router, react-i18next]
+    pages & components
+  end
+  subgraph APP[src/app — use-cases / hooks]
+  end
+  subgraph DOMAIN[src/domain — pure TS, no React/Dexie]
+    models[models + zod schemas] --- units --- progression[progression engine] --- analysis
+  end
+  subgraph DATA[src/data — Dexie repositories, migrations, import/export]
+  end
+  UI --> APP --> DOMAIN
+  APP --> DATA --> DOMAIN
+```
+
+| Concern | Choice | Reason |
+|---|---|---|
+| Build | Vite + TypeScript (strict) | Fast and simple. Capacitor-compatible. |
+| UI | React 19, React Router | Common and well supported. Reusable in Capacitor. |
+| Storage | Dexie 4 | Typed IndexedDB, migrations, transactions. |
+| Validation | zod | One schema set for forms, import and tests. |
+| i18n | i18next + react-i18next | PT-PT and EN, with interpolation and plurals. |
+| Charts | Recharts | Declarative and sufficient for the MVP. |
+| PWA | vite-plugin-pwa | Offline cache and install manifest. |
+| Styling | Plain CSS + CSS variables (light/dark) | No extra framework. |
+| Tests | Vitest (unit/integration, fake-indexeddb), Playwright (E2E on desktop and mobile viewport) | |
+
+Android path (Phase 5): the same `domain` and `data` layers run inside a Capacitor shell, with a new mobile workout UI. Data compatibility is guaranteed because both apps use the same JSON format. A move from IndexedDB to SQLite would happen only if needed.
+
+## 11. Security and privacy
+
+- No network calls. The app sends no telemetry and has no external fonts or CDNs at runtime. All data stays on the device.
+- Backup files contain health-related data. The UI warns the user to store them safely. Backup encryption is a backlog item.
+- External links open with `rel="noopener noreferrer"`. User text is rendered as text, never as HTML.
+- Import is never trusted: the app validates it strictly and limits its size.
+
+## 12. Testing and acceptance
+
+- **Unit tests (domain):** context examples §6.3 and §6.4 as table tests; boundary reps (min, max, max−1); missing sets; skipped sets; extra sets; substitutions; pain/RIR restrictions; range change between versions; kg/lb and per-side rounding; treadmill warm-up with `none` (never recommended, never stalled); treadmill with duration progression; plank; multi-variable caps; e1RM; volume excluded for cardio.
+- **Integration tests (data):** migrations; import/export round-trip equality; invalid files; conflict modes; replace with automatic backup; plan edit → new version → old workout unchanged.
+- **E2E (Playwright, desktop + Pixel viewport):** the Phase 4 demonstration list (create exercise → plan → log workout → recommendation → accept → history/analysis → export → import into empty DB).
+- Acceptance = all 17 criteria in context §12, each mapped to at least one automated test (traceability table in `docs/acceptance.md`).
+
+## 13. Milestones
+
+| M | Content | Depends on |
+|---|---|---|
+| M0 | Scaffold, git init, lint/format/test tooling, i18n skeleton, docs skeleton | — |
+| M1 | Domain models, units, zod schemas, **progression engine + tests** | M0 |
+| M2 | Dexie persistence + migrations; **exercise library** UI (CRUD, search, filter, variations, measurement presets) | M1 |
+| M3 | **Plans**: CRUD, versions, days, items, supersets, duplicate/archive, progression state | M2 |
+| M4 | **Workout logging**: start from plan, session edits, per-metric set entry, substitutions, statuses, recommendations and decisions, corrections with revision log | M3 |
+| M5 | **History, analysis, dashboard**, e1RM, filters, charts | M4 |
+| M6 | **Import/export** JSON + CSV, preview, conflicts, migrations, data-format docs | M2 (can run in parallel with M5) |
+| M7 | PWA offline/install, accessibility pass, E2E suite, demo data, README → **Phase 4 demo** | M5, M6 |
+
+At the end of each milestone I will report the changes, the test results and the limitations, and make a git commit.
+
+## 14. Risks and mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Browser storage eviction or loss | `storage.persist()`, backup reminder, easy export |
+| The flexible metric model becomes vague | A fixed set of metric keys, each with a unit, a validation rule and presets; custom metrics also need a unit |
+| Plan edits corrupt the meaning of history | Immutable used plan versions + snapshots in workouts |
+| Progression rules are wrong or surprising | Pure engine with table tests; every recommendation shows its reasons; the user always confirms |
+| Scope growth | MVP and backlog kept separate; decision log in this file |
+| Android UX later needs a different structure | The domain and data layers are UI-independent now |
+
+## 15. Backlog (not in MVP)
+
+Rest timer · body measurements and photos · cloud sync/accounts · reminders · template sharing · wearables · fatigue/plateau modelling · AI analysis · encrypted backups · local image upload.
+
+## 16. Decision log
+
+See §1. New decisions are added there with a date.

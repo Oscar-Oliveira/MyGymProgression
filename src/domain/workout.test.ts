@@ -1,0 +1,144 @@
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
+import { seedExercises, SEED_SIZE } from './seed';
+import type { ProgressionState, Workout, WorkoutEntry } from './types';
+import { addSet, decide, finishWorkout, manualAdjust, startWorkout, substitute } from './workout';
+
+function setup() {
+  const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
+  bench.defaultSets.forEach((s) => (s.targets.load = { value: 40 }));
+  const warm = newExercise('treadmill', DEFAULT_SETTINGS, { name: 'Treadmill warm-up', category: 'warmup' });
+  warm.defaultSets = [{ kind: 'working', targets: { duration: { value: 5 } } }];
+  const { plan, version } = newPlan('Upper');
+  const day = newDay('A');
+  day.items.push(newPlanItem(warm), newPlanItem(bench));
+  version.days.push(day);
+  const exercises = new Map([bench, warm].map((e) => [e.id, e]));
+  const states = new Map<string, ProgressionState>();
+  const history: Workout[] = [];
+  const lastEntry = (lineage: string): WorkoutEntry | undefined =>
+    history.flatMap((w) => w.entries).filter((e) => e.lineageId === lineage).pop();
+  const session = (benchReps: number[], warmMin = 5) => {
+    const w = startWorkout(plan, version, day, { exercises, states, lastEntry });
+    w.entries[0].sets[0] = { ...w.entries[0].sets[0], values: { duration: warmMin, speed: 5 }, status: 'done' };
+    w.entries[1].sets = w.entries[1].sets.map((s, i) => ({ ...s, values: { ...s.values, reps: benchReps[i] }, status: 'done' }));
+    const res = finishWorkout(w, false, lastEntry, states);
+    history.push(res.workout);
+    return res;
+  };
+  return { bench, warm, plan, version, day, states, history, session, exercises, lastEntry };
+}
+
+describe('workout flow', () => {
+  it('runs the §6.3 sequence end to end, and the next session uses the accepted load', () => {
+    const t = setup();
+    expect(t.session([10, 9, 8]).events[0].outcome).toBe('completed_as_prescribed');
+    expect(t.session([11, 10, 9]).events[0].outcome).toBe('progress');
+    const r = t.session([12, 12, 12]);
+    const ev = r.events.find((e) => e.exerciseId === t.bench.id)!;
+    expect(ev.decision).toBe('pending');
+    const d = decide(ev, t.states.get(ev.lineageId), { kind: 'accept' });
+    expect(d.event.decision).toBe('accepted');
+    expect(d.event.before).toEqual({ load: 40 });
+    expect(d.state.targets.load).toBe(42.5);
+    t.states.set(d.state.lineageId, d.state);
+
+    const next = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    expect(next.entries[1].prescription[0].targets.load?.value).toBe(42.5);
+    expect(next.entries[1].sets[0].values.load).toBe(42.5);
+    expect(next.entries[1].sets[0].values.reps).toBe(12);
+    // History keeps the old prescription.
+    expect(t.history[0].entries[1].prescription[0].targets.load?.value).toBe(40);
+  });
+
+  it('a 5-minute treadmill warm-up repeated never creates progression events', () => {
+    const t = setup();
+    for (let i = 0; i < 4; i++) {
+      const r = t.session([10, 9, 8]);
+      expect(r.workout.entries[0].evaluation?.outcome).toBe('no_progression');
+      expect(r.events.some((e) => e.exerciseId === t.warm.id)).toBe(false);
+    }
+  });
+
+  it('pending sets become skipped and the workout is partial', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    w.entries[1].sets[0].status = 'done';
+    const r = finishWorkout(w, false, t.lastEntry, t.states);
+    expect(r.workout.status).toBe('partial');
+    expect(r.workout.entries[1].sets[1].status).toBe('skipped');
+    expect(r.workout.entries[1].evaluation?.outcome).toBe('incomplete');
+    expect(finishWorkout(w, true, t.lastEntry, t.states).workout.status).toBe('interrupted');
+  });
+
+  it('substitution keeps lineage, records the original, blocks progression', () => {
+    const t = setup();
+    const alt = duplicateAsVariation(t.bench, 'Dumbbell press');
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    w.entries[1] = substitute(w.entries[1], alt);
+    w.entries[1].sets = w.entries[1].sets.map((s) => ({ ...s, values: { reps: 12, load: 40 }, status: 'done' }));
+    const r = finishWorkout(w, false, t.lastEntry, t.states);
+    expect(r.workout.entries[1].substitutedFor).toBe(t.bench.id);
+    expect(r.workout.entries[1].exercise.name).toBe('Dumbbell press');
+    expect(r.workout.entries[1].evaluation?.outcome).toBe('restricted');
+    expect(substitute(w.entries[1], t.bench).substitutedFor).toBeUndefined();
+  });
+
+  it('override and defer decisions', () => {
+    const t = setup();
+    const ev = t.session([12, 12, 12]).events[0];
+    const o = decide(ev, undefined, { kind: 'override', value: 41, reason: 'only 1 kg plates' });
+    expect(o.state.targets.load).toBe(41);
+    expect(o.event.decisionReason).toBe('only 1 kg plates');
+    const d = decide(ev, undefined, { kind: 'defer' });
+    expect(d.event.decision).toBe('deferred');
+    expect(d.state.targets.load).toBe(40);
+  });
+
+  it('manual adjustment logs before/after', () => {
+    const m = manualAdjust({ lineageId: 'L', exerciseId: 'E', targets: { load: 40 }, updatedAt: '' }, 'L', 'E', { load: 35 }, 'deload', 'double');
+    expect(m.event.before).toEqual({ load: 40 });
+    expect(m.event.after).toEqual({ load: 35 });
+  });
+
+  it('addSet copies the previous values as pending', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    const e = addSet(w.entries[1]);
+    expect(e.sets).toHaveLength(4);
+    expect(e.sets[3].status).toBe('pending');
+    expect(e.sets[3].values.load).toBe(40);
+  });
+});
+
+describe('plan versions and library', () => {
+  it('editing a locked version creates a new version and keeps lineage', () => {
+    const t = setup();
+    const locked = { ...t.version, locked: true };
+    const days = structuredClone(locked.days);
+    days[0].items[1].sets.forEach((s) => (s.targets.reps = { min: 6, max: 10 }));
+    const v2 = saveVersion(locked, days);
+    expect(v2.id).not.toBe(locked.id);
+    expect(v2.number).toBe(2);
+    expect(v2.days[0].items[1].lineageId).toBe(locked.days[0].items[1].lineageId);
+    expect(locked.days[0].items[1].sets[0].targets.reps).toEqual({ min: 8, max: 12 });
+    expect(saveVersion(t.version, days).id).toBe(t.version.id);
+  });
+  it('duplicate as variation keeps the original', () => {
+    const t = setup();
+    const v = duplicateAsVariation(t.bench, 'Paused');
+    expect(v.variationOf).toBe(t.bench.id);
+    expect(t.bench.name).toBe('Machine Chest Press');
+  });
+  it('seed library has ~40 exercises with PT names and EN aliases', () => {
+    const s = seedExercises({ language: 'pt', loadUnit: 'kg', distanceUnit: 'km' });
+    expect(s.length).toBe(SEED_SIZE);
+    expect(SEED_SIZE).toBeGreaterThanOrEqual(40);
+    const bench = s.find((e) => e.aliases.includes('Barbell Bench Press'))!;
+    expect(bench.name).toBe('Supino com barra');
+    expect(bench.defaultSets).toHaveLength(3);
+    expect(bench.defaultSets[0].targets.reps).toEqual({ min: 6, max: 10 });
+    const warm = s.find((e) => e.aliases.includes('Treadmill Warm-up'))!;
+    expect(warm.progression.strategy).toBe('none');
+  });
+});
