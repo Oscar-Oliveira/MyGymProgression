@@ -7,6 +7,7 @@ import { completionByExercise, entryMetrics, filterWorkouts, muscleDistribution,
 import { currentTarget } from '../../domain/progression';
 import type { MetricKey, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendMark, type Trend } from '../progress';
+import { Thumb } from '../components/Thumb';
 import { distOut, fmtNum, fmtSeconds, loadOut, tr, useSettings } from '../util';
 
 const PERIODS = [28, 84, 182, 0] as const;
@@ -121,6 +122,7 @@ export function Analysis() {
           {rows.map((r) => (
             <Link key={r.id} to={`/exercises/${r.id}`} className="ex-row">
               <TrendMark trend={r.trend} />
+              <Thumb src={r.last.exercise.thumb} name={r.name} size={40} />
               <div className="main">
                 <div className="name">{r.name}</div>
                 <div className="sub">

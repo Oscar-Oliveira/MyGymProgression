@@ -3,6 +3,9 @@ import { db as defaultDb, type GymDB } from './db';
 import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
+import { mergeLibrary, type LibraryRecord } from '../domain/library';
+import { LIBRARY_PT } from '../domain/library-pt';
+import { loadLibrary } from './library';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
 
@@ -36,6 +39,21 @@ export function createRepo(db: GymDB) {
       const add = seedExercises(s).filter((e) => !existing.has(e.name.toLowerCase()));
       await db.exercises.bulkAdd(add);
       return add.length;
+    },
+
+    /** Adds the external library: enriches matching exercises (same id, plans unchanged) and adds the rest. */
+    async importLibrary(records: LibraryRecord[]) {
+      const settings = await getSettings();
+      const { added, updated } = mergeLibrary(await db.exercises.toArray(), records, settings, LIBRARY_PT);
+      await db.exercises.bulkPut([...updated, ...added]);
+      return { added: added.length, updated: updated.length };
+    },
+
+    /** Starter exercises: the external library when available, else the built-in list. */
+    async seedOrImport(): Promise<number> {
+      const lib = await loadLibrary();
+      if (lib) return (await this.importLibrary(lib.exercises)).added;
+      return this.seedLibrary();
     },
 
     async saveExercise(ex: Exercise) {

@@ -68,6 +68,10 @@ export interface Link {
   url: string;
 }
 
+/** Muscle groups used to browse the library. */
+export const MUSCLE_GROUPS = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio', 'other'] as const;
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
+
 export interface Exercise {
   id: string;
   name: string;
@@ -87,6 +91,23 @@ export interface Exercise {
   loadMode: LoadMode;
   defaultSets: SetPrescription[];
   progression: ProgressionConfig;
+  /** Library fields (optional). */
+  group?: MuscleGroup;
+  overview?: string;
+  steps?: string[];
+  tips?: string[];
+  /** App-relative thumbnail path, e.g. "library/thumbs/2.webp". */
+  thumb?: string;
+  /** Full image URL (loaded on demand). */
+  image?: string;
+  /** Video URL (e.g. YouTube). */
+  video?: string;
+  /** Detailed muscle names from the source library. */
+  muscleDetail?: { primary: string[]; secondary: string[] };
+  /** Where the library entry came from. */
+  source?: { name: string; id: string; url: string };
+  /** Related exercises, as source ids. */
+  related?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -169,6 +190,7 @@ export interface SetRecord {
 /** Copy of exercise fields at the time of the workout. Keeps history meaningful after edits. */
 export interface ExerciseSnapshot {
   name: string;
+  thumb?: string;
   category: ExerciseCategory;
   metrics: MetricDef[];
   loadMode: LoadMode;

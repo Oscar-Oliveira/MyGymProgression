@@ -13,9 +13,10 @@ export const pt: Resources = {
   category: { compound: 'Composto', isolation: 'Isolamento', cardio: 'Cardio', warmup: 'Aquecimento', mobility: 'Mobilidade', other: 'Outro' },
   muscle: {
     chest: 'Peito', back: 'Costas', shoulders: 'Ombros', biceps: 'Bíceps', triceps: 'Tríceps', forearms: 'Antebraços', core: 'Core', quads: 'Quadríceps',
-    hamstrings: 'Isquiotibiais', glutes: 'Glúteos', calves: 'Gémeos', cardio: 'Cardio', full_body: 'Corpo inteiro',
+    hamstrings: 'Isquiotibiais', glutes: 'Glúteos', calves: 'Gémeos', adductors: 'Adutores', cardio: 'Cardio', full_body: 'Corpo inteiro',
   },
-  equipment: { barbell: 'Barra', dumbbell: 'Halteres', machine: 'Máquina', cable: 'Cabo', bodyweight: 'Peso corporal', kettlebell: 'Kettlebell', band: 'Elástico', treadmill: 'Passadeira', bike: 'Bicicleta', rower: 'Remo', other: 'Outro' },
+  equipment: { barbell: 'Barra', dumbbell: 'Halteres', machine: 'Máquina', cable: 'Cabo', bodyweight: 'Peso corporal', kettlebell: 'Kettlebell', band: 'Elástico', treadmill: 'Passadeira', bike: 'Bicicleta', rower: 'Remo', other: 'Outro', smith: 'Máquina Smith', sled: 'Máquina de trenó', ez_bar: 'Barra EZ', stability_ball: 'Bola de estabilidade', medicine_ball: 'Bola medicinal', suspension: 'Suspensão', weighted: 'Com peso', rope: 'Corda', trap_bar: 'Barra hexagonal' },
+  group: { chest: 'Peito', back: 'Costas', shoulders: 'Ombros', arms: 'Braços', legs: 'Pernas', core: 'Core', cardio: 'Cardio', other: 'Outros' },
   preset: {
     label: 'Tipo de medição', reps_load: 'Repetições e carga', bodyweight: 'Repetições (peso corporal)', duration: 'Duração', distance: 'Distância',
     duration_distance: 'Duração e distância', treadmill: 'Passadeira (duração, velocidade, inclinação)', resistance: 'Duração e resistência', time_reps: 'Tempo e repetições', custom: 'Métricas personalizadas',
@@ -105,7 +106,8 @@ export const pt: Resources = {
     metrics: 'O que regista', addMetric: 'Adicionar métrica', unit: 'Unidade', required: 'Obrigatória', customLabel: 'Nome da métrica',
     defaults: 'Séries predefinidas', progressionSettings: 'Progressão', noResults: 'Nenhum exercício encontrado.', count: '{{count}} exercícios',
     usedIn: 'Usado nos planos: {{plans}}. Remova-o desses planos primeiro, ou marque-o como inativo.', history: 'Histórico', prs: 'Melhores', noHistory: 'Ainda sem sessões.',
-    applyPreset: 'Aplicar tipo', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
+    applyPreset: 'Aplicar tipo', loadLibrary: 'Carregar biblioteca de exercícios', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', refine: 'a mostrar os primeiros {{n}}; refine a pesquisa',
+    video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
   },
   prescription: { sets: 'Séries', addSet: 'Adicionar série', kind: 'Tipo', min: 'mín', max: 'máx', target: 'alvo', rest: 'Descanso (s)', setN: 'Série {{n}}' },
   progression: {
@@ -149,7 +151,7 @@ export const pt: Resources = {
     title: 'Definições', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após N sessões',
     data: 'Dados', export: 'Exportar', exportFull: 'Cópia completa (JSON)', exportLibrary: 'Exercícios (JSON)', exportPlans: 'Planos (JSON)',
     csvSets: 'Séries (CSV)', csvWorkouts: 'Treinos (CSV)', csvEvents: 'Progressão (CSV)', import: 'Importar', chooseFile: 'Escolher ficheiro JSON',
-    seed: 'Adicionar exercícios iniciais', seeded: '{{count}} exercícios adicionados.', demo: 'Carregar dados de exemplo', demoConfirm: 'Adicionar um plano de exemplo e 6 semanas de treinos?',
+    seed: 'Adicionar exercícios iniciais', seeded: '{{count}} exercícios adicionados.', importLibrary: 'Importar biblioteca Exsercise.com', libraryResult: '{{added}} adicionados, {{updated}} atualizados.', libraryMissing: 'Ficheiro da biblioteca não encontrado (execute scripts/import_exsercise.py).', demo: 'Carregar dados de exemplo', demoConfirm: 'Adicionar um plano de exemplo e 6 semanas de treinos?',
     demoDone: 'Dados de exemplo adicionados.', reset: 'Eliminar todos os dados', resetConfirm: 'Eliminar TODOS os dados deste navegador? Exporte primeiro uma cópia.', resetConfirm2: 'Escreva DELETE para confirmar.',
     privacy: 'Todos os dados ficam neste navegador. Nada é enviado para servidores. As cópias contêm dados pessoais; guarde-as em segurança.',
     persisted: 'Armazenamento persistente concedido.', notPersisted: 'O navegador pode apagar dados se faltar espaço. Exporte cópias regularmente.', formatDoc: 'Formato JSON com versão (docs/data-format.md).',

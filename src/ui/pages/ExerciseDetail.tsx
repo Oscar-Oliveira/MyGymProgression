@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
+import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
+import { Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { MetricDef, SetRecord } from '../../domain/types';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
@@ -55,7 +57,8 @@ export function ExerciseDetail() {
     const workouts = await db.workouts.toArray();
     const events = (await db.progressionEvents.where('exerciseId').equals(id!).toArray()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const parent = ex?.variationOf ? await db.exercises.get(ex.variationOf) : undefined;
-    return { ex, workouts, events, parent };
+    const all = ex ? await db.exercises.toArray() : [];
+    return { ex, workouts, events, parent, all };
   }, [id]);
   if (!data) return null;
   const { ex, workouts, events, parent } = data;
@@ -73,51 +76,138 @@ export function ExerciseDetail() {
     [t('analysis.pace'), pr.bestPace !== undefined ? `${fmtSeconds(paceOut(pr.bestPace, s))}/${s.distanceUnit}` : undefined],
   ];
 
+  const related = ex ? relatedOf(ex, data.all) : [];
+  const muscle = (n: string) => (s.language === 'pt' ? (MUSCLE_DETAIL_PT[n] ?? n) : n);
+  const name = ex?.name ?? history[0].entry.exercise.name;
+
   return (
     <div className="stack">
-      <div className="row between wrap">
-        <h1>{ex?.name ?? history[0].entry.exercise.name}</h1>
+      {ex?.image || ex?.thumb ? (
+        <img className="ex-hero" src={ex.image ?? `${import.meta.env.BASE_URL}${ex.thumb}`} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = `${import.meta.env.BASE_URL}${ex.thumb}`)} />
+      ) : null}
+      <div className="page-head">
+        <div>
+          {ex && <p className="eyebrow">{t(`group.${exerciseGroup(ex)}`)} · {tr(t, 'equipment', ex.equipment)}</p>}
+          <h1>{name}</h1>
+          {ex && ex.aliases.length > 0 && <small>{ex.aliases.join(', ')}</small>}
+        </div>
         {ex && (
-          <Link className="button secondary" to={`/exercises/${ex.id}/edit`}>
+          <Link className="btn btn-outline" to={`/exercises/${ex.id}/edit`}>
             {t('common.edit')}
           </Link>
         )}
       </div>
+
       {ex && (
-        <section className="card stack-sm">
-          {parent && (
+        <>
+          <div className="row wrap">
+            {ex.video && (
+              <a className="btn btn-primary" href={ex.video} target="_blank" rel="noopener noreferrer">
+                ▶ {t('exercise.video')}
+              </a>
+            )}
+            {ex.source && (
+              <a className="btn btn-outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
+                {ex.source.name} ↗
+              </a>
+            )}
+          </div>
+
+          <section className="card">
+            <h2>{t('exercise.muscles')}</h2>
+            {ex.muscleDetail && ex.muscleDetail.primary.length > 0 ? (
+              <>
+                <p>
+                  <strong>{t('exercise.primary')}:</strong> {ex.muscleDetail.primary.map(muscle).join(', ')}
+                </p>
+                {ex.muscleDetail.secondary.length > 0 && (
+                  <p>
+                    <strong>{t('exercise.secondary')}:</strong> {ex.muscleDetail.secondary.map(muscle).join(', ')}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p>
+                {ex.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')}
+                {ex.secondaryMuscles.length > 0 && <small> (+ {ex.secondaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')})</small>}
+              </p>
+            )}
+          </section>
+
+          {ex.overview && (
+            <section className="card">
+              <h2>{t('exercise.description')}</h2>
+              <p>{ex.overview}</p>
+            </section>
+          )}
+
+          {(ex.steps?.length || ex.instructions) && (
+            <section className="card">
+              <h2>{t('exercise.howTo')}</h2>
+              {ex.steps?.length ? (
+                <ol className="steps">
+                  {ex.steps.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ol>
+              ) : null}
+              {ex.instructions && <p style={{ whiteSpace: 'pre-wrap' }}>{ex.instructions}</p>}
+            </section>
+          )}
+
+          {ex.tips && ex.tips.length > 0 && (
+            <details className="card tight">
+              <summary>{t('exercise.tips')}</summary>
+              <ul className="steps">
+                {ex.tips.map((x, i) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <section className="card">
+            {parent && (
+              <p>
+                <Link to={`/exercises/${parent.id}`}>{t('exercise.variationOf', { name: parent.name })}</Link>
+              </p>
+            )}
             <p>
-              <Link to={`/exercises/${parent.id}`}>{t('exercise.variationOf', { name: parent.name })}</Link>
+              <strong>{t('exercise.metrics')}:</strong> {metrics.map((m) => `${metricLabel(t, m.key, metrics)} (${m.unit})`).join(', ')}
+              {ex.loadMode === 'perSide' && ` · ${t('loadMode.perSide')}`}
             </p>
+            <p>
+              <strong>{t(`strategy.${ex.progression.strategy}`)}</strong> — <span className="help">{t(`strategy.help.${ex.progression.strategy}`)}</span>
+            </p>
+            {ex.safetyNotes && <p className="error" style={{ whiteSpace: 'pre-wrap' }}>⚠ {ex.safetyNotes}</p>}
+            {ex.personalNotes && <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>{ex.personalNotes}</p>}
+            {ex.links.length > 0 && (
+              <ul>
+                {ex.links.map((l) => (
+                  <li key={l.url}>
+                    <a href={l.url} target="_blank" rel="noopener noreferrer">
+                      {l.label || l.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {related.length > 0 && (
+            <section className="card">
+              <h2>{t('exercise.related')}</h2>
+              <div className="rel-grid">
+                {related.map((r) => (
+                  <Link key={r.id} to={`/exercises/${r.id}`}>
+                    <Thumb src={r.thumb} name={r.name} size={140} />
+                    <span>{r.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
           )}
-          {ex.aliases.length > 0 && <p className="muted">{ex.aliases.join(', ')}</p>}
-          <p>
-            {t(`category.${ex.category}`)} · {tr(t, 'equipment', ex.equipment)} · {ex.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')}
-            {ex.secondaryMuscles.length > 0 && <small> (+ {ex.secondaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')})</small>}
-          </p>
-          <p>
-            <strong>{t('exercise.metrics')}:</strong> {metrics.map((m) => `${metricLabel(t, m.key, metrics)} (${m.unit})`).join(', ')}
-            {ex.loadMode === 'perSide' && ` · ${t('loadMode.perSide')}`}
-          </p>
-          <p>
-            <strong>{t(`strategy.${ex.progression.strategy}`)}</strong> — <span className="help">{t(`strategy.help.${ex.progression.strategy}`)}</span>
-          </p>
-          {ex.instructions && <p style={{ whiteSpace: 'pre-wrap' }}>{ex.instructions}</p>}
-          {ex.safetyNotes && <p className="error" style={{ whiteSpace: 'pre-wrap' }}>⚠ {ex.safetyNotes}</p>}
-          {ex.personalNotes && <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>{ex.personalNotes}</p>}
-          {ex.links.length > 0 && (
-            <ul>
-              {ex.links.map((l) => (
-                <li key={l.url}>
-                  <a href={l.url} target="_blank" rel="noopener noreferrer">
-                    {l.label || l.url}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-          {ex.tags.length > 0 && <p>{ex.tags.map((x) => <span key={x} className="tag">{x}</span>)}</p>}
-        </section>
+        </>
       )}
 
       <section className="card">

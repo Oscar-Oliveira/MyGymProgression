@@ -10,6 +10,7 @@ import { addSet, adHocLineage, entryAdHoc, substitute } from '../../domain/worko
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
+import { Thumb } from '../components/Thumb';
 import { DecisionCard, progressHint, rxLine, setsLine, setText } from '../progress';
 import { fmtDate, fmtNum, metricLabel, useSettings } from '../util';
 
@@ -100,7 +101,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
   );
 }
 
-function EntryFocus({ entry, previous, onChange, onSubstitute }: { entry: WorkoutEntry; previous?: WorkoutEntry; onChange: (e: WorkoutEntry) => void; onSubstitute: () => void }) {
+function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entry: WorkoutEntry; previous?: WorkoutEntry; onChange: (e: WorkoutEntry) => void; onSubstitute: () => void; thumbOf: (id: string) => string | undefined }) {
   const { t } = useTranslation();
   const s = useSettings();
   const [chosen, setChosen] = useState<string>();
@@ -113,7 +114,10 @@ function EntryFocus({ entry, previous, onChange, onSubstitute }: { entry: Workou
   return (
     <section aria-label={entry.exercise.name}>
       {entry.group && <span className="badge">{t('plan.group')} {entry.group}</span>}
-      <h1 className="ex-title">{entry.exercise.name}</h1>
+      <div className="row" style={{ alignItems: 'center' }}>
+        <Thumb src={entry.exercise.thumb ?? thumbOf(entry.exerciseId)} name={entry.exercise.name} size={64} />
+        <h1 className="ex-title">{entry.exercise.name}</h1>
+      </div>
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
       <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
       <div className="ex-last">
@@ -286,7 +290,7 @@ export function WorkoutPage() {
         </div>
 
         {entry ? (
-          <EntryFocus key={entry.id} entry={entry} previous={previousOf(entry)} onChange={upEntry} onSubstitute={() => setPicker('sub')} />
+          <EntryFocus key={entry.id} entry={entry} previous={previousOf(entry)} onChange={upEntry} onSubstitute={() => setPicker('sub')} thumbOf={(eid) => ctx.exercises.get(eid)?.thumb} />
         ) : (
           <div className="empty">
             <p>{t('workout.noEntries')}</p>

@@ -5,6 +5,7 @@ import { db } from '../../data/db';
 import type { Exercise } from '../../domain/types';
 import { tr } from '../util';
 import { Modal } from './Modal';
+import { Thumb } from './Thumb';
 
 export const matches = (e: Exercise, q: string) => {
   const n = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -24,20 +25,25 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
         .sort((a, b) => Number(preferred.includes(b.id)) - Number(preferred.includes(a.id)) || a.name.localeCompare(b.name)),
     [all, q, exclude, preferred],
   );
+  const shown = list.slice(0, 150);
   return (
     <Modal title={t('picker.title')} onClose={onClose}>
       <input type="search" autoFocus placeholder={t('picker.placeholder')} aria-label={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} />
       <ul className="pick-list">
-        {list.map((e) => (
+        {shown.map((e) => (
           <li key={e.id}>
-            <button type="button" onClick={() => onPick(e)}>
+            <button type="button" className="lib-row" style={{ flexDirection: 'row', alignItems: 'center' }} onClick={() => onPick(e)}>
+              <Thumb src={e.thumb} name={e.name} size={44} />
+              <span className="main">
               <strong>
                 {preferred.includes(e.id) && '★ '}
                 {e.name}
               </strong>
               <small>
-                {t(`category.${e.category}`)} · {e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')} · {tr(t, 'equipment', e.equipment)}
+                {' '}
+                {e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')} · {tr(t, 'equipment', e.equipment)}
               </small>
+              </span>
             </button>
           </li>
         ))}

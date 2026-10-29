@@ -36,7 +36,7 @@ export function PlanList() {
     <div className="stack">
       <div className="row between wrap">
         <h1>{t('plan.title')}</h1>
-        <button onClick={() => void create()}>+ {t('plan.new')}</button>
+        <button className="primary" onClick={() => void create()}>+ {t('plan.new')}</button>
       </div>
       <label className="check">
         <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} /> {t('plan.showArchived')}

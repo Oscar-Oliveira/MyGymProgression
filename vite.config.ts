@@ -8,6 +8,22 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      workbox: {
+        // The exercise library (public/library) is large: cached on first use instead of precached.
+        globIgnores: ['library/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/library/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'library', expiration: { maxEntries: 6000 } },
+          },
+          {
+            urlPattern: ({ url }) => url.hostname === 'lyfta.app',
+            handler: 'CacheFirst',
+            options: { cacheName: 'exercise-images', expiration: { maxEntries: 500 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
+      },
       manifest: {
         name: 'MyGymProgression',
         short_name: 'GymProg',

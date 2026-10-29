@@ -42,6 +42,16 @@ export const exerciseSchema = z.object({
   loadMode,
   defaultSets: z.array(setPrescriptionSchema),
   progression: progressionSchema,
+  group: z.enum(['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio', 'other']).optional(),
+  overview: z.string().optional(),
+  steps: z.array(z.string()).optional(),
+  tips: z.array(z.string()).optional(),
+  thumb: z.string().optional(),
+  image: z.string().optional(),
+  video: z.string().optional(),
+  muscleDetail: z.object({ primary: z.array(z.string()), secondary: z.array(z.string()) }).optional(),
+  source: z.object({ name: z.string(), id: z.string(), url: z.string() }).optional(),
+  related: z.array(z.string()).optional(),
   createdAt: iso,
   updatedAt: iso,
 });
@@ -99,7 +109,7 @@ const setRecord = z.object({
 const entry = z.object({
   id: z.string(),
   exerciseId: z.string(),
-  exercise: z.object({ name: z.string(), category, metrics: z.array(metricDef), loadMode, primaryMuscles: z.array(z.string()), secondaryMuscles: z.array(z.string()) }),
+  exercise: z.object({ name: z.string(), thumb: z.string().optional(), category, metrics: z.array(metricDef), loadMode, primaryMuscles: z.array(z.string()), secondaryMuscles: z.array(z.string()) }),
   lineageId: z.string().optional(),
   prescription: z.array(setPrescriptionSchema),
   progression: progressionSchema,
@@ -169,7 +179,7 @@ export const settingsSchema = z.object({
   lastBackupAt: iso.optional(),
 });
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

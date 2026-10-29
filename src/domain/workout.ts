@@ -36,6 +36,7 @@ export function lastEntryFinder(workouts: Workout[], beforeIso?: string): (linea
 export function snapshot(ex: Exercise): ExerciseSnapshot {
   return structuredClone({
     name: ex.name,
+    ...(ex.thumb ? { thumb: ex.thumb } : {}),
     category: ex.category,
     metrics: ex.metrics,
     loadMode: ex.loadMode,

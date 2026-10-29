@@ -11,9 +11,10 @@ export const en = {
   category: { compound: 'Compound', isolation: 'Isolation', cardio: 'Cardio', warmup: 'Warm-up', mobility: 'Mobility', other: 'Other' },
   muscle: {
     chest: 'Chest', back: 'Back', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms', core: 'Core', quads: 'Quadriceps',
-    hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', cardio: 'Cardio', full_body: 'Full body',
+    hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', adductors: 'Adductors', cardio: 'Cardio', full_body: 'Full body',
   },
-  equipment: { barbell: 'Barbell', dumbbell: 'Dumbbell', machine: 'Machine', cable: 'Cable', bodyweight: 'Bodyweight', kettlebell: 'Kettlebell', band: 'Band', treadmill: 'Treadmill', bike: 'Bike', rower: 'Rower', other: 'Other' },
+  equipment: { barbell: 'Barbell', dumbbell: 'Dumbbell', machine: 'Machine', cable: 'Cable', bodyweight: 'Bodyweight', kettlebell: 'Kettlebell', band: 'Band', treadmill: 'Treadmill', bike: 'Bike', rower: 'Rower', other: 'Other', smith: 'Smith machine', sled: 'Sled machine', ez_bar: 'EZ bar', stability_ball: 'Stability ball', medicine_ball: 'Medicine ball', suspension: 'Suspension', weighted: 'Weighted', rope: 'Rope', trap_bar: 'Trap bar' },
+  group: { chest: 'Chest', back: 'Back', shoulders: 'Shoulders', arms: 'Arms', legs: 'Legs', core: 'Core', cardio: 'Cardio', other: 'Other' },
   preset: {
     label: 'Measurement type', reps_load: 'Reps and load', bodyweight: 'Bodyweight reps', duration: 'Duration', distance: 'Distance',
     duration_distance: 'Duration and distance', treadmill: 'Treadmill (duration, speed, incline)', resistance: 'Duration and resistance', time_reps: 'Time and reps', custom: 'Custom metrics',
@@ -103,7 +104,8 @@ export const en = {
     metrics: 'What you record', addMetric: 'Add metric', unit: 'Unit', required: 'Required', customLabel: 'Metric name',
     defaults: 'Default sets', progressionSettings: 'Progression', noResults: 'No exercises found.', count: '{{count}} exercises',
     usedIn: 'Used in plans: {{plans}}. Remove it from those plans first, or set it inactive.', history: 'History', prs: 'Best', noHistory: 'No sessions yet.',
-    applyPreset: 'Apply type', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
+    applyPreset: 'Apply type', loadLibrary: 'Load exercise library', groups: 'Muscle groups', allEquipment: 'All equipment', refine: 'showing the first {{n}}; refine the search',
+    video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
   },
   prescription: { sets: 'Sets', addSet: 'Add set', kind: 'Type', min: 'min', max: 'max', target: 'target', rest: 'Rest (s)', setN: 'Set {{n}}' },
   progression: {
@@ -147,7 +149,7 @@ export const en = {
     title: 'Settings', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after N sessions',
     data: 'Data', export: 'Export', exportFull: 'Full backup (JSON)', exportLibrary: 'Exercises (JSON)', exportPlans: 'Plans (JSON)',
     csvSets: 'Sets (CSV)', csvWorkouts: 'Workouts (CSV)', csvEvents: 'Progression (CSV)', import: 'Import', chooseFile: 'Choose a JSON file',
-    seed: 'Add starter exercises', seeded: '{{count}} exercises added.', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',
+    seed: 'Add starter exercises', seeded: '{{count}} exercises added.', importLibrary: 'Import Exsercise.com library', libraryResult: '{{added}} added, {{updated}} updated.', libraryMissing: 'Library file not found (run scripts/import_exsercise.py).', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',
     demoDone: 'Demo data added.', reset: 'Delete all data', resetConfirm: 'Delete ALL data in this browser? Export a backup first.', resetConfirm2: 'Type DELETE to confirm.',
     privacy: 'All data stays in this browser. Nothing is sent to a server. Backups contain personal data; store them safely.',
     persisted: 'Persistent storage granted.', notPersisted: 'The browser may clear data when space is low. Export backups regularly.', formatDoc: 'Versioned JSON format (docs/data-format.md).',

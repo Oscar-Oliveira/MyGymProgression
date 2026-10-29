@@ -10,6 +10,7 @@ import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, 
 import { PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { NumInput } from '../components/NumInput';
+import { Thumb } from '../components/Thumb';
 import { metricLabel } from '../util';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
@@ -76,6 +77,7 @@ function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget,
   return (
     <section className="card item" aria-label={ex.name}>
       <div className="item-head">
+        <Thumb src={ex.thumb} name={ex.name} size={44} />
         {item.group && <span className="group">{item.group}</span>}
         <span className="name">{ex.name}</span>
         <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>

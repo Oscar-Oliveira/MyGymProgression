@@ -149,7 +149,7 @@ export function ExerciseEdit() {
             </select>
           </label>
           {id && (
-            <button type="button" className="secondary" onClick={() => confirm(t('exercise.presetWarn')) && applyPreset(preset)}>
+            <button type="button" className="outline" onClick={() => confirm(t('exercise.presetWarn')) && applyPreset(preset)}>
               {t('exercise.applyPreset')}
             </button>
           )}
@@ -203,7 +203,7 @@ export function ExerciseEdit() {
             </button>
           </div>
         ))}
-        <button type="button" className="secondary" onClick={() => up({ links: [...ex.links, { label: '', url: '' }] })}>
+        <button type="button" className="outline" onClick={() => up({ links: [...ex.links, { label: '', url: '' }] })}>
           + {t('common.add')}
         </button>
       </section>
@@ -216,13 +216,13 @@ export function ExerciseEdit() {
         </ul>
       )}
       <div className="sticky-actions">
-        <button onClick={() => void save()}>{t('common.save')}</button>
-        <button className="secondary" onClick={() => nav(-1)}>
+        <button className="primary" onClick={() => void save()}>{t('common.save')}</button>
+        <button className="outline" onClick={() => nav(-1)}>
           {t('common.cancel')}
         </button>
         {id && (
           <>
-            <button className="secondary" onClick={() => void variation()}>
+            <button className="outline" onClick={() => void variation()}>
               {t('exercise.variation')}
             </button>
             <span className="spacer" />

@@ -109,7 +109,7 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
       ))}
       <button
         type="button"
-        className="secondary"
+        className="outline"
         onClick={() => onChange([...sets, sets.length ? structuredClone(sets[sets.length - 1]) : { kind: 'working', targets: {} }])}
       >
         + {t('prescription.addSet')}
@@ -197,7 +197,7 @@ export function ProgressionEditor({ config, metrics, onChange }: { config: Progr
           </div>
         ))}
       {config.strategy === 'multi' && choosable.length > 0 && (
-        <button type="button" className="secondary" onClick={() => onChange({ ...config, steps: [...config.steps, { metric: choosable[0].key, increment: 1 }] })}>
+        <button type="button" className="outline" onClick={() => onChange({ ...config, steps: [...config.steps, { metric: choosable[0].key, increment: 1 }] })}>
           + {t('progression.addStep')}
         </button>
       )}

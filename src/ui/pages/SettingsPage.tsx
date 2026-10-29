@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
+import { loadLibrary } from '../../data/library';
 import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
 import { generateDemo } from '../../domain/demo';
 import { buildBundle, parseBundle, planMerge, previewImport, TABLES, type Bundle, type ConflictPolicy, type DuplicatePolicy, type Preview, type Scope } from '../../domain/interchange';
@@ -140,7 +141,7 @@ function ImportPanel() {
               )}
             </>
           )}
-          <button onClick={() => void commit()}>{t('import.commit')}</button>
+          <button className="primary" onClick={() => void commit()}>{t('import.commit')}</button>
         </div>
       )}
     </div>
@@ -167,9 +168,15 @@ export function SettingsPage() {
     const text = kind === 'sets' ? setsCsv(finished) : kind === 'workouts' ? workoutsCsv(finished) : eventsCsv(d.progressionEvents, names);
     download(`mygymprogression-${kind}-${stamp()}.csv`, '﻿' + text, 'text/csv');
   };
+  const importLibrary = async () => {
+    const lib = await loadLibrary();
+    if (!lib) return flash(t('settings.libraryMissing'));
+    flash('…');
+    flash(t('settings.libraryResult', await repo.importLibrary(lib.exercises)));
+  };
   const demo = async () => {
     if (!confirm(t('settings.demoConfirm'))) return;
-    await repo.seedLibrary();
+    await repo.seedOrImport();
     const data = generateDemo(await db.exercises.toArray());
     await repo.importMerge(data);
     flash(t('settings.demoDone'));
@@ -217,22 +224,22 @@ export function SettingsPage() {
         <p className="help">{persisted ? t('settings.persisted') : t('settings.notPersisted')}</p>
         <h3>{t('settings.export')}</h3>
         <div className="row wrap">
-          <button onClick={() => void exportJson('full')}>{t('settings.exportFull')}</button>
-          <button className="secondary" onClick={() => void exportJson('library')}>
+          <button className="primary" onClick={() => void exportJson('full')}>{t('settings.exportFull')}</button>
+          <button className="outline" onClick={() => void exportJson('library')}>
             {t('settings.exportLibrary')}
           </button>
-          <button className="secondary" onClick={() => void exportJson('plans')}>
+          <button className="outline" onClick={() => void exportJson('plans')}>
             {t('settings.exportPlans')}
           </button>
         </div>
         <div className="row wrap">
-          <button className="secondary" onClick={() => void csv('sets')}>
+          <button className="outline" onClick={() => void csv('sets')}>
             {t('settings.csvSets')}
           </button>
-          <button className="secondary" onClick={() => void csv('workouts')}>
+          <button className="outline" onClick={() => void csv('workouts')}>
             {t('settings.csvWorkouts')}
           </button>
-          <button className="secondary" onClick={() => void csv('events')}>
+          <button className="outline" onClick={() => void csv('events')}>
             {t('settings.csvEvents')}
           </button>
         </div>
@@ -245,10 +252,13 @@ export function SettingsPage() {
 
       <section className="card stack-sm">
         <div className="row wrap">
-          <button className="secondary" onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))}>
+          <button className="outline" onClick={() => void importLibrary()}>
+            {t('settings.importLibrary')}
+          </button>
+          <button className="outline" onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))}>
             {t('settings.seed')}
           </button>
-          <button className="secondary" onClick={() => void demo()}>
+          <button className="outline" onClick={() => void demo()}>
             {t('settings.demo')}
           </button>
           <span className="spacer" />

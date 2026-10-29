@@ -6,6 +6,7 @@ import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
 import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { DecisionCard, rxLine } from '../progress';
+import { Thumb } from '../components/Thumb';
 import { fmtDate, useSettings } from '../util';
 
 export function Home() {
@@ -46,7 +47,7 @@ export function Home() {
   const entryOf = (entryId?: string) => workouts.flatMap((w) => w.entries).find((e) => e.id === entryId);
   const start = async () => nav(`/workout/${await repo.startWorkout(plan?.id, day?.id)}`);
   const demo = async () => {
-    await repo.seedLibrary();
+    await repo.seedOrImport();
     await repo.importMerge(generateDemo(await db.exercises.toArray()));
   };
 
@@ -76,7 +77,10 @@ export function Home() {
           <ul className="list" style={{ margin: '0.6rem 0 1rem' }}>
             {preview.entries.map((e) => (
               <li key={e.id} className="row between">
-                <span>{e.exercise.name}</span>
+                <span className="row">
+                  <Thumb src={e.exercise.thumb} name={e.exercise.name} size={36} />
+                  {e.exercise.name}
+                </span>
                 <small className="num">{rxLine(e, t, s.language)}</small>
               </li>
             ))}
@@ -96,7 +100,7 @@ export function Home() {
           <h1>{t('home.welcome')}</h1>
           <p className="muted">{t('home.welcomeText')}</p>
           {exercises.length === 0 && (
-            <button className="outline xl" onClick={() => void repo.seedLibrary()}>
+            <button className="outline xl" onClick={() => void repo.seedOrImport()}>
               {t('home.seed')}
             </button>
           )}

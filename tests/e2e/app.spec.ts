@@ -1,8 +1,34 @@
 import { expect, test, type Page } from '@playwright/test';
 
-test.beforeEach(async ({ page }) => {
+const rec = (sid: string, name: string, bodyParts: string[], related: string[] = []) => ({
+  sid, slug: `${name.toLowerCase().replace(/ /g, '-')}-${sid}`, url: `https://www.exsercise.com/library/x-${sid}`, name, bodyParts,
+  equipment: ['Barbell'], type: 'weight_reps', primary: ['Pectoralis Major Sternal Head'], secondary: ['Triceps Brachii'],
+  overview: `${name} overview.`, steps: [`${name} step one.`, `${name} step two.`], tips: [], video: 'abc123', thumb: '', imageUrl: '', related,
+});
+const LIBRARY = { source: 'test', fetchedAt: '2026-10-29', exercises: [rec('1', 'Bench Press', ['Chest'], ['2']), rec('2', 'Incline Bench Press', ['Chest']), rec('3', 'Barbell Row', ['Back'])] };
+
+test.beforeEach(async ({ page }, info) => {
+  // The real library file is optional and large; tests use the built-in list, or a small fixture when tagged @library.
+  await page.route('**/library/exsercise.json', (route) =>
+    info.title.includes('@library') ? route.fulfill({ json: LIBRARY }) : route.fulfill({ status: 404, body: '' }),
+  );
   page.on('dialog', (d) => void (d.type() === 'prompt' ? d.accept('DELETE') : d.accept()));
   await page.goto('/');
+});
+
+test('@library: muscle groups, detail with how-to, video and related exercises', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Exercises/);
+  await expect(page.getByRole('heading', { name: 'Muscle groups' })).toBeVisible();
+  await page.getByRole('tab', { name: /Chest/ }).click();
+  await page.getByRole('link', { name: /^Bench Press/ }).click();
+  await expect(page.getByRole('heading', { name: 'Bench Press', level: 1 })).toBeVisible();
+  await expect(page.getByText('Bench Press overview.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'How to do it' })).toBeVisible();
+  await expect(page.getByText('Bench Press step two.')).toBeVisible();
+  await expect(page.getByRole('link', { name: '▶ Watch video' })).toHaveAttribute('href', 'https://www.youtube.com/watch?v=abc123');
+  await page.getByRole('link', { name: 'Incline Bench Press' }).click();
+  await expect(page.getByRole('heading', { name: 'Incline Bench Press', level: 1 })).toBeVisible();
 });
 
 async function tab(page: Page, name: 'Home' | 'Train' | 'History' | 'More') {
