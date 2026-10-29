@@ -75,7 +75,7 @@ const DEFS: SeedDef[] = [
     en: 'Hip Mobility Routine', pt: 'Rotina de mobilidade da anca', preset: 'duration', category: 'mobility', equipment: 'bodyweight', primary: ['glutes'],
     metrics: [{ key: 'duration', unit: 'min', required: true }], defaultSets: w({ duration: { value: 5 } }), progression: none(),
   },
-  { en: 'Band Shoulder Dislocates', pt: 'Rotações de ombro com elástico', preset: 'bodyweight', category: 'mobility', equipment: 'band', primary: ['shoulders'], metrics: [{ key: 'reps', unit: 'reps', required: true }], defaultSets: w({ reps: { value: 15 } }, 2), progression: none() },
+  { en: 'Band Shoulder Dislocates', pt: 'Rotações de ombro com elástico', preset: 'bodyweight', category: 'mobility', equipment: 'band', primary: ['shoulders'], metrics: [{ key: 'reps', unit: 'reps', required: true }], defaultSets: w({ reps: { min: 15 } }, 2), progression: none() },
   {
     en: "Farmer's Walk", pt: 'Marcha do agricultor', preset: 'custom', category: 'compound', equipment: 'dumbbell', primary: ['forearms'], secondary: ['core'], loadMode: 'perSide',
     metrics: [{ key: 'duration', unit: 's', required: true }, { key: 'load', unit: 'kg', required: true }],

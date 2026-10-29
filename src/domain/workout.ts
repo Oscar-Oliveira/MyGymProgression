@@ -17,6 +17,20 @@ import type {
   WorkoutEntry,
 } from './types';
 
+/** Returns a lookup for the latest finished entry of a lineage, optionally only before a date. */
+export function lastEntryFinder(workouts: Workout[], beforeIso?: string): (lineageId: string) => WorkoutEntry | undefined {
+  const sorted = workouts
+    .filter((w) => w.status !== 'in_progress' && (!beforeIso || w.startedAt < beforeIso))
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  return (lineageId) => {
+    for (const w of sorted) {
+      const e = w.entries.find((x) => x.lineageId === lineageId);
+      if (e) return e;
+    }
+    return undefined;
+  };
+}
+
 export function snapshot(ex: Exercise): ExerciseSnapshot {
   return structuredClone({
     name: ex.name,
@@ -234,4 +248,13 @@ export function manualAdjust(
     event: { id: uid(), lineageId, exerciseId, strategy, outcome: 'manual', reasons: [], decision: 'overridden', decisionReason: reason, before, after, createdAt: now, decidedAt: now },
     state: { lineageId, exerciseId, targets: after, updatedAt: now },
   };
+}
+
+/** Next training day of a plan: the day after the last finished day in plan order, else the first day. */
+export function nextDay(version: PlanVersion, workouts: Workout[]): PlanDay | undefined {
+  const last = workouts
+    .filter((w) => w.planId === version.planId && w.status !== 'in_progress' && w.dayId)
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+  const i = last ? version.days.findIndex((d) => d.id === last.dayId) : -1;
+  return version.days[(i + 1) % Math.max(1, version.days.length)];
 }

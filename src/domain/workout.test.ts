@@ -142,3 +142,37 @@ describe('plan versions and library', () => {
     expect(warm.progression.strategy).toBe('none');
   });
 });
+
+describe('nextDay', () => {
+  it('rotates through plan days after the last finished day', async () => {
+    const { nextDay } = await import('./workout');
+    const { version } = newPlan('X');
+    version.days = [newDay('A'), newDay('B')];
+    expect(nextDay(version, [])?.name).toBe('A');
+    const w = (dayId: string, startedAt: string, status: Workout['status'] = 'completed') => ({ planId: version.planId, dayId, startedAt, status }) as Workout;
+    expect(nextDay(version, [w(version.days[0].id, '2026-01-01')])?.name).toBe('B');
+    expect(nextDay(version, [w(version.days[0].id, '2026-01-01'), w(version.days[1].id, '2026-01-03')])?.name).toBe('A');
+    expect(nextDay(version, [w(version.days[0].id, '2026-01-01', 'in_progress')])?.name).toBe('A');
+  });
+});
+
+describe('demo data', () => {
+  it('produces progression, fixed warm-ups that never progress, and valid bundles', async () => {
+    const { generateDemo } = await import('./demo');
+    const { buildBundle, parseBundle } = await import('./interchange');
+    const ex = seedExercises({ language: 'en', loadUnit: 'kg', distanceUnit: 'km' });
+    const d = generateDemo(ex, 6, new Date('2026-10-29T12:00:00Z'));
+    expect(d.workouts).toHaveLength(12);
+    expect(d.progressionEvents.some((e) => e.decision === 'accepted' && e.recommendation?.metric === 'load')).toBe(true);
+    expect(d.progressionEvents.some((e) => e.decision === 'accepted' && e.recommendation?.metric === 'duration')).toBe(true);
+    const warm = ex.find((e) => e.name === 'Treadmill Warm-up')!;
+    expect(d.progressionEvents.some((e) => e.exerciseId === warm.id)).toBe(false);
+    const warmEntries = d.workouts.flatMap((w) => w.entries).filter((e) => e.exerciseId === warm.id);
+    expect(warmEntries.every((e) => e.evaluation?.outcome === 'no_progression')).toBe(true);
+    const chest = ex.find((e) => e.name === 'Machine Chest Press')!;
+    const loads = d.workouts.flatMap((w) => w.entries).filter((e) => e.exerciseId === chest.id).map((e) => e.prescription[0].targets.load?.value);
+    expect(loads[0]).toBe(40);
+    expect(Math.max(...(loads as number[]))).toBeGreaterThan(40);
+    expect(parseBundle(JSON.stringify(buildBundle({ ...d, exercises: ex }, 'full', 't'))).ok).toBe(true);
+  });
+});

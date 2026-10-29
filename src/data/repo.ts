@@ -1,0 +1,186 @@
+// Storage use-cases. Each multi-table change runs in one transaction.
+import { db as defaultDb, type GymDB } from './db';
+import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
+import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
+import { seedExercises } from '../domain/seed';
+import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
+import { decide, evaluateWorkout, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
+
+export function createRepo(db: GymDB) {
+  async function getSettings(): Promise<Settings> {
+    return (await db.settings.get('settings')) ?? DEFAULT_SETTINGS;
+  }
+
+  async function readAll(): Promise<DataSet> {
+    const out = emptyDataSet();
+    await db.transaction('r', db.tables, async () => {
+      for (const t of TABLES) (out[t] as unknown[]) = await db.table(t).toArray();
+      out.settings = await db.settings.get('settings');
+    });
+    return out;
+  }
+
+  return {
+    getSettings,
+    readAll,
+
+    async saveSettings(patch: Partial<Settings>) {
+      const s = await getSettings();
+      await db.settings.put({ ...s, ...patch, id: 'settings' });
+    },
+
+    async seedLibrary() {
+      const s = await getSettings();
+      const existing = new Set((await db.exercises.toArray()).map((e) => e.name.toLowerCase()));
+      const add = seedExercises(s).filter((e) => !existing.has(e.name.toLowerCase()));
+      await db.exercises.bulkAdd(add);
+      return add.length;
+    },
+
+    async saveExercise(ex: Exercise) {
+      await db.exercises.put({ ...ex, updatedAt: nowIso() });
+    },
+
+    /** Returns the names of plans that use the exercise. Deletion is allowed only when the list is empty. */
+    async exerciseUsage(id: string): Promise<string[]> {
+      const versions = await db.planVersions.toArray();
+      const planIds = new Set(versions.filter((v) => v.days.some((d) => d.items.some((i) => i.exerciseId === id || i.substitutes.includes(id)))).map((v) => v.planId));
+      return (await db.plans.bulkGet([...planIds])).filter((p): p is Plan => !!p).map((p) => p.name);
+    },
+
+    async deleteExercise(id: string) {
+      // Workouts keep snapshots, so history stays readable.
+      await db.exercises.delete(id);
+    },
+
+    async createPlan(plan: Plan, version: PlanVersion) {
+      await db.transaction('rw', db.plans, db.planVersions, async () => {
+        await db.plans.add(plan);
+        await db.planVersions.add(version);
+      });
+    },
+
+    /** Saves plan metadata and days. A locked version produces a new version. */
+    async savePlan(plan: Plan, days: PlanDay[]) {
+      await db.transaction('rw', db.plans, db.planVersions, async () => {
+        const current = await db.planVersions.get(plan.currentVersionId);
+        if (!current) throw new Error('version_missing');
+        const next = saveVersion(current, days);
+        await db.planVersions.put(next);
+        await db.plans.put({ ...plan, currentVersionId: next.id, updatedAt: nowIso() });
+      });
+    },
+
+    async deletePlan(id: string) {
+      // Workouts keep plan name and version id, so history stays meaningful. Versions referenced by workouts are kept.
+      await db.transaction('rw', db.plans, db.planVersions, db.workouts, async () => {
+        const used = new Set((await db.workouts.where('planId').equals(id).toArray()).map((w) => w.planVersionId));
+        const versions = await db.planVersions.where('planId').equals(id).toArray();
+        await db.planVersions.bulkDelete(versions.filter((v) => !used.has(v.id)).map((v) => v.id));
+        await db.plans.delete(id);
+      });
+    },
+
+    async startWorkout(planId?: string, dayId?: string): Promise<string> {
+      return db.transaction('rw', db.tables, async () => {
+        const plan = planId ? await db.plans.get(planId) : undefined;
+        const version = plan ? await db.planVersions.get(plan.currentVersionId) : undefined;
+        const day = version?.days.find((d) => d.id === dayId);
+        const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
+        const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
+        const lastEntry = lastEntryFinder(await db.workouts.toArray());
+        const w = startWorkout(plan, version, day, { exercises, states, lastEntry });
+        if (version && !version.locked) await db.planVersions.put({ ...version, locked: true });
+        await db.workouts.add(w);
+        return w.id;
+      });
+    },
+
+    async saveWorkout(w: Workout) {
+      await db.workouts.put({ ...w, updatedAt: nowIso() });
+    },
+
+    async finishWorkout(w: Workout, interrupted: boolean) {
+      await db.transaction('rw', db.workouts, db.progressionEvents, db.progressionStates, async () => {
+        const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
+        const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
+        const { workout, events } = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
+        await db.workouts.put(workout);
+        await db.progressionEvents.bulkAdd(events);
+      });
+    },
+
+    async discardWorkout(id: string) {
+      await db.workouts.delete(id);
+    },
+
+    /** Correction of a finished workout. The previous version is kept as a revision; entries are re-evaluated. */
+    async correctWorkout(w: Workout) {
+      await db.transaction('rw', db.workouts, db.revisions, async () => {
+        const previous = await db.workouts.get(w.id);
+        if (!previous) throw new Error('workout_missing');
+        const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
+        const evaluated = evaluateWorkout(w, lastEntryFinder(others, w.startedAt));
+        await db.revisions.add({ id: uid(), workoutId: w.id, at: nowIso(), previous });
+        await db.workouts.put({ ...evaluated, updatedAt: nowIso() });
+      });
+    },
+
+    async deleteWorkout(id: string) {
+      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, async () => {
+        await db.workouts.delete(id);
+        await db.revisions.where('workoutId').equals(id).delete();
+        // Decided events stay as progression history; undecided ones are removed.
+        const evs = await db.progressionEvents.where('workoutId').equals(id).toArray();
+        await db.progressionEvents.bulkDelete(evs.filter((e) => e.decision === 'pending' || e.decision === 'none').map((e) => e.id));
+      });
+    },
+
+    async decide(eventId: string, input: DecisionInput) {
+      await db.transaction('rw', db.progressionEvents, db.progressionStates, async () => {
+        const ev = await db.progressionEvents.get(eventId);
+        if (!ev) throw new Error('event_missing');
+        const res = decide(ev, await db.progressionStates.get(ev.lineageId), input);
+        await db.progressionEvents.put(res.event);
+        await db.progressionStates.put(res.state);
+      });
+    },
+
+    async manualAdjust(lineageId: string, exerciseId: string, targets: ProgressionEvent['after'], reason: string, strategy: ProgressionEvent['strategy']) {
+      await db.transaction('rw', db.progressionEvents, db.progressionStates, async () => {
+        const res = manualAdjust(await db.progressionStates.get(lineageId), lineageId, exerciseId, targets, reason, strategy);
+        await db.progressionEvents.add(res.event);
+        await db.progressionStates.put(res.state);
+      });
+    },
+
+    async lastEntry(lineageId: string): Promise<WorkoutEntry | undefined> {
+      return lastEntryFinder(await db.workouts.toArray())(lineageId);
+    },
+
+    /** Writes records from a merge plan (see planMerge). Existing records not in the plan are untouched. */
+    async importMerge(data: DataSet) {
+      await db.transaction('rw', db.tables, async () => {
+        for (const t of TABLES) if (data[t].length) await db.table(t).bulkPut(data[t]);
+      });
+    },
+
+    /** Replaces all data. Callers must create a backup first. */
+    async importReplace(data: DataSet) {
+      await db.transaction('rw', db.tables, async () => {
+        for (const t of db.tables) await t.clear();
+        for (const t of TABLES) if (data[t].length) await db.table(t).bulkAdd(data[t]);
+        await db.settings.put(data.settings ?? DEFAULT_SETTINGS);
+      });
+    },
+
+    async clearAll() {
+      await db.transaction('rw', db.tables, async () => {
+        for (const t of db.tables) await t.clear();
+      });
+    },
+  };
+}
+
+export const repo = createRepo(defaultDb);
+export type Repo = ReturnType<typeof createRepo>;
