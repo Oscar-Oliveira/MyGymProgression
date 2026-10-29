@@ -5,13 +5,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { newDay, newPlanItem } from '../../domain/factory';
-import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription } from '../../domain/types';
+import { followsGoal, goalProgression, goalSets } from '../../domain/goals';
+import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription, StrengthMode } from '../../domain/types';
 import { PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { NumInput } from '../components/NumInput';
 import { metricLabel } from '../util';
 
-const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed', 'other'];
+const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
+const MODES: StrengthMode[] = ['fixed', 'range'];
 const ROLES: ItemRole[] = ['warmup', 'main', 'optional'];
 type Targets = Partial<Record<MetricKey, number>>;
 
@@ -39,6 +41,7 @@ function setCount(sets: SetPrescription[], n: number): SetPrescription[] {
 }
 
 interface ItemProps {
+  plan: Plan;
   item: PlanItem;
   ex: Exercise;
   state?: ProgressionState;
@@ -51,9 +54,9 @@ interface ItemProps {
   onAddSubstitute: () => void;
 }
 
-function ItemCard({ item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute }: ItemProps) {
+function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute }: ItemProps) {
   const { t } = useTranslation();
-  const cfg = item.progression ?? ex.progression;
+  const cfg = goalProgression(plan, ex, item.progression);
   const first = working(item.sets)[0];
   const step = cfg.steps[0];
   const hasReps = ex.metrics.some((m) => m.key === 'reps');
@@ -86,8 +89,9 @@ function ItemCard({ item, ex, state, edits, exercises, onChange, onTarget, onRem
         </button>
       </div>
       <small className="muted">
-        {t(`strategy.${cfg.strategy}`)}
+        {cfg.onTop ? t(`plan.rule.${cfg.onTop}`) : t(`strategy.${cfg.strategy}`)}
         {item.role !== 'main' && ` · ${t(`role.${item.role}`)}`}
+        {state?.repsRange && ` · reps ${state.repsRange.min}–${state.repsRange.max} (${t('plan.current')})`}
       </small>
       <div className="item-grid">
         <span className="field-inline">
@@ -203,6 +207,29 @@ export function PlanEdit() {
   const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan) || Object.keys(edits).length > 0;
   const day = days[Math.min(dayIdx, days.length - 1)];
 
+  /** Changes goal or strength mode. Optionally re-applies the goal's default sets to load exercises, keeping their loads. */
+  const changeGoal = (patch: Partial<Pick<Plan, 'goal' | 'strengthMode'>>) => {
+    const next = { ...plan, ...patch };
+    if (next.goal === plan.goal && (next.strengthMode ?? 'fixed') === (plan.strengthMode ?? 'fixed')) return;
+    setPlan(next);
+    const affected = days.some((d) => d.items.some((i) => { const ex = exercises.get(i.exerciseId); return ex && followsGoal(ex); }));
+    if (!affected || (next.goal !== 'hypertrophy' && next.goal !== 'strength')) return;
+    const label = next.goal === 'hypertrophy' ? '3×8–12' : next.strengthMode === 'range' ? '4×4–6' : '5×5';
+    if (!confirm(t('plan.applyDefaults', { sets: label }))) return;
+    setDays(
+      days.map((d) => ({
+        ...d,
+        items: d.items.map((i) => {
+          const ex = exercises.get(i.exerciseId);
+          if (!ex || !followsGoal(ex)) return i;
+          const load = working(i.sets)[0]?.targets.load;
+          const sets = goalSets(next, ex).map((s) => (s.kind === 'working' && load ? { ...s, targets: { ...s.targets, load } } : s));
+          return { ...i, sets };
+        }),
+      })),
+    );
+  };
+
   const upDay = (f: (d: PlanDay) => PlanDay) => setDays(days.map((d) => (d.id === day.id ? f(structuredClone(d)) : d)));
   const upItem = (it: PlanItem) => upDay((d) => ({ ...d, items: d.items.map((x) => (x.id === it.id ? it : x)) }));
 
@@ -227,7 +254,7 @@ export function PlanEdit() {
     if (picker.item) {
       const it = day.items.find((x) => x.id === picker.item);
       if (it) upItem({ ...it, substitutes: [...it.substitutes, ex.id] });
-    } else upDay((d) => ({ ...d, items: [...d.items, newPlanItem(ex)] }));
+    } else upDay((d) => ({ ...d, items: [...d.items, newPlanItem(ex, plan)] }));
     setPicker(undefined);
   };
   const addDay = () => {
@@ -240,19 +267,28 @@ export function PlanEdit() {
       <div className="page-head">
         <input aria-label={t('plan.name')} style={{ fontSize: '1.4rem', fontWeight: 800, flex: 1 }} value={plan.name} onChange={(e) => setPlan({ ...plan, name: e.target.value })} />
       </div>
-      <div className="row wrap">
-        <label>
-          {t('goal.label')}
-          <select value={plan.goal} onChange={(e) => setPlan({ ...plan, goal: e.target.value as PlanGoal })}>
-            {GOALS.map((g) => (
-              <option key={g} value={g}>
-                {t(`goal.${g}`)}
-              </option>
+      <section className="card tight">
+        <p className="eyebrow">{t('goal.label')}</p>
+        <div className="seg" role="radiogroup" aria-label={t('goal.label')}>
+          {[...GOALS, ...(plan.goal === 'other' ? ['other' as const] : [])].map((g) => (
+            <button key={g} role="radio" aria-checked={plan.goal === g} className={plan.goal === g ? 'on' : ''} onClick={() => changeGoal({ goal: g })}>
+              {t(`goal.${g}`)}
+            </button>
+          ))}
+        </div>
+        {plan.goal === 'strength' && (
+          <div className="seg" role="radiogroup" aria-label={t('plan.strengthMode')} style={{ marginTop: '0.5rem' }}>
+            {MODES.map((m) => (
+              <button key={m} role="radio" aria-checked={(plan.strengthMode ?? 'fixed') === m} className={(plan.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => changeGoal({ strengthMode: m })}>
+                {t(`plan.mode.${m}`)}
+              </button>
             ))}
-          </select>
-        </label>
-        <small className="muted">{t('plan.version', { n: version.number })}</small>
-      </div>
+          </div>
+        )}
+        <p className="help" style={{ marginTop: '0.5rem' }}>
+          {t(`plan.goalHelp.${plan.goal}`)} <small>· {t('plan.version', { n: version.number })}</small>
+        </p>
+      </section>
       <details>
         <summary>{t('plan.more')}</summary>
         <div className="form-grid">
@@ -306,6 +342,7 @@ export function PlanEdit() {
             return (
               <ItemCard
                 key={it.id}
+                plan={plan}
                 item={it}
                 ex={ex}
                 state={states.get(it.lineageId)}

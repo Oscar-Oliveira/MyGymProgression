@@ -16,7 +16,9 @@ export const progressionSchema = z.object({
   strategy: z.enum(['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none']),
   steps: z.array(z.object({ metric: metricKey, increment: num, cap: num.optional() })),
   criteria: z.object({ blockOnPain: z.boolean(), blockOnTechnique: z.boolean(), blockOnSubstitution: z.boolean() }),
+  onTop: z.enum(['load', 'ask']).optional(),
 });
+const repRange = z.object({ min: num, max: num });
 const metricDef = z.object({ key: metricKey, unit: z.string(), required: z.boolean(), label: z.string().optional() });
 const category = z.enum(['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other']);
 const loadMode = z.enum(['total', 'perSide']);
@@ -61,6 +63,7 @@ export const planSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   goal: z.enum(['hypertrophy', 'strength', 'mixed', 'other']),
+  strengthMode: z.enum(['fixed', 'range']).optional(),
   phase: z.string(),
   status: z.enum(['active', 'archived']),
   currentVersionId: z.string(),
@@ -77,10 +80,10 @@ export const planVersionSchema = z.object({
   days: z.array(z.object({ id: z.string(), name: z.string(), weekday: z.number().int().min(0).max(6).optional(), items: z.array(planItem) })),
 });
 
-export const progressionStateSchema = z.object({ lineageId: z.string().min(1), exerciseId: z.string(), targets: metricValues, updatedAt: iso });
+export const progressionStateSchema = z.object({ lineageId: z.string().min(1), exerciseId: z.string(), targets: metricValues, repsRange: repRange.optional(), updatedAt: iso });
 
 const reason = z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), num])).optional() });
-const outcome = z.enum(['increase', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression']);
+const outcome = z.enum(['increase', 'ready', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression']);
 const suggestion = z.object({ metric: metricKey, from: num, to: num, kind: z.enum(['increase', 'decrease']) });
 
 const setRecord = z.object({
@@ -113,6 +116,7 @@ const entry = z.object({
       outcome,
       completion: z.enum(['complete', 'incomplete', 'below_target']),
       suggestion: suggestion.optional(),
+      repsOption: z.object({ from: repRange, to: repRange }).optional(),
       reasons: z.array(reason),
     })
     .optional(),
@@ -142,11 +146,14 @@ export const progressionEventSchema = z.object({
   strategy: progressionSchema.shape.strategy,
   outcome,
   suggestion: suggestion.optional(),
+  repsOption: z.object({ from: repRange, to: repRange }).optional(),
   reasons: z.array(reason),
-  decision: z.enum(['applied', 'reverted', 'pending', 'kept', 'stepped_back', 'overridden', 'none']),
+  decision: z.enum(['applied', 'reverted', 'pending', 'kept', 'stepped_back', 'reps_up', 'overridden', 'none']),
   decisionReason: z.string().optional(),
   before: metricValues,
   after: metricValues,
+  rangeBefore: repRange.optional(),
+  rangeAfter: repRange.optional(),
   createdAt: iso,
   decidedAt: iso.optional(),
 });
@@ -162,7 +169,7 @@ export const settingsSchema = z.object({
   lastBackupAt: iso.optional(),
 });
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

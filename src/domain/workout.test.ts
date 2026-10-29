@@ -10,6 +10,8 @@ function setup() {
   const warm = newExercise('treadmill', DEFAULT_SETTINGS, { name: 'Treadmill warm-up', category: 'warmup' });
   warm.defaultSets = [{ kind: 'working', targets: { duration: { value: 5 } } }];
   const { plan, version } = newPlan('Upper');
+  // Strength plan: the load goes up automatically at the top of the range.
+  plan.goal = 'strength';
   const day = newDay('A');
   day.items.push(newPlanItem(warm), newPlanItem(bench));
   version.days.push(day);
@@ -174,7 +176,8 @@ describe('demo data', () => {
     expect(d.workouts).toHaveLength(12);
     expect(d.progressionEvents.some((e) => e.decision === 'applied' && e.suggestion?.metric === 'load')).toBe(true);
     expect(d.progressionEvents.some((e) => e.decision === 'applied' && e.suggestion?.metric === 'duration')).toBe(true);
-    expect(d.progressionEvents.filter((e) => e.decision === 'pending')).toHaveLength(1);
+    expect(d.progressionEvents.filter((e) => e.decision === 'pending').length).toBeGreaterThanOrEqual(1);
+    expect(d.progressionEvents.some((e) => e.decision === 'reps_up')).toBe(true);
     const warm = ex.find((e) => e.name === 'Treadmill Warm-up')!;
     expect(d.progressionEvents.some((e) => e.exerciseId === warm.id)).toBe(false);
     const warmEntries = d.workouts.flatMap((w) => w.entries).filter((e) => e.exerciseId === warm.id);
@@ -184,5 +187,95 @@ describe('demo data', () => {
     expect(loads[0]).toBe(40);
     expect(Math.max(...(loads as number[]))).toBeGreaterThan(40);
     expect(parseBundle(JSON.stringify(buildBundle({ ...d, exercises: ex }, 'full', 't'))).ok).toBe(true);
+  });
+});
+
+describe('plan goal decides the progression (D11)', () => {
+  const run = (goal: 'hypertrophy' | 'strength' | 'mixed') => {
+    const t = setup();
+    t.plan.goal = goal;
+    return t;
+  };
+
+  it('strength: top of the range → load up automatically', () => {
+    const ev = run('strength').session([12, 12, 12]).events[0];
+    expect(ev.outcome).toBe('increase');
+    expect(ev.decision).toBe('applied');
+  });
+
+  it('mixed: the exercise rule (auto load) is kept', () => {
+    expect(run('mixed').session([12, 12, 12]).events[0].decision).toBe('applied');
+  });
+
+  it('hypertrophy: top of the range → ready, user chooses load or reps', () => {
+    const t = run('hypertrophy');
+    const ev = t.session([12, 12, 12]).events[0];
+    expect(ev.outcome).toBe('ready');
+    expect(ev.decision).toBe('pending');
+    expect(ev.suggestion).toEqual({ metric: 'load', from: 40, to: 42.5, kind: 'increase' });
+    expect(ev.repsOption).toEqual({ from: { min: 8, max: 12 }, to: { min: 9, max: 13 } });
+    expect(t.states.get(ev.lineageId)).toBeUndefined();
+  });
+
+  it('hypertrophy reps up: same load, range 9–13 next session; load up later resets to 8–12', () => {
+    const t = run('hypertrophy');
+    const ev = t.session([12, 12, 12]).events[0];
+    const r = decide(ev, t.states.get(ev.lineageId), { kind: 'repsUp' });
+    expect(r.event.decision).toBe('reps_up');
+    expect(r.event.rangeAfter).toEqual({ min: 9, max: 13 });
+    t.states.set(r.state.lineageId, r.state);
+    const next = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    expect(next.entries[1].prescription[0].targets).toEqual({ reps: { min: 9, max: 13 }, load: { value: 40 } });
+    expect(next.entries[1].sets.map((x) => x.goal?.reps)).toEqual([13, 13, 13]);
+
+    const ev2 = t.session([13, 13, 13]).events[0];
+    expect(ev2.outcome).toBe('ready');
+    expect(ev2.repsOption?.to).toEqual({ min: 10, max: 14 });
+    const up = decide(ev2, t.states.get(ev2.lineageId), { kind: 'apply' });
+    expect(up.event.decision).toBe('applied');
+    expect(up.state.targets.load).toBe(42.5);
+    expect(up.state.repsRange).toBeUndefined();
+    t.states.set(up.state.lineageId, up.state);
+    const after = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    expect(after.entries[1].prescription[0].targets).toEqual({ reps: { min: 8, max: 12 }, load: { value: 42.5 } });
+  });
+
+  it('reverting reps up restores the previous range', () => {
+    const t = run('hypertrophy');
+    const ev = t.session([12, 12, 12]).events[0];
+    const r = decide(ev, undefined, { kind: 'repsUp' });
+    const back = decide(r.event, r.state, { kind: 'revert' });
+    expect(back.state.repsRange).toBeUndefined();
+    expect(back.event.decision).toBe('reverted');
+  });
+
+  it('hypertrophy missed reps still asks keep or step back', () => {
+    const ev = run('hypertrophy').session([9, 7, 6]).events[0];
+    expect(ev.outcome).toBe('missed');
+    expect(ev.repsOption).toBeUndefined();
+  });
+
+  it('non-load exercises ignore the goal (warm-up stays fixed)', () => {
+    const t = run('hypertrophy');
+    expect(t.session([10, 9, 8]).workout.entries[0].evaluation?.outcome).toBe('no_progression');
+  });
+});
+
+describe('goal default sets', () => {
+  it('hypertrophy 3×8–12/90 s, strength fixed 5×5/180 s, strength range 4×4–6', async () => {
+    const { goalSets } = await import('./goals');
+    const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Bench' });
+    ex.defaultSets.forEach((s) => (s.targets.load = { value: 60 }));
+    const h = goalSets({ goal: 'hypertrophy' }, ex);
+    expect(h).toHaveLength(3);
+    expect(h[0]).toMatchObject({ targets: { reps: { min: 8, max: 12 }, load: { value: 60 } }, restSec: 90 });
+    const f = goalSets({ goal: 'strength', strengthMode: 'fixed' }, ex);
+    expect(f).toHaveLength(5);
+    expect(f[0].targets.reps).toEqual({ min: 5, max: 5 });
+    const r = goalSets({ goal: 'strength', strengthMode: 'range' }, ex);
+    expect(r).toHaveLength(4);
+    expect(r[0]).toMatchObject({ targets: { reps: { min: 4, max: 6 } }, restSec: 180 });
+    const plank = newExercise('duration', DEFAULT_SETTINGS, { name: 'Plank' });
+    expect(goalSets({ goal: 'strength' }, plank)).toEqual(plank.defaultSets);
   });
 });

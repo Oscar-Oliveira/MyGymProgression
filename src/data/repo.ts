@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { decide, evaluateWorkout, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
+import { decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   async function getSettings(): Promise<Settings> {
@@ -116,15 +116,28 @@ export function createRepo(db: GymDB) {
       await db.workouts.delete(id);
     },
 
-    /** Correction of a finished workout. The previous version is kept as a revision; entries are re-evaluated. */
+    /**
+     * Correction of a finished workout. The previous version is kept as a revision; entries are re-evaluated.
+     * Undecided progression events are recreated from the new evaluation; decided ones are kept.
+     */
     async correctWorkout(w: Workout) {
-      await db.transaction('rw', db.workouts, db.revisions, async () => {
+      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
         const previous = await db.workouts.get(w.id);
         if (!previous) throw new Error('workout_missing');
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
-        const evaluated = evaluateWorkout(w, lastEntryFinder(others, w.startedAt));
+        const evaluated = { ...evaluateWorkout(w, lastEntryFinder(others, w.startedAt)), updatedAt: nowIso() };
         await db.revisions.add({ id: uid(), workoutId: w.id, at: nowIso(), previous });
-        await db.workouts.put({ ...evaluated, updatedAt: nowIso() });
+        await db.workouts.put(evaluated);
+
+        const events = await db.progressionEvents.where('workoutId').equals(w.id).toArray();
+        const undecided = events.filter((e) => e.decision === 'pending' || e.decision === 'none');
+        const decidedEntries = new Set(events.filter((e) => !undecided.includes(e)).map((e) => e.entryId));
+        const redo = new Set(evaluated.entries.filter((e) => !decidedEntries.has(e.id)).map((e) => e.id));
+        const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
+        const res = eventsFor(evaluated, states, redo);
+        await db.progressionEvents.bulkDelete(undecided.map((e) => e.id));
+        await db.progressionEvents.bulkAdd(res.events);
+        await db.progressionStates.bulkPut(res.states);
       });
     },
 

@@ -4,6 +4,7 @@ import type { Outcome } from '../../domain/types';
 
 const TONE: Record<Outcome, string> = {
   increase: 'up',
+  ready: 'up',
   progress: 'up',
   keep: '',
   at_cap: '',

@@ -65,6 +65,7 @@ export function generateDemo(exercises: Exercise[], weeks = 6, now = new Date())
   const events: DataSet['progressionEvents'] = [];
   const start = new Date(now.getTime() - weeks * 7 * 86400000);
   let session = 0;
+  let repsUpDone = false;
   for (let wk = 0; wk < weeks; wk++) {
     for (const [day, offset] of [[a, 0], [b, 3]] as const) {
       const date = new Date(start.getTime() + (wk * 7 + offset) * 86400000);
@@ -88,10 +89,23 @@ export function generateDemo(exercises: Exercise[], weeks = 6, now = new Date())
         states.set(st.lineageId, st);
         since.set(st.lineageId, -1);
       }
+      const lastSession = session === weeks * 2 - 1;
       for (const ev of res.events) {
         since.set(ev.lineageId, (since.get(ev.lineageId) ?? 0) + 1);
-        // Missed reps: the demo user keeps the load.
-        events.push(ev.decision === 'pending' && session !== weeks * 2 - 1 ? { ...decide({ ...ev, createdAt: end }, states.get(ev.lineageId), { kind: 'keep' }).event, decidedAt: end } : { ...ev, createdAt: end, ...(ev.decidedAt ? { decidedAt: end } : {}) });
+        const stamped = { ...ev, createdAt: end, ...(ev.decidedAt ? { decidedAt: end } : {}) };
+        // The last session's decisions are left to the user.
+        if (ev.decision !== 'pending' || lastSession) {
+          events.push(stamped);
+          continue;
+        }
+        // Missed reps: the demo user keeps the load. Ready (hypertrophy): reps up once for the pulldown, otherwise load up.
+        const pulldown = exMap.get(ev.exerciseId)?.aliases.concat(exMap.get(ev.exerciseId)!.name).includes('Lat Pulldown');
+        const kind = ev.outcome === 'missed' ? 'keep' : pulldown && !repsUpDone ? 'repsUp' : 'apply';
+        if (kind === 'repsUp') repsUpDone = true;
+        const d = decide(stamped, states.get(ev.lineageId), { kind });
+        events.push({ ...d.event, decidedAt: end });
+        states.set(d.state.lineageId, d.state);
+        if (kind !== 'keep') since.set(ev.lineageId, 0);
       }
       session++;
     }

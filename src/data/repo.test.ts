@@ -18,6 +18,7 @@ async function setupPlan() {
   ex.defaultSets.forEach((s) => (s.targets.load = { value: 40 }));
   await repo.saveExercise(ex);
   const { plan, version } = newPlan('P');
+  plan.goal = 'strength';
   const day = newDay('A');
   day.items.push(newPlanItem(ex));
   version.days.push(day);
@@ -148,5 +149,31 @@ describe('repo (IndexedDB)', () => {
   it('exerciseUsage lists plans', async () => {
     const { ex } = await setupPlan();
     expect(await repo.exerciseUsage(ex.id)).toEqual(['P']);
+  });
+
+  it('correction recreates an undecided decision from the new values', async () => {
+    const { plan, day } = await setupPlan();
+    const wid = await doSession(plan.id, day.id, [9, 7, 6]);
+    expect((await db.progressionEvents.toArray())[0].decision).toBe('pending');
+    const w = (await db.workouts.get(wid))!;
+    w.entries[0].sets.forEach((s) => (s.values.reps = 12));
+    await repo.correctWorkout(w);
+    const evs = await db.progressionEvents.toArray();
+    expect(evs).toHaveLength(1);
+    expect(evs[0]).toMatchObject({ outcome: 'increase', decision: 'applied' });
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(42.5);
+  });
+
+  it('correction keeps a decision already taken', async () => {
+    const { plan, day } = await setupPlan();
+    const wid = await doSession(plan.id, day.id, [9, 7, 6]);
+    const ev = (await db.progressionEvents.toArray())[0];
+    await repo.decide(ev.id, { kind: 'stepBack' });
+    const w = (await db.workouts.get(wid))!;
+    w.entries[0].sets.forEach((s) => (s.values.reps = 12));
+    await repo.correctWorkout(w);
+    const evs = await db.progressionEvents.toArray();
+    expect(evs).toHaveLength(1);
+    expect(evs[0].decision).toBe('stepped_back');
   });
 });

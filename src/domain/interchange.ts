@@ -59,6 +59,8 @@ export function buildBundle(all: DataSet, scope: Scope, appVersion: string, now 
 /** Migrations from older schema versions. Each function upgrades raw JSON by one version. */
 const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string, unknown>> = {
   1: v1to2.bundle,
+  // v3 only adds optional fields (goal-based progression), so v2 data is valid as is.
+  2: (raw) => ({ ...raw, schemaVersion: 3 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

@@ -53,7 +53,10 @@ export function rxLine(entry: Pick<WorkoutEntry, 'prescription' | 'exercise'>, t
   const parts = metrics.flatMap((m) => {
     const x = first.targets[m.key];
     if (!x) return [];
-    if (m.key === 'reps') return [x.value !== undefined ? `${x.value} reps` : `${x.min ?? '?'}${x.max !== undefined ? `–${x.max}` : '+'} reps`];
+    if (m.key === 'reps') {
+      if (x.value !== undefined || (x.min !== undefined && x.min === x.max)) return [`${x.value ?? x.min} reps`];
+      return [`${x.min ?? '?'}${x.max !== undefined ? `–${x.max}` : '+'} reps`];
+    }
     return x.value !== undefined ? [fmtValue(x.value, m.unit, lang)] : [];
   });
   const warm = entry.prescription.filter((s) => s.kind === 'warmup').length;
@@ -72,8 +75,12 @@ export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): s
   const to = from !== undefined ? Math.round((from + s.increment) * 100) / 100 : undefined;
   const capped = s.cap !== undefined && from !== undefined && from >= s.cap;
   if (cfg.strategy === 'double') {
-    const max = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.max;
+    const reps = entry.prescription.find((p) => p.kind === 'working')?.targets.reps;
+    const max = reps?.max;
     if (max === undefined || to === undefined) return t('hint.manual');
+    if (cfg.onTop === 'ask' && reps?.min !== undefined) {
+      return t('hint.ask', { max, to: fmtMetric(metrics, s.metric, to, lang), range: `${reps.min + 1}–${max + 1}` });
+    }
     if (capped) return t('hint.cap');
     return t('hint.double', { max, to: fmtMetric(metrics, s.metric, to, lang) });
   }
@@ -85,7 +92,7 @@ export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): s
 /** Trend for an entry and its event, for summaries and lists. */
 export function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
   if (ev) {
-    if (ev.decision === 'applied') return 'up';
+    if (ev.decision === 'applied' || ev.decision === 'reps_up') return 'up';
     if (ev.decision === 'pending') return 'ask';
     if (ev.decision === 'stepped_back') return 'down';
     if (ev.decision === 'overridden' && ev.suggestion) return ev.after[ev.suggestion.metric]! > ev.before[ev.suggestion.metric]! ? 'up' : ev.after[ev.suggestion.metric]! < ev.before[ev.suggestion.metric]! ? 'down' : 'same';
@@ -118,6 +125,10 @@ export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefin
     return m ? fmtMetric(metrics, m.metric, m.value, lang) : '';
   };
   if (ev?.decision === 'applied') return { what: t('decide.up', { value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
+  if (ev?.decision === 'reps_up' && ev.rangeAfter) {
+    return { what: t('decide.repsUp', { range: `${ev.rangeAfter.min}–${ev.rangeAfter.max}`, value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
+  }
+  if (ev?.decision === 'pending' && evn.outcome === 'ready') return { what: t('decide.ready'), why: `${sets} — ${t('reason.top_reached_short')}` };
   if (ev?.decision === 'reverted') return { what: t('decide.reverted', { value: val(ev.after) }), why: sets };
   if (ev?.decision === 'pending') return { what: t('decide.missed'), why: `${sets} — ${firstReason(t, evn.reasons, metrics)}` };
   if (ev?.decision === 'kept') return { what: t('decide.keep', { value: val(ev.after) }), why: sets };
@@ -160,7 +171,24 @@ export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?:
           {entry.exercise.name}: {what}
         </div>
         <div className="why">{why}</div>
-        {!compact && ev?.decision === 'pending' && (
+        {!compact && ev?.decision === 'pending' && ev.outcome === 'ready' && (
+          <div className="row wrap" style={{ marginTop: '0.6rem' }}>
+            {sug && (
+              <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
+                ⬆ {t('decide.loadBtn', { value: fmtMetric(metrics, sug.metric, sug.to, s.language) })}
+              </button>
+            )}
+            {ev.repsOption && (
+              <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'repsUp' })}>
+                ⬆ {t('decide.repsBtn', { range: `${ev.repsOption.to.min}–${ev.repsOption.to.max}` })}
+              </button>
+            )}
+            <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
+              {t('decide.keepPlain')}
+            </button>
+          </div>
+        )}
+        {!compact && ev?.decision === 'pending' && ev.outcome !== 'ready' && (
           <div className="col" style={{ marginTop: '0.6rem' }}>
             <div className="row wrap">
               <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
@@ -189,7 +217,7 @@ export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?:
           </div>
         )}
       </div>
-      {!compact && ev?.decision === 'applied' && (
+      {!compact && (ev?.decision === 'applied' || ev?.decision === 'reps_up') && (
         <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
           {t('decide.undo')}
         </button>

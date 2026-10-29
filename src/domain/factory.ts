@@ -1,4 +1,5 @@
 import type { Exercise, ExerciseCategory, Plan, PlanDay, PlanItem, PlanVersion, Settings } from './types';
+import { goalSets } from './goals';
 import { presetDefaults, presetMetrics, type MeasurementPreset } from './units';
 
 export const uid = (): string => crypto.randomUUID();
@@ -40,8 +41,9 @@ export function duplicateAsVariation(ex: Exercise, name: string): Exercise {
   return { ...structuredClone(ex), id: uid(), name, variationOf: ex.id, createdAt: now, updatedAt: now };
 }
 
-export function newPlanItem(ex: Exercise): PlanItem {
-  return { id: uid(), lineageId: uid(), exerciseId: ex.id, role: ex.category === 'warmup' ? 'warmup' : 'main', sets: structuredClone(ex.defaultSets), substitutes: [], notes: '' };
+/** New plan item. With a plan, the default sets follow the plan goal (see goals.ts). */
+export function newPlanItem(ex: Exercise, plan?: Pick<Plan, 'goal' | 'strengthMode'>): PlanItem {
+  return { id: uid(), lineageId: uid(), exerciseId: ex.id, role: ex.category === 'warmup' ? 'warmup' : 'main', sets: goalSets(plan, ex), substitutes: [], notes: '' };
 }
 
 export function newDay(name: string): PlanDay {

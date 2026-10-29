@@ -19,6 +19,8 @@ Source requirements: [`context.md`](../context.md).
 | D8 | Progression rule: all sets reach the target (double: top of range) → the target goes up **automatically** (undo available). Within the range or sets skipped → keep, no question. A completed set below the minimum (missed reps) → the app asks: keep, or step back one increment. Pain/technique/substitution block an increase. | 2026-10-29 |
 | D9 | Each set shows today's goal: last time + 1 rep at the same load (up to the range max); after a load change, the range minimum. | 2026-10-29 |
 | D10 | UI redesign: follows system light/dark, large numbers; 4 tabs (Home · Train · History · More); workout shows one exercise at a time with one-tap "Set done"; focused Home; simple plan editor (advanced options folded); analysis per exercise. | 2026-10-29 |
+| D11 | Progression depends on the **plan goal** (for exercises with reps and load). Hypertrophy: at the top of the range the user chooses ⬆ load (back to the plan's range) or ⬆ reps (range +1, same load). Strength: the load goes up automatically; mode chosen in the plan: fixed reps (5×5) or low range (4×4–6). Mixed/Other: the exercise's own rule. New exercises in a plan get the goal's default sets; changing the goal offers to re-apply them (loads kept). Schema v3 (additive). | 2026-10-29 |
+| D12 | Corrections recreate undecided progression decisions; decided ones are kept. Home shows a pending decision once. | 2026-10-29 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 

@@ -128,9 +128,12 @@ export function Home() {
             </Link>
           </div>
           <div className="col">
-            {last.entries.map((e) => (
-              <DecisionCard key={e.id} entry={e} ev={events.find((x) => x.entryId === e.id)} compact />
-            ))}
+            {/* Pending decisions are shown above, once. */}
+            {last.entries
+              .filter((e) => !pending.some((p) => p.entryId === e.id))
+              .map((e) => (
+                <DecisionCard key={e.id} entry={e} ev={events.find((x) => x.entryId === e.id)} compact />
+              ))}
           </div>
         </section>
       )}

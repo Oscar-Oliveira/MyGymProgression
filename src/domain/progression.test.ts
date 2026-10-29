@@ -52,6 +52,25 @@ describe('double progression — hypertrophy example (context §6.3)', () => {
   });
 });
 
+describe('hypertrophy (onTop ask)', () => {
+  const ask = (): ProgressionConfig => ({ ...double(), onTop: 'ask' });
+  it('top of the range → ready with load and reps options', () => {
+    const ev = evaluate(input({ config: ask(), sets: done([12, 12, 12], 40) }));
+    expect(ev.outcome).toBe('ready');
+    expect(ev.suggestion?.to).toBe(42.5);
+    expect(ev.repsOption).toEqual({ from: { min: 8, max: 12 }, to: { min: 9, max: 13 } });
+  });
+  it('at the load cap only the reps option remains', () => {
+    const ev = evaluate(input({ config: { ...double(2.5, 40), onTop: 'ask' }, sets: done([12, 12, 12], 40) }));
+    expect(ev.outcome).toBe('ready');
+    expect(ev.suggestion).toBeUndefined();
+  });
+  it('within the range → keep', () => expect(evaluate(input({ config: ask(), sets: done([12, 11, 12], 40) })).outcome).toBe('keep'));
+  it('applyTargets applies a reps range override to working sets', () => {
+    expect(applyTargets(rx(1, 8, 12, 40), { load: 40 }, { min: 9, max: 13 })[0].targets.reps).toEqual({ min: 9, max: 13 });
+  });
+});
+
 describe('double progression — strength example (context §6.4)', () => {
   const p = rx(4, 4, 6, 70);
   const cfg = double(1.25);

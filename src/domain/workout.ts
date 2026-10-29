@@ -1,6 +1,7 @@
 // Workout use-case logic: start from a plan day, session edits, finish, progression decisions. Pure functions.
 import { applyTargets, evaluate, initialTargets, setGoals } from './progression';
 import { nowIso, uid } from './factory';
+import { goalProgression } from './goals';
 import type {
   Exercise,
   ExerciseSnapshot,
@@ -61,9 +62,14 @@ function setsFor(prescription: SetPrescription[], config: ProgressionConfig, pre
   });
 }
 
-export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry): WorkoutEntry {
-  const prescription = applyTargets(item.sets, state?.targets);
-  const progression = structuredClone(item.progression ?? ex.progression);
+/** The progression rule for a plan item: an explicit item override, else the plan goal rule (D11). */
+export function itemProgression(plan: Pick<Plan, 'goal'> | undefined, item: PlanItem, ex: Exercise): ProgressionConfig {
+  return goalProgression(plan, ex, item.progression);
+}
+
+export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry, plan?: Pick<Plan, 'goal'>): WorkoutEntry {
+  const prescription = applyTargets(item.sets, state?.targets, state?.repsRange);
+  const progression = itemProgression(plan, item, ex);
   const prev = previous?.exerciseId === ex.id ? previous : undefined;
   return {
     id: uid(),
@@ -82,7 +88,7 @@ export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionS
 }
 
 export function entryAdHoc(ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry): WorkoutEntry {
-  const prescription = applyTargets(ex.defaultSets, state?.targets);
+  const prescription = applyTargets(ex.defaultSets, state?.targets, state?.repsRange);
   const progression = structuredClone(ex.progression);
   const prev = previous?.exerciseId === ex.id ? previous : undefined;
   return {
@@ -110,7 +116,7 @@ export function startWorkout(plan: Plan | undefined, version: PlanVersion | unde
   const now = nowIso();
   const entries = (day?.items ?? []).flatMap((item) => {
     const ex = ctx.exercises.get(item.exerciseId);
-    return ex ? [entryFromItem(item, ex, ctx.states.get(item.lineageId), ctx.lastEntry(item.lineageId))] : [];
+    return ex ? [entryFromItem(item, ex, ctx.states.get(item.lineageId), ctx.lastEntry(item.lineageId), plan)] : [];
   });
   return {
     id: uid(),
@@ -171,28 +177,20 @@ export function evaluateWorkout(w: Workout, previous: (lineageId: string) => Wor
   return { ...w, entries };
 }
 
-/**
- * Finishes a workout: evaluates every entry and creates one progression event per progressive entry.
- * An increase is applied at once (decision "applied", can be reverted). Missed reps wait for the user ("pending").
- */
-export function finishWorkout(
-  w: Workout,
-  interrupted: boolean,
-  previous: (lineageId: string) => WorkoutEntry | undefined,
-  states: Map<string, ProgressionState>,
-): { workout: Workout; events: ProgressionEvent[]; states: ProgressionState[] } {
+/** Progression events for evaluated entries. An increase is applied at once; missed reps and "ready" wait for the user. */
+export function eventsFor(workout: Workout, states: Map<string, ProgressionState>, entryIds?: Set<string>): { events: ProgressionEvent[]; states: ProgressionState[] } {
   const now = nowIso();
-  const evaluated = evaluateWorkout(w, previous);
-  const workout: Workout = { ...evaluated, status: workoutStatus(evaluated, interrupted), endedAt: now, updatedAt: now };
   const changed: ProgressionState[] = [];
   const events: ProgressionEvent[] = workout.entries
-    .filter((e) => e.lineageId && e.evaluation && e.progression.strategy !== 'none')
+    .filter((e) => e.lineageId && e.evaluation && e.progression.strategy !== 'none' && (!entryIds || entryIds.has(e.id)))
     .map((e) => {
       const ev = e.evaluation!;
-      const before = states.get(e.lineageId!)?.targets ?? initialTargets(e.progression, e.prescription);
+      const state = states.get(e.lineageId!);
+      const before = state?.targets ?? initialTargets(e.progression, e.prescription);
       let after = { ...before };
       if (ev.outcome === 'increase' && ev.suggestion) {
         after = { ...before, [ev.suggestion.metric]: ev.suggestion.to };
+        // A load increase restarts from the plan's rep range.
         changed.push({ lineageId: e.lineageId!, exerciseId: e.exerciseId, targets: after, updatedAt: now });
       }
       return {
@@ -204,40 +202,67 @@ export function finishWorkout(
         strategy: ev.strategy,
         outcome: ev.outcome,
         suggestion: ev.suggestion,
+        ...(ev.repsOption ? { repsOption: ev.repsOption } : {}),
         reasons: ev.reasons,
-        decision: ev.outcome === 'increase' ? 'applied' : ev.outcome === 'missed' ? 'pending' : 'none',
+        decision: ev.outcome === 'increase' ? 'applied' : ev.outcome === 'missed' || ev.outcome === 'ready' ? 'pending' : 'none',
         before: { ...before },
         after,
+        ...(state?.repsRange ? { rangeBefore: state.repsRange } : {}),
+        ...(state?.repsRange && ev.outcome !== 'increase' ? { rangeAfter: state.repsRange } : {}),
         createdAt: now,
         ...(ev.outcome === 'increase' ? { decidedAt: now } : {}),
       } satisfies ProgressionEvent;
     });
-  return { workout, events, states: changed };
+  return { events, states: changed };
 }
 
-export type DecisionInput = { kind: 'keep' } | { kind: 'stepBack' } | { kind: 'revert' } | { kind: 'set'; value: number; reason: string };
+/** Finishes a workout: evaluates every entry and creates one progression event per progressive entry. */
+export function finishWorkout(
+  w: Workout,
+  interrupted: boolean,
+  previous: (lineageId: string) => WorkoutEntry | undefined,
+  states: Map<string, ProgressionState>,
+): { workout: Workout; events: ProgressionEvent[]; states: ProgressionState[] } {
+  const now = nowIso();
+  const evaluated = evaluateWorkout(w, previous);
+  const workout: Workout = { ...evaluated, status: workoutStatus(evaluated, interrupted), endedAt: now, updatedAt: now };
+  return { workout, ...eventsFor(workout, states) };
+}
+
+export type DecisionInput = { kind: 'keep' } | { kind: 'apply' } | { kind: 'stepBack' } | { kind: 'repsUp' } | { kind: 'revert' } | { kind: 'set'; value: number; reason: string };
 
 /** Applies a user decision to an event and returns the updated event and progression state. */
 export function decide(event: ProgressionEvent, state: ProgressionState | undefined, input: DecisionInput): { event: ProgressionEvent; state: ProgressionState } {
   const now = nowIso();
-  const base: ProgressionState = state ?? { lineageId: event.lineageId, exerciseId: event.exerciseId, targets: { ...event.before }, updatedAt: now };
+  const base: ProgressionState = state ?? { lineageId: event.lineageId, exerciseId: event.exerciseId, targets: { ...event.before }, ...(event.rangeBefore ? { repsRange: event.rangeBefore } : {}), updatedAt: now };
   const s = event.suggestion;
-  const withTargets = (targets: ProgressionState['targets']): ProgressionState => ({ ...base, targets, updatedAt: now });
+  const next = (targets: ProgressionState['targets'], repsRange: ProgressionState['repsRange']): ProgressionState => {
+    const { repsRange: _old, ...rest } = base;
+    return { ...rest, targets, ...(repsRange ? { repsRange } : {}), updatedAt: now };
+  };
+  const done = (decision: ProgressionEvent['decision'], st: ProgressionState, extra: Partial<ProgressionEvent> = {}) => {
+    const { rangeAfter: _r, ...ev } = event;
+    return { event: { ...ev, decision, after: { ...st.targets }, ...(st.repsRange ? { rangeAfter: st.repsRange } : {}), decidedAt: now, ...extra }, state: st };
+  };
   switch (input.kind) {
     case 'keep':
-      return { event: { ...event, decision: 'kept', after: { ...event.before }, decidedAt: now }, state: withTargets({ ...base.targets, ...event.before }) };
+      return done('kept', next({ ...base.targets, ...event.before }, event.rangeBefore));
     case 'revert':
-      return { event: { ...event, decision: 'reverted', after: { ...event.before }, decidedAt: now }, state: withTargets({ ...base.targets, ...event.before }) };
+      return done('reverted', next({ ...base.targets, ...event.before }, event.rangeBefore));
+    case 'apply':
     case 'stepBack': {
       if (!s) return { event, state: base };
-      const targets = { ...base.targets, [s.metric]: s.to };
-      return { event: { ...event, decision: 'stepped_back', after: targets, decidedAt: now }, state: withTargets(targets) };
+      // A load increase restarts from the plan's rep range.
+      const st = next({ ...base.targets, [s.metric]: s.to }, s.kind === 'increase' ? undefined : base.repsRange);
+      return done(s.kind === 'increase' ? 'applied' : 'stepped_back', st);
     }
+    case 'repsUp':
+      if (!event.repsOption) return { event, state: base };
+      return done('reps_up', next({ ...base.targets }, event.repsOption.to));
     case 'set': {
       const metric = s?.metric ?? (Object.keys(event.before)[0] as MetricKey | undefined);
       if (!metric) return { event, state: base };
-      const targets = { ...base.targets, [metric]: input.value };
-      return { event: { ...event, decision: 'overridden', decisionReason: input.reason, after: targets, decidedAt: now }, state: withTargets(targets) };
+      return done('overridden', next({ ...base.targets, [metric]: input.value }, base.repsRange), { decisionReason: input.reason });
     }
   }
 }

@@ -13,12 +13,13 @@ async function more(page: Page, name: RegExp) {
   await page.getByRole('link', { name }).click();
 }
 
-/** Creates a one-day plan with the given exercises and starts it. */
-async function planAndStart(page: Page, exercises: string[]) {
+/** Creates a one-day plan with the given exercises and starts it. New plans default to Hypertrophy. */
+async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   await more(page, /^Plans/);
   await page.getByRole('button', { name: '+ New plan' }).click();
   await page.getByLabel('Plan name').fill('Push');
+  if (goal) await page.getByRole('radio', { name: goal }).click();
   await page.getByRole('button', { name: '+ Day' }).click();
   for (const name of exercises) {
     await page.getByRole('button', { name: '+ Add exercise' }).click();
@@ -37,34 +38,52 @@ async function logChest(page: Page, reps: number[]) {
   }
 }
 
-test('success → load goes up automatically → next workout uses it with goal = range minimum', async ({ page }) => {
+test('hypertrophy: top of the range → choose reps up → next workout 9–13 at the same load', async ({ page }) => {
   await planAndStart(page, ['Treadmill Warm-up', 'Machine Chest Press']);
-
   await expect(page.getByRole('heading', { name: 'Treadmill Warm-up' })).toBeVisible();
   await page.getByRole('button', { name: '✓ Set done' }).click();
   await page.getByRole('button', { name: 'Next ›' }).click();
 
-  await expect(page.getByText('Do 12 reps in every set → next time 22.5 kg.')).toBeVisible();
+  await expect(page.getByText('Do 12 reps in every set → then choose: load 22.5 kg or reps 9–13.')).toBeVisible();
   await logChest(page, [12, 12, 12]);
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
 
-  await expect(page.getByText('Machine Chest Press: up to 22.5 kg')).toBeVisible();
   await expect(page.getByText('Treadmill Warm-up: done')).toBeVisible();
+  await expect(page.getByText('Machine Chest Press: ready to progress — load or reps?')).toBeVisible();
+  await page.getByRole('button', { name: '⬆ Reps 9–13' }).click();
+  await expect(page.getByText('Machine Chest Press: reps 9–13 at 20 kg')).toBeVisible();
 
   await tab(page, 'Home');
-  await expect(page.getByText('3 × 8–12 reps · 22.5 kg')).toBeVisible();
+  await expect(page.getByText('3 × 9–13 reps · 20 kg')).toBeVisible();
   await page.getByRole('button', { name: /Start workout/ }).click();
   await page.getByRole('tab', { name: 'Machine Chest Press' }).click();
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  await expect(chest.getByLabel('Load', { exact: true })).toHaveValue('20');
+  await expect(chest.getByText('goal 13').first()).toBeVisible();
+});
+
+test('hypertrophy: choose load up → next workout at the new load, goal = range minimum', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [12, 12, 12]);
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await page.getByRole('button', { name: '⬆ Load 22.5 kg' }).click();
+  await expect(page.getByText('Machine Chest Press: up to 22.5 kg')).toBeVisible();
+  await tab(page, 'Home');
+  await page.getByRole('button', { name: /Start workout/ }).click();
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   await expect(chest.getByLabel('Load', { exact: true })).toHaveValue('22.5');
   await expect(chest.getByText('goal 8').first()).toBeVisible();
   await expect(chest.getByText('Last time: 12 · 12 · 12 × 20 kg')).toBeVisible();
 });
 
-test('undo an automatic increase', async ({ page }) => {
-  await planAndStart(page, ['Machine Chest Press']);
-  await logChest(page, [12, 12, 12]);
+test('strength (fixed 5×5): all sets done → load goes up automatically, undo available', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press'], 'Strength');
+  await expect(page.getByText('5 × 5 reps · 20 kg')).toBeVisible();
+  await expect(page.getByText('Do 5 reps in every set → next time 22.5 kg.')).toBeVisible();
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  for (let i = 0; i < 5; i++) await chest.getByRole('button', { name: '✓ Set done' }).click();
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await expect(page.getByText('Machine Chest Press: up to 22.5 kg')).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByText('Machine Chest Press: kept at 20 kg (increase undone)')).toBeVisible();
 });
@@ -105,7 +124,9 @@ test('demo data → analysis → export → delete all → import restores data'
   await more(page, /^Analysis/);
   await expect(page.getByRole('heading', { name: 'By exercise' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Treadmill Warm-up.*Fixed/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Romanian Deadlift.*52\.5 kg/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Romanian Deadlift.*50 kg/ })).toBeVisible();
+  await tab(page, 'Home');
+  await expect(page.getByText('Romanian Deadlift: ready to progress — load or reps?')).toBeVisible();
 
   await more(page, /^Settings/);
   const download = page.waitForEvent('download');

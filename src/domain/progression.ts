@@ -4,6 +4,7 @@
 // - All working sets reach the target (double: top of the rep range) → increase (applied automatically, can be undone).
 // - Within the range, or sets skipped → keep.
 // - A completed set below the minimum (missing reps) → missed: the user chooses keep or step back one increment.
+// - Hypertrophy plans (onTop "ask"): top of the range → ready: the user chooses load up or reps up (range +1).
 import type {
   Completion,
   Evaluation,
@@ -12,6 +13,7 @@ import type {
   ProgressionConfig,
   ProgressionStep,
   Reason,
+  RepRange,
   SetPrescription,
   SetRecord,
   Suggestion,
@@ -94,13 +96,27 @@ const up = (from: number, s: ProgressionStep): number => {
 };
 const down = (from: number, s: ProgressionStep): number => Math.max(0, round(from - s.increment));
 
-const result = (input: EvalInput, outcome: Outcome, completion: Completion, reasons: Reason[], suggestion?: Suggestion): Evaluation => ({
+const result = (
+  input: EvalInput,
+  outcome: Outcome,
+  completion: Completion,
+  reasons: Reason[],
+  suggestion?: Suggestion,
+  repsOption?: Evaluation['repsOption'],
+): Evaluation => ({
   strategy: input.config.strategy,
   outcome,
   completion,
   reasons,
   ...(suggestion ? { suggestion } : {}),
+  ...(repsOption ? { repsOption } : {}),
 });
+
+/** Current rep range of the first working set, if it has both limits. */
+function repRange(prescription: SetPrescription[]): RepRange | undefined {
+  const r = workingPrescribed(prescription)[0]?.targets.reps;
+  return r?.min !== undefined && r.max !== undefined ? { min: r.min, max: r.max } : undefined;
+}
 
 /** Step-back suggestion for a metric, if a current target and an increment exist. */
 function stepBack(input: EvalInput, s: ProgressionStep | undefined): Suggestion | undefined {
@@ -146,12 +162,14 @@ function evaluateDouble(input: EvalInput, completion: Completion, completionReas
 
   const blocked = blockers(input);
   if (blocked.length) return result(input, 'restricted', completion, [{ code: 'top_reached' }, ...blocked]);
-  if (!s) return result(input, 'keep', completion, [{ code: 'top_reached' }]);
-  const from = currentTarget(input.prescription, pm) ?? Math.max(...ps.map((x) => x.r.values[pm] ?? 0));
-  if (s.cap !== undefined && from >= s.cap - EPS) {
-    return result(input, 'at_cap', completion, [{ code: 'top_reached' }, { code: 'cap_reached', params: { metric: pm } }]);
-  }
-  return result(input, 'increase', completion, [{ code: 'top_reached' }], { metric: pm, from, to: up(from, s), kind: 'increase' });
+  const range = repRange(input.prescription);
+  const repsOption = input.config.onTop === 'ask' && range ? { from: range, to: { min: range.min + 1, max: range.max + 1 } } : undefined;
+  const from = s ? (currentTarget(input.prescription, pm) ?? Math.max(...ps.map((x) => x.r.values[pm] ?? 0))) : undefined;
+  const capped = !s || from === undefined || (s.cap !== undefined && from >= s.cap - EPS);
+  const load: Suggestion | undefined = !capped ? { metric: pm, from: from!, to: up(from!, s!), kind: 'increase' } : undefined;
+  if (repsOption) return result(input, 'ready', completion, [{ code: 'top_reached' }], load, repsOption);
+  if (!load) return result(input, s ? 'at_cap' : 'keep', completion, [{ code: 'top_reached' }, ...(s ? [{ code: 'cap_reached', params: { metric: pm } }] : [])]);
+  return result(input, 'increase', completion, [{ code: 'top_reached' }], load);
 }
 
 function evaluateTargets(input: EvalInput, completion: Completion, completionReasons: Reason[]): Evaluation {
@@ -221,14 +239,14 @@ export function setGoals(config: ProgressionConfig, prescription: SetPrescriptio
  * Applies current progression targets to a plan prescription.
  * Only working sets receive the progressed values.
  */
-export function applyTargets(sets: SetPrescription[], targets: Partial<Record<MetricKey, number>> | undefined): SetPrescription[] {
+export function applyTargets(sets: SetPrescription[], targets: Partial<Record<MetricKey, number>> | undefined, repsRange?: RepRange): SetPrescription[] {
   const copy = structuredClone(sets);
-  if (!targets) return copy;
   for (const s of copy) {
     if (s.kind !== 'working') continue;
-    for (const [metric, value] of Object.entries(targets) as [MetricKey, number][]) {
+    for (const [metric, value] of Object.entries(targets ?? {}) as [MetricKey, number][]) {
       s.targets[metric] = { ...s.targets[metric], value };
     }
+    if (repsRange && s.targets.reps) s.targets.reps = { min: repsRange.min, max: repsRange.max };
   }
   return copy;
 }

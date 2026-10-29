@@ -33,8 +33,8 @@ export const pt: Resources = {
       none: 'Prescrição fixa. Só regista se cumpriu; nunca sobe e nunca é marcado como estagnado.',
     },
   },
-  outcome: { increase: 'Sobe', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo' },
-  decision: { applied: 'Subiu', reverted: 'Subida desfeita', pending: 'Por decidir', kept: 'Manteve', stepped_back: 'Desceu', overridden: 'Definido à mão', none: 'Sem alteração' },
+  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo' },
+  decision: { applied: 'Subiu', reverted: 'Subida desfeita', pending: 'Por decidir', kept: 'Manteve', stepped_back: 'Desceu', reps_up: 'Subiu reps', overridden: 'Definido à mão', none: 'Sem alteração' },
   reason: {
     sets_missing: '{{done}} de {{prescribed}} séries feitas.',
     value_missing: 'Série {{set}}: {{metric}} não registada.',
@@ -55,6 +55,7 @@ export const pt: Resources = {
   },
   hint: {
     double: 'Faça {{max}} reps em todas as séries → próxima vez {{to}}.',
+    ask: 'Faça {{max}} reps em todas as séries → depois escolhe: carga {{to}} ou reps {{range}}.',
     target: 'Chegue a {{target}} em todas as séries → próxima vez {{to}}.',
     fixed: 'Exercício fixo: basta cumprir.',
     manual: 'Progressão manual: decide quando mudar.',
@@ -62,7 +63,11 @@ export const pt: Resources = {
   },
   decide: {
     up: 'sobe para {{value}}', keep: 'mantém {{value}}', down: 'desce para {{value}}', set: 'definido para {{value}}', reverted: 'mantém {{value}} (subida desfeita)',
-    missed: 'faltaram repetições — manter ou descer?', building: 'a construir repetições', doneFixed: 'cumprido', shortFixed: 'abaixo do previsto',
+    missed: 'faltaram repetições — manter ou descer?',
+    ready: 'pronto para progredir — carga ou reps?',
+    repsUp: 'reps {{range}} com {{value}}',
+    loadBtn: 'Carga {{value}}',
+    repsBtn: 'Reps {{range}}', building: 'a construir repetições', doneFixed: 'cumprido', shortFixed: 'abaixo do previsto',
     keepBtn: 'Manter {{value}}', keepPlain: 'Manter', downBtn: 'Descer para {{value}}', other: 'Outro valor', undo: 'Desfazer',
   },
   validation: { required: 'Obrigatório', invalid: 'Número inválido' },
@@ -114,6 +119,16 @@ export const pt: Resources = {
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adicione um dia de treino.', noItems: 'Ainda sem exercícios.',
     startDay: 'Começar este dia', days: 'dias',
+    strengthMode: 'Modo de força', mode: { fixed: 'Reps fixas (5×5)', range: 'Intervalo baixo (4×4–6)' },
+    goalHelp: {
+      hypertrophy: 'Hipertrofia: 3×8–12. Quando todas as séries chegam a 12, escolhe: mais carga (volta a 8 reps) ou mais reps (9–13, mesma carga).',
+      strength: 'Força: quando todas as séries chegam às reps alvo, a carga sobe automaticamente.',
+      mixed: 'Misto: cada exercício usa a sua própria progressão da biblioteca.',
+      other: 'Outro: cada exercício usa a sua própria progressão da biblioteca.',
+    },
+    applyDefaults: 'Aplicar {{sets}} aos exercícios com carga deste plano? As cargas mantêm-se.',
+    custom: 'personalizada',
+    rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
   },
   analysis: {
     title: 'Análise', period: 'Período', p28: '4 semanas', p84: '12 semanas', p182: '6 meses', p0: 'Tudo', plan: 'Plano',

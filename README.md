@@ -46,6 +46,7 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 
 - Exercise definitions, plan prescriptions and workout records are separate. Each workout stores snapshots of the exercise and of the prescription.
 - A plan version that a workout uses is locked. Editing it creates a new version.
+- The plan goal sets the rule for load exercises. Hypertrophy: at the top of the range you choose more load or more reps (range +1). Strength: the load goes up automatically (fixed 5×5 or 4×4–6).
 - Progression rule: every set reaches the target → the next target goes up automatically (undo available). Within the range or sets skipped → keep. A set below the minimum → you choose keep or step back one increment. Every change is logged.
 - Each set shows today's goal: last time + 1 rep at the same load, up to the range max.
 - Exercises with **No progression** are evaluated only for completion. They are never recommended for progression and never flagged as stalled.

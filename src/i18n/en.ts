@@ -31,8 +31,8 @@ export const en = {
       none: 'Fixed prescription. Only completion is recorded; it never goes up and is never flagged as stalled.',
     },
   },
-  outcome: { increase: 'Goes up', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed' },
-  decision: { applied: 'Increased', reverted: 'Increase undone', pending: 'To decide', kept: 'Kept', stepped_back: 'Stepped back', overridden: 'Set manually', none: 'No change' },
+  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed' },
+  decision: { applied: 'Increased', reverted: 'Increase undone', pending: 'To decide', kept: 'Kept', stepped_back: 'Stepped back', reps_up: 'Reps up', overridden: 'Set manually', none: 'No change' },
   reason: {
     sets_missing: '{{done}} of {{prescribed}} sets done.',
     value_missing: 'Set {{set}}: {{metric}} not recorded.',
@@ -53,6 +53,7 @@ export const en = {
   },
   hint: {
     double: 'Do {{max}} reps in every set → next time {{to}}.',
+    ask: 'Do {{max}} reps in every set → then choose: load {{to}} or reps {{range}}.',
     target: 'Reach {{target}} in every set → next time {{to}}.',
     fixed: 'Fixed exercise: just complete it.',
     manual: 'Manual progression: you choose when to change.',
@@ -60,7 +61,11 @@ export const en = {
   },
   decide: {
     up: 'up to {{value}}', keep: 'keep {{value}}', down: 'down to {{value}}', set: 'set to {{value}}', reverted: 'kept at {{value}} (increase undone)',
-    missed: 'missed reps — keep or step back?', building: 'building reps', doneFixed: 'done', shortFixed: 'shorter than planned',
+    missed: 'missed reps — keep or step back?',
+    ready: 'ready to progress — load or reps?',
+    repsUp: 'reps {{range}} at {{value}}',
+    loadBtn: 'Load {{value}}',
+    repsBtn: 'Reps {{range}}', building: 'building reps', doneFixed: 'done', shortFixed: 'shorter than planned',
     keepBtn: 'Keep {{value}}', keepPlain: 'Keep', downBtn: 'Down to {{value}}', other: 'Other value', undo: 'Undo',
   },
   validation: { required: 'Required', invalid: 'Invalid number' },
@@ -112,6 +117,16 @@ export const en = {
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
     startDay: 'Start this day', days: 'days',
+    strengthMode: 'Strength mode', mode: { fixed: 'Fixed reps (5×5)', range: 'Low range (4×4–6)' },
+    goalHelp: {
+      hypertrophy: 'Hypertrophy: 3×8–12. When every set reaches 12, you choose: more load (back to 8 reps) or more reps (9–13, same load).',
+      strength: 'Strength: when every set reaches the target reps, the load goes up automatically.',
+      mixed: 'Mixed: each exercise uses its own progression from the library.',
+      other: 'Other: each exercise uses its own progression from the library.',
+    },
+    applyDefaults: 'Apply {{sets}} to the load exercises of this plan? Loads are kept.',
+    custom: 'custom',
+    rule: { ask: 'Load or reps (you choose)', load: 'Load goes up automatically' },
   },
   analysis: {
     title: 'Analysis', period: 'Period', p28: '4 weeks', p84: '12 weeks', p182: '6 months', p0: 'All', plan: 'Plan',
