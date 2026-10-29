@@ -106,7 +106,7 @@ export const pt: Resources = {
     links: 'Imagens, vídeos, ligações', linkLabel: 'Etiqueta', linkUrl: 'URL', active: 'Ativo', inactive: 'Inativo', showInactive: 'Mostrar inativos',
     variation: 'Copiar como variação', variationOf: 'Variação de {{name}}', variationName: '{{name}} (variação)',
     metrics: 'O que regista', metric: 'Métrica', addMetric: 'Adicionar métrica', unit: 'Unidade', required: 'Obrigatória', customLabel: 'Nome da métrica',
-    defaults: 'Séries predefinidas', progressionSettings: 'Progressão', noResults: 'Nenhum exercício encontrado.', count: '{{count}} exercícios',
+    defaults: 'Séries predefinidas', progressionSettings: 'Progressão', noResults: 'Nenhum exercício encontrado.', count: '{{count}} exercícios', count_one: '{{count}} exercício',
     usedIn: 'Usado nos planos: {{plans}}. Remova-o desses planos primeiro, ou marque-o como inativo.', history: 'Histórico', prs: 'Melhores', noHistory: 'Ainda sem sessões.',
     applyPreset: 'Aplicar tipo', loadLibrary: 'Carregar biblioteca de exercícios', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', showMore: 'Mostrar mais {{n}} ({{left}} restantes)',
     video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',

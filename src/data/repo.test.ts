@@ -199,4 +199,10 @@ describe('repo (IndexedDB)', () => {
     expect(got.defaultSets[0]).not.toHaveProperty('restSec');
     expect(got.name).toBe('Old');
   });
+
+  it('two library imports at the same time do not duplicate exercises', async () => {
+    const rec = { sid: '1', slug: 'x-1', url: 'u', name: 'Library Only', bodyParts: ['Chest'], equipment: ['Barbell'], type: 'weight_reps', primary: [], secondary: [], overview: '', steps: [], tips: [], video: '', related: [] };
+    await Promise.all([repo.importLibrary([rec]), repo.importLibrary([rec])]);
+    expect((await db.exercises.toArray()).filter((e) => e.name === 'Library Only')).toHaveLength(1);
+  });
 });

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { db } from '../data/db';
+import { repo } from '../data/repo';
 import { useSettings } from './util';
 import { Home } from './pages/Home';
 import { Train } from './pages/Train';
@@ -78,6 +79,10 @@ function Shell() {
 export function App() {
   const { i18n } = useTranslation();
   const settings = useSettings();
+  // Keep the exercise library (images, how-to, video) applied to all exercises, without user action.
+  useEffect(() => {
+    void repo.syncLibrary();
+  }, []);
   useEffect(() => {
     if (i18n.language !== settings.language) void i18n.changeLanguage(settings.language);
     document.documentElement.lang = settings.language;

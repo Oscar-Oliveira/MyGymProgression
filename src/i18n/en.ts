@@ -104,7 +104,7 @@ export const en = {
     links: 'Images, videos, links', linkLabel: 'Label', linkUrl: 'URL', active: 'Active', inactive: 'Inactive', showInactive: 'Show inactive',
     variation: 'Copy as variation', variationOf: 'Variation of {{name}}', variationName: '{{name}} (variation)',
     metrics: 'What you record', metric: 'Metric', addMetric: 'Add metric', unit: 'Unit', required: 'Required', customLabel: 'Metric name',
-    defaults: 'Default sets', progressionSettings: 'Progression', noResults: 'No exercises found.', count: '{{count}} exercises',
+    defaults: 'Default sets', progressionSettings: 'Progression', noResults: 'No exercises found.', count: '{{count}} exercises', count_one: '{{count}} exercise',
     usedIn: 'Used in plans: {{plans}}. Remove it from those plans first, or set it inactive.', history: 'History', prs: 'Best', noHistory: 'No sessions yet.',
     applyPreset: 'Apply type', loadLibrary: 'Load exercise library', groups: 'Muscle groups', allEquipment: 'All equipment', showMore: 'Show {{n}} more ({{left}} left)',
     video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',

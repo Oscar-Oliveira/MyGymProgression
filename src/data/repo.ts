@@ -3,13 +3,20 @@ import { db as defaultDb, type GymDB } from './db';
 import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
-import { mergeLibrary, type LibraryRecord } from '../domain/library';
+import { LIBRARY_RULES_VERSION, mergeLibrary, type LibraryRecord } from '../domain/library';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { loadLibrary } from './library';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
+  // Library imports run one at a time (app start and a button click may overlap); otherwise both would add the same exercises.
+  let libraryQueue: Promise<unknown> = Promise.resolve();
+  const serial = <T,>(f: () => Promise<T>): Promise<T> => {
+    const run = libraryQueue.then(f, f);
+    libraryQueue = run.catch(() => undefined);
+    return run;
+  };
   async function getSettings(): Promise<Settings> {
     const lang = globalThis.navigator?.language?.toLowerCase().startsWith('en') ? 'en' : 'pt';
     return (await db.settings.get('settings')) ?? { ...DEFAULT_SETTINGS, language: lang };
@@ -22,6 +29,13 @@ export function createRepo(db: GymDB) {
       out.settings = await db.settings.get('settings');
     });
     return out;
+  }
+
+  async function importLibraryNow(records: LibraryRecord[]) {
+    const settings = await getSettings();
+    const { added, updated } = mergeLibrary(await db.exercises.toArray(), records, settings, LIBRARY_PT);
+    await db.exercises.bulkPut([...updated, ...added]);
+    return { added: added.length, updated: updated.length };
   }
 
   return {
@@ -42,11 +56,25 @@ export function createRepo(db: GymDB) {
     },
 
     /** Adds the external library: enriches matching exercises (same id, plans unchanged) and adds the rest. */
-    async importLibrary(records: LibraryRecord[]) {
-      const settings = await getSettings();
-      const { added, updated } = mergeLibrary(await db.exercises.toArray(), records, settings, LIBRARY_PT);
-      await db.exercises.bulkPut([...updated, ...added]);
-      return { added: added.length, updated: updated.length };
+    importLibrary(records: LibraryRecord[]) {
+      return serial(() => importLibraryNow(records));
+    },
+
+    /**
+     * Applies the library automatically when the file or the merge rules are newer than what was applied:
+     * existing exercises get images and how-to (ids, plans and history unchanged), new library exercises are added.
+     * Does nothing when there is no library file. Returns true when it ran.
+     */
+    syncLibrary(): Promise<boolean> {
+      return serial(async () => {
+        const lib = await loadLibrary();
+        if (!lib) return false;
+        const version = `${lib.fetchedAt}:${lib.exercises.length}:${LIBRARY_RULES_VERSION}`;
+        if ((await getSettings()).librarySync === version) return false;
+        await importLibraryNow(lib.exercises);
+        await db.settings.put({ ...(await getSettings()), librarySync: version, id: 'settings' });
+        return true;
+      });
     },
 
     /** Starter exercises: the built-in list, then the external library (when available) adds images and more exercises. */

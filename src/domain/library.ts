@@ -255,8 +255,11 @@ export const BUILTIN_LIBRARY_SLUG: Record<string, string> = {
   Dips: 'chest-dip-88', Plank: 'front-plank-6m3', 'Side Plank': 'side-plank-6t1', 'Hanging Leg Raise': 'hanging-leg-raise-6mk',
   'Cable Crunch': 'cable-kneeling-crunch-641', 'Treadmill Warm-up': 'walking-on-treadmill-7u2', 'Treadmill Walking': 'walking-on-treadmill-7u2',
   Running: 'run-on-treadmill-7so', 'Stationary Bike': 'stationary-bike-walk-6vm', 'Rowing Machine': 'rowing-6ee', 'Hip Mobility Routine': 'standing-hip-circle-8pc',
-  "Farmer's Walk": 'dumbbell-farmers-carry-82k',
+  "Farmer's Walk": 'dumbbell-farmers-carry-82k', 'Band Shoulder Dislocates': 'pvc-pass-through-9lx',
 };
+
+/** Bump when the merge rules or the built-in mapping change, so existing data is synced again. */
+export const LIBRARY_RULES_VERSION = 2;
 
 /** Media and how-to of a library record for an exercise that keeps its own identity and settings. */
 function illustrate(ex: Exercise, rec: LibraryRecord, pt?: LibraryTranslation): Exercise {

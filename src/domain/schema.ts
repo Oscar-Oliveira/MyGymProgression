@@ -175,6 +175,7 @@ export const settingsSchema = z.object({
   distanceUnit: z.enum(['km', 'mi']),
   stalledThreshold: z.number().int().min(2).max(20),
   lastBackupAt: iso.optional(),
+  librarySync: z.string().optional(),
 });
 
 export const SCHEMA_VERSION = 5;

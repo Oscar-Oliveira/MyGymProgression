@@ -103,6 +103,13 @@ describe('library import', () => {
     expect(u.defaultSets).toEqual(own.defaultSets);
   });
 
+  it('every built-in exercise has a library image mapping', async () => {
+    const { seedExercises } = await import('./seed');
+    const { BUILTIN_LIBRARY_SLUG } = await import('./library');
+    const names = seedExercises({ language: 'en', loadUnit: 'kg', distanceUnit: 'km' }).map((e) => e.name);
+    expect(names.filter((n) => !BUILTIN_LIBRARY_SLUG[n])).toEqual([]);
+  });
+
   it('muscle keys and groups', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');

@@ -5,19 +5,42 @@ const rec = (sid: string, name: string, bodyParts: string[], related: string[] =
   equipment: ['Barbell'], type: 'weight_reps', primary: ['Pectoralis Major Sternal Head'], secondary: ['Triceps Brachii'],
   overview: `${name} overview.`, steps: [`${name} step one.`, `${name} step two.`], tips: [], video: 'abc123', thumb: '', imageUrl: '', related,
 });
-const LIBRARY = { source: 'test', fetchedAt: '2026-10-29', exercises: [rec('1', 'Bench Press', ['Chest'], ['2']), rec('2', 'Incline Bench Press', ['Chest']), rec('3', 'Barbell Row', ['Back'])] };
+const LIBRARY = {
+  source: 'test',
+  fetchedAt: '2026-10-29',
+  exercises: [
+    rec('1', 'Bench Press', ['Chest'], ['2']),
+    rec('2', 'Incline Bench Press', ['Chest']),
+    rec('3', 'Barbell Row', ['Back']),
+    // The library equivalent of the built-in "Barbell Back Squat" (see BUILTIN_LIBRARY_SLUG).
+    { ...rec('90', 'Full Squat', ['Thighs']), slug: 'full-squat-n', thumb: 'library/thumbs/90.webp' },
+  ],
+};
+
+let libraryAvailable = false;
 
 test.beforeEach(async ({ page }, info) => {
   // The real library file is optional and large; tests use the built-in list, or a small fixture when tagged @library.
-  await page.route('**/library/exsercise.json', (route) =>
-    info.title.includes('@library') ? route.fulfill({ json: LIBRARY }) : route.fulfill({ status: 404, body: '' }),
-  );
+  libraryAvailable = info.title.includes('@library');
+  await page.route('**/library/exsercise.json', (route) => (libraryAvailable ? route.fulfill({ json: LIBRARY }) : route.fulfill({ status: 404, body: '' })));
   page.on('dialog', (d) => void (d.type() === 'prompt' ? d.accept('DELETE') : d.accept()));
   await page.goto('/');
 });
 
-test('@library: muscle groups, detail with how-to, video and related exercises', async ({ page }) => {
+test('existing exercises get library images automatically when the app opens (no click)', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Barbell Back Squat');
+  await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).locator('img.thumb')).toHaveCount(0);
+  // The library file becomes available (e.g. after an update); the next app start applies it.
+  libraryAvailable = true;
+  await page.reload();
+  await page.getByRole('searchbox').fill('Barbell Back Squat');
+  await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first().locator('img.thumb')).toHaveAttribute('src', /library\/thumbs\/90\.webp/);
+});
+
+test('@library: loaded on first start; muscle groups, detail with how-to, video and related exercises', async ({ page }) => {
+  // No click needed: the library is applied when the app opens.
   await more(page, /^Exercises/);
   await expect(page.getByRole('heading', { name: 'Muscle groups' })).toBeVisible();
   await page.getByRole('tab', { name: /Chest/ }).click();
