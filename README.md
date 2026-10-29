@@ -40,7 +40,7 @@ The site is built locally and pushed to the `gh-pages` branch. It contains no ex
 npm run deploy:pages   # build for https://<user>.github.io/MyGymProgression/ and push dist/ to gh-pages
 ```
 
-Once: GitHub → repository → Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root. If the repository has another name, change `--base` in the `build:pages` script.
+Once: GitHub → repository → Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root. The path is case-sensitive: `--base` in the `build:pages` script must match the repository name exactly.
 
 ## Test
 
