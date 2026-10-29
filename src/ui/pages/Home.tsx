@@ -48,7 +48,7 @@ export function Home() {
   const entryOf = (entryId?: string) => workouts.flatMap((w) => w.entries).find((e) => e.id === entryId);
   const start = async () => nav(`/workout/${await repo.startWorkout(plan?.id, day?.id)}`);
   const demo = async () => {
-    await repo.seedOrImport();
+    await repo.seedLibrary();
     await repo.importMerge(generateDemo(await db.exercises.toArray()));
   };
 
@@ -93,7 +93,7 @@ export function Home() {
           <h1>{t('home.welcome')}</h1>
           <p className="muted">{t('home.welcomeText')}</p>
           {exercises.length === 0 && (
-            <button className="outline xl" onClick={() => void repo.seedOrImport()}>
+            <button className="outline xl" onClick={() => void repo.seedLibrary()}>
               {t('home.seed')}
             </button>
           )}

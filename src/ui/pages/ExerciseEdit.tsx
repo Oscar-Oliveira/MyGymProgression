@@ -8,6 +8,7 @@ import type { Exercise, ExerciseCategory, LoadMode } from '../../domain/types';
 import { MEASUREMENT_PRESETS, presetDefaults, presetMetrics, type MeasurementPreset } from '../../domain/units';
 import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { splitList, useSettings } from '../util';
+import { dialog } from '../components/Dialog';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
 const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'cardio', 'full_body'];
@@ -81,8 +82,8 @@ export function ExerciseEdit() {
 
   const remove = async () => {
     const used = await repo.exerciseUsage(ex.id);
-    if (used.length) return alert(t('exercise.usedIn', { plans: used.join(', ') }));
-    if (!confirm(t('common.confirmDelete', { name: ex.name }))) return;
+    if (used.length) return dialog.alert(t('exercise.usedIn', { plans: used.join(', ') }));
+    if (!(await dialog.confirm(t('common.confirmDelete', { name: ex.name }), { danger: true, ok: t('common.delete') }))) return;
     await repo.deleteExercise(ex.id);
     nav('/exercises');
   };
@@ -154,7 +155,7 @@ export function ExerciseEdit() {
             </select>
           </label>
           {id && (
-            <button type="button" className="outline" onClick={() => confirm(t('exercise.presetWarn')) && applyPreset(preset)}>
+            <button type="button" className="outline" onClick={async () => (await dialog.confirm(t('exercise.presetWarn'))) && applyPreset(preset)}>
               {t('exercise.applyPreset')}
             </button>
           )}

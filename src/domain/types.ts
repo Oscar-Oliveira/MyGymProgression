@@ -312,6 +312,6 @@ export interface Settings {
   distanceUnit: 'km' | 'mi';
   stalledThreshold: number;
   lastBackupAt?: string;
-  /** Library file + rules version last applied automatically (see repo.syncLibrary). */
+  /** No longer used (the library was once applied automatically); kept so older backups stay valid. */
   librarySync?: string;
 }

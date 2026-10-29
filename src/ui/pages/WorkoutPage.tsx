@@ -7,6 +7,7 @@ import { repo } from '../../data/repo';
 import type { Exercise, MetricDef, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { addSet, adHocLineage, entryAdHoc, substitute } from '../../domain/workout';
+import { dialog } from '../components/Dialog';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
@@ -115,15 +116,17 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
   return (
     <section aria-label={entry.exercise.name}>
       {entry.group && <span className="badge">{t('plan.group')} {entry.group}</span>}
-      <div className="row" style={{ alignItems: 'center' }}>
-        <Thumb src={thumbOf(entry.exerciseId) ?? entry.exercise.thumb} name={entry.exercise.name} size={64} />
-        <h1 className="ex-title">{entry.exercise.name}</h1>
+      <div className="ex-head">
+        <Thumb src={thumbOf(entry.exerciseId) ?? entry.exercise.thumb} name={entry.exercise.name} size={76} />
+        <div style={{ minWidth: 0 }}>
+          <h1 className="ex-title">{entry.exercise.name}</h1>
+          <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
+          <div className="ex-last">
+            {t('workout.lastTime')}: {previous ? setsLine(previous.sets, previous.exercise.metrics, s.language) : t('workout.firstTime')}
+          </div>
+        </div>
       </div>
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
-      <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
-      <div className="ex-last">
-        {t('workout.lastTime')}: {previous ? setsLine(previous.sets, previous.exercise.metrics, s.language) : t('workout.firstTime')}
-      </div>
       <div className="hint">{progressHint(entry, t, s.language)}</div>
 
       <SetList
@@ -228,7 +231,17 @@ export function WorkoutPage() {
   const [editing, setEditing] = useState(false);
   const [picker, setPicker] = useState<'add' | 'sub'>();
   const [menu, setMenu] = useState(false);
+  const [list, setList] = useState(false);
   const loadedFor = useRef<string>(undefined);
+  const chipsRef = useRef<HTMLDivElement>(null);
+
+  // On each exercise change: show it from the top and keep its tab visible in the scrolling row.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const row = chipsRef.current;
+    const chip = row?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (row && chip) row.scrollTo({ left: chip.offsetLeft - (row.clientWidth - chip.clientWidth) / 2, behavior: 'smooth' });
+  }, [cur]);
 
   useEffect(() => {
     if (stored && (loadedFor.current !== `${stored.id}:${stored.status}` || (!editing && stored.status !== 'in_progress'))) {
@@ -274,7 +287,7 @@ export function WorkoutPage() {
     setCur(draft.entries.length);
   };
   const finish = async (interrupted = false) => {
-    if (!interrupted && pendingSets > 0 && !confirm(t('workout.finishPending', { count: pendingSets }))) return;
+    if (!interrupted && pendingSets > 0 && !(await dialog.confirm(t('workout.finishPending', { count: pendingSets })))) return;
     setMenu(false);
     await repo.finishWorkout(draft, interrupted);
     window.scrollTo(0, 0);
@@ -285,18 +298,27 @@ export function WorkoutPage() {
     return (
       <div>
         <div className="wk-head">
-          <div className="row between">
-            <Link to="/" className="btn ghost" aria-label={t('nav.home')}>
+          <div className="wk-top">
+            <Link to="/" className="btn ghost icon" aria-label={t('nav.home')}>
               ‹
             </Link>
-            <span className="title">
-              {draft.dayName ?? t('workout.free')} · {draft.entries.length ? `${Math.min(cur, draft.entries.length - 1) + 1}/${draft.entries.length}` : ''}
-            </span>
-            <button className="ghost" aria-label={t('workout.menu')} onClick={() => setMenu(true)}>
+            <button className="wk-title" onClick={() => setList(true)} aria-label={t('workout.allExercises')} disabled={!draft.entries.length}>
+              <span className="title">{draft.dayName ?? t('workout.free')}</span>
+              <span className="sub">
+                {draft.entries.length ? `${Math.min(cur, draft.entries.length - 1) + 1}/${draft.entries.length} · ` : ''}
+                {t('workout.setsDone', { done: doneWorking, total: totalWorking })} ▾
+              </span>
+            </button>
+            <button className="ghost icon" aria-label={t('workout.menu')} onClick={() => setMenu(true)}>
               ⋯
             </button>
           </div>
-          <div className="wk-chips" role="tablist">
+          <div className="wk-progress" aria-hidden="true">
+            {draft.entries.map((e, i) => (
+              <span key={e.id} className={i === cur ? 'cur' : entryDone(e) ? 'done' : ''} />
+            ))}
+          </div>
+          <div className="wk-chips" role="tablist" ref={chipsRef}>
             {draft.entries.map((e, i) => (
               <button key={e.id} role="tab" aria-selected={i === cur} className={`wk-chip ${i === cur ? 'cur' : entryDone(e) ? 'done' : ''}`} onClick={() => setCur(i)}>
                 <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={22} />
@@ -348,7 +370,7 @@ export function WorkoutPage() {
               <button
                 className="danger"
                 onClick={async () => {
-                  if (!confirm(t('workout.discardConfirm'))) return;
+                  if (!(await dialog.confirm(t('workout.discardConfirm'), { danger: true, ok: t('workout.discard') }))) return;
                   await repo.discardWorkout(draft.id);
                   nav('/');
                 }}
@@ -356,6 +378,30 @@ export function WorkoutPage() {
                 {t('workout.discard')}
               </button>
             </div>
+          </Modal>
+        )}
+        {list && (
+          <Modal title={t('workout.allExercises')} onClose={() => setList(false)}>
+            <ul className="wk-list">
+              {draft.entries.map((e, i) => {
+                const done = e.sets.filter((x) => x.status !== 'pending').length;
+                return (
+                  <li key={e.id}>
+                    <button className={`${i === cur ? 'cur' : ''} ${entryDone(e) ? 'done' : ''}`} onClick={() => (setCur(i), setList(false))}>
+                      <span className="idx">{entryDone(e) ? '✓' : i + 1}</span>
+                      <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={40} />
+                      <span className="xitem-text">
+                        <span className="xitem-name">{e.exercise.name}</span>
+                        <span className="xitem-sub">{rxLine(e, t, s.language)}</span>
+                      </span>
+                      <span className="xitem-trail">
+                        {done}/{e.sets.length}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </Modal>
         )}
         {picker === 'add' && <ExercisePicker onPick={(ex) => void pick(ex)} onClose={() => setPicker(undefined)} />}
@@ -474,7 +520,7 @@ export function WorkoutPage() {
             <button
               className="danger"
               onClick={async () => {
-                if (!confirm(t('workout.deleteConfirm'))) return;
+                if (!(await dialog.confirm(t('workout.deleteConfirm'), { danger: true, ok: t('common.delete') }))) return;
                 await repo.deleteWorkout(draft.id);
                 nav('/history');
               }}

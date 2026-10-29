@@ -49,7 +49,7 @@ export function ExerciseList() {
   const showing = q || group || equip ? list.slice(0, limit) : [];
   const importLib = async () => {
     setBusy(true);
-    await repo.seedOrImport();
+    await repo.seedLibrary();
     setBusy(false);
   };
 
@@ -68,7 +68,7 @@ export function ExerciseList() {
         <div className="empty" style={{ marginTop: '1rem' }}>
           <p>{t('dashboard.emptyLibrary')}</p>
           <button className="primary" disabled={busy} onClick={() => void importLib()}>
-            {busy ? '…' : t('exercise.loadLibrary')}
+            {busy ? '…' : t('settings.seed')}
           </button>
         </div>
       ) : (

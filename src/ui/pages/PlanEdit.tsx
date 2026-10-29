@@ -12,6 +12,7 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { NumInput } from '../components/NumInput';
 import { Thumb } from '../components/Thumb';
 import { metricLabel } from '../util';
+import { dialog } from '../components/Dialog';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
 const MODES: StrengthMode[] = ['fixed', 'range'];
@@ -210,14 +211,14 @@ export function PlanEdit() {
   const day = days[Math.min(dayIdx, days.length - 1)];
 
   /** Changes goal or strength mode. Optionally re-applies the goal's default sets to load exercises, keeping their loads. */
-  const changeGoal = (patch: Partial<Pick<Plan, 'goal' | 'strengthMode'>>) => {
+  const changeGoal = async (patch: Partial<Pick<Plan, 'goal' | 'strengthMode'>>) => {
     const next = { ...plan, ...patch };
     if (next.goal === plan.goal && (next.strengthMode ?? 'fixed') === (plan.strengthMode ?? 'fixed')) return;
     setPlan(next);
     const affected = days.some((d) => d.items.some((i) => { const ex = exercises.get(i.exerciseId); return ex && followsGoal(ex); }));
     if (!affected || (next.goal !== 'hypertrophy' && next.goal !== 'strength')) return;
     const label = next.goal === 'hypertrophy' ? '3×8–12' : next.strengthMode === 'range' ? '4×4–6' : '5×5';
-    if (!confirm(t('plan.applyDefaults', { sets: label }))) return;
+    if (!(await dialog.confirm(t('plan.applyDefaults', { sets: label })))) return;
     setDays(
       days.map((d) => ({
         ...d,
@@ -362,7 +363,7 @@ export function PlanEdit() {
             + {t('plan.addExercise')}
           </button>
           <div className="row wrap" style={{ marginTop: '0.75rem' }}>
-            <button className="danger sm" onClick={() => confirm(t('common.confirmDelete', { name: day.name })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
+            <button className="danger sm" onClick={async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
               {t('plan.removeDay')}
             </button>
           </div>

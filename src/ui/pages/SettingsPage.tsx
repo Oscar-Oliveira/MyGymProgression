@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import { loadLibrary } from '../../data/library';
 import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
 import { generateDemo } from '../../domain/demo';
 import { buildBundle, parseBundle, planMerge, previewImport, TABLES, type Bundle, type ConflictPolicy, type DuplicatePolicy, type Preview, type Scope } from '../../domain/interchange';
 import { NumInput } from '../components/NumInput';
 import { download, fmtDate, stamp, useSettings } from '../util';
+import { dialog } from '../components/Dialog';
+import { parseLibraryFile } from '../../domain/library';
 
 const APP_VERSION = '0.1.0';
 
@@ -50,7 +51,7 @@ function ImportPanel() {
     if (!bundle) return;
     const existing = await repo.readAll();
     if (mode === 'replace') {
-      if (!confirm(t('import.replaceWarn'))) return;
+      if (!(await dialog.confirm(t('import.replaceWarn'), { danger: true }))) return;
       download(`mygymprogression-before-import-${stamp()}.json`, JSON.stringify(buildBundle(existing, 'full', APP_VERSION), null, 2));
       await repo.importReplace({ ...bundle.data, settings: bundle.data.settings ?? existing.settings });
     } else {
@@ -169,22 +170,28 @@ export function SettingsPage() {
     const text = kind === 'sets' ? setsCsv(finished) : kind === 'workouts' ? workoutsCsv(finished) : eventsCsv(d.progressionEvents, names);
     download(`mygymprogression-${kind}-${stamp()}.csv`, '﻿' + text, 'text/csv');
   };
-  const importLibrary = async () => {
-    const lib = await loadLibrary();
-    if (!lib) return flash(t('settings.libraryMissing'));
+  const importLibrary = async (file?: File) => {
+    if (!file) return;
     flash('…');
-    flash(t('settings.libraryResult', await repo.importLibrary(lib.exercises)));
+    let records;
+    try {
+      records = parseLibraryFile(JSON.parse(await file.text()));
+    } catch {
+      records = undefined;
+    }
+    if (!records) return flash(t('settings.libraryInvalid'));
+    flash(t('settings.libraryResult', await repo.importLibrary(records)));
   };
   const demo = async () => {
-    if (!confirm(t('settings.demoConfirm'))) return;
-    await repo.seedOrImport();
+    if (!(await dialog.confirm(t('settings.demoConfirm')))) return;
+    await repo.seedLibrary();
     const data = generateDemo(await db.exercises.toArray());
     await repo.importMerge(data);
     flash(t('settings.demoDone'));
   };
   const reset = async () => {
-    if (!confirm(t('settings.resetConfirm'))) return;
-    if (prompt(t('settings.resetConfirm2')) !== 'DELETE') return;
+    if (!(await dialog.confirm(t('settings.resetConfirm'), { danger: true, ok: t('common.delete') }))) return;
+    if ((await dialog.prompt(t('settings.resetConfirm2')))?.trim() !== 'DELETE') return;
     await repo.clearAll();
   };
 
@@ -274,10 +281,14 @@ export function SettingsPage() {
         <h2>{t('settings.library')}</h2>
       </div>
       <section className="card">
+        <p className="help" style={{ marginTop: 0 }}>
+          {t('settings.libraryNotice')}
+        </p>
         <div className="actions" style={{ marginTop: 0 }}>
-          <button className="outline" onClick={() => void importLibrary()}>
-            {t('settings.importLibrary')}
-          </button>
+          <label className="btn btn-outline file-btn">
+            ⤒ {t('settings.importLibrary')}
+            <input type="file" accept="application/json,.json" onChange={(e) => (void importLibrary(e.target.files?.[0]), (e.target.value = ''))} />
+          </label>
           <button className="outline" onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))}>
             {t('settings.seed')}
           </button>

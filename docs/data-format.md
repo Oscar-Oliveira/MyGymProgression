@@ -57,3 +57,30 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 - `progression_events.csv`: one row per progression event.
 
 The files are UTF-8 with a BOM, comma-separated, and quoted where needed.
+
+## Exercise library file
+
+A separate file to add many exercises at once (Settings → Exercise library → Import library file). It can come from any source.
+
+```json
+{
+  "format": "mygymprogression-library",
+  "version": 1,
+  "source": "Name shown on the exercise page",
+  "fetchedAt": "2026-10-29",
+  "exercises": [
+    {
+      "sid": "2", "slug": "bench-press", "url": "https://…", "name": "Bench Press",
+      "bodyParts": ["Chest"], "equipment": ["Barbell"], "type": "weight_reps",
+      "primary": ["Pectoralis Major Sternal Head"], "secondary": ["Triceps Brachii"],
+      "overview": "…", "steps": ["…"], "tips": ["…"], "video": "<YouTube id>",
+      "thumb": "data:image/webp;base64,…", "imageUrl": "https://…", "related": ["<sid>"]
+    }
+  ]
+}
+```
+
+- Required per exercise: `sid` (unique in the source) and `name`. Missing lists are treated as empty.
+- `thumb`: small image, embedded as a `data:` URL so it works offline. `imageUrl`: full image, loaded from the web and then kept offline.
+- `type`: `weight_reps`, `reps_only`, `duration` or `distance_duration`; it chooses what is recorded.
+- Import is repeatable: an exercise with the same `sid`, or the same name, is updated (id, settings, plans and history are kept); others are added.

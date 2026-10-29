@@ -9,6 +9,7 @@ import type { Plan } from '../../domain/types';
 import { Empty } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
+import { dialog } from '../components/Dialog';
 
 export function PlanList() {
   const { t } = useTranslation();
@@ -90,7 +91,7 @@ export function PlanList() {
             <button onClick={() => void act(() => db.plans.put({ ...menu, status: menu.status === 'active' ? 'archived' : 'active' }))}>
               {menu.status === 'active' ? t('common.archive') : t('common.unarchive')}
             </button>
-            <button className="danger" onClick={() => void act(async () => confirm(t('common.confirmDelete', { name: menu.name })) && repo.deletePlan(menu.id))}>
+            <button className="danger" onClick={() => void act(async () => (await dialog.confirm(t('common.confirmDelete', { name: menu.name }), { danger: true, ok: t('common.delete') })) && repo.deletePlan(menu.id))}>
               {t('common.delete')}
             </button>
           </div>

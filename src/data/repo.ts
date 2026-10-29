@@ -3,9 +3,8 @@ import { db as defaultDb, type GymDB } from './db';
 import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
-import { LIBRARY_RULES_VERSION, mergeLibrary, type LibraryRecord } from '../domain/library';
+import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { LIBRARY_PT } from '../domain/library-pt';
-import { loadLibrary } from './library';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
 
@@ -58,30 +57,6 @@ export function createRepo(db: GymDB) {
     /** Adds the external library: enriches matching exercises (same id, plans unchanged) and adds the rest. */
     importLibrary(records: LibraryRecord[]) {
       return serial(() => importLibraryNow(records));
-    },
-
-    /**
-     * Applies the library automatically when the file or the merge rules are newer than what was applied:
-     * existing exercises get images and how-to (ids, plans and history unchanged), new library exercises are added.
-     * Does nothing when there is no library file. Returns true when it ran.
-     */
-    syncLibrary(): Promise<boolean> {
-      return serial(async () => {
-        const lib = await loadLibrary();
-        if (!lib) return false;
-        const version = `${lib.fetchedAt}:${lib.exercises.length}:${LIBRARY_RULES_VERSION}`;
-        if ((await getSettings()).librarySync === version) return false;
-        await importLibraryNow(lib.exercises);
-        await db.settings.put({ ...(await getSettings()), librarySync: version, id: 'settings' });
-        return true;
-      });
-    },
-
-    /** Starter exercises: the built-in list, then the external library (when available) adds images and more exercises. */
-    async seedOrImport(): Promise<number> {
-      const seeded = await this.seedLibrary();
-      const lib = await loadLibrary();
-      return seeded + (lib ? (await this.importLibrary(lib.exercises)).added : 0);
     },
 
     async saveExercise(ex: Exercise) {

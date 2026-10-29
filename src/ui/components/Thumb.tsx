@@ -1,6 +1,9 @@
 import { useState } from 'react';
 
-/** Small exercise image. Library thumbnails are app files (offline); without one, a neutral exercise icon is shown. */
+/** Image address: web and embedded (data:) images as they are; app files relative to the app base. */
+export const assetUrl = (src: string) => (/^(https?|data):/.test(src) ? src : `${import.meta.env.BASE_URL}${src}`);
+
+/** Small exercise image. Library thumbnails are embedded in the exercise (offline); without one, a neutral exercise icon is shown. */
 export function Thumb({ src, name, size = 48 }: { src?: string; name: string; size?: number }) {
   const [failed, setFailed] = useState(false);
   const style = { width: size, height: size };
@@ -17,6 +20,5 @@ export function Thumb({ src, name, size = 48 }: { src?: string; name: string; si
       </span>
     );
   }
-  const url = /^https?:/.test(src) ? src : `${import.meta.env.BASE_URL}${src}`;
-  return <img className="thumb" style={style} src={url} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  return <img className="thumb" style={style} src={assetUrl(src)} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }

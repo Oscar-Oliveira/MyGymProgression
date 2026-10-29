@@ -1,4 +1,4 @@
-// Conversion of an external exercise library (Exsercise.com export, see scripts/import_exsercise.py) into app exercises.
+// Conversion of an exercise library file (any source; format in docs/data-format.md) into app exercises.
 import { newExercise, nowIso } from './factory';
 import type { Exercise, ExerciseCategory, MuscleGroup, Settings } from './types';
 import type { MeasurementPreset } from './units';
@@ -20,6 +20,8 @@ export interface LibraryRecord {
   thumb?: string;
   imageUrl?: string;
   related: string[];
+  /** Name of the source, taken from the file (shown on the exercise page). */
+  source?: string;
 }
 
 /** Portuguese text for a library exercise (optional, for common exercises). */
@@ -29,7 +31,29 @@ export interface LibraryTranslation {
   steps?: string[];
 }
 
-export const SOURCE_NAME = 'Exsercise.com';
+/**
+ * Records of a library file chosen by the user; each record gets the file's source name.
+ * Returns undefined when the content is not a library file.
+ */
+export function parseLibraryFile(data: unknown): LibraryRecord[] | undefined {
+  const file = data as { exercises?: unknown; source?: unknown } | null;
+  if (!Array.isArray(file?.exercises)) return undefined;
+  const source = typeof file.source === 'string' ? file.source : undefined;
+  const records = file.exercises
+    .filter((r): r is LibraryRecord => !!r && typeof r === 'object' && typeof (r as LibraryRecord).sid === 'string' && typeof (r as LibraryRecord).name === 'string')
+    .map((r) => ({ ...r, source: r.source ?? source }));
+  return records.length ? records : undefined;
+}
+
+/** Source name of a record: from the file, else the host of its address. */
+function sourceName(rec: LibraryRecord): string {
+  if (rec.source) return rec.source;
+  try {
+    return new URL(rec.url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
 
 /** Lists in the source file can be missing, null, or a plain string (e.g. "null"). */
 const asList = (v: unknown): string[] =>
@@ -163,7 +187,7 @@ function libraryFields(rec: LibraryRecord, pt?: LibraryTranslation): Partial<Exe
     image: rec.imageUrl || undefined,
     video: youtubeUrl(rec.video) || undefined,
     muscleDetail: { primary: rec.primary, secondary: rec.secondary },
-    source: { name: SOURCE_NAME, id: rec.sid, url: rec.url },
+    source: { name: sourceName(rec), id: rec.sid, url: rec.url },
     related: rec.related,
   };
 }
@@ -258,14 +282,11 @@ export const BUILTIN_LIBRARY_SLUG: Record<string, string> = {
   "Farmer's Walk": 'dumbbell-farmers-carry-82k', 'Band Shoulder Dislocates': 'pvc-pass-through-9lx',
 };
 
-/** Bump when the merge rules or the built-in mapping change, so existing data is synced again. */
-export const LIBRARY_RULES_VERSION = 2;
-
 /** Media and how-to of a library record for an exercise that keeps its own identity and settings. */
 function illustrate(ex: Exercise, rec: LibraryRecord, pt?: LibraryTranslation): Exercise {
   return {
     ...ex,
-    thumb: ex.thumb ?? (rec.thumb || undefined),
+    thumb: rec.thumb || ex.thumb,
     image: ex.image ?? (rec.imageUrl || undefined),
     video: ex.video ?? (youtubeUrl(rec.video) || undefined),
     overview: ex.overview ?? (pt?.overview ?? (rec.overview || undefined)),

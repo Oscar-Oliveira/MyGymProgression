@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, newExercise } from './factory';
-import { exerciseGroup, mergeLibrary, muscleKeys, relatedOf, toExercise, type LibraryRecord } from './library';
+import { exerciseGroup, mergeLibrary, muscleKeys, parseLibraryFile, relatedOf, toExercise, type LibraryRecord } from './library';
 
 const rec = (over: Partial<LibraryRecord> = {}): LibraryRecord => ({
   sid: '2',
   slug: 'bench-press-7',
-  url: 'https://www.exsercise.com/library/bench-press-7',
+  url: 'https://www.example.com/library/bench-press-7',
   name: 'Bench Press',
   bodyParts: ['Chest'],
   equipment: ['Barbell'],
@@ -17,7 +17,7 @@ const rec = (over: Partial<LibraryRecord> = {}): LibraryRecord => ({
   tips: ['Avoid arching your back: keep contact with the bench.', 'Short'],
   video: 'qU9tbGJ8UFc',
   thumb: 'library/thumbs/2.webp',
-  imageUrl: 'https://lyfta.app/images/exercises/00251101.png',
+  imageUrl: 'https://images.example.com/00251101.png',
   related: ['8', '11'],
   ...over,
 });
@@ -34,7 +34,7 @@ describe('library import', () => {
       category: 'compound',
       video: 'https://www.youtube.com/watch?v=qU9tbGJ8UFc',
       thumb: 'library/thumbs/2.webp',
-      source: { name: 'Exsercise.com', id: '2' },
+      source: { name: 'example.com', id: '2' },
       tips: ['Avoid arching your back: keep contact with the bench.'],
     });
     expect(ex.progression.strategy).toBe('double');
@@ -101,6 +101,20 @@ describe('library import', () => {
     expect(u.video).toContain('youtube');
     expect(u.source).toBeUndefined();
     expect(u.defaultSets).toEqual(own.defaultSets);
+  });
+
+  it('a new library file replaces the old image of a built-in exercise (embedded thumbnail)', () => {
+    const own = { ...newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Barbell Bench Press' }), thumb: 'library/thumbs/2.webp' };
+    const { updated } = mergeLibrary([own], [rec({ name: 'Other', thumb: 'data:image/webp;base64,AAAA' })], DEFAULT_SETTINGS);
+    expect(updated[0].thumb).toBe('data:image/webp;base64,AAAA');
+  });
+
+  it('reads a library file; rejects other files', () => {
+    const file = { format: 'mygymprogression-library', version: 1, exercises: [rec(), { name: 'no id' }, null] };
+    expect(parseLibraryFile({ ...file, source: 'My list' })?.map((r) => [r.sid, r.source])).toEqual([['2', 'My list']]);
+    expect(parseLibraryFile({ exercises: [] })).toBeUndefined();
+    expect(parseLibraryFile({ app: 'mygymprogression', data: {} })).toBeUndefined();
+    expect(parseLibraryFile(null)).toBeUndefined();
   });
 
   it('every built-in exercise has a library image mapping', async () => {

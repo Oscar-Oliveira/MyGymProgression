@@ -1,11 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const rec = (sid: string, name: string, bodyParts: string[], related: string[] = []) => ({
-  sid, slug: `${name.toLowerCase().replace(/ /g, '-')}-${sid}`, url: `https://www.exsercise.com/library/x-${sid}`, name, bodyParts,
+  sid, slug: `${name.toLowerCase().replace(/ /g, '-')}-${sid}`, url: `https://www.example.com/library/x-${sid}`, name, bodyParts,
   equipment: ['Barbell'], type: 'weight_reps', primary: ['Pectoralis Major Sternal Head'], secondary: ['Triceps Brachii'],
   overview: `${name} overview.`, steps: [`${name} step one.`, `${name} step two.`], tips: [], video: 'abc123', thumb: '', imageUrl: '', related,
 });
+// A tiny embedded image, as in a library file (docs/data-format.md).
+const THUMB = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 const LIBRARY = {
+  format: 'mygymprogression-library',
+  version: 1,
   source: 'test',
   fetchedAt: '2026-10-29',
   exercises: [
@@ -13,34 +17,65 @@ const LIBRARY = {
     rec('2', 'Incline Bench Press', ['Chest']),
     rec('3', 'Barbell Row', ['Back']),
     // The library equivalent of the built-in "Barbell Back Squat" (see BUILTIN_LIBRARY_SLUG).
-    { ...rec('90', 'Full Squat', ['Thighs']), slug: 'full-squat-n', thumb: 'library/thumbs/90.webp' },
+    { ...rec('90', 'Full Squat', ['Thighs']), slug: 'full-squat-n', thumb: THUMB },
   ],
 };
 
-let libraryAvailable = false;
+let nativeDialogs: string[] = [];
 
-test.beforeEach(async ({ page }, info) => {
-  // The real library file is optional and large; tests use the built-in list, or a small fixture when tagged @library.
-  libraryAvailable = info.title.includes('@library');
-  await page.route('**/library/exsercise.json', (route) => (libraryAvailable ? route.fulfill({ json: LIBRARY }) : route.fulfill({ status: 404, body: '' })));
-  page.on('dialog', (d) => void (d.type() === 'prompt' ? d.accept('DELETE') : d.accept()));
+test.beforeEach(async ({ page }) => {
+  // All messages must use the in-app dialog; a browser alert/confirm/prompt fails the test.
+  nativeDialogs = [];
+  page.on('dialog', (d) => void (nativeDialogs.push(d.message()), d.dismiss()));
   await page.goto('/');
 });
 
-test('existing exercises get library images automatically when the app opens (no click)', async ({ page }) => {
+test.afterEach(() => expect(nativeDialogs).toEqual([]));
+
+test('in-app confirmation: cancel keeps the workout, confirm discards it', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByRole('button', { name: /Start workout/ }).click();
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: 'Discard workout' }).click();
+  const confirm = page.getByRole('dialog', { name: 'Confirm' });
+  await confirm.getByRole('button', { name: 'Cancel' }).click();
+  await expect(confirm).toHaveCount(0);
+  await expect(page.getByRole('tablist')).toBeVisible();
+  await page.getByRole('button', { name: 'Discard workout' }).click();
+  await confirm.getByRole('button', { name: 'Discard workout' }).click();
+  await expect(page.getByText('Next workout')).toBeVisible();
+});
+
+async function importLibraryFile(page: Page, data: unknown = LIBRARY) {
+  await more(page, /^Settings/);
+  await page.getByLabel('Import library file').setInputFiles({ name: 'mygymprogression-library.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(data)) });
+}
+
+test('the app does not load a library by itself', async ({ page }) => {
+  await more(page, /^Exercises/);
+  await expect(page.getByRole('button', { name: 'Add starter exercises' })).toBeVisible();
+});
+
+test('library file: existing exercises get the embedded image', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   await more(page, /^Exercises/);
   await page.getByRole('searchbox').fill('Barbell Back Squat');
   await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).locator('img.thumb')).toHaveCount(0);
-  // The library file becomes available (e.g. after an update); the next app start applies it.
-  libraryAvailable = true;
-  await page.reload();
+  await importLibraryFile(page);
+  await expect(page.getByText(/added, \d+ updated\./)).toBeVisible();
+  await more(page, /^Exercises/);
   await page.getByRole('searchbox').fill('Barbell Back Squat');
-  await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first().locator('img.thumb')).toHaveAttribute('src', /library\/thumbs\/90\.webp/);
+  await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first().locator('img.thumb')).toHaveAttribute('src', THUMB);
 });
 
-test('@library: loaded on first start; muscle groups, detail with how-to, video and related exercises', async ({ page }) => {
-  // No click needed: the library is applied when the app opens.
+test('library file: a file that is not a library shows an error', async ({ page }) => {
+  await importLibraryFile(page, { hello: 'world' });
+  await expect(page.getByText('This file is not an exercise library.')).toBeVisible();
+});
+
+test('library file: muscle groups, detail with how-to, video and related exercises', async ({ page }) => {
+  await importLibraryFile(page);
+  await expect(page.getByText('4 added, 0 updated.')).toBeVisible();
   await more(page, /^Exercises/);
   await expect(page.getByRole('heading', { name: 'Muscle groups' })).toBeVisible();
   await page.getByRole('tab', { name: /Chest/ }).click();
@@ -182,6 +217,9 @@ test('demo data → analysis → export → delete all → import restores data'
   await page.getByRole('button', { name: 'Full backup (JSON)' }).click();
   const file = await (await download).path();
   await page.getByRole('button', { name: 'Delete all data' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('textbox').fill('DELETE');
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'OK' }).click();
   await tab(page, 'History');
   await expect(page.getByText('No workouts yet.')).toBeVisible();
 
@@ -191,7 +229,12 @@ test('demo data → analysis → export → delete all → import restores data'
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await expect(page.getByText('Import completed.')).toBeVisible();
   await tab(page, 'History');
-  await expect(page.locator('a.nav-row')).toHaveCount(12);
+  await expect(page.getByText('12 workouts')).toBeVisible();
+  await expect(page.locator('a.hist-row')).toHaveCount(10);
+  await expect(page.getByText('Page 1 of 2')).toBeVisible();
+  await page.getByRole('button', { name: 'Next ›' }).click();
+  await expect(page.locator('a.hist-row')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Next ›' })).toBeDisabled();
 });
 
 test('invalid import file shows an error', async ({ page }) => {

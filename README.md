@@ -15,6 +15,33 @@ npm run build      # type check + production build in dist/
 npm run preview    # serve dist/ at http://localhost:4173 (PWA/offline works here)
 ```
 
+## Exercise library
+
+The app has no built-in external library. It imports a library file from any source (format: [docs/data-format.md](docs/data-format.md#exercise-library-file)): **More → Settings → Exercise library → Import library file**.
+
+Optional: `scripts/import_exsercise.py` builds such a file from Exsercise.com (see the notice below):
+
+```bash
+python -I scripts/import_exsercise.py fetch  <work_dir>
+python -I scripts/import_exsercise.py thumbs <work_dir>
+python -I scripts/import_exsercise.py build  <work_dir>
+python -I scripts/import_exsercise.py pack   private/mygymprogression-library.json
+```
+
+`pack` writes one file with all exercise data and the thumbnails embedded. Copy it to the phone, then **More → Settings → Exercise library → Import library file**. All output stays in `private/` (git-ignored, never published with the app). The file is for personal use: do not share or publish it.
+
+> **Notice:** Exsercise.com exercise data must only be extracted with the express permission of Exsercise.com. We accept no responsibility for extraction done without that permission. Other ways to import exercises will be added in the future.
+
+## Publish on GitHub Pages (install on a phone)
+
+The site is built locally and pushed to the `gh-pages` branch. It contains no exercise library (see above).
+
+```bash
+npm run deploy:pages   # build for https://<user>.github.io/MyGymProgression/ and push dist/ to gh-pages
+```
+
+Once: GitHub → repository → Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root. If the repository has another name, change `--base` in the `build:pages` script.
+
 ## Test
 
 ```bash

@@ -1,16 +1,24 @@
 """
 Personal-use import of the Exsercise.com exercise library (https://www.exsercise.com/).
 
-Output (git-ignored, not for redistribution):
-  public/library/exsercise.json   exercise records
-  public/library/thumbs/<id>.webp small thumbnails
+NOTICE: Exsercise.com data must only be extracted with the express permission of Exsercise.com.
+We accept no responsibility for extraction done without that permission.
+Other ways to import exercises will be added in the future.
+
+Output (git-ignored, personal use only, not for redistribution; never inside public/, so it is not published with the app):
+  private/library/exsercise.json   exercise records
+  private/library/thumbs/<id>.webp small thumbnails
+  <out_file> (pack)                one file with all exercise data and the thumbnails embedded,
+                                   to import in the app: Settings → Exercise library → Import library file
 
 Polite crawling: 2 parallel requests, a pause between requests, retries, and resume (records already fetched are skipped).
 Usage:
   python -I scripts/import_exsercise.py fetch  <work_dir>   # pages → <work_dir>/records.jsonl
-  python -I scripts/import_exsercise.py thumbs <work_dir>   # images → public/library/thumbs
-  python -I scripts/import_exsercise.py build  <work_dir>   # records → public/library/exsercise.json
+  python -I scripts/import_exsercise.py thumbs <work_dir>   # images → private/library/thumbs
+  python -I scripts/import_exsercise.py build  <work_dir>   # records → private/library/exsercise.json
+  python -I scripts/import_exsercise.py pack   <out_file>   # exsercise.json + thumbs → one importable file
 """
+import base64
 import concurrent.futures as cf
 import html
 import io
@@ -24,7 +32,7 @@ import urllib.request
 UA = 'MyGymProgression-personal-import/0.1 (+personal use)'
 BASE = 'https://www.exsercise.com'
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'public', 'library')
+OUT = os.path.join(ROOT, 'private', 'library')
 DELAY = 0.6
 
 
@@ -170,5 +178,26 @@ def build(work):
     print(f'built {len(recs)} exercises', flush=True)
 
 
+def pack(out_file):
+    """One self-contained file: every record field, with the thumbnail embedded as a data URL."""
+    with open(os.path.join(OUT, 'exsercise.json'), encoding='utf-8') as f:
+        lib = json.load(f)
+    embedded = 0
+    for r in lib['exercises']:
+        path = os.path.join(ROOT, 'private', r['thumb']) if r.get('thumb') else ''
+        if path and os.path.exists(path):
+            with open(path, 'rb') as t:
+                r['thumb'] = 'data:image/webp;base64,' + base64.b64encode(t.read()).decode('ascii')
+            embedded += 1
+        else:
+            r['thumb'] = ''
+    out = {'format': 'mygymprogression-library', 'version': 1, **lib, 'source': 'Exsercise.com'}
+    with open(out_file, 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
+    print(f'packed {len(lib["exercises"])} exercises ({embedded} thumbnails) -> {out_file}', flush=True)
+
+
 if __name__ == '__main__':
-    {'fetch': fetch, 'thumbs': thumbs, 'build': build}[sys.argv[1]](sys.argv[2])
+    print('NOTICE: extract Exsercise.com data only with the express permission of Exsercise.com. '
+          'We accept no responsibility for extraction done without that permission.', file=sys.stderr, flush=True)
+    {'fetch': fetch, 'thumbs': thumbs, 'build': build, 'pack': pack}[sys.argv[1]](sys.argv[2])

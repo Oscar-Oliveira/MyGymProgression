@@ -7,18 +7,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       workbox: {
-        // The exercise library (public/library) is large: cached on first use instead of precached.
-        globIgnores: ['library/**'],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.includes('/library/'),
-            handler: 'CacheFirst',
-            options: { cacheName: 'library', expiration: { maxEntries: 6000 } },
-          },
-          {
-            urlPattern: ({ url }) => url.hostname === 'lyfta.app',
+            // Exercise images from other sites (library files may link to full-size images).
+            urlPattern: ({ request, url }) => request.destination === 'image' && url.origin !== self.location.origin,
             handler: 'CacheFirst',
             options: { cacheName: 'exercise-images', expiration: { maxEntries: 500 }, cacheableResponse: { statuses: [0, 200] } },
           },
@@ -28,11 +22,15 @@ export default defineConfig({
         name: 'MyGymProgression',
         short_name: 'GymProg',
         description: 'Training plans, workout logging and progression',
-        theme_color: '#1f6feb',
-        background_color: '#0d1117',
+        theme_color: '#5b4cf5',
+        background_color: '#5b4cf5',
         display: 'standalone',
         start_url: '.',
-        icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       },
     }),
   ],

@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
 import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
-import { Thumb } from '../components/Thumb';
+import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { MetricDef, SetRecord } from '../../domain/types';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
@@ -83,7 +83,7 @@ export function ExerciseDetail() {
   return (
     <div className="stack">
       {ex?.image || ex?.thumb ? (
-        <img className="ex-hero" src={ex.image ?? `${import.meta.env.BASE_URL}${ex.thumb}`} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = `${import.meta.env.BASE_URL}${ex.thumb}`)} />
+        <img className="ex-hero" src={assetUrl(ex.image ?? ex.thumb!)} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />
       ) : null}
       <div className="page-head">
         <div>
@@ -106,7 +106,7 @@ export function ExerciseDetail() {
                 ▶ {t('exercise.video')}
               </a>
             )}
-            {ex.source && (
+            {ex.source?.url && (
               <a className="btn btn-outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
                 {ex.source.name} ↗
               </a>
