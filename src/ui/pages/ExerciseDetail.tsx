@@ -10,7 +10,7 @@ import type { MetricDef, SetRecord } from '../../domain/types';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, tr, useSettings } from '../util';
 
-export function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {
+function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {
   const v = s.values;
   const hasRL = metrics.some((m) => m.key === 'reps') && metrics.some((m) => m.key === 'load');
   if (hasRL && v.reps !== undefined) {
@@ -25,7 +25,7 @@ export function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): str
 }
 
 /** Charts that fit the exercise's metrics. Volume only for load+reps. */
-export function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction }) {
+function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction }) {
   const s = useSettings();
   if (!history.length) return null;
   const metrics = history[history.length - 1].entry.exercise.metrics;

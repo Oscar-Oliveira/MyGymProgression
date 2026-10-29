@@ -131,7 +131,7 @@ function evaluateDouble(input: EvalInput, completion: Completion, completionReas
   const pm = s?.metric ?? 'load';
   const ps = pairs(input.prescription, input.sets);
 
-  if (input.substituted) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
+  if (input.substituted && input.config.criteria.blockOnSubstitution) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
 
   const missed = ps.flatMap(({ index, p, r }) => {
     const min = p.targets.reps?.min ?? p.targets.reps?.value;
@@ -173,7 +173,7 @@ function evaluateDouble(input: EvalInput, completion: Completion, completionReas
 }
 
 function evaluateTargets(input: EvalInput, completion: Completion, completionReasons: Reason[]): Evaluation {
-  if (input.substituted) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
+  if (input.substituted && input.config.criteria.blockOnSubstitution) return result(input, 'restricted', completion, [{ code: 'substituted' }]);
   const stepMetrics = new Set(input.config.steps.map((s) => s.metric));
   const missed = completionReasons.filter((r) => r.code === 'set_below_target' && stepMetrics.has(r.params?.metric as MetricKey));
   if (missed.length) {

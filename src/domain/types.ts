@@ -29,7 +29,6 @@ export type SetKind = 'warmup' | 'working' | 'backoff';
 export interface SetPrescription {
   kind: SetKind;
   targets: Partial<Record<MetricKey, Target>>;
-  restSec?: number;
 }
 
 export type ProgressionStrategy = 'double' | 'duration' | 'distance' | 'intensity' | 'multi' | 'manual' | 'none';
@@ -182,7 +181,6 @@ export interface SetRecord {
   values: Partial<Record<MetricKey, number>>;
   /** Today's goal for this set, computed at workout start (e.g. last time + 1 rep). */
   goal?: Partial<Record<MetricKey, number>>;
-  restSec?: number;
   status: SetStatus;
   notes: string;
 }

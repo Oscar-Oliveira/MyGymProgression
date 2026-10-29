@@ -63,6 +63,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   2: (raw) => ({ ...raw, schemaVersion: 3 }),
   // v4 only adds optional library fields to exercises (images, steps, video, source).
   3: (raw) => ({ ...raw, schemaVersion: 4 }),
+  // v5 removes rest times; validation drops the old restSec fields.
+  4: (raw) => ({ ...raw, schemaVersion: 5 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

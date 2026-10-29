@@ -7,7 +7,7 @@ import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { loadLibrary } from './library';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
+import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   async function getSettings(): Promise<Settings> {
@@ -159,13 +159,17 @@ export function createRepo(db: GymDB) {
       });
     },
 
+    /** Deletes a workout. Progression changes it caused are undone when they are still current; its events are removed. */
     async deleteWorkout(id: string) {
-      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, async () => {
+      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
         await db.workouts.delete(id);
         await db.revisions.where('workoutId').equals(id).delete();
-        // Applied and decided events stay as progression history; undecided ones are removed.
         const evs = await db.progressionEvents.where('workoutId').equals(id).toArray();
-        await db.progressionEvents.bulkDelete(evs.filter((e) => e.decision === 'pending' || e.decision === 'none').map((e) => e.id));
+        for (const ev of evs) {
+          const state = await db.progressionStates.get(ev.lineageId);
+          if (state && canRevert(ev, state)) await db.progressionStates.put(decide(ev, state, { kind: 'revert' }).state);
+        }
+        await db.progressionEvents.bulkDelete(evs.map((e) => e.id));
       });
     },
 

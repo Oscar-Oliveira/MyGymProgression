@@ -2,15 +2,18 @@
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../data/db';
 import { repo } from '../data/repo';
+import { canRevert } from '../domain/workout';
 import { currentTarget } from '../domain/progression';
 import type { MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
 import { NumInput } from './components/NumInput';
 import { fmtNum, fmtValue, metricLabel, reasonText, useSettings } from './util';
 
 export type Trend = 'up' | 'same' | 'down' | 'ask' | 'done' | 'short';
-export const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '✓' };
-export const TREND_CLASS: Record<Trend, string> = { up: 'up', same: '', down: 'down', ask: 'warn', done: 'up', short: 'warn' };
+const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '✓' };
+const TREND_CLASS: Record<Trend, string> = { up: 'up', same: '', down: 'down', ask: 'warn', done: 'up', short: 'warn' };
 
 export function TrendMark({ trend }: { trend: Trend }) {
   return (
@@ -90,7 +93,7 @@ export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): s
 }
 
 /** Trend for an entry and its event, for summaries and lists. */
-export function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
+function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
   if (ev) {
     if (ev.decision === 'applied' || ev.decision === 'reps_up') return 'up';
     if (ev.decision === 'pending') return 'ask';
@@ -112,7 +115,7 @@ function mainValue(entry: WorkoutEntry, targets?: Partial<Record<MetricKey, numb
 const firstReason = (t: TFunction, reasons: Reason[], metrics: MetricDef[]) => (reasons[0] ? reasonText(t, reasons[0], metrics) : '');
 
 /** One line "what happens next" and one line "why" for an evaluated entry. */
-export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: TFunction, lang: string): { what: string; why: string } {
+function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: TFunction, lang: string): { what: string; why: string } {
   const metrics = entry.exercise.metrics;
   const evn = entry.evaluation;
   const sets = setsLine(entry.sets, metrics, lang);
@@ -159,6 +162,8 @@ export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?:
   const s = useSettings();
   const [custom, setCustom] = useState(false);
   const [value, setValue] = useState<number | undefined>(ev?.suggestion?.to);
+  const state = useLiveQuery(() => (ev ? db.progressionStates.get(ev.lineageId) : undefined), [ev?.lineageId]);
+  const undoable = !compact && !!ev && (ev.decision === 'applied' || ev.decision === 'reps_up') && canRevert(ev, state);
   const trend = trendOf(entry, ev);
   const { what, why } = decisionText(entry, ev, t, s.language);
   const metrics = entry.exercise.metrics;
@@ -217,7 +222,7 @@ export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?:
           </div>
         )}
       </div>
-      {!compact && (ev?.decision === 'applied' || ev?.decision === 'reps_up') && (
+      {undoable && (
         <button className="ghost sm" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
           {t('decide.undo')}
         </button>

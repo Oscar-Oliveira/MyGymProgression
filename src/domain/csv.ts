@@ -17,7 +17,7 @@ export function setsCsv(workouts: Workout[]): string {
   const header = [
     'workout_id', 'date', 'plan', 'day', 'workout_status', 'entry_no', 'exercise_id', 'exercise', 'substituted_for', 'set_no', 'kind', 'status',
     ...keys.flatMap((k) => [k, `${k}_unit`]),
-    'load_mode', 'goal', 'rest_s', 'notes',
+    'load_mode', 'goal', 'notes',
   ];
   const rows: unknown[][] = [];
   for (const w of workouts) {
@@ -27,7 +27,7 @@ export function setsCsv(workouts: Workout[]): string {
         rows.push([
           w.id, w.startedAt, w.planName, w.dayName, w.status, ei + 1, e.exerciseId, e.exercise.name, e.substitutedFor, si + 1, s.kind, s.status,
           ...keys.flatMap((k) => (s.values[k] === undefined ? ['', ''] : [s.values[k], units[k] ?? ''])),
-          e.exercise.loadMode, s.goal ? JSON.stringify(s.goal) : '', s.restSec, s.notes,
+          e.exercise.loadMode, s.goal ? JSON.stringify(s.goal) : '', s.notes,
         ]);
       });
     });

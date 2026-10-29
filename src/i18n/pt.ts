@@ -1,7 +1,6 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  app: { name: 'MyGymProgression' },
   nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições' },
   more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação' },
   common: {
@@ -73,7 +72,7 @@ export const pt: Resources = {
   },
   validation: { required: 'Obrigatório', invalid: 'Número inválido' },
   setKind: { warmup: 'Aquecimento', working: 'Trabalho', backoff: 'Back-off' },
-  setStatus: { pending: 'Por fazer', done: 'Feita', skipped: 'Saltada' },
+  setStatus: { done: 'Feita', skipped: 'Saltada' },
   role: { warmup: 'Aquecimento', main: 'Principal', optional: 'Opcional' },
   loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter' },
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
@@ -85,7 +84,7 @@ export const pt: Resources = {
     seed: 'Adicionar exercícios iniciais', createPlan: 'Criar um plano', demo: 'Experimentar com dados de exemplo',
     backup: 'Última cópia {{date}}.', noBackup: 'Ainda sem cópia de segurança — os dados estão só neste navegador.',
   },
-  dashboard: { seed: 'Adicionar exercícios iniciais (~40)', emptyLibrary: 'A biblioteca de exercícios está vazia.', backupReminder: 'Última cópia: {{date}}.' },
+  dashboard: { emptyLibrary: 'A biblioteca de exercícios está vazia.', backupReminder: 'Última cópia: {{date}}.' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
     free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
@@ -109,7 +108,7 @@ export const pt: Resources = {
     applyPreset: 'Aplicar tipo', loadLibrary: 'Carregar biblioteca de exercícios', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', refine: 'a mostrar os primeiros {{n}}; refine a pesquisa',
     video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
   },
-  prescription: { sets: 'Séries', addSet: 'Adicionar série', kind: 'Tipo', min: 'mín', max: 'máx', target: 'alvo', rest: 'Descanso (s)', setN: 'Série {{n}}' },
+  prescription: { sets: 'Séries', addSet: 'Adicionar série', kind: 'Tipo', min: 'mín', max: 'máx', target: 'alvo', setN: 'Série {{n}}' },
   progression: {
     increment: 'Incremento', cap: 'Limite (opcional)', addStep: 'Adicionar variável', criteria: 'Não subir quando…', variable: 'Variável',
     blockOnPain: 'há dor registada', blockOnTechnique: 'há problema de técnica', blockOnSubstitution: 'o exercício é substituído',
@@ -129,20 +128,20 @@ export const pt: Resources = {
       other: 'Outro: cada exercício usa a sua própria progressão da biblioteca.',
     },
     applyDefaults: 'Aplicar {{sets}} aos exercícios com carga deste plano? As cargas mantêm-se.',
-    custom: 'personalizada',
     rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
   },
   analysis: {
     title: 'Análise', period: 'Período', p28: '4 semanas', p84: '12 semanas', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
     workouts: 'Treinos', workingSets: 'Séries', completionRate: 'Cumprido', byExercise: 'Por exercício', now: 'agora', fixed: 'Fixo', completionShort: '{{pct}}% cumprido',
     sessionsN: '{{count}} sessões', sessionsN_one: '{{count}} sessão', sessionsN_other: '{{count}} sessões', stalledShort: 'estagnado', noData: 'Sem treinos neste período.',
-    moreDetails: 'Mais detalhes', muscles: 'Séries por músculo', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
+    moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
     topLoad: 'Série mais pesada', e1rm: '1RM estimado (Epley)', totalReps: 'Total de reps', maxDuration: 'Série mais longa', distance: 'Distância', pace: 'Ritmo', avgSpeed: 'Velocidade média', avgIncline: 'Inclinação média', loadEvents: 'Histórico de progressão',
     formula: {
       trend: 'Seta: primeira vs última sessão do período, com o número principal (carga da série mais pesada, série mais longa, distância ou reps).',
       volume: 'Volume = Σ(carga × reps) das séries de trabalho feitas. Só para exercícios com carga e reps. Cargas por lado contam a dobrar.',
       e1rm: '1RM estimado (Epley) = carga × (1 + reps/30), para 1–12 reps. É uma estimativa, não um máximo medido.',
       completion: 'Cumprido = séries previstas feitas ÷ séries previstas.',
+      adherence: 'Adesão = treinos terminados do plano ÷ (dias do plano × semanas do período).',
       stalled: 'Estagnado = as últimas {{n}} sessões não tiveram subida nem mais repetições. Exercícios fixos e manuais nunca são marcados.',
       muscles: 'Uma série feita conta 1 para os músculos principais e 0,5 para os secundários.',
     },

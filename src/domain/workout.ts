@@ -19,14 +19,17 @@ import type {
   WorkoutEntry,
 } from './types';
 
-/** Returns a lookup for the latest finished entry of a lineage, optionally only before a date. */
+/**
+ * Returns a lookup for the latest finished entry of a lineage, optionally only before a date.
+ * Substituted entries are skipped: "last time" always refers to the planned exercise.
+ */
 export function lastEntryFinder(workouts: Workout[], beforeIso?: string): (lineageId: string) => WorkoutEntry | undefined {
   const sorted = workouts
     .filter((w) => w.status !== 'in_progress' && (!beforeIso || w.startedAt < beforeIso))
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   return (lineageId) => {
     for (const w of sorted) {
-      const e = w.entries.find((x) => x.lineageId === lineageId);
+      const e = w.entries.find((x) => x.lineageId === lineageId && !x.substitutedFor);
       if (e) return e;
     }
     return undefined;
@@ -232,6 +235,19 @@ export function finishWorkout(
 
 export type DecisionInput = { kind: 'keep' } | { kind: 'apply' } | { kind: 'stepBack' } | { kind: 'repsUp' } | { kind: 'revert' } | { kind: 'set'; value: number; reason: string };
 
+const sameTargets = (a: ProgressionState['targets'], b: ProgressionState['targets']) =>
+  JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
+
+/**
+ * An applied change can be undone only while it is still the current state,
+ * so undoing an old event never overwrites newer progress.
+ */
+export function canRevert(event: ProgressionEvent, state: ProgressionState | undefined): boolean {
+  if (!['applied', 'reps_up', 'stepped_back', 'overridden'].includes(event.decision)) return false;
+  if (!state) return true;
+  return sameTargets(state.targets, event.after) && JSON.stringify(state.repsRange ?? null) === JSON.stringify(event.rangeAfter ?? null);
+}
+
 /** Applies a user decision to an event and returns the updated event and progression state. */
 export function decide(event: ProgressionEvent, state: ProgressionState | undefined, input: DecisionInput): { event: ProgressionEvent; state: ProgressionState } {
   const now = nowIso();
@@ -249,6 +265,7 @@ export function decide(event: ProgressionEvent, state: ProgressionState | undefi
     case 'keep':
       return done('kept', next({ ...base.targets, ...event.before }, event.rangeBefore));
     case 'revert':
+      if (!canRevert(event, state)) return { event, state: base };
       return done('reverted', next({ ...base.targets, ...event.before }, event.rangeBefore));
     case 'apply':
     case 'stepBack': {
@@ -282,7 +299,7 @@ export function manualAdjust(
   const after = { ...before, ...targets };
   return {
     event: { id: uid(), lineageId, exerciseId, strategy, outcome: 'manual', reasons: [], decision: 'overridden', decisionReason: reason, before, after, createdAt: now, decidedAt: now },
-    state: { lineageId, exerciseId, targets: after, updatedAt: now },
+    state: { lineageId, exerciseId, targets: after, ...(state?.repsRange ? { repsRange: state.repsRange } : {}), updatedAt: now },
   };
 }
 

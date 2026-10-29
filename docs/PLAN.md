@@ -21,6 +21,8 @@ Source requirements: [`context.md`](../context.md).
 | D10 | UI redesign: follows system light/dark, large numbers; 4 tabs (Home · Train · History · More); workout shows one exercise at a time with one-tap "Set done"; focused Home; simple plan editor (advanced options folded); analysis per exercise. | 2026-10-29 |
 | D11 | Progression depends on the **plan goal** (for exercises with reps and load). Hypertrophy: at the top of the range the user chooses ⬆ load (back to the plan's range) or ⬆ reps (range +1, same load). Strength: the load goes up automatically; mode chosen in the plan: fixed reps (5×5) or low range (4×4–6). Mixed/Other: the exercise's own rule. New exercises in a plan get the goal's default sets; changing the goal offers to re-apply them (loads kept). Schema v3 (additive). | 2026-10-29 |
 | D12 | Corrections recreate undecided progression decisions; decided ones are kept. Home shows a pending decision once. | 2026-10-29 |
+| D13 | Rest times removed (prescriptions, records, editor, CSV); a rest timer is out of scope. Schema v5 / database v3 strip old rest fields. | 2026-10-29 |
+| D14 | Code review fixes: substitution respects its "block" setting; manual target edits keep a reps-up range; "last time" ignores substituted sessions; undo only while the change is still current; deleting a workout undoes its still-current progression changes. Adherence shown again in Analysis. | 2026-10-29 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 
@@ -295,7 +297,7 @@ At the end of each milestone I will report the changes, the test results and the
 
 ## 15. Backlog (not in MVP)
 
-Rest timer · body measurements and photos · cloud sync/accounts · reminders · template sharing · wearables · fatigue/plateau modelling · AI analysis · encrypted backups · local image upload.
+~~Rest timer~~ (excluded, D13) · body measurements and photos · cloud sync/accounts · reminders · template sharing · wearables · fatigue/plateau modelling · AI analysis · encrypted backups · local image upload.
 
 ## 16. Decision log
 

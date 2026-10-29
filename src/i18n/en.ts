@@ -1,5 +1,4 @@
 export const en = {
-  app: { name: 'MyGymProgression' },
   nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', analysis: 'Analysis', settings: 'Settings' },
   more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', analysis: 'Progress per exercise', settings: 'Units, language, backup and import' },
   common: {
@@ -71,7 +70,7 @@ export const en = {
   },
   validation: { required: 'Required', invalid: 'Invalid number' },
   setKind: { warmup: 'Warm-up', working: 'Working', backoff: 'Back-off' },
-  setStatus: { pending: 'To do', done: 'Done', skipped: 'Skipped' },
+  setStatus: { done: 'Done', skipped: 'Skipped' },
   role: { warmup: 'Warm-up', main: 'Main', optional: 'Optional' },
   loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell' },
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
@@ -83,7 +82,7 @@ export const en = {
     seed: 'Add starter exercises', createPlan: 'Create a plan', demo: 'Try with example data',
     backup: 'Last backup {{date}}.', noBackup: 'No backup yet — data lives only in this browser.',
   },
-  dashboard: { seed: 'Add starter exercises (~40)', emptyLibrary: 'Your exercise library is empty.', backupReminder: 'Last backup: {{date}}.' },
+  dashboard: { emptyLibrary: 'Your exercise library is empty.', backupReminder: 'Last backup: {{date}}.' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
     free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
@@ -107,7 +106,7 @@ export const en = {
     applyPreset: 'Apply type', loadLibrary: 'Load exercise library', groups: 'Muscle groups', allEquipment: 'All equipment', refine: 'showing the first {{n}}; refine the search',
     video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
   },
-  prescription: { sets: 'Sets', addSet: 'Add set', kind: 'Type', min: 'min', max: 'max', target: 'target', rest: 'Rest (s)', setN: 'Set {{n}}' },
+  prescription: { sets: 'Sets', addSet: 'Add set', kind: 'Type', min: 'min', max: 'max', target: 'target', setN: 'Set {{n}}' },
   progression: {
     increment: 'Increment', cap: 'Cap (optional)', addStep: 'Add variable', criteria: 'Block the increase when…', variable: 'Variable',
     blockOnPain: 'pain is recorded', blockOnTechnique: 'a technique issue is recorded', blockOnSubstitution: 'the exercise is substituted',
@@ -127,20 +126,20 @@ export const en = {
       other: 'Other: each exercise uses its own progression from the library.',
     },
     applyDefaults: 'Apply {{sets}} to the load exercises of this plan? Loads are kept.',
-    custom: 'custom',
     rule: { ask: 'Load or reps (you choose)', load: 'Load goes up automatically' },
   },
   analysis: {
     title: 'Analysis', period: 'Period', p28: '4 weeks', p84: '12 weeks', p182: '6 months', p0: 'All', plan: 'Plan',
     workouts: 'Workouts', workingSets: 'Sets', completionRate: 'Completed', byExercise: 'By exercise', now: 'now', fixed: 'Fixed', completionShort: '{{pct}}% completed',
     sessionsN: '{{count}} sessions', sessionsN_one: '{{count}} session', sessionsN_other: '{{count}} sessions', stalledShort: 'stalled', noData: 'No workouts in this period.',
-    moreDetails: 'More details', muscles: 'Sets per muscle', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
+    moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
     topLoad: 'Top set', e1rm: 'Estimated 1RM (Epley)', totalReps: 'Total reps', maxDuration: 'Longest set', distance: 'Distance', pace: 'Pace', avgSpeed: 'Average speed', avgIncline: 'Average incline', loadEvents: 'Progression history',
     formula: {
       trend: 'Arrow: first vs last session in the period, using the main number (top set load, longest set, distance or reps).',
       volume: 'Volume = Σ(load × reps) of completed working sets. Only for load + reps exercises. Per-side loads count twice.',
       e1rm: 'Estimated 1RM (Epley) = load × (1 + reps/30), for 1–12 reps. An estimate, not a measured maximum.',
       completion: 'Completed = completed planned sets ÷ planned sets.',
+      adherence: 'Adherence = finished workouts of the plan ÷ (plan days × weeks in the period).',
       stalled: 'Stalled = the last {{n}} sessions had no increase and no rep progress. Fixed and manual exercises are never flagged.',
       muscles: 'A completed set counts 1 for main muscles and 0.5 for secondary muscles.',
     },

@@ -176,4 +176,27 @@ describe('repo (IndexedDB)', () => {
     expect(evs).toHaveLength(1);
     expect(evs[0].decision).toBe('stepped_back');
   });
+
+  it('deleting a workout undoes its automatic increase', async () => {
+    const { plan, day } = await setupPlan();
+    const wid = await doSession(plan.id, day.id, [12, 12, 12]);
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(42.5);
+    await repo.deleteWorkout(wid);
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(40);
+    expect(await db.progressionEvents.count()).toBe(0);
+  });
+
+  it('database v3 removes old rest times from saved data', async () => {
+    const name = `test-${crypto.randomUUID()}`;
+    const { default: Dexie } = await import('dexie');
+    const old = new Dexie(name);
+    old.version(2).stores({ exercises: 'id', plans: 'id', planVersions: 'id', progressionStates: 'lineageId', workouts: 'id', progressionEvents: 'id', revisions: 'id', settings: 'id' });
+    const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Old' });
+    await old.table('exercises').add({ ...ex, defaultSets: ex.defaultSets.map((s) => ({ ...s, restSec: 90 })) });
+    old.close();
+    const db2 = new GymDB(name);
+    const got = (await db2.exercises.get(ex.id))!;
+    expect(got.defaultSets[0]).not.toHaveProperty('restSec');
+    expect(got.name).toBe('Old');
+  });
 });

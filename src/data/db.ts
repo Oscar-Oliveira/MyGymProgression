@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { v1to2 } from '../domain/migrations';
+import { dropRest, v1to2 } from '../domain/migrations';
 import type { Exercise, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
 
 export class GymDB extends Dexie {
@@ -33,6 +33,12 @@ export class GymDB extends Dexie {
       await tx.table('workouts').toCollection().modify((w, ref) => void (ref.value = v1to2.workout(up(w))));
       await tx.table('progressionEvents').toCollection().modify((e, ref) => void (ref.value = v1to2.event(up(e))));
       await tx.table('revisions').toCollection().modify((r, ref) => void (ref.value = v1to2.revision(up(r))));
+    });
+    // v3: rest times removed.
+    this.version(3).stores({}).upgrade(async (tx) => {
+      for (const t of ['exercises', 'planVersions', 'workouts', 'revisions']) {
+        await tx.table(t).toCollection().modify((x, ref) => void (ref.value = dropRest(x)));
+      }
     });
   }
 }

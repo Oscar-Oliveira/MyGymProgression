@@ -24,7 +24,7 @@ export function goalSets(plan: Pick<Plan, 'goal' | 'strengthMode'> | undefined, 
   if (!plan || !followsGoal(ex) || (plan.goal !== 'hypertrophy' && plan.goal !== 'strength')) return structuredClone(ex.defaultSets);
   const template = ex.defaultSets.find((s) => s.kind === 'working') ?? { kind: 'working' as const, targets: {} };
   const warm = ex.defaultSets.filter((s) => s.kind === 'warmup');
-  const [n, min, max, rest] = plan.goal === 'hypertrophy' ? [3, 8, 12, 90] : plan.strengthMode === 'range' ? [4, 4, 6, 180] : [5, 5, 5, 180];
-  const working = Array.from({ length: n }, () => ({ ...structuredClone(template), targets: { ...structuredClone(template.targets), reps: { min, max } }, restSec: rest }));
+  const [n, min, max] = plan.goal === 'hypertrophy' ? [3, 8, 12] : plan.strengthMode === 'range' ? [4, 4, 6] : [5, 5, 5];
+  const working = Array.from({ length: n }, () => ({ ...structuredClone(template), targets: { ...structuredClone(template.targets), reps: { min, max } } }));
   return [...structuredClone(warm), ...working];
 }

@@ -123,43 +123,43 @@ export const DEFAULT_CRITERIA = { blockOnPain: true, blockOnTechnique: true, blo
 
 /** Default prescription and progression suggested for a preset. */
 export function presetDefaults(preset: MeasurementPreset, loadUnit = 'kg'): { sets: SetPrescription[]; progression: ProgressionConfig } {
-  const working = (targets: SetPrescription['targets'], n: number, restSec: number): SetPrescription[] =>
-    Array.from({ length: n }, () => ({ kind: 'working' as const, targets: structuredClone(targets), restSec }));
+  const working = (targets: SetPrescription['targets'], n: number): SetPrescription[] =>
+    Array.from({ length: n }, () => ({ kind: 'working' as const, targets: structuredClone(targets) }));
   switch (preset) {
     case 'reps_load':
       return {
-        sets: working({ reps: { min: 8, max: 12 }, load: { value: 20 } }, 3, 90),
+        sets: working({ reps: { min: 8, max: 12 }, load: { value: 20 } }, 3),
         progression: { strategy: 'double', steps: [{ metric: 'load', increment: loadUnit === 'lb' ? 5 : 2.5 }], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'bodyweight':
       return {
-        sets: working({ reps: { min: 6, max: 12 } }, 3, 90),
+        sets: working({ reps: { min: 6, max: 12 } }, 3),
         progression: { strategy: 'manual', steps: [], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'duration':
       return {
-        sets: working({ duration: { value: 30 } }, 3, 60),
+        sets: working({ duration: { value: 30 } }, 3),
         progression: { strategy: 'duration', steps: [{ metric: 'duration', increment: 10 }], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'distance':
     case 'duration_distance':
       return {
-        sets: working({ duration: { value: 20 } }, 1, 0),
+        sets: working({ duration: { value: 20 } }, 1),
         progression: { strategy: 'none', steps: [], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'treadmill':
       return {
-        sets: working({ duration: { value: 10 }, speed: { value: 5 }, incline: { value: 2 } }, 1, 0),
+        sets: working({ duration: { value: 10 }, speed: { value: 5 }, incline: { value: 2 } }, 1),
         progression: { strategy: 'none', steps: [], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'resistance':
       return {
-        sets: working({ duration: { value: 10 }, resistance: { value: 5 } }, 1, 0),
+        sets: working({ duration: { value: 10 }, resistance: { value: 5 } }, 1),
         progression: { strategy: 'none', steps: [], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'time_reps':
       return {
-        sets: working({ duration: { value: 60 }, reps: { min: 10 } }, 3, 60),
+        sets: working({ duration: { value: 60 }, reps: { min: 10 } }, 3),
         progression: { strategy: 'manual', steps: [], criteria: { ...DEFAULT_CRITERIA } },
       };
     case 'custom':

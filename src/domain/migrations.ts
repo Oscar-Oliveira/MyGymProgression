@@ -8,6 +8,16 @@ const OUTCOME_V1: Record<string, string> = {
 };
 const DECISION_V1: Record<string, string> = { accepted: 'applied', deferred: 'kept', pending: 'kept' };
 
+/** v4 → v5: rest times removed from set prescriptions and set records. */
+export function dropRest<T>(value: T): T {
+  const walk = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).filter(([k]) => k !== 'restSec').map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value) as T;
+}
+
 /** v1 → v2: RIR/RPE removed; "recommendation" renamed "suggestion"; new outcome and decision names. */
 export const v1to2 = {
   prescription(p: Obj): Obj {

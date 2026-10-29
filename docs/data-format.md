@@ -1,11 +1,11 @@
-# Interchange format (schema version 3)
+# Interchange format (schema version 5)
 
 JSON file produced by **Settings → Export**. The authoritative definition is the zod schema in [`src/domain/schema.ts`](../src/domain/schema.ts).
 
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
@@ -42,6 +42,8 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v4 → v5: `restSec` removed from set prescriptions and set records.
+   - v3 → v4: additive only — exercise library fields (`group`, `overview`, `steps`, `tips`, `thumb`, `image`, `video`, `muscleDetail`, `source`, `related`).
    - v2 → v3: additive only — `plan.strengthMode`, `progression.onTop`, `progressionState.repsRange`, `event.repsOption` / `rangeBefore` / `rangeAfter`, outcome `ready`, decision `reps_up`.
    - v1 → v2: `rir`, `rpe` and `criteria.useRir` are removed; `recommendation` becomes `suggestion`; outcomes `completed_as_prescribed`→`keep`, `increase_recommended`→`increase`, `below_target`→`missed`; decisions `accepted`→`applied`, `deferred`/`pending`→`kept`. The browser database is migrated the same way on first start.
 3. Preview per table: new, identical, conflicting (same id, different content).

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
-import { completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type EntryMetrics } from '../../domain/analysis';
+import { adherence, completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type EntryMetrics } from '../../domain/analysis';
 import { currentTarget } from '../../domain/progression';
 import type { MetricKey, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendMark, type Trend } from '../progress';
@@ -39,7 +39,10 @@ export function Analysis() {
   const s = useSettings();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(84);
   const [planId, setPlanId] = useState('');
-  const data = useLiveQuery(async () => ({ workouts: await db.workouts.toArray(), plans: await db.plans.toArray(), states: await db.progressionStates.toArray() }), []);
+  const data = useLiveQuery(
+    async () => ({ workouts: await db.workouts.toArray(), plans: await db.plans.toArray(), versions: await db.planVersions.toArray(), states: await db.progressionStates.toArray() }),
+    [],
+  );
 
   const computed = useMemo(() => {
     if (!data) return undefined;
@@ -64,10 +67,21 @@ export function Analysis() {
       return { id, name: last.exercise.name, sessions: list.length, main, series, last, fixed, step, target, trend, rate, stalled: stalled.has(id) };
     });
     rows.sort((a, b) => Number(a.fixed) - Number(b.fixed) || b.sessions - a.sessions || a.name.localeCompare(b.name));
-    return { current, rows, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
+    // Adherence per active plan over the period (all time: from the first workout of the plan).
+    const today = isoDay(new Date());
+    const adherenceRows = data.plans
+      .filter((p) => p.status === 'active' && (!planId || p.id === planId))
+      .map((p) => {
+        const v = data.versions.find((x) => x.id === p.currentVersionId);
+        const done = filterWorkouts(data.workouts, { from, planId: p.id });
+        const start = from ?? done.map((w) => w.startedAt.slice(0, 10)).sort()[0] ?? today;
+        return { plan: p, done: done.length, perWeek: v?.days.length ?? 0, rate: adherence(done.length, v?.days.length ?? 0, start, today) };
+      })
+      .filter((r) => r.perWeek > 0);
+    return { current, rows, adherenceRows, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
   }, [data, days, planId, s.stalledThreshold]);
   if (!data || !computed) return null;
-  const { rows, summary, muscles, completion } = computed;
+  const { rows, adherenceRows, summary, muscles, completion } = computed;
   const maxMuscle = Math.max(1, ...muscles.map(([, v]) => v));
 
   const fmtMain = (key: string, v: number | undefined) =>
@@ -149,7 +163,23 @@ export function Analysis() {
       {summary.workouts > 0 && (
         <details className="card tight">
           <summary>{t('analysis.moreDetails')}</summary>
-          <h3>{t('analysis.muscles')}</h3>
+          {adherenceRows.length > 0 && (
+            <>
+              <h3>{t('analysis.adherence')}</h3>
+              <table>
+                <tbody>
+                  {adherenceRows.map((r) => (
+                    <tr key={r.plan.id}>
+                      <th>{r.plan.name}</th>
+                      <td className="num">{r.rate === undefined ? '—' : `${fmtNum(Math.min(1, r.rate) * 100, s.language, 0)}%`}</td>
+                      <td className="muted">{t('analysis.adherenceDetail', { done: r.done, n: r.perWeek })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          <h3 style={{ marginTop: '1rem' }}>{t('analysis.muscles')}</h3>
           <table>
             <tbody>
               {muscles.map(([m, v]) => (
@@ -187,6 +217,7 @@ export function Analysis() {
             <li>{t('analysis.formula.volume')}</li>
             <li>{t('analysis.formula.e1rm')}</li>
             <li>{t('analysis.formula.completion')}</li>
+            <li>{t('analysis.formula.adherence')}</li>
             <li>{t('analysis.formula.stalled', { n: s.stalledThreshold })}</li>
             <li>{t('analysis.formula.muscles')}</li>
           </ul>

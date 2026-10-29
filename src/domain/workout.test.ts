@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, finishWorkout, manualAdjust, startWorkout, substitute } from './workout';
+import { addSet, decide, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, substitute } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -262,20 +262,53 @@ describe('plan goal decides the progression (D11)', () => {
 });
 
 describe('goal default sets', () => {
-  it('hypertrophy 3×8–12/90 s, strength fixed 5×5/180 s, strength range 4×4–6', async () => {
+  it('hypertrophy 3×8–12, strength fixed 5×5, strength range 4×4–6', async () => {
     const { goalSets } = await import('./goals');
     const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Bench' });
     ex.defaultSets.forEach((s) => (s.targets.load = { value: 60 }));
     const h = goalSets({ goal: 'hypertrophy' }, ex);
     expect(h).toHaveLength(3);
-    expect(h[0]).toMatchObject({ targets: { reps: { min: 8, max: 12 }, load: { value: 60 } }, restSec: 90 });
+    expect(h[0]).toMatchObject({ targets: { reps: { min: 8, max: 12 }, load: { value: 60 } } });
+    expect(h[0]).not.toHaveProperty('restSec');
     const f = goalSets({ goal: 'strength', strengthMode: 'fixed' }, ex);
     expect(f).toHaveLength(5);
     expect(f[0].targets.reps).toEqual({ min: 5, max: 5 });
     const r = goalSets({ goal: 'strength', strengthMode: 'range' }, ex);
     expect(r).toHaveLength(4);
-    expect(r[0]).toMatchObject({ targets: { reps: { min: 4, max: 6 } }, restSec: 180 });
+    expect(r[0]).toMatchObject({ targets: { reps: { min: 4, max: 6 } } });
     const plank = newExercise('duration', DEFAULT_SETTINGS, { name: 'Plank' });
     expect(goalSets({ goal: 'strength' }, plank)).toEqual(plank.defaultSets);
+  });
+});
+
+describe('review fixes', () => {
+  it('manual adjust keeps a reps-up range', async () => {
+    const { manualAdjust } = await import('./workout');
+    const m = manualAdjust({ lineageId: 'L', exerciseId: 'E', targets: { load: 40 }, repsRange: { min: 9, max: 13 }, updatedAt: '' }, 'L', 'E', { load: 42 }, 'x', 'double');
+    expect(m.state.repsRange).toEqual({ min: 9, max: 13 });
+  });
+
+  it('"last time" skips a substituted session', () => {
+    const t = setup();
+    t.session([10, 9, 8]);
+    const alt = duplicateAsVariation(t.bench, 'Alt');
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    w.entries[1] = { ...substitute(w.entries[1], alt), sets: w.entries[1].sets.map((s) => ({ ...s, values: { reps: 5, load: 10 }, status: 'done' })) };
+    t.history.push(finishWorkout(w, false, t.lastEntry, t.states).workout);
+    const prev = lastEntryFinder(t.history)(w.entries[1].lineageId!);
+    expect(prev?.exerciseId).toBe(t.bench.id);
+    expect(prev?.sets[0].values.reps).toBe(10);
+  });
+
+  it('undo is refused once a newer change exists', async () => {
+    const { canRevert } = await import('./workout');
+    const t = setup();
+    const first = t.session([12, 12, 12]).events[0];
+    expect(canRevert(first, t.states.get(first.lineageId))).toBe(true);
+    t.session([12, 12, 12]);
+    const state = t.states.get(first.lineageId)!;
+    expect(state.targets.load).toBe(45);
+    expect(canRevert(first, state)).toBe(false);
+    expect(decide(first, state, { kind: 'revert' }).state.targets.load).toBe(45);
   });
 });

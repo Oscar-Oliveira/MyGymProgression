@@ -51,7 +51,7 @@ h3 { font-size: 1rem; margin: 0 0 0.4rem; }
 p { margin: 0.2rem 0 0.5rem; }
 a { color: inherit; }
 small, .muted { color: var(--muted); }
-.num, .big, .value { font-variant-numeric: tabular-nums; }
+.num, .value { font-variant-numeric: tabular-nums; }
 
 /* App shell */
 .shell { max-width: 760px; margin: 0 auto; padding: 1rem 1rem 6.5rem; }
@@ -84,7 +84,6 @@ small, .muted { color: var(--muted); }
 .col { display: flex; flex-direction: column; gap: 0.5rem; }
 .stack > * + * { margin-top: 0.75rem; }
 .spacer { flex: 1; }
-.grid2 { display: grid; gap: 0.6rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid3 { display: grid; gap: 0.6rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* Buttons */
@@ -124,7 +123,6 @@ details[open] > summary::before { transform: rotate(90deg); }
 .list { list-style: none; padding: 0; margin: 0; }
 .list > li { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
 .list > li:last-child { border-bottom: 0; }
-.list a.rowlink { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; text-decoration: none; min-height: var(--tap); }
 .menu { list-style: none; padding: 0; margin: 0; }
 .menu a { display: flex; align-items: center; gap: 0.9rem; padding: 1rem; text-decoration: none; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 1.05rem; }
 .menu li:last-child a { border-bottom: 0; }

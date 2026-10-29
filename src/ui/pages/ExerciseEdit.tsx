@@ -10,7 +10,7 @@ import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../compone
 import { splitList, useSettings } from '../util';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
-export const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'cardio', 'full_body'];
+const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'cardio', 'full_body'];
 const EQUIPMENT = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'band', 'treadmill', 'bike', 'rower', 'other'];
 
 function Chips({ value, onChange, label }: { value: string[]; onChange: (v: string[]) => void; label: string }) {

@@ -98,10 +98,6 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
               </span>
             ),
           )}
-          <span className="field-inline">
-            <span>{t('prescription.rest')}</span>
-            <NumInput label={t('prescription.rest')} value={s.restSec} onChange={(v) => upd(i, (x) => ({ ...x, restSec: v }))} />
-          </span>
           <button type="button" className="ghost" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
             ✕
           </button>
@@ -121,7 +117,7 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
 const STRATEGIES: ProgressionStrategy[] = ['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none'];
 const FIXED_METRIC: Partial<Record<ProgressionStrategy, MetricKey>> = { duration: 'duration', distance: 'distance' };
 
-export function defaultSteps(strategy: ProgressionStrategy, metrics: MetricDef[]): ProgressionConfig['steps'] {
+function defaultSteps(strategy: ProgressionStrategy, metrics: MetricDef[]): ProgressionConfig['steps'] {
   const has = (k: MetricKey) => metrics.some((m) => m.key === k);
   const lb = metrics.find((m) => m.key === 'load')?.unit === 'lb';
   switch (strategy) {

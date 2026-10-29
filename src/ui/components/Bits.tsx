@@ -24,7 +24,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
   return <div className="empty">{children}</div>;
 }
 
-export interface Point {
+interface Point {
   date: string;
   value: number | undefined;
 }

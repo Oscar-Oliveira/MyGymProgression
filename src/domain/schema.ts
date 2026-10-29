@@ -10,7 +10,6 @@ export const targetSchema = z.object({ value: num.optional(), min: num.optional(
 export const setPrescriptionSchema = z.object({
   kind: z.enum(['warmup', 'working', 'backoff']),
   targets: z.record(metricKey, targetSchema),
-  restSec: num.optional(),
 });
 export const progressionSchema = z.object({
   strategy: z.enum(['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none']),
@@ -101,7 +100,6 @@ const setRecord = z.object({
   kind: z.enum(['warmup', 'working', 'backoff']),
   values: metricValues,
   goal: metricValues.optional(),
-  restSec: num.optional(),
   status: z.enum(['pending', 'done', 'skipped']),
   notes: z.string(),
 });
@@ -179,7 +177,7 @@ export const settingsSchema = z.object({
   lastBackupAt: iso.optional(),
 });
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

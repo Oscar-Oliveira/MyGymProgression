@@ -113,6 +113,11 @@ describe('keep without a question', () => {
     expect(evaluate(input({ sets: done([12, 12, 12], 40), substituted: true })).outcome).toBe('restricted');
     expect(evaluate(input({ sets: done([5, 5, 5], 40), substituted: true })).outcome).toBe('restricted');
   });
+  it('substitution does not block when the condition is disabled', () => {
+    const cfg = double();
+    cfg.criteria.blockOnSubstitution = false;
+    expect(evaluate(input({ config: cfg, sets: done([12, 12, 12], 40), substituted: true })).outcome).toBe('increase');
+  });
   it('pain blocks the increase', () => {
     const ev = evaluate(input({ sets: done([12, 12, 12], 40), pain: true }));
     expect(ev.outcome).toBe('restricted');
