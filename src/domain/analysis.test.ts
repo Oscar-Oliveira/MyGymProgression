@@ -124,3 +124,14 @@ describe('adherence', () => {
     expect(adherence(3, 3, '2026-01-01', '2026-01-14')).toBe(0.5);
   });
 });
+
+describe('filterWorkouts', () => {
+  it('keeps only the filtered exercise entries', async () => {
+    const { filterWorkouts, periodSummary } = await import('./analysis');
+    const w = workout('2026-03-01', [entry({ sets: [set({ reps: 10, load: 40 })] }), entry({ exerciseId: 'ex2', sets: [set({ reps: 5, load: 10 })] })]);
+    const f = filterWorkouts([w], { exerciseId: 'ex2' });
+    expect(f[0].entries).toHaveLength(1);
+    expect(periodSummary(f).volume).toBe(50);
+    expect(filterWorkouts([w], { from: '2026-03-02' })).toHaveLength(0);
+  });
+});

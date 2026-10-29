@@ -8,7 +8,8 @@ import { decide, evaluateWorkout, finishWorkout, lastEntryFinder, manualAdjust, 
 
 export function createRepo(db: GymDB) {
   async function getSettings(): Promise<Settings> {
-    return (await db.settings.get('settings')) ?? DEFAULT_SETTINGS;
+    const lang = globalThis.navigator?.language?.toLowerCase().startsWith('en') ? 'en' : 'pt';
+    return (await db.settings.get('settings')) ?? { ...DEFAULT_SETTINGS, language: lang };
   }
 
   async function readAll(): Promise<DataSet> {

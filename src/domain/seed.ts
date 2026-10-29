@@ -61,6 +61,7 @@ const DEFS: SeedDef[] = [
   { en: 'Cable Crunch', pt: 'Abdominal no cabo', preset: 'reps_load', category: 'isolation', equipment: 'cable', primary: ['core'], reps: [10, 15], rest: 60 },
   {
     en: 'Treadmill Warm-up', pt: 'Aquecimento na passadeira', preset: 'treadmill', category: 'warmup', equipment: 'treadmill', primary: ['cardio'],
+    metrics: [{ key: 'duration', unit: 'min', required: true }, { key: 'speed', unit: 'km/h', required: false }, { key: 'incline', unit: '%', required: false }, { key: 'distance', unit: 'km', required: false }],
     defaultSets: w({ duration: { value: 5 } }), progression: none(),
   },
   {
@@ -98,7 +99,10 @@ export function seedExercises(settings: Pick<Settings, 'language' | 'loadUnit' |
     ex.secondaryMuscles = d.secondary ?? [];
     ex.loadMode = d.loadMode ?? 'total';
     ex.tags = ['seed'];
-    if (d.metrics) ex.metrics = d.metrics.map((m) => (m.key === 'load' ? { ...m, unit: settings.loadUnit } : m));
+    if (d.metrics) {
+      const unit: Record<string, string> = { load: settings.loadUnit, distance: settings.distanceUnit, speed: settings.distanceUnit === 'mi' ? 'mph' : 'km/h' };
+      ex.metrics = d.metrics.map((m) => (unit[m.key] ? { ...m, unit: unit[m.key] } : m));
+    }
     if (d.defaultSets) ex.defaultSets = d.defaultSets;
     if (d.progression) ex.progression = d.progression;
     if (d.preset === 'reps_load' || d.preset === 'bodyweight') {

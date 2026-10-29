@@ -146,8 +146,9 @@ export interface WorkoutFilter {
   exerciseId?: string;
 }
 
+/** Filters finished workouts. With an exercise filter, only that exercise's entries are kept. */
 export function filterWorkouts(workouts: Workout[], f: WorkoutFilter): Workout[] {
-  return workouts.filter(
+  const out = workouts.filter(
     (w) =>
       isFinished(w) &&
       (!f.from || w.startedAt.slice(0, 10) >= f.from) &&
@@ -155,6 +156,7 @@ export function filterWorkouts(workouts: Workout[], f: WorkoutFilter): Workout[]
       (!f.planId || w.planId === f.planId) &&
       (!f.exerciseId || w.entries.some((e) => e.exerciseId === f.exerciseId)),
   );
+  return f.exerciseId ? out.map((w) => ({ ...w, entries: w.entries.filter((e) => e.exerciseId === f.exerciseId) })) : out;
 }
 
 /** Completed working sets per muscle. A primary muscle counts 1, a secondary muscle counts 0.5. */

@@ -61,7 +61,7 @@ export function TrendChart({ title, data, unit, kind, format }: { title: string;
           <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
           <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} domain={['auto', 'auto']} tickFormatter={format} />
           <Tooltip formatter={(v) => (format ? format(Number(v)) : String(v))} contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)' }} />
-          <Line type="monotone" dataKey="value" stroke="var(--accent)" strokeWidth={2} dot={{ r: 3 }} strokeDasharray={kind === 'estimated' ? '5 4' : undefined} isAnimationActive={false} />
+          <Line type="linear" dataKey="value" stroke="var(--accent)" strokeWidth={2} dot={{ r: 3 }} strokeDasharray={kind === 'estimated' ? '5 4' : undefined} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </figure>
