@@ -211,7 +211,8 @@ td.num, th.num { text-align: right; }
 
 /* Workout: focused logging */
 .wk-head { position: sticky; top: 0; z-index: 15; margin: calc(-1rem - env(safe-area-inset-top)) -1rem 0.9rem; padding: calc(0.4rem + env(safe-area-inset-top)) 1rem 0.5rem; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid var(--border); }
-.wk-top { display: grid; grid-template-columns: var(--tap) 1fr var(--tap); align-items: center; gap: 0.25rem; }
+.wk-top { display: grid; grid-template-columns: auto 1fr var(--tap); align-items: center; gap: 0.25rem; }
+.wk-pause { min-height: 40px; padding: 0 0.8rem; font-size: 0.88rem; font-weight: 700; gap: 0.35rem; }
 .btn.icon, button.icon { width: var(--tap); padding: 0; font-size: 1.4rem; color: var(--text); }
 .wk-title { flex-direction: column; gap: 0; min-width: 0; background: transparent; padding: 0.2rem 0.5rem; border-radius: 12px; }
 .wk-title .title { font-weight: 800; font-size: 1rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -512,3 +513,38 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .mbar { position: relative; height: 0.55rem; background: var(--surface-2); border-radius: 4px; }
 .mbar .bar { height: 100%; }
 .mbar .guide { position: absolute; top: -3px; bottom: -3px; border-left: 1px dashed var(--muted); border-right: 1px dashed var(--muted); }
+
+/* Correction: exercises and sets that were not done stand out. */
+.card.not-done { border-color: var(--warn); }
+.gtable-row.not-done { background: var(--warn-bg); border-radius: 10px; }
+.gtable-row.not-done .n { color: var(--warn); font-weight: 800; }
+
+/* Settings: action rows (icon, title, short description) and switches. */
+.act-list { display: flex; flex-direction: column; }
+.act-row { display: flex; align-items: center; gap: 0.85rem; width: 100%; min-height: 64px; padding: 0.55rem 0; margin: 0; background: transparent; border: 0; border-radius: 0; color: var(--text); text-align: left; justify-content: flex-start; font-size: 1rem; font-weight: 500; cursor: pointer; }
+.act-list > * + * { border-top: 1px solid var(--border); }
+.act-row:not(:disabled):active { transform: none; background: var(--surface-2); }
+.act-ico { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); font-size: 1.15rem; font-weight: 700; }
+.act-row.accent .act-ico { background: var(--tone); color: #fff; }
+.act-row.danger { color: var(--down); }
+.act-row.danger .act-ico { background: color-mix(in srgb, var(--down) 14%, transparent); }
+.act-row .main { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; flex: 1; }
+.act-row .title { font-weight: 700; }
+.act-row .meta { font-size: 0.82rem; color: var(--muted); font-weight: 500; line-height: 1.3; }
+.act-row .chev { color: var(--muted); font-size: 1.3rem; }
+.act-list > details > summary { min-height: 52px; }
+.act-list > details .act-row { min-height: 52px; padding-left: 0.25rem; }
+.backup-status { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 0.9rem; border-radius: 12px; margin-bottom: 0.9rem; font-weight: 650; font-size: 0.92rem; }
+.backup-status.ok { background: var(--up-bg); color: var(--up); }
+.backup-status.due { background: var(--warn-bg); color: var(--warn); }
+.card.danger-zone { border-color: color-mix(in srgb, var(--down) 40%, var(--border)); }
+.setting-row .lbl { display: flex; flex-direction: column; gap: 0.1rem; }
+.setting-row .lbl small { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
+label.setting-row > select { width: auto; min-width: 9.5rem; max-width: 62%; flex: none; }
+label.setting-row > input.num { width: 9.5rem; min-width: 0; flex: none; }
+label.setting-row > input.switch { appearance: none; -webkit-appearance: none; flex: none; width: 3rem; height: 1.75rem; min-height: 0; min-width: 0; padding: 0; margin: 0; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); position: relative; cursor: pointer; transition: background 0.15s; }
+label.setting-row > input.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1.35rem; height: 1.35rem; border-radius: 50%; background: var(--muted); transition: transform 0.15s; }
+label.setting-row > input.switch:checked { background: var(--tone); border-color: var(--tone); }
+label.setting-row > input.switch:checked::after { transform: translateX(1.25rem); background: #fff; }
+@media (prefers-reduced-motion: reduce) { label.setting-row > input.switch, label.setting-row > input.switch::after { transition: none; } }
+.privacy-note { font-size: 0.8rem; color: var(--muted); margin: 0.75rem 0 0; }

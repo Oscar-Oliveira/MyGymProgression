@@ -7,7 +7,7 @@ import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
+import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   // Library imports run one at a time (app start and a button click may overlap); otherwise both would add the same exercises.
@@ -50,6 +50,16 @@ export function createRepo(db: GymDB) {
     const { added, updated } = mergeLibrary(await db.exercises.toArray(), records, settings, LIBRARY_PT);
     await db.exercises.bulkPut([...updated, ...added]);
     return { added: added.length, updated: updated.length };
+  }
+
+  /** Undoes the still-current progression changes of a workout and removes its events. Call inside a transaction. */
+  async function undoEvents(workoutId: string) {
+    const evs = await db.progressionEvents.where('workoutId').equals(workoutId).toArray();
+    for (const ev of evs) {
+      const state = await db.progressionStates.get(ev.lineageId);
+      if (state && canRevert(ev, state)) await db.progressionStates.put(decide(ev, state, { kind: 'revert' }).state);
+    }
+    await db.progressionEvents.bulkDelete(evs.map((e) => e.id));
   }
 
   return {
@@ -205,12 +215,22 @@ export function createRepo(db: GymDB) {
       await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
         await db.workouts.delete(id);
         await db.revisions.where('workoutId').equals(id).delete();
-        const evs = await db.progressionEvents.where('workoutId').equals(id).toArray();
-        for (const ev of evs) {
-          const state = await db.progressionStates.get(ev.lineageId);
-          if (state && canRevert(ev, state)) await db.progressionStates.put(decide(ev, state, { kind: 'revert' }).state);
-        }
-        await db.progressionEvents.bulkDelete(evs.map((e) => e.id));
+        await undoEvents(id);
+      });
+    },
+
+    /**
+     * Continues an interrupted workout: its progression changes are undone (as for a delete), the finished version is kept
+     * as a revision, and it is in progress again. Finishing it evaluates it again.
+     */
+    async resumeWorkout(id: string) {
+      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
+        const w = await db.workouts.get(id);
+        if (!w || w.status !== 'interrupted') return;
+        if ((await db.workouts.where('status').equals('in_progress').count()) > 0) throw new Error('workout_in_progress');
+        await db.revisions.add({ id: uid(), workoutId: id, at: nowIso(), previous: w });
+        await undoEvents(id);
+        await db.workouts.put(reopenWorkout(w));
       });
     },
 

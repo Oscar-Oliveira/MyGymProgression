@@ -1,4 +1,6 @@
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
+import { backupDue } from '../../domain/backup';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
@@ -17,6 +19,43 @@ import { CoachAvatar } from '../components/CoachAvatar';
 const COACH_STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant'];
 const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
 
+
+/** One action in a settings list: icon, title and a short description. */
+function ActionRow({ icon, title, sub, onClick, tone = '' }: { icon: string; title: string; sub?: string; onClick: () => void; tone?: 'accent' | 'danger' | '' }) {
+  return (
+    <button type="button" className={`act-row ${tone}`} onClick={onClick}>
+      <span className="act-ico" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="main">
+        <span className="title">{title}</span>
+        {sub && <span className="meta">{sub}</span>}
+      </span>
+      <span className="chev" aria-hidden="true">
+        ›
+      </span>
+    </button>
+  );
+}
+
+/** The same row for choosing a file; the native file control is hidden behind it. */
+function FileRow({ icon, title, sub, onFile }: { icon: string; title: string; sub?: string; onFile: (f: File | undefined) => void }) {
+  return (
+    <label className="act-row file-btn">
+      <span className="act-ico" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="main">
+        <span className="title">{title}</span>
+        {sub && <span className="meta">{sub}</span>}
+      </span>
+      <span className="chev" aria-hidden="true">
+        ›
+      </span>
+      <input type="file" accept="application/json,.json" onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ''))} />
+    </label>
+  );
+}
 
 async function exportJson(scope: Scope) {
   if (scope === 'full') return void (await saveBackup());
@@ -70,11 +109,7 @@ function ImportPanel() {
 
   return (
     <div className="stack-sm">
-      {/* The native file control is hidden; the label is the visible, translated button. */}
-      <label className="btn btn-outline file-btn">
-        ⤒ {t('settings.chooseFile')}
-        <input type="file" accept="application/json,.json" onChange={(e) => void onFile(e.target.files?.[0])} />
-      </label>
+      <FileRow icon="⤒" title={t('settings.chooseFile')} sub={t('settings.chooseFileSub')} onFile={(f) => void onFile(f)} />
       {errors.length > 0 && (
         <div className="error" role="alert">
           <p>{t('import.errors')}</p>
@@ -163,6 +198,8 @@ export function SettingsPage() {
   const [msg, setMsg] = useState('');
   const [sample, setSample] = useState<string>();
   const coach = s.coach ?? NO_COACH;
+  const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
+  const due = backupDue(s.lastBackupAt, workouts);
   const saveCoach = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
   useEffect(() => {
     void navigator.storage?.persisted?.().then(setPersisted);
@@ -258,7 +295,10 @@ export function SettingsPage() {
           </select>
         </label>
         <label className="setting-row">
-          <span>{t('settings.stalledThreshold')}</span>
+          <span className="lbl">
+            {t('settings.stalledThreshold')}
+            <small>{t('settings.stalledSub')}</small>
+          </span>
           <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
         </label>
       </section>
@@ -269,7 +309,7 @@ export function SettingsPage() {
       <section className="card">
         <label className="setting-row">
           <span>{t('coach.enabled')}</span>
-          <input type="checkbox" checked={coach.enabled} onChange={(e) => void saveCoach({ enabled: e.target.checked })} />
+          <input type="checkbox" role="switch" className="switch" checked={coach.enabled} onChange={(e) => void saveCoach({ enabled: e.target.checked })} />
         </label>
         {coach.enabled && (
           <>
@@ -300,7 +340,7 @@ export function SettingsPage() {
             {coach.style === 'spite' && (
               <label className="setting-row">
                 <span>{t('coach.profanity')}</span>
-                <input type="checkbox" checked={coach.profanity} onChange={(e) => void saveCoach({ profanity: e.target.checked })} />
+                <input type="checkbox" role="switch" className="switch" checked={coach.profanity} onChange={(e) => void saveCoach({ profanity: e.target.checked })} />
               </label>
             )}
             {sample && (
@@ -309,7 +349,7 @@ export function SettingsPage() {
                 <p>{sample}</p>
               </div>
             )}
-            <button className="outline" onClick={() => setSample(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
+            <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={() => setSample(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
               {t('coach.preview')}
             </button>
           </>
@@ -320,85 +360,55 @@ export function SettingsPage() {
         <h2>{t('settings.data')}</h2>
       </div>
       <section className="card">
-        <p className="help">
+        <div className={`backup-status ${s.lastBackupAt && due === undefined ? 'ok' : 'due'}`} role="status">
+          <span aria-hidden="true">{s.lastBackupAt && due === undefined ? '✓' : '⚠'}</span>
+          <span>{s.lastBackupAt ? t('dashboard.backupReminder', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}</span>
+        </div>
+        <div className="act-list">
+          <ActionRow icon="⤓" tone="accent" title={t('settings.exportFull')} sub={t('settings.backupSub')} onClick={() => void exportJson('full')} />
+          <ImportPanel />
+          <details>
+            <summary>{t('settings.otherExports')}</summary>
+            <div className="act-list">
+              <ActionRow icon="≡" title={t('settings.exportLibrary')} sub={t('settings.exportLibrarySub')} onClick={() => void exportJson('library')} />
+              <ActionRow icon="▦" title={t('settings.exportPlans')} sub={t('settings.exportPlansSub')} onClick={() => void exportJson('plans')} />
+              <ActionRow icon="⊞" title={t('settings.csvSets')} sub={t('settings.csvSub')} onClick={() => void csv('sets')} />
+              <ActionRow icon="⊞" title={t('settings.csvWorkouts')} sub={t('settings.csvSub')} onClick={() => void csv('workouts')} />
+              <ActionRow icon="⊞" title={t('settings.csvEvents')} sub={t('settings.csvSub')} onClick={() => void csv('events')} />
+            </div>
+            <p className="privacy-note">{t('settings.formatDoc')}</p>
+          </details>
+        </div>
+        <p className="privacy-note">
           {t('settings.privacy')} {persisted ? t('settings.persisted') : t('settings.notPersisted')}
         </p>
-        <div className="actions">
-          <button className="primary" onClick={() => void exportJson('full')}>
-            ⤓ {t('settings.exportFull')}
-          </button>
-        </div>
-        <p className="help">
-          {s.lastBackupAt ? t('dashboard.backupReminder', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}
-        </p>
-        <details>
-          <summary>{t('settings.export')}</summary>
-          <div className="actions" style={{ marginTop: 0 }}>
-            <button className="outline sm" onClick={() => void exportJson('library')}>
-              {t('settings.exportLibrary')}
-            </button>
-            <button className="outline sm" onClick={() => void exportJson('plans')}>
-              {t('settings.exportPlans')}
-            </button>
-            <button className="outline sm" onClick={() => void csv('sets')}>
-              {t('settings.csvSets')}
-            </button>
-            <button className="outline sm" onClick={() => void csv('workouts')}>
-              {t('settings.csvWorkouts')}
-            </button>
-            <button className="outline sm" onClick={() => void csv('events')}>
-              {t('settings.csvEvents')}
-            </button>
-          </div>
-          <p className="help">{t('settings.formatDoc')}</p>
-        </details>
-      </section>
-
-      <div className="section-head">
-        <h2>{t('settings.import')}</h2>
-      </div>
-      <section className="card">
-        <ImportPanel />
       </section>
 
       <div className="section-head">
         <h2>{t('settings.library')}</h2>
       </div>
       <section className="card">
-        <p className="help" style={{ marginTop: 0 }}>
-          {t('settings.libraryNotice')}
-        </p>
-        <button className="primary" onClick={() => void openLibrary()}>
-          ⤓ {t('settings.openLibrary')}
-        </button>
-        <p className="help">{t('settings.openLibraryHelp')}</p>
-        <div className="actions" style={{ marginTop: 0 }}>
-          <label className="btn btn-outline file-btn">
-            ⤒ {t('settings.importLibrary')}
-            <input type="file" accept="application/json,.json" onChange={(e) => (void importLibrary(e.target.files?.[0]), (e.target.value = ''))} />
-          </label>
-          <button className="outline" onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))}>
-            {t('settings.seed')}
-          </button>
-          <button className="ghost" onClick={() => void demo()}>
-            {t('settings.demo')}
-          </button>
+        <div className="act-list">
+          <ActionRow icon="⤓" tone="accent" title={t('settings.openLibrary')} sub={t('settings.openLibrarySub')} onClick={() => void openLibrary()} />
+          <FileRow icon="⤒" title={t('settings.importLibrary')} sub={t('settings.importLibrarySub')} onFile={(f) => void importLibrary(f)} />
+          <ActionRow icon="＋" title={t('settings.seed')} sub={t('settings.seedSub')} onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))} />
+          <ActionRow icon="▶" title={t('settings.demo')} sub={t('settings.demoSub')} onClick={() => void demo()} />
         </div>
         {msg && (
-          <p role="status" className="help">
+          <p role="status" className="backup-status ok" style={{ margin: '0.6rem 0 0' }}>
             {msg}
           </p>
         )}
+        <p className="privacy-note">{t('settings.libraryNotice')}</p>
       </section>
 
       <div className="section-head">
         <h2>{t('settings.danger')}</h2>
       </div>
-      <section className="card">
-        <p className="help">{t('settings.resetConfirm')}</p>
-        <button className="danger" onClick={() => void reset()}>
-          {t('settings.reset')}
-        </button>
+      <section className="card danger-zone">
+        <div className="act-list">
+          <ActionRow icon="✕" tone="danger" title={t('settings.reset')} sub={t('settings.resetSub')} onClick={() => void reset()} />
+        </div>
       </section>
     </div>
   );

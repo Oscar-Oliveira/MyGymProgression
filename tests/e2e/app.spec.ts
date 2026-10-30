@@ -400,7 +400,7 @@ test('demo data → analysis → export → delete all → import restores data'
   await expect(page.getByText('No workouts yet.')).toBeVisible();
 
   await more(page, /^Settings/);
-  await page.getByLabel('Choose a JSON file').setInputFiles(file);
+  await page.getByLabel(/Restore or import/).setInputFiles(file);
   await expect(page.getByRole('heading', { name: 'Import preview' })).toBeVisible();
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await expect(page.getByText('Import completed.')).toBeVisible();
@@ -415,7 +415,7 @@ test('demo data → analysis → export → delete all → import restores data'
 
 test('invalid import file shows an error', async ({ page }) => {
   await more(page, /^Settings/);
-  await page.getByLabel('Choose a JSON file').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') });
+  await page.getByLabel(/Restore or import/).setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') });
   await expect(page.getByText('The file is not a MyGymProgression export.')).toBeVisible();
 });
 
@@ -487,4 +487,43 @@ test('analysis: weekly sets per muscle with the guideline, and comparison with t
   // 4 weeks: the demo has 6 weeks, so the 4 weeks before have workouts to compare with.
   await page.getByRole('tab', { name: '4 wks' }).click();
   await expect(page.getByText(/^▲▼ compared with /)).toBeVisible();
+});
+
+test('pause: the workout stays open; History resumes it', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10]);
+  await page.getByRole('link', { name: /Pause/ }).click();
+  await expect(page.getByText('Workout in progress')).toBeVisible();
+  await tab(page, 'History');
+  const banner = page.locator('.card.warn', { hasText: 'Paused' });
+  await banner.getByRole('button', { name: /Resume workout/ }).click();
+  await expect(page.getByRole('button', { name: '✓ Set done' })).toBeVisible();
+  // The menu also pauses.
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: /Pause — continue later/ }).click();
+  await expect(page.getByText('Workout in progress')).toBeVisible();
+});
+
+test('interrupted: resume keeps the done sets and reopens the others', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10]);
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: 'End early (interrupted)' }).click();
+  await expect(page.getByText(/· Interrupted$/)).toBeVisible();
+  await page.getByRole('button', { name: /Resume workout/ }).click();
+  await expect(page.getByText('1/3 sets')).toBeVisible();
+  await expect(page.getByRole('button', { name: '✓ Set done' })).toBeVisible();
+});
+
+test('correction: not-done sets stand out, and the status can be changed', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10]);
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'OK' }).click();
+  await expect(page.getByText('Partially completed')).toBeVisible();
+  await page.getByRole('button', { name: 'Correct records' }).click();
+  await expect(page.getByText('2 sets not done')).toBeVisible();
+  await page.getByLabel('Status').selectOption('completed');
+  await page.getByRole('button', { name: 'Save correction' }).click();
+  await expect(page.getByText(/· Completed$/)).toBeVisible();
 });

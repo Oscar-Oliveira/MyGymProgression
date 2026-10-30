@@ -9,6 +9,21 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
     pt: [
+      'Definições redesenhadas: cópia e restauro juntos, ações com descrição, interruptores.',
+      'Treino: botão "Pausar" visível no topo e no menu.',
+      'Retomar o último treino em pausa ou interrompido, no Histórico ou no resumo.',
+      'Corrigir treino: mudar o estado; séries e exercícios por fazer destacados.',
+    ],
+    en: [
+      'Settings redesigned: backup and restore together, actions with a description, switches.',
+      'Workout: a visible "Pause" button at the top and in the menu.',
+      'Resume the last paused or interrupted workout, from History or the summary.',
+      'Correct a workout: change its status; sets and exercises not done stand out.',
+    ],
+  },
+  {
+    date: '2026-10-30',
+    pt: [
       'Durante o treino o ecrã fica ligado e o telemóvel vibra ao concluir uma série.',
       'Cópia de segurança pelo menu de partilha do telemóvel (Drive, email…); aviso no Início após 7 dias sem cópia.',
       'Novos recordes no resumo do treino.',

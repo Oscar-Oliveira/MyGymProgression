@@ -1,6 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { repo } from '../../data/repo';
+import { dialog } from '../components/Dialog';
+import { resumable } from '../../domain/workout';
 import { db } from '../../data/db';
 import type { Workout } from '../../domain/types';
 import { Empty } from '../components/Bits';
@@ -16,6 +19,7 @@ export function History() {
   const s = useSettings();
   const thumbOf = useThumbs();
   const toneFor = useTones();
+  const nav = useNavigate();
   // The page is kept in the URL, so "back" from a workout returns to the same page.
   const [params, setParams] = useSearchParams();
   const asked = Math.max(1, Math.floor(Number(params.get('page'))) || 1);
@@ -30,10 +34,19 @@ export function History() {
       .offset((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .toArray();
-    return { total, pages, page, workouts };
+    const latest = await db.workouts.orderBy('startedAt').last();
+    return { total, pages, page, workouts, latest };
   }, [asked]);
   if (!data) return null;
-  const { total, pages, page, workouts } = data;
+  const { total, pages, page, workouts, latest } = data;
+  const resume = async (w: Workout) => {
+    try {
+      if (w.status === 'interrupted') await repo.resumeWorkout(w.id);
+      nav(`/workout/${w.id}`);
+    } catch {
+      await dialog.alert(t('workout.otherInProgress'));
+    }
+  };
   const locale = s.language === 'pt' ? 'pt-PT' : 'en-GB';
   const month = (iso: string) => new Date(iso).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   const go = (p: number) => {
@@ -51,6 +64,16 @@ export function History() {
         <Empty>{t('history.empty')}</Empty>
       ) : (
         <>
+          {latest && resumable(latest, [latest]) && (
+            <section className="card warn toned" style={toneStyle(toneFor(latest.planId, latest.dayId))}>
+              <p className="eyebrow">{t(`workout.status.${latest.status}`)}</p>
+              <h3 style={{ marginTop: 0 }}>{latest.dayName ?? t('workout.free')}</h3>
+              {latest.status === 'interrupted' && <p className="help">{t('workout.resumeHelp')}</p>}
+              <button className="primary xl" onClick={() => void resume(latest)}>
+                ▶ {t('workout.resume')}
+              </button>
+            </section>
+          )}
           {workouts.map((w, i) => {
             const done = w.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0);
             const totalSets = w.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);

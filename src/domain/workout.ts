@@ -236,6 +236,27 @@ export function finishWorkout(
   return { workout, ...eventsFor(workout, states) };
 }
 
+/**
+ * Reopens a finished workout so it can be continued (resume after an interruption).
+ * Skipped sets become pending again (sets left open at the interruption were saved as skipped); evaluations are removed,
+ * because the workout is evaluated again when it is finished.
+ */
+export function reopenWorkout(w: Workout): Workout {
+  return {
+    ...w,
+    status: 'in_progress',
+    endedAt: undefined,
+    updatedAt: nowIso(),
+    entries: w.entries.map(({ evaluation: _evaluation, ...e }) => ({ ...e, sets: e.sets.map((s) => (s.status === 'skipped' ? { ...s, status: 'pending' as const } : s)) })),
+  };
+}
+
+/** Only the most recent workout can be resumed, when it is paused (in progress) or interrupted. */
+export function resumable(w: Workout, all: Workout[]): boolean {
+  if (w.status !== 'in_progress' && w.status !== 'interrupted') return false;
+  return !all.some((x) => x.id !== w.id && x.startedAt > w.startedAt);
+}
+
 export type DecisionInput = { kind: 'keep' } | { kind: 'apply' } | { kind: 'stepBack' } | { kind: 'repsUp' } | { kind: 'revert' } | { kind: 'set'; value: number; reason: string };
 
 const sameTargets = (a: ProgressionState['targets'], b: ProgressionState['targets']) =>

@@ -39,7 +39,8 @@ export function WorkoutPage() {
     const events = await db.progressionEvents.where('workoutId').equals(id!).toArray();
     const revisions = (await db.revisions.where('workoutId').equals(id!).toArray()).sort((a, b) => b.at.localeCompare(a.at));
     const allEvents = await db.progressionEvents.toArray();
-    return { exercises, version, others, events, revisions, allEvents };
+    const latest = (await db.workouts.orderBy('startedAt').last())?.id;
+    return { exercises, version, others, events, revisions, allEvents, latest };
   }, [id, stored?.planVersionId, stored?.startedAt]);
   const [draft, setDraft] = useState<Workout>();
   const [cur, setCur] = useState(0);
@@ -156,8 +157,8 @@ export function WorkoutPage() {
       <div className="toned" style={tone}>
         <div className="wk-head">
           <div className="wk-top">
-            <Link to="/" className="btn ghost icon" aria-label={t('nav.home')}>
-              ‹
+            <Link to="/" className="btn outline wk-pause" title={t('workout.pauseHelp')}>
+              ⏸ {t('workout.pause')}
             </Link>
             <button className="wk-title" onClick={() => setList(true)} aria-label={t('workout.allExercises')} disabled={!draft.entries.length}>
               <span className="title">{draft.dayName ?? t('workout.free')}</span>
@@ -233,6 +234,7 @@ export function WorkoutPage() {
         {menu && (
           <Modal title={t('workout.menu')} onClose={() => setMenu(false)}>
             <div className="sheet">
+              <button onClick={() => nav('/')}>⏸ {t('workout.pauseLong')}</button>
               <button onClick={() => (setMenu(false), setPicker('add'))}>+ {t('workout.addExercise')}</button>
               {entry && (
                 <button onClick={() => (setMenu(false), update({ ...draft, entries: draft.entries.filter((x) => x.id !== entry.id) }), setCur(Math.max(0, cur - 1)))}>
@@ -288,6 +290,13 @@ export function WorkoutPage() {
   }
 
   // Finished workout: summary with records and decisions, or correction mode.
+  const resume = async () => {
+    try {
+      await repo.resumeWorkout(draft.id);
+    } catch {
+      await dialog.alert(t('workout.otherInProgress'));
+    }
+  };
   const records = workoutRecords(draft, ctx.others);
   const fmtRecord = (r: RecordHit, v: number) =>
     r.kind === 'maxDuration'
@@ -316,6 +325,18 @@ export function WorkoutPage() {
       {editing ? (
         <>
           <p className="help">{t('workout.correctHelp')}</p>
+          <section className="card">
+            <label className="setting-row">
+              <span>{t('workout.statusLabel')}</span>
+              <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as Workout['status'] })}>
+                {(['completed', 'partial', 'interrupted'] as const).map((st) => (
+                  <option key={st} value={st}>
+                    {t(`workout.status.${st}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </section>
           <CorrectionEditor draft={draft} onChange={setDraft} thumbOf={thumbOf} />
           <div className="wk-nav">
             <button className="outline" onClick={() => (setEditing(false), setDraft(stored))}>
@@ -413,6 +434,14 @@ export function WorkoutPage() {
                 ))}
               </ul>
             </details>
+          )}
+          {draft.status === 'interrupted' && ctx.latest === draft.id && (
+            <section className="card warn">
+              <p style={{ marginTop: 0 }}>{t('workout.resumeHelp')}</p>
+              <button className="primary xl" onClick={() => void resume()}>
+                ▶ {t('workout.resume')}
+              </button>
+            </section>
           )}
           <div className="row wrap" style={{ marginTop: '1rem' }}>
             <button className="outline" onClick={() => setEditing(true)}>

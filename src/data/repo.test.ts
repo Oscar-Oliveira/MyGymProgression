@@ -186,6 +186,23 @@ describe('repo (IndexedDB)', () => {
     expect(await db.progressionEvents.count()).toBe(0);
   });
 
+  it('resuming an interrupted workout undoes its increase, keeps a revision, and reopens it', async () => {
+    const { plan, day } = await setupPlan();
+    const id = await repo.startWorkout(plan.id, day.id);
+    const w = (await db.workouts.get(id))!;
+    w.entries[0].sets = w.entries[0].sets.map((s) => ({ ...s, values: { ...s.values, reps: 12 }, status: 'done' }));
+    await repo.finishWorkout(w, true);
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(42.5);
+    await repo.resumeWorkout(id);
+    expect((await db.workouts.get(id))!.status).toBe('in_progress');
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(40);
+    expect(await db.progressionEvents.count()).toBe(0);
+    expect(await db.revisions.where('workoutId').equals(id).count()).toBe(1);
+    // Finishing again evaluates it again.
+    await repo.finishWorkout((await db.workouts.get(id))!, false);
+    expect((await db.progressionStates.toArray())[0].targets.load).toBe(42.5);
+  });
+
   it('database v3 removes old rest times from saved data', async () => {
     const name = `test-${crypto.randomUUID()}`;
     const { default: Dexie } = await import('dexie');

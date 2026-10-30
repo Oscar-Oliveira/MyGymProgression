@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, substitute } from './workout';
+import { addSet, decide, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -341,5 +341,30 @@ describe('review fixes', () => {
     expect(state.targets.load).toBe(45);
     expect(canRevert(first, state)).toBe(false);
     expect(decide(first, state, { kind: 'revert' }).state.targets.load).toBe(45);
+  });
+});
+
+describe('resume an interrupted workout', () => {
+  it('reopens it: in progress again, open sets pending, no evaluation', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    w.entries[1].sets[0] = { ...w.entries[1].sets[0], values: { ...w.entries[1].sets[0].values, reps: 8 }, status: 'done' };
+    const done = finishWorkout(w, true, t.lastEntry, t.states).workout;
+    expect(done.status).toBe('interrupted');
+    const r = reopenWorkout(done);
+    expect(r.status).toBe('in_progress');
+    expect(r.endedAt).toBeUndefined();
+    expect(r.entries[1].sets.map((x) => x.status)).toEqual(['done', 'pending', 'pending']);
+    expect(r.entries.every((e) => e.evaluation === undefined)).toBe(true);
+  });
+  it('only the most recent workout, when paused or interrupted', () => {
+    const t = setup();
+    t.session([8, 8, 8]);
+    const old = { ...t.history[0], status: 'interrupted' as const, startedAt: '2026-01-01T10:00:00Z' };
+    const last = { ...old, id: 'last', startedAt: '2026-01-02T10:00:00Z' };
+    expect(resumable(last, [old, last])).toBe(true);
+    expect(resumable(old, [old, last])).toBe(false);
+    expect(resumable({ ...last, status: 'partial' }, [old, last])).toBe(false);
+    expect(resumable({ ...last, status: 'in_progress' }, [old, last])).toBe(true);
   });
 });
