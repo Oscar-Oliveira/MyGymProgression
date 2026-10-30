@@ -114,6 +114,126 @@ async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') 
   await page.getByRole('button', { name: /Start this day/ }).click();
 }
 
+test('plan goal is saved; a mixed plan sets the type of each day', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: '+ New plan' }).click();
+  await page.getByLabel('Plan name').fill('Mix');
+  const planGoal = page.getByRole('radiogroup', { name: 'Goal' });
+  await planGoal.getByRole('radio', { name: 'Mixed' }).click();
+  await page.getByRole('button', { name: '+ Day' }).click();
+  const dayGoal = page.getByRole('radiogroup', { name: 'Type of this day' });
+  await expect(dayGoal.getByRole('radio', { name: 'Free' })).toHaveAttribute('aria-checked', 'true');
+  await dayGoal.getByRole('radio', { name: 'Strength' }).click();
+  await page.getByRole('button', { name: '+ Add exercise' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
+  // A strength day gives the strength default sets (5×5) and the automatic load rule.
+  await expect(page.getByLabel('Machine Chest Press Sets')).toHaveValue('5');
+  await expect(page.getByText('Load goes up automatically').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Saved', exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(planGoal.getByRole('radio', { name: 'Mixed' })).toHaveAttribute('aria-checked', 'true');
+  await expect(dayGoal.getByRole('radio', { name: 'Strength' })).toHaveAttribute('aria-checked', 'true');
+  // Exercises are listed collapsed, with a summary; tapping one opens its editor.
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  await expect(chest).toContainText('5×5 reps');
+  await chest.getByRole('button', { expanded: false }).click();
+  await expect(page.getByLabel('Machine Chest Press Sets')).toHaveValue('5');
+});
+
+test('circuit: built in the plan, done once at the end of the whole circuit', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: '+ New plan' }).click();
+  await page.getByLabel('Plan name').fill('Circ');
+  await page.getByRole('button', { name: '+ Day' }).click();
+  await page.getByRole('button', { name: '⟳ Circuit' }).click();
+  const block = page.getByRole('region', { name: 'Circuit 1' });
+  await block.getByLabel('Circuit 1 Rounds').fill('2');
+  for (const name of ['Push-up', 'Plank']) {
+    await block.getByRole('button', { name: '+ Exercise in circuit' }).click();
+    await page.getByPlaceholder('Search by name, other name or tag').fill(name);
+    await page.getByRole('dialog').getByRole('button', { name: new RegExp(`^${name}`) }).click();
+  }
+  await expect(block.getByRole('region')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('button', { name: /Start this day/ }).click();
+
+  // The whole circuit is one step: both rounds of both exercises, one "done".
+  await expect(page.getByRole('tab', { name: 'Circuit 1' })).toHaveAttribute('aria-selected', 'true');
+  const circuit = page.getByRole('region', { name: 'Circuit 1' });
+  await expect(circuit.getByText('Round 2')).toBeVisible();
+  await circuit.getByRole('button', { name: '✓ Circuit done' }).click();
+  await expect(circuit.getByRole('button', { name: '✓ Done' })).toBeDisabled();
+  await expect(page.getByText('4/4 sets')).toBeVisible();
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await expect(page.getByRole('heading', { name: 'Next time' })).toBeVisible();
+});
+
+test('join a duplicate exercise: the plan uses the kept one and the old name still finds it', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: '+ New plan' }).click();
+  await page.getByLabel('Plan name').fill('Push');
+  await page.getByRole('button', { name: '+ Day' }).click();
+  await page.getByRole('button', { name: '+ Add exercise' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Barbell Bench Press');
+  await page.getByRole('link', { name: /^Barbell Bench Press/ }).first().click();
+  await page.getByRole('button', { name: '⇆ Join a duplicate' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
+  const confirm = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(confirm).toContainText('1 plans, 0 workouts');
+  await confirm.getByRole('button', { name: 'Join', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await expect(page.locator('.page-head small')).toContainText('Machine Chest Press'); // now another name
+
+  await more(page, /^Plans/);
+  await page.getByRole('link', { name: /^Push/ }).click();
+  await expect(page.getByRole('region', { name: 'Barbell Bench Press' })).toBeVisible();
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Machine Chest Press');
+  await expect(page.getByRole('link', { name: /^Barbell Bench Press/ })).toBeVisible();
+});
+
+test('personal trainer: off by default; when on, a message shows at the start of a workout and can be closed', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByRole('button', { name: /Start workout/ }).click();
+  await expect(page.getByRole('note', { name: 'Personal trainer' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: 'Discard workout' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Discard workout' }).click();
+
+  await more(page, /^Settings/);
+  const enable = page.getByLabel('Motivating messages when a workout starts');
+  await enable.click();
+  await expect(enable).toBeChecked();
+  await page.getByLabel('Style').selectOption({ label: 'Sergeant + data' });
+  await page.getByRole('button', { name: 'Show an example' }).click();
+  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await tab(page, 'Home');
+  await page.getByRole('button', { name: /Start workout/ }).click();
+  const note = page.getByRole('note', { name: 'Personal trainer' });
+  await expect(note).toBeVisible();
+  await note.getByRole('button', { name: 'Close' }).click();
+  await expect(note).toHaveCount(0);
+});
+
+test('about: version and what is new', async ({ page }) => {
+  await more(page, /^About/);
+  await expect(page.getByRole('heading', { name: 'MyGymProgression', level: 1 })).toBeVisible();
+  await expect(page.getByText(/^Version \d+\.\d+\.\d+ · built on/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: "What's new" })).toBeVisible();
+});
+
 async function logChest(page: Page, reps: number[]) {
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   for (const r of reps) {

@@ -65,6 +65,10 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   3: (raw) => ({ ...raw, schemaVersion: 4 }),
   // v5 removes rest times; validation drops the old restSec fields.
   4: (raw) => ({ ...raw, schemaVersion: 5 }),
+  // v6 only adds an optional goal per day (mixed plans).
+  5: (raw) => ({ ...raw, schemaVersion: 6 }),
+  // v7 only adds optional fields: colours, circuits, theme and personal trainer settings.
+  6: (raw) => ({ ...raw, schemaVersion: 7 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

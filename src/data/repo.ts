@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
 import { mergeLibrary, type LibraryRecord } from '../domain/library';
+import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, startWorkout, type DecisionInput } from '../domain/workout';
@@ -28,6 +29,20 @@ export function createRepo(db: GymDB) {
       out.settings = await db.settings.get('settings');
     });
     return out;
+  }
+
+  /** Everything that can reference an exercise, for joining two of them. */
+  async function joinInput(keepId: string, dropId: string) {
+    const [keep, drop] = await db.exercises.bulkGet([keepId, dropId]);
+    if (!keep || !drop || keepId === dropId) return undefined;
+    const [versions, workouts, states, events, revisions] = await Promise.all([
+      db.planVersions.toArray(),
+      db.workouts.toArray(),
+      db.progressionStates.toArray(),
+      db.progressionEvents.toArray(),
+      db.revisions.toArray(),
+    ]);
+    return { keep, drop, versions, workouts, states, events, revisions };
   }
 
   async function importLibraryNow(records: LibraryRecord[]) {
@@ -73,6 +88,29 @@ export function createRepo(db: GymDB) {
     async deleteExercise(id: string) {
       // Workouts keep snapshots, so history stays readable.
       await db.exercises.delete(id);
+    },
+
+    /** What joining would change (plans, workouts, progression records), to show before confirming. */
+    async joinPreview(keepId: string, dropId: string) {
+      const input = await joinInput(keepId, dropId);
+      return input && mergeExercises(input).counts;
+    },
+
+    /** Joins a duplicate into the kept exercise everywhere, then deletes the duplicate (D19). One transaction. */
+    async joinExercises(keepId: string, dropId: string) {
+      await db.transaction('rw', [db.exercises, db.planVersions, db.workouts, db.progressionStates, db.progressionEvents, db.revisions], async () => {
+        const input = await joinInput(keepId, dropId);
+        if (!input) throw new Error('exercise_missing');
+        const r = mergeExercises(input);
+        await db.planVersions.bulkPut(r.versions);
+        await db.workouts.bulkPut(r.workouts);
+        await db.revisions.bulkPut(r.revisions);
+        await db.progressionEvents.bulkPut(r.events);
+        await db.progressionStates.bulkDelete(r.deleteStates);
+        await db.progressionStates.bulkPut(r.states);
+        await db.exercises.put(r.exercise);
+        await db.exercises.delete(dropId);
+      });
     },
 
     async createPlan(plan: Plan, version: PlanVersion) {

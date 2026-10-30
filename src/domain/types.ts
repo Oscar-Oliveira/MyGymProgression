@@ -111,9 +111,15 @@ export interface Exercise {
   updatedAt: string;
 }
 
+/** Fixed palette for plans and days (values in styles.css, readable in dark and light). */
+export const COLOR_KEYS = ['violet', 'blue', 'cyan', 'teal', 'green', 'lime', 'amber', 'orange', 'red', 'pink'] as const;
+export type ColorKey = (typeof COLOR_KEYS)[number];
+
 export type PlanGoal = 'hypertrophy' | 'strength' | 'mixed' | 'other';
 /** Strength plans: fixed reps (e.g. 5×5, linear) or a low rep range (e.g. 4–6). */
 export type StrengthMode = 'fixed' | 'range';
+/** Goal of one day in a mixed plan. */
+export type DayGoal = 'hypertrophy' | 'strength';
 export type ItemRole = 'warmup' | 'main' | 'optional';
 
 export interface PlanItem {
@@ -121,8 +127,10 @@ export interface PlanItem {
   /** Stable across plan versions; keys the progression state. */
   lineageId: string;
   exerciseId: string;
-  /** Items with the same group label form a superset. */
+  /** Old free-text superset label (no longer edited; kept for older data). */
   group?: string;
+  /** Circuit of the day this item belongs to (see PlanDay.circuits). */
+  circuitId?: string;
   role: ItemRole;
   sets: SetPrescription[];
   /** Overrides the exercise default progression. */
@@ -136,7 +144,20 @@ export interface PlanDay {
   name: string;
   /** 0 = Monday ... 6 = Sunday. Optional. */
   weekday?: number;
+  /** Mixed plans only: the goal of this day. Not set = each exercise uses its own rule. */
+  goal?: DayGoal;
+  strengthMode?: StrengthMode;
+  /** Not set = the plan colour. */
+  color?: ColorKey;
+  /** Exercises done back to back without rest, for a number of rounds. Their items are consecutive in `items`. */
+  circuits?: Circuit[];
   items: PlanItem[];
+}
+
+export interface Circuit {
+  id: string;
+  name: string;
+  rounds: number;
 }
 
 export interface Plan {
@@ -145,6 +166,7 @@ export interface Plan {
   description: string;
   goal: PlanGoal;
   strengthMode?: StrengthMode;
+  color?: ColorKey;
   phase: string;
   status: 'active' | 'archived';
   currentVersionId: string;
@@ -241,6 +263,8 @@ export interface WorkoutEntry {
   progression: ProgressionConfig;
   substitutedFor?: string;
   group?: string;
+  /** Snapshot of the circuit this entry was part of. */
+  circuit?: Circuit;
   role: ItemRole;
   sets: SetRecord[];
   pain: boolean;
@@ -314,4 +338,16 @@ export interface Settings {
   lastBackupAt?: string;
   /** No longer used (the library was once applied automatically); kept so older backups stay valid. */
   librarySync?: string;
+  /** Default: dark. */
+  theme?: 'dark' | 'light' | 'system';
+  /** Personal trainer messages shown when a workout starts. */
+  coach?: CoachSettings;
+}
+
+export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant';
+export interface CoachSettings {
+  enabled: boolean;
+  style: CoachStyle;
+  /** Spite style only: allow swear words. */
+  profanity: boolean;
 }

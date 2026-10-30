@@ -1,8 +1,13 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições' },
-  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação' },
+  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições', about: 'Sobre' },
+  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos' },
+  about: {
+    version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
+    whatsNew: 'Novidades', privacy: 'Dados e privacidade', privacyText: 'Todos os dados ficam neste dispositivo, no navegador. Nada é enviado para servidores. Faça cópias de segurança em Definições.',
+    credits: 'Créditos', creditsText: 'Criado por Oscar Oliveira. Código aberto no GitHub.', source: 'Código fonte',
+  },
   common: {
     save: 'Guardar', saved: 'Guardado', cancel: 'Cancelar', delete: 'Eliminar', edit: 'Editar', add: 'Adicionar', remove: 'Remover', duplicate: 'Duplicar', archive: 'Arquivar', unarchive: 'Restaurar',
     close: 'Fechar', search: 'Pesquisar', all: 'Todos', name: 'Nome', notes: 'Notas', description: 'Descrição', moveUp: 'Subir', moveDown: 'Descer', from: 'Data',
@@ -79,9 +84,27 @@ export const pt: Resources = {
   role: { warmup: 'Aquecimento', main: 'Principal', optional: 'Opcional' },
   loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter' },
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
+  coach: {
+    title: 'Personal trainer', enabled: 'Mensagens motivadoras ao começar o treino', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
+    styles: { support: 'Apoio', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
+    styleHelp: {
+      support: 'Positivo e próximo. Bom para a consistência a longo prazo.',
+      spite: 'Usa quem duvidou de ti, e as tuas desculpas, como combustível. Funciona bem a curto prazo; combine com objetivos seus.',
+      stoic: 'Calmo e firme: foco no que controla, no esforço e na constância.',
+      sergeant: 'Duro e direto, com os seus números reais (treinos, subidas, dias parado).',
+    },
+  },
+  circuit: {
+    label: 'Circuito', name: 'Nome do circuito', rounds: 'Voltas', new: 'Circuito', addExercise: 'Exercício no circuito',
+    help: 'Exercícios seguidos, sem descanso. Cada volta faz todos uma vez.',
+    roundN: 'Volta {{n}}', roundsCount: '{{count}} voltas', roundsCount_one: '{{count}} volta', done: 'Circuito feito', doneAll: 'Feito', workoutHelp: 'Faça {{rounds}} voltas, sem descanso entre exercícios. Ajuste os valores se precisar e marque feito no fim.',
+  },
+  color: { violet: 'Violeta', blue: 'Azul', cyan: 'Ciano', teal: 'Verde-azulado', green: 'Verde', lime: 'Lima', amber: 'Âmbar', orange: 'Laranja', red: 'Vermelho', pink: 'Rosa' },
   weekday: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
   home: {
     next: 'Próximo treino', start: 'Começar treino', otherDay: 'Outro dia ou treino livre', inProgress: 'Treino em curso', continue: 'Continuar',
+    week: 'Esta semana', size: '{{count}} exercícios · {{sets}} séries', size_one: '{{count}} exercício · {{sets}} séries', andMore: '+ {{count}} exercícios',
+    statWorkouts: 'treinos este mês', statSets: 'séries este mês', statUps: 'subidas este mês',
     setsProgress: '{{done}} de {{total}} séries', decide: 'Decidir para a próxima vez', last: 'Último treino',
     getStarted: 'Começar', welcome: 'Registe depressa. Saiba como progredir.', welcomeText: 'Crie um plano com os seus exercícios. No fim de cada treino a app diz-lhe o que fazer na próxima vez.',
     seed: 'Adicionar exercícios iniciais', createPlan: 'Criar um plano', demo: 'Experimentar com dados de exemplo',
@@ -110,6 +133,7 @@ export const pt: Resources = {
     defaults: 'Séries predefinidas', progressionSettings: 'Progressão', noResults: 'Nenhum exercício encontrado.', count: '{{count}} exercícios', count_one: '{{count}} exercício',
     usedIn: 'Usado nos planos: {{plans}}. Remova-o desses planos primeiro, ou marque-o como inativo.', history: 'Histórico', prs: 'Melhores', noHistory: 'Ainda sem sessões.',
     applyPreset: 'Aplicar tipo', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', showMore: 'Mostrar mais {{n}} ({{left}} restantes)',
+    join: 'Juntar duplicado', joinOk: 'Juntar', joinConfirm: 'Juntar «{{dup}}» em «{{keep}}»? Passam para «{{keep}}»: {{plans}} planos, {{workouts}} treinos e {{progression}} registos de progressão. «{{dup}}» fica como outro nome e é apagado.', joinDone: '«{{dup}}» foi junto em «{{keep}}».',
     video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
   },
   prescription: { sets: 'Séries', addSet: 'Adicionar série', kind: 'Tipo', min: 'mín', max: 'máx', target: 'alvo', setN: 'Série {{n}}' },
@@ -119,16 +143,17 @@ export const pt: Resources = {
   },
   plan: {
     title: 'Planos', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
+    color: 'Cor do plano', dayColor: 'Cor do dia', samePlanColor: 'Igual ao plano', daySummary: '{{count}} exercícios · {{sets}} séries', daySummary_one: '{{count}} exercício · {{sets}} séries',
     removeDay: 'Remover este dia', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
     advanced: 'Avançado', setBySet: 'Série a série', group: 'Superset', role: 'Função', substitutes: 'Substitutos',
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adicione um dia de treino.', noItems: 'Ainda sem exercícios.',
     startDay: 'Começar este dia', days: 'dias', actions: 'Opções de',
-    strengthMode: 'Modo de força', mode: { fixed: 'Reps fixas (5×5)', range: 'Intervalo baixo (4×4–6)' },
+    dayGoal: 'Tipo deste dia', dayFree: 'Livre', strengthMode: 'Modo de força', mode: { fixed: 'Reps fixas (5×5)', range: 'Intervalo baixo (4×4–6)' },
     goalHelp: {
       hypertrophy: 'Hipertrofia: 3×8–12. Quando todas as séries chegam a 12, escolhe: mais carga (volta a 8 reps) ou mais reps (9–13, mesma carga).',
       strength: 'Força: quando todas as séries chegam às reps alvo, a carga sobe automaticamente.',
-      mixed: 'Misto: cada exercício usa a sua própria progressão da biblioteca.',
+      mixed: 'Misto: escolha o tipo de cada dia (Hipertrofia, Força ou Livre).',
       other: 'Outro: cada exercício usa a sua própria progressão da biblioteca.',
     },
     applyDefaults: 'Aplicar {{sets}} aos exercícios com carga deste plano? As cargas mantêm-se.',
@@ -151,7 +176,7 @@ export const pt: Resources = {
     },
   },
   settings: {
-    title: 'Definições', preferences: 'Preferências', library: 'Biblioteca de exercícios', danger: 'Eliminar dados', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após N sessões',
+    title: 'Definições', preferences: 'Preferências', theme: 'Tema', themes: { dark: 'Escuro', light: 'Claro', system: 'Igual ao sistema' }, library: 'Biblioteca de exercícios', danger: 'Eliminar dados', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após N sessões',
     data: 'Dados', export: 'Exportar', exportFull: 'Cópia completa (JSON)', exportLibrary: 'Exercícios (JSON)', exportPlans: 'Planos (JSON)',
     csvSets: 'Séries (CSV)', csvWorkouts: 'Treinos (CSV)', csvEvents: 'Progressão (CSV)', import: 'Importar', chooseFile: 'Escolher ficheiro JSON',
     seed: 'Adicionar exercícios iniciais', seeded: '{{count}} exercícios adicionados.', importLibrary: 'Importar ficheiro da biblioteca', libraryNotice: 'Importa exercícios de um ficheiro de biblioteca (JSON, formato em docs/data-format.md). Os exercícios que já tem ficam com as imagens e as instruções; planos e histórico não mudam. Use apenas dados que tem autorização para usar.', libraryResult: '{{added}} adicionados, {{updated}} atualizados.', libraryInvalid: 'Este ficheiro não é uma biblioteca de exercícios.', demo: 'Carregar dados de exemplo', demoConfirm: 'Adicionar um plano de exemplo e 6 semanas de treinos?',

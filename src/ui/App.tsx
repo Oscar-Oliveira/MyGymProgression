@@ -17,6 +17,7 @@ import { WorkoutPage } from './pages/WorkoutPage';
 import { History } from './pages/History';
 import { Analysis } from './pages/Analysis';
 import { SettingsPage } from './pages/SettingsPage';
+import { About } from './pages/About';
 
 // Outline icons (24×24, stroke = currentColor).
 const ICONS = {
@@ -31,7 +32,7 @@ const TABS = [
   ['/history', 'history'],
   ['/more', 'more'],
 ] as const;
-const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings'];
+const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about'];
 
 function Shell() {
   const { t } = useTranslation();
@@ -77,6 +78,7 @@ function Shell() {
           <Route path="/history" element={<History />} />
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </main>
       <DialogHost />
@@ -91,6 +93,9 @@ export function App() {
     if (i18n.language !== settings.language) void i18n.changeLanguage(settings.language);
     document.documentElement.lang = settings.language;
   }, [settings.language, i18n]);
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme ?? 'dark';
+  }, [settings.theme]);
 
   return (
     <HashRouter>

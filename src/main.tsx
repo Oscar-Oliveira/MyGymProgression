@@ -14,3 +14,10 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
+// The splash (index.html) stays about a second, then fades out.
+const splash = document.getElementById('splash');
+setTimeout(() => {
+  splash?.classList.add('hide');
+  setTimeout(() => splash?.remove(), 400);
+}, 900);

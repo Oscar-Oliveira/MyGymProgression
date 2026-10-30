@@ -72,5 +72,5 @@ export function duplicatePlan(plan: Plan, version: PlanVersion, name: string): {
   const { plan: p, version: v } = newPlan(name);
   const days = structuredClone(version.days).map((d) => ({ ...d, id: uid(), items: d.items.map((i) => ({ ...i, id: uid(), lineageId: uid() })) }));
   // Superset labels stay; they are local to a day.
-  return { plan: { ...p, description: plan.description, goal: plan.goal, phase: plan.phase }, version: { ...v, days } };
+  return { plan: { ...p, description: plan.description, goal: plan.goal, strengthMode: plan.strengthMode, phase: plan.phase }, version: { ...v, days } };
 }

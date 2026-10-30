@@ -6,6 +6,7 @@ import type { Workout } from '../../domain/types';
 import { Empty } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { useSettings, useThumbs } from '../util';
+import { toneStyle, useTones } from '../colors';
 
 const STATUS_TONE: Record<Workout['status'], string> = { completed: 'up', partial: 'warn', interrupted: 'warn', in_progress: '' };
 const PAGE_SIZE = 10;
@@ -14,6 +15,7 @@ export function History() {
   const { t } = useTranslation();
   const s = useSettings();
   const thumbOf = useThumbs();
+  const toneFor = useTones();
   // The page is kept in the URL, so "back" from a workout returns to the same page.
   const [params, setParams] = useSearchParams();
   const asked = Math.max(1, Math.floor(Number(params.get('page'))) || 1);
@@ -58,7 +60,7 @@ export function History() {
             return (
               <div key={w.id}>
                 {newMonth && <p className="month">{month(w.startedAt)}</p>}
-                <Link to={`/workout/${w.id}`} className="card hist-row">
+                <Link to={`/workout/${w.id}`} className="card hist-row toned" style={toneStyle(toneFor(w.planId, w.dayId))}>
                   <span className="date-tile" aria-hidden="true">
                     <span className="wd">{d.toLocaleDateString(locale, { weekday: 'short' })}</span>
                     <span className="dd">{d.getDate()}</span>

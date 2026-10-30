@@ -1,11 +1,11 @@
-# Interchange format (schema version 5)
+# Interchange format (schema version 7)
 
 JSON file produced by **Settings → Export**. The authoritative definition is the zod schema in [`src/domain/schema.ts`](../src/domain/schema.ts).
 
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 5,
+  "schemaVersion": 7,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
@@ -42,6 +42,8 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v6 → v7: additive only — `color` on plans and days, `circuits` on days and `circuitId` on plan items, `circuit` snapshot on workout entries, `theme` and `coach` in settings.
+   - v5 → v6: additive only — optional `goal` (`hypertrophy` | `strength`) and `strengthMode` per plan day, used by mixed plans.
    - v4 → v5: `restSec` removed from set prescriptions and set records.
    - v3 → v4: additive only — exercise library fields (`group`, `overview`, `steps`, `tips`, `thumb`, `image`, `video`, `muscleDetail`, `source`, `related`).
    - v2 → v3: additive only — `plan.strengthMode`, `progression.onTop`, `progressionState.repsRange`, `event.repsOption` / `rangeBefore` / `rangeAfter`, outcome `ready`, decision `reps_up`.

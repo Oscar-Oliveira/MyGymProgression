@@ -9,12 +9,17 @@ import { NumInput } from '../components/NumInput';
 import { download, fmtDate, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
+import { coachMessage } from '../../domain/coach';
+import { COACH_BANKS } from '../../i18n/coach';
+import type { CoachSettings, CoachStyle } from '../../domain/types';
 
-const APP_VERSION = '0.1.0';
+const COACH_STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant'];
+const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
+
 
 async function exportJson(scope: Scope) {
   const data = await repo.readAll();
-  download(`mygymprogression-${scope}-${stamp()}.json`, JSON.stringify(buildBundle(data, scope, APP_VERSION), null, 2));
+  download(`mygymprogression-${scope}-${stamp()}.json`, JSON.stringify(buildBundle(data, scope, __APP_VERSION__), null, 2));
   if (scope === 'full') await repo.saveSettings({ lastBackupAt: new Date().toISOString() });
 }
 
@@ -52,7 +57,7 @@ function ImportPanel() {
     const existing = await repo.readAll();
     if (mode === 'replace') {
       if (!(await dialog.confirm(t('import.replaceWarn'), { danger: true }))) return;
-      download(`mygymprogression-before-import-${stamp()}.json`, JSON.stringify(buildBundle(existing, 'full', APP_VERSION), null, 2));
+      download(`mygymprogression-before-import-${stamp()}.json`, JSON.stringify(buildBundle(existing, 'full', __APP_VERSION__), null, 2));
       await repo.importReplace({ ...bundle.data, settings: bundle.data.settings ?? existing.settings });
     } else {
       await repo.importMerge(planMerge(bundle.data, existing, policy, dups));
@@ -155,6 +160,8 @@ export function SettingsPage() {
   const s = useSettings();
   const [persisted, setPersisted] = useState<boolean>();
   const [msg, setMsg] = useState('');
+  const coach = s.coach ?? NO_COACH;
+  const saveCoach = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
   useEffect(() => {
     void navigator.storage?.persisted?.().then(setPersisted);
   }, []);
@@ -213,6 +220,16 @@ export function SettingsPage() {
           </select>
         </label>
         <label className="setting-row">
+          <span>{t('settings.theme')}</span>
+          <select value={s.theme ?? 'dark'} onChange={(e) => void repo.saveSettings({ theme: e.target.value as 'dark' | 'light' | 'system' })}>
+            {(['dark', 'light', 'system'] as const).map((th) => (
+              <option key={th} value={th}>
+                {t(`settings.themes.${th}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="setting-row">
           <span>{t('settings.loadUnit')}</span>
           <select value={s.loadUnit} onChange={(e) => void repo.saveSettings({ loadUnit: e.target.value as 'kg' | 'lb' })}>
             <option>kg</option>
@@ -230,6 +247,40 @@ export function SettingsPage() {
           <span>{t('settings.stalledThreshold')}</span>
           <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
         </label>
+      </section>
+
+      <div className="section-head">
+        <h2>{t('coach.title')}</h2>
+      </div>
+      <section className="card">
+        <label className="setting-row">
+          <span>{t('coach.enabled')}</span>
+          <input type="checkbox" checked={coach.enabled} onChange={(e) => void saveCoach({ enabled: e.target.checked })} />
+        </label>
+        {coach.enabled && (
+          <>
+            <label className="setting-row">
+              <span>{t('coach.style')}</span>
+              <select value={coach.style} onChange={(e) => void saveCoach({ style: e.target.value as CoachStyle })}>
+                {COACH_STYLES.map((st) => (
+                  <option key={st} value={st}>
+                    {t(`coach.styles.${st}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+            {coach.style === 'spite' && (
+              <label className="setting-row">
+                <span>{t('coach.profanity')}</span>
+                <input type="checkbox" checked={coach.profanity} onChange={(e) => void saveCoach({ profanity: e.target.checked })} />
+              </label>
+            )}
+            <button className="outline" onClick={() => void dialog.alert(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
+              {t('coach.preview')}
+            </button>
+          </>
+        )}
       </section>
 
       <div className="section-head">

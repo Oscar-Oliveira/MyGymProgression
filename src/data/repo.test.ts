@@ -206,3 +206,50 @@ describe('repo (IndexedDB)', () => {
     expect((await db.exercises.toArray()).filter((e) => e.name === 'Library Only')).toHaveLength(1);
   });
 });
+
+describe('joining duplicate exercises (D19)', () => {
+  it('moves plans, workouts, progression and its own progression to the kept exercise, then deletes the duplicate', async () => {
+    const t = await setupPlan();
+    const dup = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Supino', aliases: ['Flat bench', 'bench'] });
+    dup.defaultSets.forEach((s) => (s.targets.load = { value: 40 }));
+    dup.video = 'https://www.youtube.com/watch?v=abc';
+    await repo.saveExercise(dup);
+    const q = newPlan('Q');
+    q.plan.goal = 'strength';
+    const day = newDay('B');
+    const item = newPlanItem(dup);
+    item.substitutes = [t.ex.id];
+    day.items.push(item);
+    q.version.days.push(day);
+    await repo.createPlan(q.plan, q.version);
+    await doSession(q.plan.id, day.id, [12, 12, 12]);
+    await db.progressionStates.put({ lineageId: `exercise:${dup.id}`, exerciseId: dup.id, targets: { load: 50 }, updatedAt: '2026-10-30T00:00:00.000Z' });
+
+    const preview = await repo.joinPreview(t.ex.id, dup.id);
+    expect(preview).toMatchObject({ plans: 1, workouts: 1 });
+    expect(preview!.progression).toBeGreaterThanOrEqual(2);
+
+    await repo.joinExercises(t.ex.id, dup.id);
+    expect(await db.exercises.get(dup.id)).toBeUndefined();
+    const kept = (await db.exercises.get(t.ex.id))!;
+    expect(kept.aliases).toEqual(['Supino', 'Flat bench']);
+    expect(kept.video).toBe(dup.video);
+    const v = (await db.planVersions.get((await db.plans.get(q.plan.id))!.currentVersionId))!;
+    expect(v.days[0].items[0].exerciseId).toBe(t.ex.id);
+    expect(v.days[0].items[0].substitutes).toEqual([]);
+    const w = (await db.workouts.toArray()).flatMap((x) => x.entries);
+    expect(w.every((e) => e.exerciseId === t.ex.id)).toBe(true);
+    expect(w[0].exercise.name).toBe('Supino'); // history keeps what was logged
+    expect((await db.progressionEvents.toArray()).every((e) => e.exerciseId === t.ex.id)).toBe(true);
+    const states = await db.progressionStates.toArray();
+    expect(states.some((s) => s.exerciseId === dup.id || s.lineageId === `exercise:${dup.id}`)).toBe(false);
+    expect(states.find((s) => s.lineageId === `exercise:${t.ex.id}`)?.targets.load).toBe(50);
+  });
+
+  it('joining an exercise with itself or a missing one does nothing', async () => {
+    const t = await setupPlan();
+    expect(await repo.joinPreview(t.ex.id, t.ex.id)).toBeUndefined();
+    await expect(repo.joinExercises(t.ex.id, 'missing')).rejects.toThrow('exercise_missing');
+    expect(await db.exercises.get(t.ex.id)).toBeDefined();
+  });
+});

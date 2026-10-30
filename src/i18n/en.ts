@@ -1,6 +1,11 @@
 export const en = {
-  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', analysis: 'Analysis', settings: 'Settings' },
-  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', analysis: 'Progress per exercise', settings: 'Units, language, backup and import' },
+  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', analysis: 'Analysis', settings: 'Settings', about: 'About' },
+  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', analysis: 'Progress per exercise', settings: 'Units, language, backup and import', about: 'Version, what is new and credits' },
+  about: {
+    version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
+    whatsNew: "What's new", privacy: 'Data and privacy', privacyText: 'All data stays on this device, in the browser. Nothing is sent to servers. Make backups in Settings.',
+    credits: 'Credits', creditsText: 'Made by Oscar Oliveira. Open source on GitHub.', source: 'Source code',
+  },
   common: {
     save: 'Save', saved: 'Saved', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', add: 'Add', remove: 'Remove', duplicate: 'Duplicate', archive: 'Archive', unarchive: 'Restore',
     close: 'Close', search: 'Search', all: 'All', name: 'Name', notes: 'Notes', description: 'Description', moveUp: 'Move up', moveDown: 'Move down', from: 'Date',
@@ -77,9 +82,27 @@ export const en = {
   role: { warmup: 'Warm-up', main: 'Main', optional: 'Optional' },
   loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell' },
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
+  coach: {
+    title: 'Personal trainer', enabled: 'Motivating messages when a workout starts', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
+    styles: { support: 'Support', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
+    styleHelp: {
+      support: 'Positive and warm. Good for long-term consistency.',
+      spite: 'Uses doubters, and your own excuses, as fuel. Works well short term; combine it with goals of your own.',
+      stoic: 'Calm and firm: focus on what you control, on effort and on consistency.',
+      sergeant: 'Hard and direct, with your real numbers (workouts, increases, days off).',
+    },
+  },
+  circuit: {
+    label: 'Circuit', name: 'Circuit name', rounds: 'Rounds', new: 'Circuit', addExercise: 'Exercise in circuit',
+    help: 'Exercises back to back, no rest. Each round does all of them once.',
+    roundN: 'Round {{n}}', roundsCount: '{{count}} rounds', roundsCount_one: '{{count}} round', done: 'Circuit done', doneAll: 'Done', workoutHelp: 'Do {{rounds}} rounds, no rest between exercises. Change the values if needed and mark done at the end.',
+  },
+  color: { violet: 'Violet', blue: 'Blue', cyan: 'Cyan', teal: 'Teal', green: 'Green', lime: 'Lime', amber: 'Amber', orange: 'Orange', red: 'Red', pink: 'Pink' },
   weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   home: {
     next: 'Next workout', start: 'Start workout', otherDay: 'Other day or free workout', inProgress: 'Workout in progress', continue: 'Continue',
+    week: 'This week', size: '{{count}} exercises · {{sets}} sets', size_one: '{{count}} exercise · {{sets}} sets', andMore: '+ {{count}} more exercises',
+    statWorkouts: 'workouts this month', statSets: 'sets this month', statUps: 'increases this month',
     setsProgress: '{{done}} of {{total}} sets', decide: 'Decide for next time', last: 'Last workout',
     getStarted: 'Get started', welcome: 'Log fast. Know how to progress.', welcomeText: 'Create a plan with your exercises. At the end of each workout the app tells you what to do next time.',
     seed: 'Add starter exercises', createPlan: 'Create a plan', demo: 'Try with example data',
@@ -108,6 +131,7 @@ export const en = {
     defaults: 'Default sets', progressionSettings: 'Progression', noResults: 'No exercises found.', count: '{{count}} exercises', count_one: '{{count}} exercise',
     usedIn: 'Used in plans: {{plans}}. Remove it from those plans first, or set it inactive.', history: 'History', prs: 'Best', noHistory: 'No sessions yet.',
     applyPreset: 'Apply type', groups: 'Muscle groups', allEquipment: 'All equipment', showMore: 'Show {{n}} more ({{left}} left)',
+    join: 'Join a duplicate', joinOk: 'Join', joinConfirm: 'Join «{{dup}}» into «{{keep}}»? Moving to «{{keep}}»: {{plans}} plans, {{workouts}} workouts and {{progression}} progression records. «{{dup}}» becomes another name and is deleted.', joinDone: '«{{dup}}» was joined into «{{keep}}».',
     video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
   },
   prescription: { sets: 'Sets', addSet: 'Add set', kind: 'Type', min: 'min', max: 'max', target: 'target', setN: 'Set {{n}}' },
@@ -117,16 +141,17 @@ export const en = {
   },
   plan: {
     title: 'Plans', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
+    color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
     removeDay: 'Remove this day', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
     advanced: 'Advanced', setBySet: 'Set by set', group: 'Superset', role: 'Role', substitutes: 'Substitutes',
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
     startDay: 'Start this day', days: 'days', actions: 'Options for',
-    strengthMode: 'Strength mode', mode: { fixed: 'Fixed reps (5×5)', range: 'Low range (4×4–6)' },
+    dayGoal: 'Type of this day', dayFree: 'Free', strengthMode: 'Strength mode', mode: { fixed: 'Fixed reps (5×5)', range: 'Low range (4×4–6)' },
     goalHelp: {
       hypertrophy: 'Hypertrophy: 3×8–12. When every set reaches 12, you choose: more load (back to 8 reps) or more reps (9–13, same load).',
       strength: 'Strength: when every set reaches the target reps, the load goes up automatically.',
-      mixed: 'Mixed: each exercise uses its own progression from the library.',
+      mixed: 'Mixed: choose the type of each day (Hypertrophy, Strength or Free).',
       other: 'Other: each exercise uses its own progression from the library.',
     },
     applyDefaults: 'Apply {{sets}} to the load exercises of this plan? Loads are kept.',
@@ -149,7 +174,7 @@ export const en = {
     },
   },
   settings: {
-    title: 'Settings', preferences: 'Preferences', library: 'Exercise library', danger: 'Delete data', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after N sessions',
+    title: 'Settings', preferences: 'Preferences', theme: 'Theme', themes: { dark: 'Dark', light: 'Light', system: 'Same as system' }, library: 'Exercise library', danger: 'Delete data', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after N sessions',
     data: 'Data', export: 'Export', exportFull: 'Full backup (JSON)', exportLibrary: 'Exercises (JSON)', exportPlans: 'Plans (JSON)',
     csvSets: 'Sets (CSV)', csvWorkouts: 'Workouts (CSV)', csvEvents: 'Progression (CSV)', import: 'Import', chooseFile: 'Choose a JSON file',
     seed: 'Add starter exercises', seeded: '{{count}} exercises added.', importLibrary: 'Import library file', libraryNotice: 'Imports exercises from a library file (JSON, format in docs/data-format.md). Exercises you already have get the images and instructions; plans and history do not change. Only use data you are allowed to use.', libraryResult: '{{added}} added, {{updated}} updated.', libraryInvalid: 'This file is not an exercise library.', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',

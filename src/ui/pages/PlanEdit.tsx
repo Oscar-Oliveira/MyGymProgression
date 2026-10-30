@@ -4,28 +4,27 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
+import { addCircuit, addToCircuit, blocks, moveCircuit, moveItem, removeCircuit, removeFromCircuit, updateCircuit } from '../../domain/circuit';
 import { newDay, newPlanItem } from '../../domain/factory';
-import { followsGoal, goalProgression, goalSets } from '../../domain/goals';
-import type { Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription, StrengthMode } from '../../domain/types';
+import { dayGoal, followsGoal, goalProgression, goalSets } from '../../domain/goals';
+import type { Circuit, DayGoal, Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription, StrengthMode } from '../../domain/types';
 import { PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { NumInput } from '../components/NumInput';
 import { Thumb } from '../components/Thumb';
-import { metricLabel } from '../util';
+import { fmtValue, metricLabel, useSettings } from '../util';
+import { ColorPicker } from '../components/ColorPicker';
+import { toneStyle } from '../colors';
 import { dialog } from '../components/Dialog';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
 const MODES: StrengthMode[] = ['fixed', 'range'];
+/** Day goals of a mixed plan; 'free' = each exercise uses its own rule. */
+const DAY_GOALS: (DayGoal | 'free')[] = ['hypertrophy', 'strength', 'free'];
+type Goal = Pick<Plan, 'goal' | 'strengthMode'>;
+const setsLabel = (g: Goal) => (g.goal === 'hypertrophy' ? '3×8–12' : g.strengthMode === 'range' ? '4×4–6' : '5×5');
 const ROLES: ItemRole[] = ['warmup', 'main', 'optional'];
 type Targets = Partial<Record<MetricKey, number>>;
-
-function move<T>(arr: T[], i: number, d: number): T[] {
-  const j = i + d;
-  if (j < 0 || j >= arr.length) return arr;
-  const copy = [...arr];
-  [copy[i], copy[j]] = [copy[j], copy[i]];
-  return copy;
-}
 
 const working = (sets: SetPrescription[]) => sets.filter((s) => s.kind === 'working');
 
@@ -43,7 +42,8 @@ function setCount(sets: SetPrescription[], n: number): SetPrescription[] {
 }
 
 interface ItemProps {
-  plan: Plan;
+  /** Goal of the item's day (plan goal, or the day goal in a mixed plan). */
+  plan: Goal;
   item: PlanItem;
   ex: Exercise;
   state?: ProgressionState;
@@ -52,12 +52,20 @@ interface ItemProps {
   onChange: (i: PlanItem) => void;
   onTarget: (metric: MetricKey, v: number | undefined) => void;
   onRemove: () => void;
-  onMove: (d: number) => void;
+  onMove: (d: -1 | 1) => void;
   onAddSubstitute: () => void;
+  /** Collapsed: one line with image, name and summary; open: the editor. */
+  open: boolean;
+  onToggle: () => void;
+  /** Circuits of the day; the item may belong to one (its sets are then the circuit rounds). */
+  circuits: Circuit[];
+  onCircuit: (circuitId: string | undefined) => void;
 }
 
-function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute }: ItemProps) {
+function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute, open, onToggle, circuits, onCircuit }: ItemProps) {
   const { t } = useTranslation();
+  const s = useSettings();
+  const inCircuit = circuits.some((c) => c.id === item.circuitId);
   const cfg = goalProgression(plan, ex, item.progression);
   const first = working(item.sets)[0];
   const step = cfg.steps[0];
@@ -75,12 +83,43 @@ function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget,
     onChange({ ...item, progression: { ...cfg, steps: [{ ...step, increment: v ?? 0 }, ...cfg.steps.slice(1)] } });
   };
 
+  // Collapsed summary, e.g. "3×8–12 · 40 kg" (inside a circuit the sets are the rounds, so only reps and values).
+  const r = first?.targets.reps;
+  const range = r ? (r.max !== undefined && r.max !== (r.min ?? r.value) ? `${r.min ?? r.value}–${r.max}` : `${r.min ?? r.value ?? r.max}`) : '';
+  const values = valueMetrics.map((m) => valueOf(m.key)).map((v, i) => (v === undefined ? '' : fmtValue(v, valueMetrics[i].unit, s.language))).filter(Boolean);
+  const count = inCircuit ? '' : `${working(item.sets).length}×`;
+  const summary = (hasReps ? [`${count}${range} ${t('plan.reps').toLowerCase()}`, ...values] : [`${count} ${values.join(' · ')}`.trim()]).filter(Boolean).join(' · ');
+
+  if (!open) {
+    return (
+      <section className="card item" aria-label={ex.name}>
+        <button type="button" className="item-toggle" aria-expanded={false} onClick={onToggle}>
+          <Thumb src={ex.thumb} name={ex.name} size={44} />
+          <span className="xitem-text">
+            <span className="xitem-name">
+              {item.group && <span className="group">{item.group} </span>}
+              {ex.name}
+            </span>
+            <span className="xitem-sub">{summary}</span>
+          </span>
+          <span className="fold-chev" aria-hidden="true">
+            ⌄
+          </span>
+        </button>
+      </section>
+    );
+  }
+
   return (
-    <section className="card item" aria-label={ex.name}>
+    <section className="card item open" aria-label={ex.name}>
       <div className="item-head">
-        <Thumb src={ex.thumb} name={ex.name} size={44} />
-        {item.group && <span className="group">{item.group}</span>}
-        <span className="name">{ex.name}</span>
+        <button type="button" className="item-toggle" aria-expanded={true} onClick={onToggle}>
+          <Thumb src={ex.thumb} name={ex.name} size={44} />
+          <span className="name">{ex.name}</span>
+          <span className="fold-chev" aria-hidden="true">
+            ⌄
+          </span>
+        </button>
         <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>
           ↑
         </button>
@@ -97,10 +136,12 @@ function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget,
         {state?.repsRange && ` · reps ${state.repsRange.min}–${state.repsRange.max} (${t('plan.current')})`}
       </small>
       <div className="item-grid">
-        <span className="field-inline">
-          <span>{t('plan.sets')}</span>
-          <NumInput label={`${ex.name} ${t('plan.sets')}`} value={working(item.sets).length} onChange={(v) => v && onChange({ ...item, sets: setCount(item.sets, v) })} />
-        </span>
+        {!inCircuit && (
+          <span className="field-inline">
+            <span>{t('plan.sets')}</span>
+            <NumInput label={`${ex.name} ${t('plan.sets')}`} value={working(item.sets).length} onChange={(v) => v && onChange({ ...item, sets: setCount(item.sets, v) })} />
+          </span>
+        )}
         {hasReps && (
           <span className="field-inline">
             <span>{t('plan.reps')}</span>
@@ -143,10 +184,19 @@ function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget,
                 ))}
               </select>
             </label>
-            <label>
-              {t('plan.group')}
-              <input style={{ width: '5rem' }} placeholder="A" value={item.group ?? ''} onChange={(e) => onChange({ ...item, group: e.target.value.trim() || undefined })} />
-            </label>
+            {circuits.length > 0 && (
+              <label>
+                {t('circuit.label')}
+                <select value={item.circuitId ?? ''} onChange={(e) => onCircuit(e.target.value || undefined)}>
+                  <option value="">—</option>
+                  {circuits.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
           <div>
             <h3>{t('plan.setBySet')}</h3>
@@ -194,7 +244,9 @@ export function PlanEdit() {
   const [days, setDays] = useState<PlanDay[]>([]);
   const [dayIdx, setDayIdx] = useState(0);
   const [edits, setEdits] = useState<Record<string, Targets>>({});
-  const [picker, setPicker] = useState<{ item?: string }>();
+  // Picker target: substitutes of an item, a circuit, or the day.
+  const [picker, setPicker] = useState<{ item?: string; circuit?: string }>();
+  const [openId, setOpenId] = useState<string>();
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
@@ -210,27 +262,48 @@ export function PlanEdit() {
   const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan) || Object.keys(edits).length > 0;
   const day = days[Math.min(dayIdx, days.length - 1)];
 
-  /** Changes goal or strength mode. Optionally re-applies the goal's default sets to load exercises, keeping their loads. */
-  const changeGoal = async (patch: Partial<Pick<Plan, 'goal' | 'strengthMode'>>) => {
+  /** Offers to re-apply the goal's default sets to the load exercises of the changed days, keeping their loads. */
+  const offerDefaults = async (p: Plan, ds: PlanDay[], onlyDay?: string) => {
+    const goalOf = (d: PlanDay) => dayGoal(p, d)!;
+    const touched = ds.filter(
+      (d) => (!onlyDay || d.id === onlyDay) && ['hypertrophy', 'strength'].includes(goalOf(d).goal) && d.items.some((i) => { const ex = exercises.get(i.exerciseId); return ex && followsGoal(ex); }),
+    );
+    if (!touched.length) return;
+    const label = [...new Set(touched.map((d) => setsLabel(goalOf(d))))].join(', ');
+    if (!(await dialog.confirm(t('plan.applyDefaults', { sets: label })))) return;
+    setDays(
+      ds.map((d) =>
+        !touched.includes(d)
+          ? d
+          : {
+              ...d,
+              items: d.items.map((i) => {
+                const ex = exercises.get(i.exerciseId);
+                if (!ex || !followsGoal(ex)) return i;
+                const load = working(i.sets)[0]?.targets.load;
+                const sets = goalSets(goalOf(d), ex).map((s) => (s.kind === 'working' && load ? { ...s, targets: { ...s.targets, load } } : s));
+                return { ...i, sets };
+              }),
+            },
+      ),
+    );
+  };
+
+  /** Changes the plan goal or strength mode. */
+  const changeGoal = async (patch: Partial<Goal>) => {
     const next = { ...plan, ...patch };
     if (next.goal === plan.goal && (next.strengthMode ?? 'fixed') === (plan.strengthMode ?? 'fixed')) return;
     setPlan(next);
-    const affected = days.some((d) => d.items.some((i) => { const ex = exercises.get(i.exerciseId); return ex && followsGoal(ex); }));
-    if (!affected || (next.goal !== 'hypertrophy' && next.goal !== 'strength')) return;
-    const label = next.goal === 'hypertrophy' ? '3×8–12' : next.strengthMode === 'range' ? '4×4–6' : '5×5';
-    if (!(await dialog.confirm(t('plan.applyDefaults', { sets: label })))) return;
-    setDays(
-      days.map((d) => ({
-        ...d,
-        items: d.items.map((i) => {
-          const ex = exercises.get(i.exerciseId);
-          if (!ex || !followsGoal(ex)) return i;
-          const load = working(i.sets)[0]?.targets.load;
-          const sets = goalSets(next, ex).map((s) => (s.kind === 'working' && load ? { ...s, targets: { ...s.targets, load } } : s));
-          return { ...i, sets };
-        }),
-      })),
-    );
+    await offerDefaults(next, days);
+  };
+
+  /** Changes the goal of the current day (mixed plans). */
+  const changeDayGoal = async (patch: Pick<PlanDay, 'goal' | 'strengthMode'>) => {
+    const next = { ...day, ...patch };
+    if (next.goal === day.goal && (next.strengthMode ?? 'fixed') === (day.strengthMode ?? 'fixed')) return;
+    const nextDays = days.map((d) => (d.id === day.id ? next : d));
+    setDays(nextDays);
+    await offerDefaults(plan, nextDays, day.id);
   };
 
   const upDay = (f: (d: PlanDay) => PlanDay) => setDays(days.map((d) => (d.id === day.id ? f(structuredClone(d)) : d)));
@@ -257,24 +330,59 @@ export function PlanEdit() {
     if (picker.item) {
       const it = day.items.find((x) => x.id === picker.item);
       if (it) upItem({ ...it, substitutes: [...it.substitutes, ex.id] });
-    } else upDay((d) => ({ ...d, items: [...d.items, newPlanItem(ex, plan)] }));
+    } else {
+      const item = newPlanItem(ex, dayGoal(plan, day));
+      upDay((d) => (picker.circuit ? addToCircuit(d, item, picker.circuit) : { ...d, items: [...d.items, item] }));
+      setOpenId(item.id);
+    }
     setPicker(undefined);
   };
+  const newCircuit = () => upDay((d) => addCircuit(d, `${t('circuit.label')} ${(d.circuits?.length ?? 0) + 1}`).day);
+  const workingSets = day ? day.items.reduce((a, i) => a + working(i.sets).length, 0) : 0;
   const addDay = () => {
     setDays([...days, newDay(`${t('plan.day')} ${String.fromCharCode(65 + days.length)}`)]);
     setDayIdx(days.length);
   };
 
+  const itemCard = (it: PlanItem) => {
+    const ex = exercises.get(it.exerciseId);
+    if (!ex) return null;
+    return (
+      <ItemCard
+        key={it.id}
+        plan={dayGoal(plan, day)!}
+        item={it}
+        ex={ex}
+        state={states.get(it.lineageId)}
+        edits={edits[it.lineageId]}
+        exercises={exercises}
+        onChange={upItem}
+        onTarget={(k, v) => v !== undefined && setEdits({ ...edits, [it.lineageId]: { ...edits[it.lineageId], [k]: v } })}
+        onRemove={() => upDay((d) => ({ ...d, items: d.items.filter((x) => x.id !== it.id) }))}
+        onMove={(dd) => upDay((d) => moveItem(d, it.id, dd))}
+        onAddSubstitute={() => setPicker({ item: it.id })}
+        open={openId === it.id}
+        onToggle={() => setOpenId(openId === it.id ? undefined : it.id)}
+        circuits={day.circuits ?? []}
+        onCircuit={(cid) => upDay((d) => (cid ? addToCircuit(d, d.items.find((x) => x.id === it.id)!, cid) : removeFromCircuit(d, it.id)))}
+      />
+    );
+  };
+
   return (
-    <div>
+    <div className="toned" style={toneStyle(plan.color)}>
       <div className="page-head">
         <input aria-label={t('plan.name')} style={{ fontSize: '1.4rem', fontWeight: 800, flex: 1 }} value={plan.name} onChange={(e) => setPlan({ ...plan, name: e.target.value })} />
       </div>
       <section className="card tight">
-        <p className="eyebrow">{t('goal.label')}</p>
+        <p className="eyebrow">{t('plan.color')}</p>
+        <ColorPicker label={t('plan.color')} value={plan.color} onChange={(color) => setPlan({ ...plan, color })} />
+        <p className="eyebrow" style={{ marginTop: '0.9rem' }}>
+          {t('goal.label')}
+        </p>
         <div className="seg" role="radiogroup" aria-label={t('goal.label')}>
           {[...GOALS, ...(plan.goal === 'other' ? ['other' as const] : [])].map((g) => (
-            <button key={g} role="radio" aria-checked={plan.goal === g} className={plan.goal === g ? 'on' : ''} onClick={() => changeGoal({ goal: g })}>
+            <button key={g} role="radio" aria-checked={plan.goal === g} className={plan.goal === g ? 'on' : ''} onClick={() => void changeGoal({ goal: g })}>
               {t(`goal.${g}`)}
             </button>
           ))}
@@ -282,7 +390,7 @@ export function PlanEdit() {
         {plan.goal === 'strength' && (
           <div className="seg" role="radiogroup" aria-label={t('plan.strengthMode')} style={{ marginTop: '0.5rem' }}>
             {MODES.map((m) => (
-              <button key={m} role="radio" aria-checked={(plan.strengthMode ?? 'fixed') === m} className={(plan.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => changeGoal({ strengthMode: m })}>
+              <button key={m} role="radio" aria-checked={(plan.strengthMode ?? 'fixed') === m} className={(plan.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => void changeGoal({ strengthMode: m })}>
                 {t(`plan.mode.${m}`)}
               </button>
             ))}
@@ -309,7 +417,7 @@ export function PlanEdit() {
 
       <div className="seg" role="tablist" style={{ margin: '0.75rem 0' }}>
         {days.map((d, i) => (
-          <button key={d.id} role="tab" aria-selected={d.id === day?.id} className={d.id === day?.id ? 'on' : ''} onClick={() => setDayIdx(i)}>
+          <button key={d.id} role="tab" aria-selected={d.id === day?.id} className={`toned ${d.id === day?.id ? 'on' : ''}`} style={toneStyle(d.color)} onClick={() => (setDayIdx(i), setOpenId(undefined))}>
             {d.name || '—'}
           </button>
         ))}
@@ -320,6 +428,7 @@ export function PlanEdit() {
         <div className="empty">{t('plan.noDays')}</div>
       ) : (
         <>
+          <p className="help day-summary">{t('plan.daySummary', { count: day.items.length, sets: workingSets })}</p>
           <div className="row wrap" style={{ marginBottom: '0.75rem' }}>
             <label style={{ flex: 1 }}>
               {t('plan.dayName')}
@@ -337,31 +446,81 @@ export function PlanEdit() {
               </select>
             </label>
           </div>
+          <div style={{ marginBottom: '0.9rem' }}>
+            <p className="eyebrow">{t('plan.dayColor')}</p>
+            <ColorPicker label={t('plan.dayColor')} value={day.color} noneLabel={t('plan.samePlanColor')} onChange={(color) => upDay((d) => ({ ...d, color }))} />
+          </div>
 
-          {day.items.length === 0 && <p className="empty">{t('plan.noItems')}</p>}
-          {day.items.map((it, i) => {
-            const ex = exercises.get(it.exerciseId);
-            if (!ex) return null;
-            return (
-              <ItemCard
-                key={it.id}
-                plan={plan}
-                item={it}
-                ex={ex}
-                state={states.get(it.lineageId)}
-                edits={edits[it.lineageId]}
-                exercises={exercises}
-                onChange={upItem}
-                onTarget={(k, v) => v !== undefined && setEdits({ ...edits, [it.lineageId]: { ...edits[it.lineageId], [k]: v } })}
-                onRemove={() => upDay((d) => ({ ...d, items: d.items.filter((x) => x.id !== it.id) }))}
-                onMove={(dd) => upDay((d) => ({ ...d, items: move(d.items, i, dd) }))}
-                onAddSubstitute={() => setPicker({ item: it.id })}
-              />
-            );
-          })}
-          <button className="outline xl" onClick={() => setPicker({})}>
-            + {t('plan.addExercise')}
-          </button>
+          {plan.goal === 'mixed' && (
+            <section className="card tight">
+              <p className="eyebrow">{t('plan.dayGoal')}</p>
+              <div className="seg" role="radiogroup" aria-label={t('plan.dayGoal')}>
+                {DAY_GOALS.map((g) => (
+                  <button
+                    key={g}
+                    role="radio"
+                    aria-checked={(day.goal ?? 'free') === g}
+                    className={(day.goal ?? 'free') === g ? 'on' : ''}
+                    onClick={() => void changeDayGoal(g === 'free' ? { goal: undefined, strengthMode: undefined } : { goal: g, strengthMode: day.strengthMode })}
+                  >
+                    {g === 'free' ? t('plan.dayFree') : t(`goal.${g}`)}
+                  </button>
+                ))}
+              </div>
+              {day.goal === 'strength' && (
+                <div className="seg" role="radiogroup" aria-label={t('plan.strengthMode')} style={{ marginTop: '0.5rem' }}>
+                  {MODES.map((m) => (
+                    <button key={m} role="radio" aria-checked={(day.strengthMode ?? 'fixed') === m} className={(day.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => void changeDayGoal({ goal: 'strength', strengthMode: m })}>
+                      {t(`plan.mode.${m}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="help" style={{ marginTop: '0.5rem' }}>
+                {t(`plan.goalHelp.${day.goal ?? 'other'}`)}
+              </p>
+            </section>
+          )}
+
+          {day.items.length === 0 && !day.circuits?.length && <p className="empty">{t('plan.noItems')}</p>}
+          {blocks(day).map((b) =>
+            b.circuit ? (
+              <section key={b.circuit.id} className="circuit-block" aria-label={b.circuit.name}>
+                <div className="circuit-head">
+                  <span className="badge">⟳ {t('circuit.label')}</span>
+                  <input aria-label={t('circuit.name')} value={b.circuit.name} onChange={(e) => upDay((d) => updateCircuit(d, b.circuit!.id, { name: e.target.value }))} />
+                  <button className="ghost sm" aria-label={`${t('common.moveUp')} ${b.circuit.name}`} onClick={() => upDay((d) => moveCircuit(d, b.circuit!.id, -1))}>
+                    ↑
+                  </button>
+                  <button className="ghost sm" aria-label={`${t('common.moveDown')} ${b.circuit.name}`} onClick={() => upDay((d) => moveCircuit(d, b.circuit!.id, 1))}>
+                    ↓
+                  </button>
+                  <button className="ghost sm" aria-label={`${t('common.remove')} ${b.circuit.name}`} onClick={() => upDay((d) => removeCircuit(d, b.circuit!.id))}>
+                    ✕
+                  </button>
+                </div>
+                <div className="circuit-rounds">
+                  <span>{t('circuit.rounds')}</span>
+                  <NumInput label={`${b.circuit.name} ${t('circuit.rounds')}`} value={b.circuit.rounds} onChange={(v) => v && v >= 1 && v <= 50 && upDay((d) => updateCircuit(d, b.circuit!.id, { rounds: Math.round(v) }))} />
+                  <small>{t('circuit.help')}</small>
+                </div>
+                {b.items.map(itemCard)}
+                <button className="outline" onClick={() => setPicker({ circuit: b.circuit!.id })}>
+                  + {t('circuit.addExercise')}
+                </button>
+              </section>
+            ) : (
+              itemCard(b.items[0])
+            ),
+          )}
+          <div className="add-row">
+            <button className="outline xl" onClick={() => setPicker({})}>
+              + {t('plan.addExercise')}
+            </button>
+            <button className="outline xl" onClick={newCircuit}>
+              ⟳ {t('circuit.new')}
+            </button>
+          </div>
           <div className="row wrap" style={{ marginTop: '0.75rem' }}>
             <button className="danger sm" onClick={async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
               {t('plan.removeDay')}

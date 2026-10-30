@@ -1,15 +1,21 @@
 // Plan goal → progression rule and default sets (D11).
-import type { Exercise, Plan, ProgressionConfig, SetPrescription } from './types';
+import type { Exercise, Plan, PlanDay, ProgressionConfig, SetPrescription } from './types';
 
 /** Exercises the goal applies to: double progression on reps (load-based work). Others keep their own rule. */
 export const followsGoal = (ex: Pick<Exercise, 'progression' | 'metrics'>) => ex.progression.strategy === 'double' && ex.metrics.some((m) => m.key === 'reps');
+
+/** Goal that applies to a day: the plan goal, or in a mixed plan the day's own goal (when set). */
+export function dayGoal(plan: Pick<Plan, 'goal' | 'strengthMode'> | undefined, day: Pick<PlanDay, 'goal' | 'strengthMode'> | undefined): Pick<Plan, 'goal' | 'strengthMode'> | undefined {
+  if (plan?.goal === 'mixed' && day?.goal) return { goal: day.goal, strengthMode: day.strengthMode };
+  return plan;
+}
 
 /**
  * Progression for an exercise inside a plan. `override` is an item-level config (e.g. a custom increment).
  * For load exercises the plan goal always decides what happens at the top of the range:
  * - hypertrophy: the user chooses load up or reps up;
  * - strength: the load goes up automatically;
- * - mixed / other: the exercise's own rule.
+ * - mixed / other: the exercise's own rule (a mixed plan day can set its own goal, see dayGoal).
  */
 export function goalProgression(plan: Pick<Plan, 'goal'> | undefined, ex: Pick<Exercise, 'progression' | 'metrics'>, override?: ProgressionConfig): ProgressionConfig {
   const base = structuredClone(override ?? ex.progression);

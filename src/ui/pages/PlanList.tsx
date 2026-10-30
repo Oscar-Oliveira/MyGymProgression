@@ -10,6 +10,7 @@ import { Empty } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
 import { dialog } from '../components/Dialog';
+import { toneStyle } from '../colors';
 
 export function PlanList() {
   const { t } = useTranslation();
@@ -50,7 +51,7 @@ export function PlanList() {
           const v = versions.find((x) => x.id === p.currentVersionId);
           const items = (v?.days ?? []).flatMap((d) => d.items).map((i) => exercises.get(i.exerciseId)).filter((e) => !!e);
           return (
-            <div key={p.id} className="card nav-row" style={{ padding: '0.8rem 1rem', marginBottom: '0.5rem' }}>
+            <div key={p.id} className="card nav-row toned tone-bar" style={{ padding: '0.8rem 1rem', marginBottom: '0.5rem', ...toneStyle(p.color) }}>
               <Link to={`/plans/${p.id}`} className="main" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <span className="title">
                   {p.name} {p.status === 'archived' && <span className="pill">{t('plan.archived')}</span>}

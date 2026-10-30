@@ -1,12 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
+import { repo } from '../../data/repo';
+import { dialog } from '../components/Dialog';
+import { ExercisePicker } from '../components/ExercisePicker';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
 import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
 import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
-import type { MetricDef, SetRecord } from '../../domain/types';
+import type { Exercise, MetricDef, SetRecord } from '../../domain/types';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, tr, useSettings } from '../util';
 
@@ -50,6 +54,7 @@ function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction 
 
 export function ExerciseDetail() {
   const { t } = useTranslation();
+  const [joining, setJoining] = useState(false);
   const { id } = useParams();
   const s = useSettings();
   const data = useLiveQuery(async () => {
@@ -77,6 +82,16 @@ export function ExerciseDetail() {
   ];
 
   const related = ex ? relatedOf(ex, data.all) : [];
+  /** Joins a duplicate into this exercise, after showing what changes. */
+  const join = async (dup: Exercise) => {
+    setJoining(false);
+    if (!ex) return;
+    const counts = await repo.joinPreview(ex.id, dup.id);
+    if (!counts) return;
+    if (!(await dialog.confirm(t('exercise.joinConfirm', { dup: dup.name, keep: ex.name, ...counts }), { ok: t('exercise.joinOk') }))) return;
+    await repo.joinExercises(ex.id, dup.id);
+    await dialog.alert(t('exercise.joinDone', { dup: dup.name, keep: ex.name }));
+  };
   const muscle = (n: string) => (s.language === 'pt' ? (MUSCLE_DETAIL_PT[n] ?? n) : n);
   const name = ex?.name ?? history[0].entry.exercise.name;
 
@@ -92,11 +107,17 @@ export function ExerciseDetail() {
           {ex && ex.aliases.length > 0 && <small>{ex.aliases.join(', ')}</small>}
         </div>
         {ex && (
-          <Link className="btn btn-outline" to={`/exercises/${ex.id}/edit`}>
-            {t('common.edit')}
-          </Link>
+          <div className="row">
+            <Link className="btn btn-outline" to={`/exercises/${ex.id}/edit`}>
+              {t('common.edit')}
+            </Link>
+            <button className="outline" onClick={() => setJoining(true)}>
+              ⇆ {t('exercise.join')}
+            </button>
+          </div>
         )}
       </div>
+      {joining && ex && <ExercisePicker exclude={[ex.id]} onPick={(dup) => void join(dup)} onClose={() => setJoining(false)} />}
 
       {ex && (
         <>

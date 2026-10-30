@@ -24,6 +24,12 @@ Source requirements: [`context.md`](../context.md).
 | D13 | Rest times removed (prescriptions, records, editor, CSV); a rest timer is out of scope. Schema v5 / database v3 strip old rest fields. | 2026-10-29 |
 | D14 | Code review fixes: substitution respects its "block" setting; manual target edits keep a reps-up range; "last time" ignores substituted sessions; undo only while the change is still current; deleting a workout undoes its still-current progression changes. Adherence shown again in Analysis. | 2026-10-29 |
 | D15 | Design system: one exercise item (image + name + detail) everywhere an exercise appears; one status label (⬆ Sobe, ＝ Mantém, ⬇ Desce, ! Decidir, ✓ Cumprido); full-width rows with › instead of underlined links; secondary actions in ⋯ menus; edit forms as aligned tables with headers once. Built-in exercises get images from their library equivalent. | 2026-10-29 |
+| D16 | UI "athletic dark": dark by default (Settings: dark, light or system), large numbers, Home with week strip and monthly stats; long sections collapse (state kept per device). Version shown on a splash screen and an About page; `package.json` is the single source and `npm run deploy:pages` raises the patch version. | 2026-10-30 |
+| D17 | Colours: fixed palette of 10 (white text ≥ 4.5:1 on each). A day uses its own colour, else the plan colour; used on Home, Train, History, plan editor and the workout. Plan editor lists exercises collapsed (one open at a time) with a day summary. | 2026-10-30 |
+| D18 | Circuits: exercises of a day done back to back for N rounds, without rest. In the plan they are one block (one working set per round per exercise); in the workout the whole circuit is one step with one "Circuit done" at the end. Progression stays per exercise. The free-text superset label is no longer edited. | 2026-10-30 |
+| D19 | Join duplicate exercises: plans (exercise and substitutes), workouts, corrections, progression events and states move to the kept exercise in one transaction; the duplicate's names become aliases, empty library fields are filled from it, and it is deleted. Logged snapshots keep the old name. | 2026-10-30 |
+| D20 | Personal trainer (optional, off by default): one message when a workout starts. Styles: support, spite ("f*ck you motivation", swear words optional), stoic, sergeant + data (real numbers). Same workout, same message. | 2026-10-30 |
+| D21 | Interchange schema v7: additive (colours, circuits, theme, trainer settings). | 2026-10-30 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 

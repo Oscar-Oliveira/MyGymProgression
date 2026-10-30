@@ -259,9 +259,40 @@ describe('plan goal decides the progression (D11)', () => {
     const t = run('hypertrophy');
     expect(t.session([10, 9, 8]).workout.entries[0].evaluation?.outcome).toBe('no_progression');
   });
+  it('mixed: a day with its own goal uses it (hypertrophy day asks; strength day goes up)', () => {
+    const h = run('mixed');
+    h.day.goal = 'hypertrophy';
+    expect(h.session([12, 12, 12]).events[0].decision).toBe('pending');
+    const st = run('mixed');
+    st.day.goal = 'strength';
+    expect(st.session([12, 12, 12]).events[0].decision).toBe('applied');
+  });
+
+  it('the day goal is ignored when the plan is not mixed', () => {
+    const t = run('hypertrophy');
+    t.day.goal = 'strength';
+    expect(t.session([12, 12, 12]).events[0].decision).toBe('pending');
+  });
+
+  it('a duplicated plan keeps goal and strength mode', async () => {
+    const { duplicatePlan } = await import('./factory');
+    const t = run('strength');
+    t.plan.strengthMode = 'range';
+    const copy = duplicatePlan(t.plan, t.version, 'Copy');
+    expect([copy.plan.goal, copy.plan.strengthMode]).toEqual(['strength', 'range']);
+  });
 });
 
 describe('goal default sets', () => {
+  it('mixed plan: new items follow the day goal', async () => {
+    const { dayGoal, goalSets } = await import('./goals');
+    const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Squat' });
+    const plan = { goal: 'mixed' as const };
+    expect(goalSets(dayGoal(plan, { goal: 'strength', strengthMode: 'range' }), ex).filter((x) => x.kind === 'working')).toHaveLength(4);
+    expect(goalSets(dayGoal(plan, { goal: 'hypertrophy' }), ex).filter((x) => x.kind === 'working').map((x) => x.targets.reps)).toEqual([{ min: 8, max: 12 }, { min: 8, max: 12 }, { min: 8, max: 12 }]);
+    expect(goalSets(dayGoal(plan, {}), ex)).toEqual(ex.defaultSets);
+  });
+
   it('hypertrophy 3×8–12, strength fixed 5×5, strength range 4×4–6', async () => {
     const { goalSets } = await import('./goals');
     const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Bench' });

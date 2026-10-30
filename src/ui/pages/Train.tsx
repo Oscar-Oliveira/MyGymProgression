@@ -5,6 +5,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { nextDay } from '../../domain/workout';
 import { ThumbStack } from '../components/ExerciseItem';
+import { toneOf, toneStyle } from '../colors';
 
 /** Choose what to train: an active workout opens directly; otherwise every day of every active plan. */
 export function Train() {
@@ -40,12 +41,15 @@ export function Train() {
         const next = nextDay(v, data.workouts);
         return (
           <section key={p.id}>
-            <p className="month">{p.name}</p>
+            <p className="month toned row" style={toneStyle(p.color)}>
+              <span className="tone-dot" />
+              {p.name}
+            </p>
             {v.days.map((d) => {
               const items = d.items.map((i) => data.exercises.get(i.exerciseId)).filter((e) => !!e);
               const isNext = d.id === next?.id;
               return (
-                <div key={d.id} className={`card day-card ${isNext ? 'next' : ''}`}>
+                <div key={d.id} className={`card day-card toned tone-bar ${isNext ? 'next' : ''}`} style={toneStyle(toneOf(p, d))}>
                   <div className="row between">
                     <div>
                       <h2 style={{ margin: 0 }}>{d.name}</h2>

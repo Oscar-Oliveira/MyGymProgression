@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import type { Exercise, MetricDef, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
+import type { Circuit, Exercise, MetricDef, MetricKey, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
+import { coachContext, coachMessage } from '../../domain/coach';
+import { COACH_BANKS } from '../../i18n/coach';
+import { workoutSteps } from '../../domain/circuit';
 import { validateValue } from '../../domain/units';
 import { addSet, adHocLineage, entryAdHoc, substitute } from '../../domain/workout';
 import { dialog } from '../components/Dialog';
@@ -13,8 +16,9 @@ import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, progressHint, rxLine, setsLine, setText } from '../progress';
-import { fmtDate, fmtNum, fmtSeconds, metricLabel, metricShort, useSettings, useThumbs } from '../util';
+import { fmtDate, fmtNum, fmtSeconds, fmtValue, metricLabel, metricShort, useSettings, useThumbs } from '../util';
 import { ExerciseItem } from '../components/ExerciseItem';
+import { toneStyle, useTones } from '../colors';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -165,6 +169,95 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
   );
 }
 
+/** Personal trainer message at the top of the workout; can be closed (remembered for this workout). */
+function CoachCard({ workout, others, events, exercises }: { workout: Workout; others: Workout[]; events: ProgressionEvent[]; exercises: Map<string, Exercise> }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const key = `coach:${workout.id}`;
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem(key) === '1';
+    } catch {
+      return false;
+    }
+  });
+  if (hidden || !s.coach?.enabled) return null;
+  const format = (ev: ProgressionEvent) => {
+    const ex = exercises.get(ev.exerciseId);
+    const k = (Object.keys(ev.after) as MetricKey[]).find((m) => ev.after[m] !== ev.before[m]);
+    if (!ex || !k) return undefined;
+    const unit = ex.metrics.find((m) => m.key === k)?.unit ?? '';
+    return { exercise: ex.name, from: fmtValue(ev.before[k], unit, s.language), to: fmtValue(ev.after[k], unit, s.language) };
+  };
+  const msg = coachMessage(COACH_BANKS[s.language], s.coach, coachContext(others, events, new Date(workout.startedAt), format), workout.id);
+  if (!msg) return null;
+  const close = () => {
+    setHidden(true);
+    try {
+      localStorage.setItem(key, '1');
+    } catch {
+      // Without storage the message only hides for this visit.
+    }
+  };
+  return (
+    <div className="coach" role="note" aria-label={t('coach.title')}>
+      <span className="coach-ico" aria-hidden="true">
+        PT
+      </span>
+      <p>{msg}</p>
+      <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
+/** A whole circuit on one screen: every round with its exercises, pre-filled; one "done" at the end marks all sets. */
+function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit: Circuit; entries: WorkoutEntry[]; onChange: (es: WorkoutEntry[]) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
+  const { t } = useTranslation();
+  const rounds = Math.max(0, ...entries.map((e) => e.sets.length));
+  const done = entries.every((e) => e.sets.every((x) => x.status !== 'pending'));
+  const blocked = entries.some((e) => e.sets.some((x) => e.exercise.metrics.some((m) => validateValue(m, x.values[m.key]))));
+  const setValue = (ei: number, si: number, key: string, v: number | undefined) =>
+    onChange(entries.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((x, j) => (j !== si ? x : { ...x, values: { ...x.values, [key]: v } })) })));
+  return (
+    <section aria-label={circuit.name} className="circuit-focus">
+      <span className="badge">⟳ {t('circuit.label')}</span>
+      <h1 className="ex-title">{circuit.name}</h1>
+      <div className="ex-meta">
+        {t('circuit.roundsCount', { count: rounds })} · {entries.map((e) => e.exercise.name).join(' → ')}
+      </div>
+      <div className="hint">{t('circuit.workoutHelp', { rounds })}</div>
+      {Array.from({ length: rounds }, (_, r) => (
+        <div key={r} className="round">
+          <p className="eyebrow">{t('circuit.roundN', { n: r + 1 })}</p>
+          {entries.map((e, ei) => {
+            const x = e.sets[r];
+            if (!x) return null;
+            return (
+              <div key={e.id} className={`round-row ${x.status}`}>
+                <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={36} />
+                <span className="name">{e.exercise.name}</span>
+                <span className="vals">
+                  {e.exercise.metrics.map((m) => (
+                    <span key={m.key} className="mini">
+                      <NumInput label={`${e.exercise.name} ${metricLabel(t, m.key, e.exercise.metrics)} ${r + 1}`} value={x.values[m.key]} onChange={(v) => setValue(ei, r, m.key, v)} />
+                      <small>{m.unit === 'reps' ? metricShort(t, m.key, e.exercise.metrics).toLowerCase() : m.unit}</small>
+                    </span>
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <button className={done ? 'outline xl' : 'primary xl'} disabled={blocked || done} onClick={() => onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) })))}>
+        ✓ {done ? t('circuit.doneAll') : t('circuit.done')}
+      </button>
+    </section>
+  );
+}
+
 function CorrectionEditor({ draft, onChange, thumbOf }: { draft: Workout; onChange: (w: Workout) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
   const { t } = useTranslation();
   const upSet = (ei: number, si: number, patch: Partial<SetRecord>) =>
@@ -217,6 +310,7 @@ export function WorkoutPage() {
   const nav = useNavigate();
   const s = useSettings();
   const thumbOf = useThumbs();
+  const toneFor = useTones();
   const stored = useLiveQuery(() => db.workouts.get(id!), [id]);
   const ctx = useLiveQuery(async () => {
     const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
@@ -224,7 +318,8 @@ export function WorkoutPage() {
     const others = (await db.workouts.toArray()).filter((w) => w.id !== id && w.status !== 'in_progress' && (!stored || w.startedAt < stored.startedAt));
     const events = await db.progressionEvents.where('workoutId').equals(id!).toArray();
     const revisions = (await db.revisions.where('workoutId').equals(id!).toArray()).sort((a, b) => b.at.localeCompare(a.at));
-    return { exercises, version, others, events, revisions };
+    const allEvents = await db.progressionEvents.toArray();
+    return { exercises, version, others, events, revisions, allEvents };
   }, [id, stored?.planVersionId, stored?.startedAt]);
   const [draft, setDraft] = useState<Workout>();
   const [cur, setCur] = useState(0);
@@ -247,7 +342,7 @@ export function WorkoutPage() {
     if (stored && (loadedFor.current !== `${stored.id}:${stored.status}` || (!editing && stored.status !== 'in_progress'))) {
       if (loadedFor.current !== `${stored.id}:${stored.status}`) {
         const first = stored.entries.findIndex((e) => e.sets.some((x) => x.status === 'pending'));
-        setCur(first < 0 ? 0 : first);
+        setCur(Math.max(0, workoutSteps(stored.entries).findIndex((st) => st.indexes.includes(first))));
       }
       loadedFor.current = `${stored.id}:${stored.status}`;
       setDraft(stored);
@@ -257,6 +352,7 @@ export function WorkoutPage() {
   if (stored === undefined && ctx) return <p className="empty">{t('history.empty')}</p>;
   if (!draft || !ctx) return null;
   const active = draft.status === 'in_progress';
+  const tone = toneStyle(toneFor(draft.planId, draft.dayId));
 
   const previousOf = (e: WorkoutEntry) => {
     const sorted = [...ctx.others].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
@@ -270,9 +366,17 @@ export function WorkoutPage() {
     setDraft(w);
     if (active) void repo.saveWorkout(w);
   };
-  const entry = draft.entries[Math.min(cur, draft.entries.length - 1)];
-  const upEntry = (e: WorkoutEntry) => update({ ...draft, entries: draft.entries.map((x) => (x.id === e.id ? e : x)) });
+  // Steps: one per exercise, or one per circuit (its exercises together).
+  const steps = workoutSteps(draft.entries);
+  type Step = (typeof steps)[number];
+  const step: Step | undefined = steps[Math.min(cur, steps.length - 1)];
+  const stepEntries = (st: Step) => st.indexes.map((i) => draft.entries[i]);
+  const entry = step && !step.circuit ? draft.entries[step.indexes[0]] : undefined;
+  const upEntries = (es: WorkoutEntry[]) => update({ ...draft, entries: draft.entries.map((x) => es.find((e) => e.id === x.id) ?? x) });
+  const upEntry = (e: WorkoutEntry) => upEntries([e]);
   const entryDone = (e: WorkoutEntry) => e.sets.length > 0 && e.sets.every((x) => x.status !== 'pending');
+  const stepDone = (st: Step) => stepEntries(st).every(entryDone);
+  const stepName = (st: Step) => st.circuit?.name ?? draft.entries[st.indexes[0]].exercise.name;
   const pendingSets = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.status === 'pending').length, 0);
   const doneWorking = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0);
   const totalWorking = draft.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
@@ -284,7 +388,7 @@ export function WorkoutPage() {
     const lineage = adHocLineage(ex.id);
     const e = entryAdHoc(ex, await db.progressionStates.get(lineage), await repo.lastEntry(lineage));
     update({ ...draft, entries: [...draft.entries, e] });
-    setCur(draft.entries.length);
+    setCur(steps.length);
   };
   const finish = async (interrupted = false) => {
     if (!interrupted && pendingSets > 0 && !(await dialog.confirm(t('workout.finishPending', { count: pendingSets })))) return;
@@ -296,7 +400,7 @@ export function WorkoutPage() {
   if (active) {
     const subs = ctx.version?.days.flatMap((d) => d.items).find((i) => i.lineageId === entry?.lineageId)?.substitutes ?? [];
     return (
-      <div>
+      <div className="toned" style={tone}>
         <div className="wk-head">
           <div className="wk-top">
             <Link to="/" className="btn ghost icon" aria-label={t('nav.home')}>
@@ -305,7 +409,7 @@ export function WorkoutPage() {
             <button className="wk-title" onClick={() => setList(true)} aria-label={t('workout.allExercises')} disabled={!draft.entries.length}>
               <span className="title">{draft.dayName ?? t('workout.free')}</span>
               <span className="sub">
-                {draft.entries.length ? `${Math.min(cur, draft.entries.length - 1) + 1}/${draft.entries.length} · ` : ''}
+                {steps.length ? `${Math.min(cur, steps.length - 1) + 1}/${steps.length} · ` : ''}
                 {t('workout.setsDone', { done: doneWorking, total: totalWorking })} ▾
               </span>
             </button>
@@ -314,24 +418,31 @@ export function WorkoutPage() {
             </button>
           </div>
           <div className="wk-progress" aria-hidden="true">
-            {draft.entries.map((e, i) => (
-              <span key={e.id} className={i === cur ? 'cur' : entryDone(e) ? 'done' : ''} />
+            {steps.map((st, i) => (
+              <span key={st.indexes[0]} className={i === cur ? 'cur' : stepDone(st) ? 'done' : ''} />
             ))}
           </div>
           <div className="wk-chips" role="tablist" ref={chipsRef}>
-            {draft.entries.map((e, i) => (
-              <button key={e.id} role="tab" aria-selected={i === cur} className={`wk-chip ${i === cur ? 'cur' : entryDone(e) ? 'done' : ''}`} onClick={() => setCur(i)}>
-                <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={22} />
-                <span>
-                  {entryDone(e) ? '✓ ' : ''}
-                  {e.exercise.name}
-                </span>
-              </button>
-            ))}
+            {steps.map((st, i) => {
+              const e = draft.entries[st.indexes[0]];
+              return (
+                <button key={st.indexes[0]} role="tab" aria-selected={i === cur} aria-label={stepName(st)} className={`wk-chip ${i === cur ? 'cur' : stepDone(st) ? 'done' : ''}`} onClick={() => setCur(i)}>
+                  {st.circuit ? <span className="chip-ico">⟳</span> : <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={22} />}
+                  <span>
+                    {stepDone(st) ? '✓ ' : ''}
+                    {stepName(st)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {entry ? (
+        <CoachCard workout={draft} others={ctx.others} events={ctx.allEvents} exercises={ctx.exercises} />
+
+        {step?.circuit ? (
+          <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
+        ) : entry ? (
           <EntryFocus key={entry.id} entry={entry} previous={previousOf(entry)} onChange={upEntry} onSubstitute={() => setPicker('sub')} thumbOf={(eid) => ctx.exercises.get(eid)?.thumb} />
         ) : (
           <div className="empty">
@@ -345,8 +456,8 @@ export function WorkoutPage() {
               ‹ {t('workout.prev')}
             </button>
           )}
-          {cur < draft.entries.length - 1 ? (
-            <button className={entry && entryDone(entry) ? 'primary' : 'outline'} onClick={() => setCur(cur + 1)}>
+          {cur < steps.length - 1 ? (
+            <button className={step && stepDone(step) ? 'primary' : 'outline'} onClick={() => setCur(cur + 1)}>
               {t('workout.next')} ›
             </button>
           ) : (
@@ -383,19 +494,22 @@ export function WorkoutPage() {
         {list && (
           <Modal title={t('workout.allExercises')} onClose={() => setList(false)}>
             <ul className="wk-list">
-              {draft.entries.map((e, i) => {
-                const done = e.sets.filter((x) => x.status !== 'pending').length;
+              {steps.map((st, i) => {
+                const es = stepEntries(st);
+                const e = es[0];
+                const done = es.reduce((a, x) => a + x.sets.filter((y) => y.status !== 'pending').length, 0);
+                const total = es.reduce((a, x) => a + x.sets.length, 0);
                 return (
-                  <li key={e.id}>
-                    <button className={`${i === cur ? 'cur' : ''} ${entryDone(e) ? 'done' : ''}`} onClick={() => (setCur(i), setList(false))}>
-                      <span className="idx">{entryDone(e) ? '✓' : i + 1}</span>
+                  <li key={st.indexes[0]}>
+                    <button className={`${i === cur ? 'cur' : ''} ${stepDone(st) ? 'done' : ''}`} onClick={() => (setCur(i), setList(false))}>
+                      <span className="idx">{stepDone(st) ? '✓' : i + 1}</span>
                       <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={40} />
                       <span className="xitem-text">
-                        <span className="xitem-name">{e.exercise.name}</span>
-                        <span className="xitem-sub">{rxLine(e, t, s.language)}</span>
+                        <span className="xitem-name">{st.circuit ? `⟳ ${st.circuit.name}` : e.exercise.name}</span>
+                        <span className="xitem-sub">{st.circuit ? es.map((x) => x.exercise.name).join(' → ') : rxLine(e, t, s.language)}</span>
                       </span>
                       <span className="xitem-trail">
-                        {done}/{e.sets.length}
+                        {done}/{total}
                       </span>
                     </button>
                   </li>
@@ -412,7 +526,7 @@ export function WorkoutPage() {
 
   // Finished workout: summary with decisions, or correction mode.
   return (
-    <div>
+    <div className="toned" style={tone}>
       <div className="page-head">
         <div>
           <p className="eyebrow">{fmtDate(draft.startedAt, s.language, true)}</p>

@@ -7,6 +7,7 @@ const ITEMS = [
   ['/exercises', 'exercises', 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11'],
   ['/analysis', 'analysis', 'M3 20h18M5 16l4-5 4 3 6-8M15 6h4v4'],
   ['/settings', 'settings', 'M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4'],
+  ['/about', 'about', 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01'],
 ] as const;
 
 export function More() {

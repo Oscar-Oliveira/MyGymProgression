@@ -127,3 +127,29 @@ describe('schema migration v1 → v2', () => {
     expect(r.bundle.data.progressionEvents[0]).toMatchObject({ outcome: 'increase', decision: 'kept', suggestion: { kind: 'increase', to: 22.5 } });
   });
 });
+
+describe('schema migration v6 → v7', () => {
+  it('imports a v6 file as is, and keeps the new optional fields (colours, circuits, theme, trainer)', () => {
+    const d = sample();
+    const old = JSON.parse(JSON.stringify(buildBundle(d, 'full', 'x')));
+    old.schemaVersion = 6;
+    const r6 = parseBundle(JSON.stringify(old));
+    expect(r6.ok && r6.migratedFrom).toBe(6);
+
+    const v7 = JSON.parse(JSON.stringify(buildBundle(d, 'full', 'x')));
+    v7.data.plans[0].color = 'teal';
+    v7.data.planVersions[0].days[0] = { ...v7.data.planVersions[0].days[0], color: 'red', circuits: [{ id: 'c1', name: 'Core', rounds: 3 }] };
+    v7.data.planVersions[0].days[0].items[0].circuitId = 'c1';
+    v7.data.settings = { id: 'settings', language: 'pt', loadUnit: 'kg', distanceUnit: 'km', stalledThreshold: 3, theme: 'light', coach: { enabled: true, style: 'stoic', profanity: false } };
+    const r7 = parseBundle(JSON.stringify(v7));
+    expect(r7.ok).toBe(true);
+    if (!r7.ok) return;
+    expect(r7.bundle.data.plans[0].color).toBe('teal');
+    expect(r7.bundle.data.planVersions[0].days[0].circuits?.[0].rounds).toBe(3);
+    expect(r7.bundle.data.planVersions[0].days[0].items[0].circuitId).toBe('c1');
+    expect(r7.bundle.data.settings?.coach?.style).toBe('stoic');
+
+    v7.data.plans[0].color = 'not-a-colour';
+    expect(parseBundle(JSON.stringify(v7)).ok).toBe(false);
+  });
+});

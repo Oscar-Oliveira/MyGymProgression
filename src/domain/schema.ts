@@ -55,11 +55,15 @@ export const exerciseSchema = z.object({
   updatedAt: iso,
 });
 
+const colorKey = z.enum(['violet', 'blue', 'cyan', 'teal', 'green', 'lime', 'amber', 'orange', 'red', 'pink']);
+const circuit = z.object({ id: z.string(), name: z.string(), rounds: z.number().int().min(1).max(50) });
+
 const planItem = z.object({
   id: z.string(),
   lineageId: z.string(),
   exerciseId: z.string(),
   group: z.string().optional(),
+  circuitId: z.string().optional(),
   role: z.enum(['warmup', 'main', 'optional']),
   sets: z.array(setPrescriptionSchema),
   progression: progressionSchema.optional(),
@@ -73,6 +77,7 @@ export const planSchema = z.object({
   description: z.string(),
   goal: z.enum(['hypertrophy', 'strength', 'mixed', 'other']),
   strengthMode: z.enum(['fixed', 'range']).optional(),
+  color: colorKey.optional(),
   phase: z.string(),
   status: z.enum(['active', 'archived']),
   currentVersionId: z.string(),
@@ -86,7 +91,18 @@ export const planVersionSchema = z.object({
   number: z.number().int().positive(),
   createdAt: iso,
   locked: z.boolean(),
-  days: z.array(z.object({ id: z.string(), name: z.string(), weekday: z.number().int().min(0).max(6).optional(), items: z.array(planItem) })),
+  days: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      weekday: z.number().int().min(0).max(6).optional(),
+      goal: z.enum(['hypertrophy', 'strength']).optional(),
+      strengthMode: z.enum(['fixed', 'range']).optional(),
+      color: colorKey.optional(),
+      circuits: z.array(circuit).optional(),
+      items: z.array(planItem),
+    }),
+  ),
 });
 
 export const progressionStateSchema = z.object({ lineageId: z.string().min(1), exerciseId: z.string(), targets: metricValues, repsRange: repRange.optional(), updatedAt: iso });
@@ -113,6 +129,7 @@ const entry = z.object({
   progression: progressionSchema,
   substitutedFor: z.string().optional(),
   group: z.string().optional(),
+  circuit: circuit.optional(),
   role: z.enum(['warmup', 'main', 'optional']),
   sets: z.array(setRecord),
   pain: z.boolean(),
@@ -176,9 +193,11 @@ export const settingsSchema = z.object({
   stalledThreshold: z.number().int().min(2).max(20),
   lastBackupAt: iso.optional(),
   librarySync: z.string().optional(),
+  theme: z.enum(['dark', 'light', 'system']).optional(),
+  coach: z.object({ enabled: z.boolean(), style: z.enum(['support', 'spite', 'stoic', 'sergeant']), profanity: z.boolean() }).optional(),
 });
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 7;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

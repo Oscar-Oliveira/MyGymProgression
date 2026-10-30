@@ -37,8 +37,10 @@ python -I scripts/import_exsercise.py pack   private/mygymprogression-library.js
 The site is built locally and pushed to the `gh-pages` branch. It contains no exercise library (see above).
 
 ```bash
-npm run deploy:pages   # build for https://<user>.github.io/MyGymProgression/ and push dist/ to gh-pages
+npm run deploy:pages   # raises the patch version, builds for https://<user>.github.io/MyGymProgression/ and pushes dist/ to gh-pages
 ```
+
+The version (`package.json`) is shown on the splash screen and in **More → About**; add a line to `src/changelog.ts` for each published change.
 
 Once: GitHub → repository → Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root. The path is case-sensitive: `--base` in the `build:pages` script must match the repository name exactly.
 
@@ -56,7 +58,9 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 2. **Home** shows one pending decision (missed reps): keep or step back.
 3. **Start workout**. Each set is pre-filled with today's goal; tap **✓ Set done**. **Next ›** moves to the next exercise.
 4. **Finish workout**: the summary shows ⬆ up / ＝ keep / ⬇ down for each exercise.
-5. **More → Analysis**: progress per exercise. **More → Settings**: JSON/CSV export and import.
+5. **Plans**: give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
+6. **Settings → Personal trainer**: optional motivating message when a workout starts.
+7. **More → Analysis**: progress per exercise. **More → Settings**: JSON/CSV export and import.
 
 ## Structure
 

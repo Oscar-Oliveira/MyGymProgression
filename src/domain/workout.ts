@@ -1,7 +1,7 @@
 // Workout use-case logic: start from a plan day, session edits, finish, progression decisions. Pure functions.
 import { applyTargets, evaluate, initialTargets, setGoals } from './progression';
 import { nowIso, uid } from './factory';
-import { goalProgression } from './goals';
+import { dayGoal, goalProgression } from './goals';
 import type {
   Exercise,
   ExerciseSnapshot,
@@ -120,7 +120,10 @@ export function startWorkout(plan: Plan | undefined, version: PlanVersion | unde
   const now = nowIso();
   const entries = (day?.items ?? []).flatMap((item) => {
     const ex = ctx.exercises.get(item.exerciseId);
-    return ex ? [entryFromItem(item, ex, ctx.states.get(item.lineageId), ctx.lastEntry(item.lineageId), plan)] : [];
+    if (!ex) return [];
+    const entry = entryFromItem(item, ex, ctx.states.get(item.lineageId), ctx.lastEntry(item.lineageId), dayGoal(plan, day));
+    const circuit = day?.circuits?.find((c) => c.id === item.circuitId);
+    return [circuit ? { ...entry, circuit: { ...circuit } } : entry];
   });
   return {
     id: uid(),
