@@ -103,6 +103,7 @@ export const pt: Resources = {
   color: { violet: 'Violeta', blue: 'Azul', cyan: 'Ciano', teal: 'Verde-azulado', green: 'Verde', lime: 'Lima', amber: 'Âmbar', orange: 'Laranja', red: 'Vermelho', pink: 'Rosa' },
   weekday: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
   home: {
+    dayDone: 'Feito', dayPlanned: 'Planeado para este dia', noWorkoutDay: 'Sem treino neste dia.', nothingPlanned: 'Nenhum dia do plano está atribuído a este dia da semana (defina-o no plano, em cada dia).', finishFirst: 'Termine primeiro o treino em curso.',
     next: 'Próximo treino', start: 'Começar treino', otherDay: 'Outro dia ou treino livre', inProgress: 'Treino em curso', continue: 'Continuar',
     week: 'Esta semana', size: '{{count}} exercícios · {{sets}} séries', size_one: '{{count}} exercício · {{sets}} séries', andMore: '+ {{count}} exercícios',
     statWorkouts: 'treinos este mês', statSets: 'séries este mês', statUps: 'subidas este mês',

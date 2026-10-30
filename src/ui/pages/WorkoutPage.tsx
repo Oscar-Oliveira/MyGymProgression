@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import type { Circuit, Exercise, MetricDef, MetricKey, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
+import type { Circuit, CoachStyle, Exercise, MetricDef, MetricKey, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
 import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
 import { validateValue } from '../../domain/units';
 import { addSet, adHocLineage, entryAdHoc, substitute } from '../../domain/workout';
 import { dialog } from '../components/Dialog';
+import { CoachAvatar } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { NumInput } from '../components/NumInput';
@@ -170,7 +171,7 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
 }
 
 /** Personal trainer message at the top of the workout; can be closed (remembered for this workout). */
-function CoachCard({ workoutId, message }: { workoutId: string; message: string }) {
+function CoachCard({ workoutId, message, style }: { workoutId: string; message: string; style: CoachStyle }) {
   const { t } = useTranslation();
   const key = `coach:${workoutId}`;
   const [hidden, setHidden] = useState(() => {
@@ -191,9 +192,7 @@ function CoachCard({ workoutId, message }: { workoutId: string; message: string 
   };
   return (
     <div className="coach" role="note" aria-label={t('coach.title')}>
-      <span className="coach-ico" aria-hidden="true">
-        PT
-      </span>
+      <CoachAvatar style={style} />
       <p>{message}</p>
       <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
         ✕
@@ -458,7 +457,7 @@ export function WorkoutPage() {
           </div>
         </div>
 
-        {coach && <CoachCard workoutId={draft.id} message={coachLine(draft.id)} />}
+        {coach && <CoachCard workoutId={draft.id} message={coachLine(draft.id)} style={coach.style} />}
 
         {step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
@@ -472,9 +471,7 @@ export function WorkoutPage() {
 
         {toast && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
-            <span className="coach-ico" aria-hidden="true">
-              PT
-            </span>
+            <CoachAvatar style={coach?.style ?? 'support'} />
             <p>{toast}</p>
             <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
               ✕

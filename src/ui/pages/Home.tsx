@@ -1,14 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
-import type { Workout } from '../../domain/types';
+import type { Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
 import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
 import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
+import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, useSettings, useThumbs } from '../util';
 
@@ -21,8 +23,77 @@ function week(workouts: Workout[]) {
   const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7));
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
-    return { date: d, today: dayKey(d) === dayKey(today), done: workouts.filter((w) => dayKey(new Date(w.startedAt)) === dayKey(d)) };
+    return { date: d, today: dayKey(d) === dayKey(today), past: d < new Date(today.getFullYear(), today.getMonth(), today.getDate()), done: workouts.filter((w) => dayKey(new Date(w.startedAt)) === dayKey(d)) };
   });
+}
+
+type Planned = { plan: Plan; day: PlanDay; entries: WorkoutEntry[] };
+
+/** Window for one date of the week: workouts done that day; from today on, also the plan days set to that weekday. */
+function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: { date: Date; done: Workout[]; planned: Planned[]; fallback?: Planned; active?: Workout; onStart: (p: Planned) => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const thumbOf = useThumbs();
+  const toneFor = useTones();
+  const sets = (es: WorkoutEntry[]) => es.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
+  const card = (p: Planned) => (
+    <section key={`${p.plan.id}:${p.day.id}`} className="card toned day-card" style={toneStyle(toneOf(p.plan, p.day))}>
+      <h3>{p.day.name}</h3>
+      <p className="muted">
+        {p.plan.name} · {t('home.size', { count: p.entries.length, sets: sets(p.entries) })}
+      </p>
+      {p.entries.map((e) => (
+        <ExerciseItem key={e.id} name={e.exercise.name} thumb={thumbOf(e.exerciseId, e.exercise.thumb)} sub={rxLine(e, t, s.language)} size="sm" to={`/exercises/${e.exerciseId}`} />
+      ))}
+      {active ? (
+        <p className="help">{t('home.finishFirst')}</p>
+      ) : (
+        <button className="primary xl" onClick={() => onStart(p)}>
+          ▶ {t('home.start')}
+        </button>
+      )}
+    </section>
+  );
+  return (
+    <Modal title={fmtDate(date.toISOString(), s.language)} onClose={onClose}>
+      {done.length > 0 && (
+        <>
+          <p className="eyebrow">{t('home.dayDone')}</p>
+          {done.map((w) => (
+            <Link key={w.id} to={`/workout/${w.id}`} className="nav-row toned" style={toneStyle(toneFor(w.planId, w.dayId))}>
+              <span className="tone-dot" />
+              <span className="main">
+                <span className="title">{w.dayName ?? t('workout.free')}</span>
+                <span className="meta">
+                  {w.planName ?? ''} · {t('home.size', { count: w.entries.length, sets: w.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0) })}
+                </span>
+              </span>
+              <span className="chev" aria-hidden="true">
+                ›
+              </span>
+            </Link>
+          ))}
+        </>
+      )}
+      {planned.length > 0 && (
+        <>
+          <p className="eyebrow">{t('home.dayPlanned')}</p>
+          {planned.map(card)}
+        </>
+      )}
+      {done.length === 0 && planned.length === 0 && (
+        <>
+          <p className="muted">{fallback ? t('home.nothingPlanned') : t('home.noWorkoutDay')}</p>
+          {fallback && (
+            <>
+              <p className="eyebrow">{t('home.next')}</p>
+              {card(fallback)}
+            </>
+          )}
+        </>
+      )}
+    </Modal>
+  );
 }
 
 export function Home() {
@@ -31,6 +102,7 @@ export function Home() {
   const s = useSettings();
   const thumbOf = useThumbs();
   const toneFor = useTones();
+  const [open, setOpen] = useState<number>();
   const data = useLiveQuery(async () => {
     const [exercises, plans, versions, workouts, states, events] = await Promise.all([
       db.exercises.toArray(),
@@ -52,18 +124,18 @@ export function Home() {
   const plan = plans.find((p) => p.id === finished.find((w) => w.planId && plans.some((x) => x.id === w.planId))?.planId) ?? plans[0];
   const version = plan && versions.find((v) => v.id === plan.currentVersionId);
   const day = version && nextDay(version, workouts);
-  const preview =
-    plan && version && day
-      ? startWorkout(plan, version, day, {
-          exercises: new Map(exercises.map((e) => [e.id, e])),
-          states: new Map(states.map((x) => [x.lineageId, x])),
-          lastEntry: lastEntryFinder(workouts),
-        })
-      : undefined;
+  const ctx = { exercises: new Map(exercises.map((e) => [e.id, e])), states: new Map(states.map((x) => [x.lineageId, x])), lastEntry: lastEntryFinder(workouts) };
+  const preview = plan && version && day ? startWorkout(plan, version, day, ctx) : undefined;
+  // Plan days set to a weekday (0 = Monday), in the active plans.
+  const plannedOn = (weekday: number): Planned[] =>
+    plans.flatMap((p) => {
+      const v = versions.find((x) => x.id === p.currentVersionId);
+      return v ? v.days.filter((d) => d.weekday === weekday).map((d) => ({ plan: p, day: d, entries: startWorkout(p, v, d, ctx).entries })) : [];
+    });
 
   const pending = events.filter((e) => e.decision === 'pending');
   const entryOf = (entryId?: string) => workouts.flatMap((w) => w.entries).find((e) => e.id === entryId);
-  const start = async () => nav(`/workout/${await repo.startWorkout(plan?.id, day?.id)}`);
+  const start = async (planId = plan?.id, dayId = day?.id) => nav(`/workout/${await repo.startWorkout(planId, dayId)}`);
   const demo = async () => {
     await repo.seedLibrary();
     await repo.importMerge(generateDemo(await db.exercises.toArray()));
@@ -87,16 +159,34 @@ export function Home() {
       <div className="home-top">
         <p className="eyebrow">{fmtDate(now.toISOString(), s.language)}</p>
         <div className="week" aria-label={t('home.week')}>
-          {days.map((d, i) => (
-            <span key={i} className={`week-day ${d.today ? 'today' : ''}`} title={fmtDate(d.date.toISOString(), s.language)}>
-              <span className="wd">{weekdays[i]}</span>
-              <span className={`dot toned ${d.done.length ? 'on' : ''}`} style={toneStyle(d.done[0] && toneFor(d.done[0].planId, d.done[0].dayId))}>
-                {d.date.getDate()}
-              </span>
-            </span>
-          ))}
+          {days.map((d, i) => {
+            const planned = d.past ? undefined : plannedOn(i)[0];
+            return (
+              <button key={i} className={`week-day ${d.today ? 'today' : ''}`} aria-label={fmtDate(d.date.toISOString(), s.language)} onClick={() => setOpen(i)}>
+                <span className="wd">{weekdays[i]}</span>
+                <span
+                  className={`dot toned ${d.done.length ? 'on' : planned ? 'planned' : ''}`}
+                  style={toneStyle(d.done[0] ? toneFor(d.done[0].planId, d.done[0].dayId) : planned ? toneOf(planned.plan, planned.day) : undefined)}
+                >
+                  {d.date.getDate()}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {open !== undefined && (
+        <DaySheet
+          date={days[open].date}
+          done={days[open].done}
+          planned={days[open].past ? [] : plannedOn(open)}
+          fallback={!days[open].past && plan && day && preview ? { plan, day, entries: preview.entries } : undefined}
+          active={active}
+          onStart={(p) => void start(p.plan.id, p.day.id)}
+          onClose={() => setOpen(undefined)}
+        />
+      )}
 
       {active ? (
         <section className="hero toned" style={toneStyle(toneFor(active.planId, active.dayId))}>

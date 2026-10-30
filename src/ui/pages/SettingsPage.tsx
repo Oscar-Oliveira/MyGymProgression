@@ -12,6 +12,7 @@ import { parseLibraryFile } from '../../domain/library';
 import { coachMessage } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import type { CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
+import { CoachAvatar } from '../components/CoachAvatar';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant'];
 const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
@@ -160,6 +161,7 @@ export function SettingsPage() {
   const s = useSettings();
   const [persisted, setPersisted] = useState<boolean>();
   const [msg, setMsg] = useState('');
+  const [sample, setSample] = useState<string>();
   const coach = s.coach ?? NO_COACH;
   const saveCoach = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
   useEffect(() => {
@@ -261,7 +263,7 @@ export function SettingsPage() {
           <>
             <label className="setting-row">
               <span>{t('coach.style')}</span>
-              <select value={coach.style} onChange={(e) => void saveCoach({ style: e.target.value as CoachStyle })}>
+              <select value={coach.style} onChange={(e) => (setSample(undefined), void saveCoach({ style: e.target.value as CoachStyle }))}>
                 {COACH_STYLES.map((st) => (
                   <option key={st} value={st}>
                     {t(`coach.styles.${st}`)}
@@ -269,7 +271,10 @@ export function SettingsPage() {
                 ))}
               </select>
             </label>
-            <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+            <div className="coach-style">
+              <CoachAvatar style={coach.style} />
+              <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+            </div>
             <label className="setting-row">
               <span>{t('coach.when')}</span>
               <select value={coach.when ?? 'random'} onChange={(e) => void saveCoach({ when: e.target.value as CoachWhen })}>
@@ -286,7 +291,13 @@ export function SettingsPage() {
                 <input type="checkbox" checked={coach.profanity} onChange={(e) => void saveCoach({ profanity: e.target.checked })} />
               </label>
             )}
-            <button className="outline" onClick={() => void dialog.alert(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
+            {sample && (
+              <div key={sample} className="coach" role="status" aria-label={t('coach.title')}>
+                <CoachAvatar style={coach.style} />
+                <p>{sample}</p>
+              </div>
+            )}
+            <button className="outline" onClick={() => setSample(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
               {t('coach.preview')}
             </button>
           </>

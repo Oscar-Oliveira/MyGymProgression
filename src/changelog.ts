@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
+    pt: ['Início: tocar numa data abre o dia — treinos feitos ou dias do plano para esse dia da semana, com Começar.', 'Personal trainer com avatar próprio para cada estilo, que "fala" quando aparece.'],
+    en: ['Home: tap a date to open the day — workouts done, or the plan days set to that weekday, with Start.', 'Personal trainer has its own face for each style, which "talks" when it appears.'],
+  },
+  {
+    date: '2026-10-30',
     pt: [
       'Botões e destaques usam a cor do dia ou, se não tiver, a do plano.',
       'Planos de força começam em 5×5; o intervalo de reps define-se em cada exercício.',

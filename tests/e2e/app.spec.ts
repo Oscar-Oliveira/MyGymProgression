@@ -218,7 +218,7 @@ test('personal trainer: off by default; when on, a message shows at the start of
   await expect(enable).toBeChecked();
   await page.getByLabel('Style').selectOption({ label: 'Sergeant + data' });
   await page.getByRole('button', { name: 'Show an example' }).click();
-  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await expect(page.getByRole('status', { name: 'Personal trainer' }).locator('.coach-avatar.sergeant')).toBeVisible();
   await tab(page, 'Home');
   await page.getByRole('button', { name: /Start workout/ }).click();
   const note = page.getByRole('note', { name: 'Personal trainer' });
@@ -263,7 +263,7 @@ test('personal trainer "after every exercise": a message appears when an exercis
   await page.getByRole('button', { name: /Start workout/ }).click();
   await expect(page.getByRole('status', { name: 'Personal trainer' })).toHaveCount(0);
   await page.getByRole('button', { name: '✓ Set done' }).click(); // the warm-up has one set
-  await expect(page.getByRole('status', { name: 'Personal trainer' })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'Personal trainer' }).locator('.coach-avatar')).toBeVisible();
 });
 
 test('analysis: period dates and workouts per week; a week lists its workouts', async ({ page }) => {
@@ -276,6 +276,18 @@ test('analysis: period dates and workouts per week; a week lists its workouts', 
   await expect(page.locator('.week-list a')).toHaveCount(2);
   await page.getByRole('tab', { name: '4 wks' }).click();
   await expect(page.getByRole('button', { name: /^Week of / })).toHaveCount(5);
+});
+
+test('home: a date opens a window with the plan day set to that weekday, and starts it', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-02T10:00:00')); // a Monday: the demo sets day A to Monday
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await page.locator('.week-day.today').click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet).toContainText('Planned for this day');
+  await expect(sheet.getByRole('heading', { name: 'A · Upper' })).toBeVisible();
+  await sheet.getByRole('button', { name: /Start workout/ }).click();
+  await expect(page.getByRole('button', { name: '✓ Set done' })).toBeVisible();
 });
 
 async function logChest(page: Page, reps: number[]) {

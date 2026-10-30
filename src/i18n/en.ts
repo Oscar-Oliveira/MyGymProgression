@@ -101,6 +101,7 @@ export const en = {
   color: { violet: 'Violet', blue: 'Blue', cyan: 'Cyan', teal: 'Teal', green: 'Green', lime: 'Lime', amber: 'Amber', orange: 'Orange', red: 'Red', pink: 'Pink' },
   weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   home: {
+    dayDone: 'Done', dayPlanned: 'Planned for this day', noWorkoutDay: 'No workout on this day.', nothingPlanned: 'No plan day is set for this weekday (set it in the plan, on each day).', finishFirst: 'Finish the workout in progress first.',
     next: 'Next workout', start: 'Start workout', otherDay: 'Other day or free workout', inProgress: 'Workout in progress', continue: 'Continue',
     week: 'This week', size: '{{count}} exercises · {{sets}} sets', size_one: '{{count}} exercise · {{sets}} sets', andMore: '+ {{count}} more exercises',
     statWorkouts: 'workouts this month', statSets: 'sets this month', statUps: 'increases this month',
