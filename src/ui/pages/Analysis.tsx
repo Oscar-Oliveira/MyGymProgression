@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { Link } from 'react-router-dom';
-import { adherence, completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, workoutsByWeek, type EntryMetrics } from '../../domain/analysis';
+import { adherence, completionByExercise, entryMetrics, filterWorkouts, MUSCLE_SETS_GUIDE, muscleSetsPerWeek, periodSummary, previousPeriod, stalledItems, workoutsByWeek, type EntryMetrics } from '../../domain/analysis';
 import { currentTarget } from '../../domain/progression';
 import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
@@ -88,6 +88,19 @@ function WeekBars({ weeks, lang }: { weeks: { start: Date; workouts: Workout[] }
   );
 }
 
+/** Change against the previous period: ▲ more, ▼ less, ＝ same. Nothing without a previous value. */
+function Delta({ now, prev, digits = 0, lang, unit = '' }: { now: number; prev?: number; digits?: number; lang: string; unit?: string }) {
+  if (prev === undefined) return null;
+  const d = Number((now - prev).toFixed(digits));
+  if (d === 0) return <span className="delta">＝</span>;
+  return (
+    <span className={`delta ${d > 0 ? 'up' : 'down'}`}>
+      {d > 0 ? '▲' : '▼'} {fmtNum(Math.abs(d), lang, digits)}
+      {unit}
+    </span>
+  );
+}
+
 function Spark({ values }: { values: number[] }) {
   if (values.length < 2) return <svg className="spark" aria-hidden="true" />;
   const min = Math.min(...values);
@@ -148,11 +161,17 @@ export function Analysis() {
     // Period dates shown under the selector, and the weeks of the chart ("All": from the first workout).
     const start = from ? new Date(`${from}T00:00:00`) : current[0] ? new Date(current[0].startedAt) : new Date();
     const weeks = workoutsByWeek(current, start, new Date());
-    return { current, rows, adherenceRows, start, weeks, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
+    // The previous period of the same length, for comparison (not for "All", and only when it has workouts).
+    const prevRange = from ? previousPeriod(from, days) : undefined;
+    const prevWorkouts = prevRange ? filterWorkouts(data.workouts, { ...prevRange, planId: planId || undefined }) : [];
+    const prev = prevRange && prevWorkouts.length ? { range: prevRange, summary: periodSummary(prevWorkouts), muscles: muscleSetsPerWeek(prevWorkouts, prevRange.from, prevRange.to) } : undefined;
+    const muscles = Object.entries(muscleSetsPerWeek(current, from ?? current[0]?.startedAt.slice(0, 10) ?? today, today)).sort((a, b) => b[1] - a[1]);
+    return { current, rows, adherenceRows, start, weeks, summary: periodSummary(current), prev, muscles, completion: completionByExercise(current) };
   }, [data, days, planId, s.stalledThreshold]);
   if (!data || !computed) return null;
-  const { rows, adherenceRows, start, weeks, summary, muscles, completion } = computed;
-  const maxMuscle = Math.max(1, ...muscles.map(([, v]) => v));
+  const { rows, adherenceRows, start, weeks, summary, prev, muscles, completion } = computed;
+  // Scale of the muscle bars: at least past the top of the guideline, so the band is always visible.
+  const scale = Math.max(MUSCLE_SETS_GUIDE.max * 1.25, ...muscles.map(([, v]) => v));
 
   const fmtMain = (key: string, v: number | undefined) =>
     key === 'topLoad' ? `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}` : key === 'maxDuration' ? fmtSeconds(v) : key === 'totalDistance' ? `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}` : fmtNum(v, s.language);
@@ -190,18 +209,52 @@ export function Analysis() {
         <div className="stat">
           <div className="value">{summary.workouts}</div>
           <div className="label">{t('analysis.workouts')}</div>
+          <Delta now={summary.workouts} prev={prev?.summary.workouts} lang={s.language} />
         </div>
         <div className="stat">
           <div className="value">{summary.workingSets}</div>
           <div className="label">{t('analysis.workingSets')}</div>
+          <Delta now={summary.workingSets} prev={prev?.summary.workingSets} lang={s.language} />
         </div>
         <div className="stat">
           <div className="value">{fmtNum(summary.completionRate * 100, s.language, 0)}%</div>
           <div className="label">{t('analysis.completionRate')}</div>
+          <Delta now={Math.round(summary.completionRate * 100)} prev={prev && Math.round(prev.summary.completionRate * 100)} lang={s.language} unit=" pp" />
         </div>
       </div>
+      {prev && (
+        <p className="help" style={{ marginTop: '-0.4rem' }}>
+          {t('analysis.vsPrevious', { from: fmtDate(`${prev.range.from}T00:00:00`, s.language), to: fmtDate(`${prev.range.to}T00:00:00`, s.language) })}
+        </p>
+      )}
 
       {summary.workouts > 0 && <WeekBars weeks={weeks} lang={s.language} />}
+
+      {muscles.length > 0 && (
+        <section className="card">
+          <h2>{t('analysis.muscles')}</h2>
+          <table>
+            <tbody>
+              {muscles.map(([m, v]) => (
+                <tr key={m}>
+                  <th>{tr(t, 'muscle', m)}</th>
+                  <td className="num">
+                    {fmtNum(v, s.language, 1)}
+                    <Delta now={v} prev={prev ? (prev.muscles[m] ?? 0) : undefined} digits={1} lang={s.language} />
+                  </td>
+                  <td style={{ width: '50%' }}>
+                    <div className="mbar">
+                      <div className="bar" style={{ width: `${(v / scale) * 100}%` }} />
+                      <div className="guide" style={{ left: `${(MUSCLE_SETS_GUIDE.min / scale) * 100}%`, width: `${((MUSCLE_SETS_GUIDE.max - MUSCLE_SETS_GUIDE.min) / scale) * 100}%` }} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="help">{t('analysis.musclesGuide', MUSCLE_SETS_GUIDE)}</p>
+        </section>
+      )}
 
       {rows.length === 0 ? (
         <div className="empty">{t('analysis.noData')}</div>
@@ -254,20 +307,6 @@ export function Analysis() {
               </table>
             </>
           )}
-          <h3 style={{ marginTop: '1rem' }}>{t('analysis.muscles')}</h3>
-          <table>
-            <tbody>
-              {muscles.map(([m, v]) => (
-                <tr key={m}>
-                  <th>{tr(t, 'muscle', m)}</th>
-                  <td className="num">{fmtNum(v, s.language, 1)}</td>
-                  <td style={{ width: '55%' }}>
-                    <div className="bar" style={{ width: `${(v / maxMuscle) * 100}%` }} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
           <h3 style={{ marginTop: '1rem' }}>{t('analysis.completion')}</h3>
           <div className="table-wrap">
             <table>
@@ -284,7 +323,9 @@ export function Analysis() {
             </table>
           </div>
           <p className="help" style={{ marginTop: '1rem' }}>
-            {t('analysis.volume')}: {fmtNum(loadOut(summary.volume, s), s.language, 0)} {s.loadUnit} · {t('analysis.duration')}: {fmtSeconds(summary.duration)}
+            {t('analysis.volume')}: {fmtNum(loadOut(summary.volume, s), s.language, 0)} {s.loadUnit}
+            {prev && <Delta now={loadOut(summary.volume, s) ?? 0} prev={loadOut(prev.summary.volume, s)} lang={s.language} unit={` ${s.loadUnit}`} />}
+            {t('analysis.duration')}: {fmtSeconds(summary.duration)}
           </p>
           <h3 style={{ marginTop: '1rem' }}>{t('analysis.formulas')}</h3>
           <ul className="help">

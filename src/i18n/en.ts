@@ -167,7 +167,7 @@ export const en = {
     title: 'Analysis', period: 'Period', p28: '4 wks', p84: '12 wks', p182: '6 months', p0: 'All', plan: 'Plan',
     workouts: 'Workouts', workingSets: 'Sets', completionRate: 'Completed', byExercise: 'By exercise', now: 'now', fixed: 'Fixed', completionShort: '{{pct}}% completed',
     sessionsN: '{{count}} sessions', sessionsN_one: '{{count}} session', sessionsN_other: '{{count}} sessions', stalledShort: 'stalled', noData: 'No workouts in this period.',
-    moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
+    moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle per week', musclesGuide: 'Dashed lines: {{min}}–{{max}} sets per week, a common guideline for hypertrophy (not a rule).', vsPrevious: '▲▼ compared with {{from}} – {{to}}', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
     topLoad: 'Top set', e1rm: 'Estimated 1RM (Epley)', totalReps: 'Total reps', maxDuration: 'Longest set', distance: 'Distance', pace: 'Pace', avgSpeed: 'Average speed', avgIncline: 'Average incline', loadEvents: 'Progression history',
     formula: {
       trend: 'Arrow: first vs last session in the period, using the main number (top set load, longest set, distance or reps).',
@@ -176,7 +176,7 @@ export const en = {
       completion: 'Completed = completed planned sets ÷ planned sets.',
       adherence: 'Adherence = finished workouts of the plan ÷ (plan days × weeks in the period).',
       stalled: 'Stalled = the last {{n}} sessions had no increase and no rep progress. Fixed and manual exercises are never flagged.',
-      muscles: 'A completed set counts 1 for main muscles and 0.5 for secondary muscles.',
+      muscles: 'A completed set counts 1 for main muscles and 0.5 for secondary muscles. Per week = total ÷ days in the period × 7.',
     },
   },
   settings: {

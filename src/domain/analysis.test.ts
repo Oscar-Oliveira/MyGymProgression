@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, personalRecords, stalledItems, workoutRecords, workoutsByWeek } from './analysis';
+import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, muscleSetsPerWeek, personalRecords, previousPeriod, weeksIn, stalledItems, workoutRecords, workoutsByWeek } from './analysis';
 import type { Evaluation, MetricDef, Outcome, ProgressionStrategy, SetRecord, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
 
@@ -164,5 +164,19 @@ describe('workoutRecords', () => {
   it('counts reps only for exercises without load', () => {
     const bw = (reps: number) => entry({ exercise: { name: 'Pull-up', category: 'compound', metrics: [metrics.rl[0]], loadMode: 'total', primaryMuscles: [], secondaryMuscles: [] }, sets: [set({ reps })] });
     expect(workoutRecords(workout('2026-01-15', [bw(9)]), [workout('2026-01-01', [bw(7)])]).map((r) => r.kind)).toEqual(['maxReps']);
+  });
+});
+
+describe('periods', () => {
+  it('counts weeks, both days included, at least 1', () => {
+    expect(weeksIn('2026-10-03', '2026-10-30')).toBe(4);
+    expect(weeksIn('2026-10-30', '2026-10-30')).toBe(1);
+  });
+  it('gives the period of the same length just before', () => {
+    expect(previousPeriod('2026-10-03', 28)).toEqual({ from: '2026-09-05', to: '2026-10-02' });
+  });
+  it('averages muscle sets per week', () => {
+    const ws = [workout('2026-10-05', [entry({ sets: [set({ reps: 10, load: 40 }), set({ reps: 10, load: 40 })] })])];
+    expect(muscleSetsPerWeek(ws, '2026-10-03', '2026-10-16')).toEqual({ chest: 1, triceps: 0.5 });
   });
 });

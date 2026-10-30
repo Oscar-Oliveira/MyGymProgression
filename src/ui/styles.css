@@ -503,3 +503,12 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .coach-style { display: flex; align-items: center; gap: 0.75rem; }
 .coach-style .help { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .coach-avatar .mouth { animation: none; } }
+
+/* Change against the previous period (Analysis). */
+.delta { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+/* Weekly sets per muscle, with the 10–20 guideline as a dashed band. */
+.mbar { position: relative; height: 0.55rem; background: var(--surface-2); border-radius: 4px; }
+.mbar .bar { height: 100%; }
+.mbar .guide { position: absolute; top: -3px; bottom: -3px; border-left: 1px dashed var(--muted); border-right: 1px dashed var(--muted); }

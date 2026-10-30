@@ -169,7 +169,7 @@ export const pt: Resources = {
     perWeek: 'Treinos por semana', avgPerWeek: 'média {{n}}/semana', tapWeek: 'Toque numa semana para ver os treinos.', weekOf: 'Semana de {{date}}: {{count}} treinos', weekOf_one: 'Semana de {{date}}: {{count}} treino',
     workouts: 'Treinos', workingSets: 'Séries', completionRate: 'Cumprido', byExercise: 'Por exercício', now: 'agora', fixed: 'Fixo', completionShort: '{{pct}}% cumprido',
     sessionsN: '{{count}} sessões', sessionsN_one: '{{count}} sessão', sessionsN_other: '{{count}} sessões', stalledShort: 'estagnado', noData: 'Sem treinos neste período.',
-    moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
+    moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo por semana', musclesGuide: 'Linhas tracejadas: {{min}}–{{max}} séries por semana, uma referência comum para hipertrofia (não é regra).', vsPrevious: '▲▼ comparado com {{from}} – {{to}}', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
     topLoad: 'Série mais pesada', e1rm: '1RM estimado (Epley)', totalReps: 'Total de reps', maxDuration: 'Série mais longa', distance: 'Distância', pace: 'Ritmo', avgSpeed: 'Velocidade média', avgIncline: 'Inclinação média', loadEvents: 'Histórico de progressão',
     formula: {
       trend: 'Seta: primeira vs última sessão do período, com o número principal (carga da série mais pesada, série mais longa, distância ou reps).',
@@ -178,7 +178,7 @@ export const pt: Resources = {
       completion: 'Cumprido = séries previstas feitas ÷ séries previstas.',
       adherence: 'Adesão = treinos terminados do plano ÷ (dias do plano × semanas do período).',
       stalled: 'Estagnado = as últimas {{n}} sessões não tiveram subida nem mais repetições. Exercícios fixos e manuais nunca são marcados.',
-      muscles: 'Uma série feita conta 1 para os músculos principais e 0,5 para os secundários.',
+      muscles: 'Uma série feita conta 1 para os músculos principais e 0,5 para os secundários. Por semana = total ÷ dias do período × 7.',
     },
   },
   settings: {

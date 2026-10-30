@@ -330,3 +330,27 @@ export function workoutsByWeek(workouts: Workout[], from: Date, to: Date): { sta
   for (const x of weeks) x.workouts.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
   return weeks;
 }
+
+/** Number of weeks from `from` to `to` (both days included), at least 1. Used for averages per week. */
+export function weeksIn(from: string, to: string): number {
+  const days = (Date.parse(to) - Date.parse(from)) / 86400000 + 1;
+  return Math.max(1, days / 7);
+}
+
+/** The period of the same length just before [from, from + days − 1], as ISO dates. */
+export function previousPeriod(from: string, days: number): { from: string; to: string } {
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  return { from: iso(start - days * 86400000), to: iso(start - 86400000) };
+}
+
+/**
+ * Completed working sets per muscle per week (primary 1, secondary 0.5), in the period [from, to].
+ * A common guideline for hypertrophy is about 10–20 sets per muscle per week.
+ */
+export function muscleSetsPerWeek(workouts: Workout[], from: string, to: string): Record<string, number> {
+  const weeks = weeksIn(from, to);
+  return Object.fromEntries(Object.entries(muscleDistribution(workouts)).map(([m, v]) => [m, v / weeks]));
+}
+
+export const MUSCLE_SETS_GUIDE = { min: 10, max: 20 };
