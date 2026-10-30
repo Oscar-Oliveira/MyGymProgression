@@ -198,6 +198,12 @@ export const en = {
     error: { invalid_json: 'The file is not valid JSON.', not_a_backup: 'The file is not a MyGymProgression export.', schema_version_missing: 'The schema version is missing.', schema_version_newer: 'The file was made by a newer app version (schema {{v}}).', file_too_large: 'The file is too large.' },
     tables: { exercises: 'Exercises', plans: 'Plans', planVersions: 'Plan versions', progressionStates: 'Progression', workouts: 'Workouts', progressionEvents: 'Progression events', revisions: 'Corrections' },
   },
+  share: {
+    title: 'Shared plan', invalid: 'This link is not valid or is incomplete.', import: 'Import plan',
+    exercises: '{{added}} new exercises for the library · {{existing}} already in it', help: 'The plan is added as a new plan. Your plans, workouts and progress are not changed.',
+    menu: 'Share', help2: 'Shares a copy of the plan with its exercises and target loads. Your workouts, progress and personal notes are not included.',
+    file: 'Send file', link: 'Share link', copied: 'Link copied.', fileHelp: 'The other person imports the file in Settings → Import.',
+  },
   picker: { title: 'Choose exercise', placeholder: 'Search by name, other name or tag' },
 };
 

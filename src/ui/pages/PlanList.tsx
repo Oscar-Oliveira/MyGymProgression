@@ -11,12 +11,50 @@ import { ThumbStack } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
 import { dialog } from '../components/Dialog';
 import { toneStyle } from '../colors';
+import { planShare, encodeShare } from '../../domain/share';
+import { shareFile } from '../util';
+
+/** Share window of one plan: a file (complete) or a link (without library text and images, to stay short). */
+function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [msg, setMsg] = useState('');
+  const file = async () => {
+    const b = planShare(await repo.readAll(), plan.id, __APP_VERSION__);
+    if (b) await shareFile(`${plan.name.replace(/[^\p{L}\p{N}]+/gu, '-')}.mygymprogression.json`, JSON.stringify(b, null, 2));
+  };
+  const link = async () => {
+    const b = planShare(await repo.readAll(), plan.id, __APP_VERSION__, true);
+    if (!b) return;
+    const url = `${location.origin}${location.pathname}#/share?d=${await encodeShare(b)}`;
+    if (matchMedia('(pointer: coarse)').matches && navigator.share) {
+      try {
+        return await navigator.share({ title: plan.name, url });
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') return;
+      }
+    }
+    await navigator.clipboard.writeText(url);
+    setMsg(t('share.copied'));
+  };
+  return (
+    <Modal title={`${t('share.menu')}: ${plan.name}`} onClose={onClose}>
+      <p className="help" style={{ marginTop: 0 }}>{t('share.help2')}</p>
+      <div className="sheet">
+        <button onClick={() => void link()}>🔗 {t('share.link')}</button>
+        <button onClick={() => void file()}>⤓ {t('share.file')}</button>
+      </div>
+      <p className="help">{t('share.fileHelp')}</p>
+      {msg && <p role="status">{msg}</p>}
+    </Modal>
+  );
+}
 
 export function PlanList() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const [archived, setArchived] = useState(false);
   const [menu, setMenu] = useState<Plan>();
+  const [sharing, setSharing] = useState<Plan>();
   const data = useLiveQuery(async () => ({
     plans: await db.plans.toArray(),
     versions: await db.planVersions.toArray(),
@@ -89,6 +127,7 @@ export function PlanList() {
             >
               {t('common.duplicate')}
             </button>
+            <button onClick={() => (setSharing(menu), setMenu(undefined))}>{t('share.menu')}</button>
             <button onClick={() => void act(() => db.plans.put({ ...menu, status: menu.status === 'active' ? 'archived' : 'active' }))}>
               {menu.status === 'active' ? t('common.archive') : t('common.unarchive')}
             </button>
@@ -98,6 +137,7 @@ export function PlanList() {
           </div>
         </Modal>
       )}
+      {sharing && <ShareSheet plan={sharing} onClose={() => setSharing(undefined)} />}
     </div>
   );
 }

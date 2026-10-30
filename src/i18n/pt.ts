@@ -200,5 +200,11 @@ export const pt: Resources = {
     error: { invalid_json: 'O ficheiro não é JSON válido.', not_a_backup: 'O ficheiro não é uma exportação do MyGymProgression.', schema_version_missing: 'Falta a versão do esquema.', schema_version_newer: 'O ficheiro foi criado por uma versão mais recente (esquema {{v}}).', file_too_large: 'O ficheiro é demasiado grande.' },
     tables: { exercises: 'Exercícios', plans: 'Planos', planVersions: 'Versões de planos', progressionStates: 'Progressão', workouts: 'Treinos', progressionEvents: 'Eventos de progressão', revisions: 'Correções' },
   },
+  share: {
+    title: 'Plano partilhado', invalid: 'Este link não é válido ou está incompleto.', import: 'Importar plano',
+    exercises: '{{added}} exercícios novos para a biblioteca · {{existing}} já existem', help: 'O plano é adicionado como um plano novo. Os seus planos, treinos e progresso não mudam.',
+    menu: 'Partilhar', help2: 'Partilha uma cópia do plano com os exercícios e as cargas previstas. Os seus treinos, progresso e notas pessoais não são incluídos.',
+    file: 'Enviar ficheiro', link: 'Partilhar link', copied: 'Link copiado.', fileHelp: 'A outra pessoa importa o ficheiro em Definições → Importar.',
+  },
   picker: { title: 'Escolher exercício', placeholder: 'Pesquisar por nome, outro nome ou etiqueta' },
 };

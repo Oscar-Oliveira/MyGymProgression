@@ -18,6 +18,7 @@ import { History } from './pages/History';
 import { Analysis } from './pages/Analysis';
 import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
+import { ShareImport } from './pages/ShareImport';
 
 // Outline icons (24×24, stroke = currentColor).
 const ICONS = {
@@ -79,6 +80,7 @@ function Shell() {
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<About />} />
+          <Route path="/share" element={<ShareImport />} />
         </Routes>
       </main>
       <DialogHost />
