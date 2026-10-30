@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, personalRecords, stalledItems, workoutsByWeek } from './analysis';
+import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, personalRecords, stalledItems, workoutRecords, workoutsByWeek } from './analysis';
 import type { Evaluation, MetricDef, Outcome, ProgressionStrategy, SetRecord, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
 
@@ -143,5 +143,26 @@ describe('workouts by week', () => {
     const weeks = workoutsByWeek([w(new Date(2026, 9, 30, 10).toISOString()), w(new Date(2026, 9, 13, 18).toISOString()), w(new Date(2026, 9, 12, 7).toISOString())], new Date(2026, 9, 14), new Date(2026, 9, 30));
     expect(weeks.map((x) => x.start.getDate())).toEqual([12, 19, 26]);
     expect(weeks.map((x) => x.workouts.length)).toEqual([2, 0, 1]);
+  });
+});
+
+describe('workoutRecords', () => {
+  const earlier = [workout('2026-01-01', [entry({ sets: [set({ reps: 10, load: 40 })] })]), workout('2026-01-08', [entry({ sets: [set({ reps: 8, load: 50 })] })])];
+  it('reports a heavier set as a load record, not also as an e1RM record', () => {
+    const w = workout('2026-01-15', [entry({ sets: [set({ reps: 5, load: 55 })] })]);
+    expect(workoutRecords(w, earlier)).toEqual([{ exerciseId: 'ex1', name: 'Bench', kind: 'topLoad', value: 55, previous: 50 }]);
+  });
+  it('reports an e1RM record at the same top load', () => {
+    const w = workout('2026-01-15', [entry({ sets: [set({ reps: 10, load: 50 })] })]);
+    expect(workoutRecords(w, earlier).map((r) => r.kind)).toEqual(['bestE1rm']);
+  });
+  it('sets no record the first time, and ignores later workouts', () => {
+    const w = workout('2026-01-01', [entry({ sets: [set({ reps: 12, load: 90 })] })]);
+    expect(workoutRecords(w, [])).toEqual([]);
+    expect(workoutRecords(earlier[0], earlier)).toEqual([]);
+  });
+  it('counts reps only for exercises without load', () => {
+    const bw = (reps: number) => entry({ exercise: { name: 'Pull-up', category: 'compound', metrics: [metrics.rl[0]], loadMode: 'total', primaryMuscles: [], secondaryMuscles: [] }, sets: [set({ reps })] });
+    expect(workoutRecords(workout('2026-01-15', [bw(9)]), [workout('2026-01-01', [bw(7)])]).map((r) => r.kind)).toEqual(['maxReps']);
   });
 });

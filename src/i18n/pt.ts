@@ -122,6 +122,8 @@ export const pt: Resources = {
     interrupt: 'Terminar antes (interrompido)', discard: 'Descartar treino', discardConfirm: 'Descartar este treino? Nada será guardado.',
     finishPending: 'Há {{count}} séries por fazer. Contam como saltadas. Terminar?', noEntries: 'Sem exercícios. Adicione um no menu ⋯.',
     status: { in_progress: 'Em curso', completed: 'Concluído', partial: 'Parcialmente concluído', interrupted: 'Interrompido' },
+    records: 'Novos recordes', recordWas: 'antes {{value}}',
+    recordKind: { topLoad: 'Série mais pesada', bestE1rm: '1RM estimado', maxReps: 'Mais reps', maxDuration: 'Série mais longa', maxDistance: 'Distância' },
     nextTime: 'Próxima vez', details: 'Todas as séries', prescribed: 'Previsto', correct: 'Corrigir registos', correctHelp: 'Corrija valores registados por engano. A versão anterior fica guardada.',
     allExercises: 'Exercícios do treino', saveCorrection: 'Guardar correção', revisions: 'Correções', revisionAt: 'Editado {{date}}', deleteConfirm: 'Eliminar este treino do histórico?', setsDone: '{{done}}/{{total}} séries',
   },

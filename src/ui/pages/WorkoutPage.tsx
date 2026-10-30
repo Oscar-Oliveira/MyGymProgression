@@ -15,7 +15,8 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, rxLine, setsLine, setText } from '../progress';
-import { fmtDate, fmtSeconds, fmtValue, useSettings, useThumbs, useWakeLock } from '../util';
+import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, useSettings, useThumbs, useWakeLock } from '../util';
+import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
@@ -286,7 +287,16 @@ export function WorkoutPage() {
     );
   }
 
-  // Finished workout: summary with decisions, or correction mode.
+  // Finished workout: summary with records and decisions, or correction mode.
+  const records = workoutRecords(draft, ctx.others);
+  const fmtRecord = (r: RecordHit, v: number) =>
+    r.kind === 'maxDuration'
+      ? fmtSeconds(v)
+      : r.kind === 'maxDistance'
+        ? `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}`
+        : r.kind === 'maxReps'
+          ? fmtNum(v, s.language)
+          : `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}`;
   return (
     <div className="toned" style={tone}>
       <div className="page-head">
@@ -334,6 +344,22 @@ export function WorkoutPage() {
               <div className="label">{t('analysis.duration')}</div>
             </div>
           </div>
+          {records.length > 0 && (
+            <section className="card up">
+              <h2 style={{ marginTop: 0 }}>🏆 {t('workout.records')}</h2>
+              {records.map((r) => (
+                <ExerciseItem
+                  key={`${r.exerciseId}:${r.kind}`}
+                  name={r.name}
+                  thumb={thumbOf(r.exerciseId)}
+                  sub={`${t(`workout.recordKind.${r.kind}`)} · ${t('workout.recordWas', { value: fmtRecord(r, r.previous) })}`}
+                  size="sm"
+                  to={`/exercises/${r.exerciseId}`}
+                  trailing={<strong className="num">{fmtRecord(r, r.value)}</strong>}
+                />
+              ))}
+            </section>
+          )}
           <div className="section-head">
             <h2>{t('workout.nextTime')}</h2>
           </div>

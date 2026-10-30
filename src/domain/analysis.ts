@@ -139,6 +139,47 @@ export function personalRecords(history: HistoryPoint[]): PersonalRecords {
   };
 }
 
+export type RecordKind = 'topLoad' | 'bestE1rm' | 'maxReps' | 'maxDuration' | 'maxDistance';
+
+export interface RecordHit {
+  exerciseId: string;
+  name: string;
+  kind: RecordKind;
+  /** Canonical units (kg, s, m). */
+  value: number;
+  previous: number;
+}
+
+/**
+ * New personal records of a workout, compared with the earlier finished workouts.
+ * An exercise done for the first time sets no record. Reps count only for exercises without load.
+ * The estimated 1RM is shown only when the top load is not also a record (same cause).
+ */
+export function workoutRecords(workout: Workout, earlier: Workout[]): RecordHit[] {
+  const before = earlier.filter((w) => w.id !== workout.id && w.startedAt < workout.startedAt);
+  const out: RecordHit[] = [];
+  const seen = new Set<string>();
+  for (const e of workout.entries) {
+    if (seen.has(e.exerciseId)) continue;
+    seen.add(e.exerciseId);
+    const prev = personalRecords(exerciseHistory(before, e.exerciseId));
+    // The workout counts as finished here, so a summary can be computed before the status is saved.
+    const now = personalRecords(exerciseHistory([{ ...workout, status: 'completed' }], e.exerciseId));
+    const hit = (kind: RecordKind, a?: number, b?: number) => {
+      if (a === undefined || b === undefined || a <= b) return false;
+      out.push({ exerciseId: e.exerciseId, name: e.exercise.name, kind, value: a, previous: b });
+      return true;
+    };
+    const load = hasMetric(e.exercise.metrics, 'load');
+    const loadUp = hit('topLoad', now.topLoad, prev.topLoad);
+    if (!loadUp) hit('bestE1rm', now.bestE1rm, prev.bestE1rm);
+    if (!load) hit('maxReps', now.maxReps, prev.maxReps);
+    hit('maxDuration', now.maxDuration, prev.maxDuration);
+    hit('maxDistance', now.maxDistance, prev.maxDistance);
+  }
+  return out;
+}
+
 export interface WorkoutFilter {
   from?: string;
   to?: string;

@@ -120,6 +120,8 @@ export const en = {
     interrupt: 'End early (interrupted)', discard: 'Discard workout', discardConfirm: 'Discard this workout? Nothing will be saved.',
     finishPending: '{{count}} sets are not done. They will count as skipped. Finish?', noEntries: 'No exercises. Add one from the menu ⋯.',
     status: { in_progress: 'In progress', completed: 'Completed', partial: 'Partially completed', interrupted: 'Interrupted' },
+    records: 'New records', recordWas: 'was {{value}}',
+    recordKind: { topLoad: 'Heaviest set', bestE1rm: 'Estimated 1RM', maxReps: 'Most reps', maxDuration: 'Longest set', maxDistance: 'Distance' },
     nextTime: 'Next time', details: 'All sets', prescribed: 'Planned', correct: 'Correct records', correctHelp: 'Fix values recorded by mistake. The previous version is kept.',
     allExercises: 'Workout exercises', saveCorrection: 'Save correction', revisions: 'Corrections', revisionAt: 'Edited {{date}}', deleteConfirm: 'Delete this workout from history?', setsDone: '{{done}}/{{total}} sets',
   },
