@@ -9,6 +9,21 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
     pt: [
+      'Botões e destaques usam a cor do dia ou, se não tiver, a do plano.',
+      'Planos de força começam em 5×5; o intervalo de reps define-se em cada exercício.',
+      'Personal trainer também entre exercícios: às vezes, sempre ou só no início.',
+      'Análise: período com datas e gráfico de treinos por semana.',
+    ],
+    en: [
+      'Buttons and highlights use the day colour or, if none, the plan colour.',
+      'Strength plans start at 5×5; the rep range is set per exercise.',
+      'Personal trainer between exercises too: sometimes, always or only at the start.',
+      'Analysis: period with dates and a workouts-per-week chart.',
+    ],
+  },
+  {
+    date: '2026-10-30',
+    pt: [
       'Novo visual escuro, com cores por plano e por dia.',
       'Circuitos: exercícios seguidos, sem descanso, com um só "feito" no fim.',
       'Personal trainer opcional com mensagens motivadoras (4 estilos).',

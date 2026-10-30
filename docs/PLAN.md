@@ -30,6 +30,9 @@ Source requirements: [`context.md`](../context.md).
 | D19 | Join duplicate exercises: plans (exercise and substitutes), workouts, corrections, progression events and states move to the kept exercise in one transaction; the duplicate's names become aliases, empty library fields are filled from it, and it is deleted. Logged snapshots keep the old name. | 2026-10-30 |
 | D20 | Personal trainer (optional, off by default): one message when a workout starts. Styles: support, spite ("f*ck you motivation", swear words optional), stoic, sergeant + data (real numbers). Same workout, same message. | 2026-10-30 |
 | D21 | Interchange schema v7: additive (colours, circuits, theme, trainer settings). | 2026-10-30 |
+| D22 | Strength mode (fixed 5×5 / range 4×4–6) removed: same rule, only the starting sets differed. Strength starts at 5×5; a rep range is set per exercise. Old `strengthMode` values are kept but ignored. Main buttons and highlights use the day colour, else the plan colour, else the default. | 2026-10-30 |
+| D23 | Personal trainer setting "when": start only, after every exercise/circuit, or randomly (about 4 in 10, stable per step). Messages after a step show as a short notice. Schema v8 (additive `coach.when`). | 2026-10-30 |
+| D24 | Analysis: full-width period control with the dates, and a workouts-per-week bar chart (blocks in plan/day colour; tap a week to list it). | 2026-10-30 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COACH_BANKS } from '../i18n/coach';
-import { coachContext, coachMessage } from './coach';
+import { coachContext, coachMessage, speaksAfterStep } from './coach';
 import type { ProgressionEvent, Workout } from './types';
 
 const bank = { support: ['Go!', 'Month {{month}}', 'Up {{exercise}} {{from}}→{{to}}'], spite: ['clean'], spiteProfane: ['f*ck'], stoic: ['Back after {{days}} days'], sergeant: ['Move'] };
@@ -42,5 +42,15 @@ describe('personal trainer', () => {
       (e) => ({ exercise: e.exerciseId, from: 'a', to: 'b' }),
     );
     expect(ctx).toEqual({ month: 2, days: 5, increase: { exercise: '2026-10-20T11:00:00Z', from: 'a', to: 'b' } });
+  });
+
+  it('between exercises: always, never, or about 4 in 10 (stable per step)', () => {
+    const seeds = Array.from({ length: 500 }, (_, i) => `w:${i}`);
+    expect(seeds.every((x) => speaksAfterStep('each', x))).toBe(true);
+    expect(seeds.some((x) => speaksAfterStep('start', x))).toBe(false);
+    const n = seeds.filter((x) => speaksAfterStep('random', x)).length;
+    expect(n).toBeGreaterThan(150);
+    expect(n).toBeLessThan(250);
+    expect(speaksAfterStep(undefined, 'w:7')).toBe(speaksAfterStep('random', 'w:7'));
   });
 });

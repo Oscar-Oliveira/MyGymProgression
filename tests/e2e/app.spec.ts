@@ -234,6 +234,50 @@ test('about: version and what is new', async ({ page }) => {
   await expect(page.getByRole('heading', { name: "What's new" })).toBeVisible();
 });
 
+test('plan colour without a day colour: the workout buttons use the plan colour; strength has no mode selector', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Plans/);
+  await page.getByRole('link', { name: /^Demo/ }).click();
+  await page.getByRole('radiogroup', { name: 'Plan colour' }).getByRole('radio', { name: 'Teal' }).click();
+  await page.getByRole('radiogroup', { name: 'Goal' }).getByRole('radio', { name: 'Strength' }).click();
+  await expect(page.getByRole('radiogroup', { name: 'Strength mode' })).toHaveCount(0);
+  const confirm = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(confirm).toContainText('5×5');
+  await confirm.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await tab(page, 'Home');
+  await page.getByRole('button', { name: /Start workout/ }).click();
+  await expect(page.getByRole('button', { name: '✓ Set done' })).toHaveCSS('background-color', 'rgb(15, 118, 110)');
+});
+
+test('personal trainer "after every exercise": a message appears when an exercise is done', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Settings/);
+  const enable = page.getByLabel('Motivating messages when a workout starts');
+  await enable.click();
+  await expect(enable).toBeChecked();
+  await page.getByRole('combobox', { name: 'When' }).selectOption({ label: 'After every exercise' });
+  await tab(page, 'Home');
+  await page.getByRole('button', { name: /Start workout/ }).click();
+  await expect(page.getByRole('status', { name: 'Personal trainer' })).toHaveCount(0);
+  await page.getByRole('button', { name: '✓ Set done' }).click(); // the warm-up has one set
+  await expect(page.getByRole('status', { name: 'Personal trainer' })).toBeVisible();
+});
+
+test('analysis: period dates and workouts per week; a week lists its workouts', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Analysis/);
+  await expect(page.getByRole('heading', { name: 'Workouts per week' })).toBeVisible();
+  await expect(page.locator('.period-range')).toContainText('–');
+  await page.getByRole('button', { name: /^Week of .*: 2 workouts$/ }).first().click();
+  await expect(page.locator('.week-list a')).toHaveCount(2);
+  await page.getByRole('tab', { name: '4 wks' }).click();
+  await expect(page.getByRole('button', { name: /^Week of / })).toHaveCount(5);
+});
+
 async function logChest(page: Page, reps: number[]) {
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   for (const r of reps) {

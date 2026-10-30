@@ -42,7 +42,7 @@ export function duplicateAsVariation(ex: Exercise, name: string): Exercise {
 }
 
 /** New plan item. With a plan, the default sets follow the plan goal (see goals.ts). */
-export function newPlanItem(ex: Exercise, plan?: Pick<Plan, 'goal' | 'strengthMode'>): PlanItem {
+export function newPlanItem(ex: Exercise, plan?: Pick<Plan, 'goal'>): PlanItem {
   return { id: uid(), lineageId: uid(), exerciseId: ex.id, role: ex.category === 'warmup' ? 'warmup' : 'main', sets: goalSets(plan, ex), substitutes: [], notes: '' };
 }
 

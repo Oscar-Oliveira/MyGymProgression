@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import type { Circuit, Exercise, MetricDef, MetricKey, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from '../../domain/types';
-import { coachContext, coachMessage } from '../../domain/coach';
+import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
 import { validateValue } from '../../domain/units';
@@ -170,10 +170,9 @@ function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entr
 }
 
 /** Personal trainer message at the top of the workout; can be closed (remembered for this workout). */
-function CoachCard({ workout, others, events, exercises }: { workout: Workout; others: Workout[]; events: ProgressionEvent[]; exercises: Map<string, Exercise> }) {
+function CoachCard({ workoutId, message }: { workoutId: string; message: string }) {
   const { t } = useTranslation();
-  const s = useSettings();
-  const key = `coach:${workout.id}`;
+  const key = `coach:${workoutId}`;
   const [hidden, setHidden] = useState(() => {
     try {
       return localStorage.getItem(key) === '1';
@@ -181,16 +180,7 @@ function CoachCard({ workout, others, events, exercises }: { workout: Workout; o
       return false;
     }
   });
-  if (hidden || !s.coach?.enabled) return null;
-  const format = (ev: ProgressionEvent) => {
-    const ex = exercises.get(ev.exerciseId);
-    const k = (Object.keys(ev.after) as MetricKey[]).find((m) => ev.after[m] !== ev.before[m]);
-    if (!ex || !k) return undefined;
-    const unit = ex.metrics.find((m) => m.key === k)?.unit ?? '';
-    return { exercise: ex.name, from: fmtValue(ev.before[k], unit, s.language), to: fmtValue(ev.after[k], unit, s.language) };
-  };
-  const msg = coachMessage(COACH_BANKS[s.language], s.coach, coachContext(others, events, new Date(workout.startedAt), format), workout.id);
-  if (!msg) return null;
+  if (hidden || !message) return null;
   const close = () => {
     setHidden(true);
     try {
@@ -204,7 +194,7 @@ function CoachCard({ workout, others, events, exercises }: { workout: Workout; o
       <span className="coach-ico" aria-hidden="true">
         PT
       </span>
-      <p>{msg}</p>
+      <p>{message}</p>
       <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
         ✕
       </button>
@@ -327,6 +317,13 @@ export function WorkoutPage() {
   const [picker, setPicker] = useState<'add' | 'sub'>();
   const [menu, setMenu] = useState(false);
   const [list, setList] = useState(false);
+  // Personal trainer message shown for a few seconds after an exercise or circuit is done.
+  const [toast, setToast] = useState<string>();
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(undefined), 6000);
+    return () => clearTimeout(timer);
+  }, [toast]);
   const loadedFor = useRef<string>(undefined);
   const chipsRef = useRef<HTMLDivElement>(null);
 
@@ -372,9 +369,32 @@ export function WorkoutPage() {
   const step: Step | undefined = steps[Math.min(cur, steps.length - 1)];
   const stepEntries = (st: Step) => st.indexes.map((i) => draft.entries[i]);
   const entry = step && !step.circuit ? draft.entries[step.indexes[0]] : undefined;
-  const upEntries = (es: WorkoutEntry[]) => update({ ...draft, entries: draft.entries.map((x) => es.find((e) => e.id === x.id) ?? x) });
-  const upEntry = (e: WorkoutEntry) => upEntries([e]);
   const entryDone = (e: WorkoutEntry) => e.sets.length > 0 && e.sets.every((x) => x.status !== 'pending');
+
+  // Personal trainer: the same context for every message of this workout; the seed picks the message.
+  const coach = s.coach?.enabled ? s.coach : undefined;
+  const increase = (ev: ProgressionEvent) => {
+    const ex = ctx.exercises.get(ev.exerciseId);
+    const k = (Object.keys(ev.after) as MetricKey[]).find((m) => ev.after[m] !== ev.before[m]);
+    if (!ex || !k) return undefined;
+    const unit = ex.metrics.find((m) => m.key === k)?.unit ?? '';
+    return { exercise: ex.name, from: fmtValue(ev.before[k], unit, s.language), to: fmtValue(ev.after[k], unit, s.language) };
+  };
+  const coachLine = (seed: string) => (coach ? coachMessage(COACH_BANKS[s.language], coach, coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), increase), seed) : '');
+
+  const upEntries = (es: WorkoutEntry[]) => {
+    const next = { ...draft, entries: draft.entries.map((x) => es.find((e) => e.id === x.id) ?? x) };
+    // A step that becomes done may get a trainer message (setting "when").
+    if (coach && active) {
+      workoutSteps(next.entries).forEach((st, i) => {
+        const was = st.indexes.every((j) => entryDone(draft.entries[j]));
+        const now = st.indexes.every((j) => entryDone(next.entries[j]));
+        if (!was && now && speaksAfterStep(coach.when, `${draft.id}:${i}`)) setToast(coachLine(`${draft.id}:${i}`) || undefined);
+      });
+    }
+    update(next);
+  };
+  const upEntry = (e: WorkoutEntry) => upEntries([e]);
   const stepDone = (st: Step) => stepEntries(st).every(entryDone);
   const stepName = (st: Step) => st.circuit?.name ?? draft.entries[st.indexes[0]].exercise.name;
   const pendingSets = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.status === 'pending').length, 0);
@@ -438,7 +458,7 @@ export function WorkoutPage() {
           </div>
         </div>
 
-        <CoachCard workout={draft} others={ctx.others} events={ctx.allEvents} exercises={ctx.exercises} />
+        {coach && <CoachCard workoutId={draft.id} message={coachLine(draft.id)} />}
 
         {step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
@@ -447,6 +467,18 @@ export function WorkoutPage() {
         ) : (
           <div className="empty">
             <p>{t('workout.noEntries')}</p>
+          </div>
+        )}
+
+        {toast && (
+          <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
+            <span className="coach-ico" aria-hidden="true">
+              PT
+            </span>
+            <p>{toast}</p>
+            <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
+              ✕
+            </button>
           </div>
         )}
 

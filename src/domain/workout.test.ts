@@ -288,12 +288,12 @@ describe('goal default sets', () => {
     const { dayGoal, goalSets } = await import('./goals');
     const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Squat' });
     const plan = { goal: 'mixed' as const };
-    expect(goalSets(dayGoal(plan, { goal: 'strength', strengthMode: 'range' }), ex).filter((x) => x.kind === 'working')).toHaveLength(4);
+    expect(goalSets(dayGoal(plan, { goal: 'strength' }), ex).filter((x) => x.kind === 'working')).toHaveLength(5);
     expect(goalSets(dayGoal(plan, { goal: 'hypertrophy' }), ex).filter((x) => x.kind === 'working').map((x) => x.targets.reps)).toEqual([{ min: 8, max: 12 }, { min: 8, max: 12 }, { min: 8, max: 12 }]);
     expect(goalSets(dayGoal(plan, {}), ex)).toEqual(ex.defaultSets);
   });
 
-  it('hypertrophy 3×8–12, strength fixed 5×5, strength range 4×4–6', async () => {
+  it('hypertrophy 3×8–12, strength 5×5 (an old range mode is ignored)', async () => {
     const { goalSets } = await import('./goals');
     const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Bench' });
     ex.defaultSets.forEach((s) => (s.targets.load = { value: 60 }));
@@ -301,12 +301,12 @@ describe('goal default sets', () => {
     expect(h).toHaveLength(3);
     expect(h[0]).toMatchObject({ targets: { reps: { min: 8, max: 12 }, load: { value: 60 } } });
     expect(h[0]).not.toHaveProperty('restSec');
-    const f = goalSets({ goal: 'strength', strengthMode: 'fixed' }, ex);
+    const f = goalSets({ goal: 'strength' }, ex);
     expect(f).toHaveLength(5);
     expect(f[0].targets.reps).toEqual({ min: 5, max: 5 });
-    const r = goalSets({ goal: 'strength', strengthMode: 'range' }, ex);
-    expect(r).toHaveLength(4);
-    expect(r[0]).toMatchObject({ targets: { reps: { min: 4, max: 6 } } });
+    const r = goalSets({ goal: 'strength', strengthMode: 'range' } as { goal: 'strength' }, ex);
+    expect(r).toHaveLength(5);
+    expect(r[0].targets.reps).toEqual({ min: 5, max: 5 });
     const plank = newExercise('duration', DEFAULT_SETTINGS, { name: 'Plank' });
     expect(goalSets({ goal: 'strength' }, plank)).toEqual(plank.defaultSets);
   });

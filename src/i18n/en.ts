@@ -84,6 +84,7 @@ export const en = {
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
   coach: {
     title: 'Personal trainer', enabled: 'Motivating messages when a workout starts', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
+    when: 'When', whenOptions: { random: 'Sometimes, between exercises', each: 'After every exercise', start: 'Only at the start' },
     styles: { support: 'Support', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
     styleHelp: {
       support: 'Positive and warm. Good for long-term consistency.',
@@ -147,7 +148,7 @@ export const en = {
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
     startDay: 'Start this day', days: 'days', actions: 'Options for',
-    dayGoal: 'Type of this day', dayFree: 'Free', strengthMode: 'Strength mode', mode: { fixed: 'Fixed reps (5×5)', range: 'Low range (4×4–6)' },
+    dayGoal: 'Type of this day', dayFree: 'Free',
     goalHelp: {
       hypertrophy: 'Hypertrophy: 3×8–12. When every set reaches 12, you choose: more load (back to 8 reps) or more reps (9–13, same load).',
       strength: 'Strength: when every set reaches the target reps, the load goes up automatically.',
@@ -158,7 +159,8 @@ export const en = {
     rule: { ask: 'Load or reps (you choose)', load: 'Load goes up automatically' },
   },
   analysis: {
-    title: 'Analysis', period: 'Period', p28: '4 weeks', p84: '12 weeks', p182: '6 months', p0: 'All', plan: 'Plan',
+    perWeek: 'Workouts per week', avgPerWeek: 'average {{n}}/week', tapWeek: 'Tap a week to see its workouts.', weekOf: 'Week of {{date}}: {{count}} workouts', weekOf_one: 'Week of {{date}}: {{count}} workout',
+    title: 'Analysis', period: 'Period', p28: '4 wks', p84: '12 wks', p182: '6 months', p0: 'All', plan: 'Plan',
     workouts: 'Workouts', workingSets: 'Sets', completionRate: 'Completed', byExercise: 'By exercise', now: 'now', fixed: 'Fixed', completionShort: '{{pct}}% completed',
     sessionsN: '{{count}} sessions', sessionsN_one: '{{count}} session', sessionsN_other: '{{count}} sessions', stalledShort: 'stalled', noData: 'No workouts in this period.',
     moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',

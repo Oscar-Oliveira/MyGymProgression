@@ -116,7 +116,7 @@ export const COLOR_KEYS = ['violet', 'blue', 'cyan', 'teal', 'green', 'lime', 'a
 export type ColorKey = (typeof COLOR_KEYS)[number];
 
 export type PlanGoal = 'hypertrophy' | 'strength' | 'mixed' | 'other';
-/** Strength plans: fixed reps (e.g. 5×5, linear) or a low rep range (e.g. 4–6). */
+/** No longer used (D22: strength starts at 5×5, a range is set per exercise); kept so older data stays valid. */
 export type StrengthMode = 'fixed' | 'range';
 /** Goal of one day in a mixed plan. */
 export type DayGoal = 'hypertrophy' | 'strength';
@@ -350,4 +350,7 @@ export interface CoachSettings {
   style: CoachStyle;
   /** Spite style only: allow swear words. */
   profanity: boolean;
+  /** Messages after an exercise or circuit is done: never (start only), always, or about 4 in 10. Default: random. */
+  when?: CoachWhen;
 }
+export type CoachWhen = 'start' | 'each' | 'random';

@@ -21,8 +21,8 @@ export function About() {
       <div className="section-head">
         <h2>{t('about.whatsNew')}</h2>
       </div>
-      {CHANGELOG.map((c) => (
-        <section key={c.date} className="card tight">
+      {CHANGELOG.map((c, i) => (
+        <section key={i} className="card tight">
           <p className="eyebrow">{fmtDate(c.date, s.language)}</p>
           <ul className="steps">
             {c[s.language].map((x) => (

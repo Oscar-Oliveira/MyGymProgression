@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, muscleDistribution, personalRecords, stalledItems } from './analysis';
+import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, personalRecords, stalledItems, workoutsByWeek } from './analysis';
 import type { Evaluation, MetricDef, Outcome, ProgressionStrategy, SetRecord, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
 
@@ -133,5 +133,15 @@ describe('filterWorkouts', () => {
     expect(f[0].entries).toHaveLength(1);
     expect(periodSummary(f).volume).toBe(50);
     expect(filterWorkouts([w], { from: '2026-03-02' })).toHaveLength(0);
+  });
+});
+
+describe('workouts by week', () => {
+  it('Monday-first weeks from the first to the last date, empty weeks included', () => {
+    const w = (iso: string) => ({ startedAt: iso }) as Workout;
+    expect(mondayOf(new Date(2026, 9, 25)).getDate()).toBe(19); // Sunday 25 Oct → Monday 19 Oct
+    const weeks = workoutsByWeek([w(new Date(2026, 9, 30, 10).toISOString()), w(new Date(2026, 9, 13, 18).toISOString()), w(new Date(2026, 9, 12, 7).toISOString())], new Date(2026, 9, 14), new Date(2026, 9, 30));
+    expect(weeks.map((x) => x.start.getDate())).toEqual([12, 19, 26]);
+    expect(weeks.map((x) => x.workouts.length)).toEqual([2, 0, 1]);
   });
 });

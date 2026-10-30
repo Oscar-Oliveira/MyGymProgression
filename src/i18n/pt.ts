@@ -86,6 +86,7 @@ export const pt: Resources = {
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
   coach: {
     title: 'Personal trainer', enabled: 'Mensagens motivadoras ao começar o treino', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
+    when: 'Quando', whenOptions: { random: 'Às vezes, entre exercícios', each: 'Depois de cada exercício', start: 'Só no início' },
     styles: { support: 'Apoio', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
     styleHelp: {
       support: 'Positivo e próximo. Bom para a consistência a longo prazo.',
@@ -149,7 +150,7 @@ export const pt: Resources = {
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adicione um dia de treino.', noItems: 'Ainda sem exercícios.',
     startDay: 'Começar este dia', days: 'dias', actions: 'Opções de',
-    dayGoal: 'Tipo deste dia', dayFree: 'Livre', strengthMode: 'Modo de força', mode: { fixed: 'Reps fixas (5×5)', range: 'Intervalo baixo (4×4–6)' },
+    dayGoal: 'Tipo deste dia', dayFree: 'Livre',
     goalHelp: {
       hypertrophy: 'Hipertrofia: 3×8–12. Quando todas as séries chegam a 12, escolhe: mais carga (volta a 8 reps) ou mais reps (9–13, mesma carga).',
       strength: 'Força: quando todas as séries chegam às reps alvo, a carga sobe automaticamente.',
@@ -160,7 +161,8 @@ export const pt: Resources = {
     rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
   },
   analysis: {
-    title: 'Análise', period: 'Período', p28: '4 semanas', p84: '12 semanas', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
+    title: 'Análise', period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
+    perWeek: 'Treinos por semana', avgPerWeek: 'média {{n}}/semana', tapWeek: 'Toque numa semana para ver os treinos.', weekOf: 'Semana de {{date}}: {{count}} treinos', weekOf_one: 'Semana de {{date}}: {{count}} treino',
     workouts: 'Treinos', workingSets: 'Séries', completionRate: 'Cumprido', byExercise: 'Por exercício', now: 'agora', fixed: 'Fixo', completionShort: '{{pct}}% cumprido',
     sessionsN: '{{count}} sessões', sessionsN_one: '{{count}} sessão', sessionsN_other: '{{count}} sessões', stalledShort: 'estagnado', noData: 'Sem treinos neste período.',
     moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',

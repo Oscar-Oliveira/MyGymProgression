@@ -272,3 +272,20 @@ export function adherence(finishedCount: number, daysPerWeek: number, from: stri
   const planned = Math.ceil(days / 7) * daysPerWeek;
   return finishedCount / planned;
 }
+
+/** Local midnight of the Monday of the week of `d`. */
+export function mondayOf(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+}
+
+/** Weeks (Monday first) from the week of `from` to the week of `to`, each with its workouts, oldest first. */
+export function workoutsByWeek(workouts: Workout[], from: Date, to: Date): { start: Date; workouts: Workout[] }[] {
+  const weeks: { start: Date; workouts: Workout[] }[] = [];
+  for (let d = mondayOf(from); d <= to; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7)) weeks.push({ start: d, workouts: [] });
+  for (const w of workouts) {
+    const start = mondayOf(new Date(w.startedAt)).getTime();
+    weeks.find((x) => x.start.getTime() === start)?.workouts.push(w);
+  }
+  for (const x of weeks) x.workouts.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+  return weeks;
+}

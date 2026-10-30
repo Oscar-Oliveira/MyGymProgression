@@ -17,6 +17,13 @@ function hash(s: string): number {
   return Math.abs(h);
 }
 
+/** Whether the trainer speaks after step `seed` is done: always, never, or about 4 in 10 (the same each time for a seed). */
+export function speaksAfterStep(when: CoachSettings['when'], seed: string): boolean {
+  if (when === 'each') return true;
+  if (when === 'start') return false;
+  return hash(`after:${seed}`) % 10 < 4;
+}
+
 /** Picks a message of the style; messages whose data is missing are left out. */
 export function coachMessage(bank: Record<string, string[]>, coach: Pick<CoachSettings, 'style' | 'profanity'>, ctx: CoachContext, seed: string): string {
   const list = bank[coach.style === 'spite' && coach.profanity ? 'spiteProfane' : coach.style] ?? [];

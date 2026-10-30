@@ -1,13 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
-import { adherence, completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, type EntryMetrics } from '../../domain/analysis';
+import { Link } from 'react-router-dom';
+import { adherence, completionByExercise, entryMetrics, filterWorkouts, muscleDistribution, periodSummary, stalledItems, workoutsByWeek, type EntryMetrics } from '../../domain/analysis';
 import { currentTarget } from '../../domain/progression';
-import type { MetricKey, WorkoutEntry } from '../../domain/types';
+import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
-import { distOut, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
+import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
+import { toneStyle, useTones } from '../colors';
 
 const PERIODS = [28, 84, 182, 0] as const;
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
@@ -19,6 +21,71 @@ function mainMetric(e: WorkoutEntry): { key: 'topLoad' | 'maxDuration' | 'totalD
   if (has('duration')) return { key: 'maxDuration', label: 'analysis.maxDuration' };
   if (has('distance')) return { key: 'totalDistance', label: 'analysis.distance' };
   return { key: 'totalReps', label: 'analysis.totalReps' };
+}
+
+/** Workouts per week: one bar per week, one coloured block per workout (plan or day colour). Tap a week to list it. */
+function WeekBars({ weeks, lang }: { weeks: { start: Date; workouts: Workout[] }[]; lang: string }) {
+  const { t } = useTranslation();
+  const toneFor = useTones();
+  const [sel, setSel] = useState<number>();
+  const row = useRef<HTMLDivElement>(null);
+  // Many weeks scroll sideways; start at the most recent.
+  useEffect(() => {
+    if (row.current) row.current.scrollLeft = row.current.scrollWidth;
+  }, [weeks.length]);
+  const max = Math.max(1, ...weeks.map((w) => w.workouts.length));
+  const total = weeks.reduce((a, w) => a + w.workouts.length, 0);
+  const month = (d: Date) => d.toLocaleDateString(lang === 'pt' ? 'pt-PT' : 'en-GB', { month: 'short' });
+  const chosen = sel !== undefined ? weeks[sel] : undefined;
+  return (
+    <section className="card">
+      <div className="section-head" style={{ marginTop: 0 }}>
+        <h2>{t('analysis.perWeek')}</h2>
+        <small className="num">{t('analysis.avgPerWeek', { n: fmtNum(total / Math.max(1, weeks.length), lang, 1) })}</small>
+      </div>
+      <div className="weeks" ref={row}>
+        {weeks.map((w, i) => (
+          <button
+            key={w.start.getTime()}
+            className={`week-bar ${sel === i ? 'on' : ''}`}
+            aria-pressed={sel === i}
+            aria-label={t('analysis.weekOf', { date: fmtDate(w.start.toISOString(), lang), count: w.workouts.length })}
+            onClick={() => setSel(sel === i ? undefined : i)}
+          >
+            <span className="bar-area">
+              <span className="bar-stack" style={{ height: `${(w.workouts.length / max) * 100}%` }}>
+                {w.workouts.map((x) => (
+                  <span key={x.id} className="block toned" style={toneStyle(toneFor(x.planId, x.dayId))} />
+                ))}
+              </span>
+            </span>
+            <span className="lbl">{i === 0 || weeks[i - 1].start.getMonth() !== w.start.getMonth() ? month(w.start) : ''}</span>
+          </button>
+        ))}
+      </div>
+      {chosen ? (
+        <div className="week-list">
+          <p className="eyebrow">{t('analysis.weekOf', { date: fmtDate(chosen.start.toISOString(), lang), count: chosen.workouts.length })}</p>
+          {chosen.workouts.map((x) => (
+            <Link key={x.id} to={`/workout/${x.id}`} className="nav-row toned" style={toneStyle(toneFor(x.planId, x.dayId))}>
+              <span className="tone-dot" />
+              <span className="main">
+                <span className="title">{x.dayName ?? t('workout.free')}</span>
+                <span className="meta">{fmtDate(x.startedAt, lang)}</span>
+              </span>
+              <span className="chev" aria-hidden="true">
+                ›
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="help" style={{ margin: '0.5rem 0 0' }}>
+          {t('analysis.tapWeek')}
+        </p>
+      )}
+    </section>
+  );
 }
 
 function Spark({ values }: { values: number[] }) {
@@ -78,10 +145,13 @@ export function Analysis() {
         return { plan: p, done: done.length, perWeek: v?.days.length ?? 0, rate: adherence(done.length, v?.days.length ?? 0, start, today) };
       })
       .filter((r) => r.perWeek > 0);
-    return { current, rows, adherenceRows, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
+    // Period dates shown under the selector, and the weeks of the chart ("All": from the first workout).
+    const start = from ? new Date(`${from}T00:00:00`) : current[0] ? new Date(current[0].startedAt) : new Date();
+    const weeks = workoutsByWeek(current, start, new Date());
+    return { current, rows, adherenceRows, start, weeks, summary: periodSummary(current), muscles: Object.entries(muscleDistribution(current)).sort((a, b) => b[1] - a[1]), completion: completionByExercise(current) };
   }, [data, days, planId, s.stalledThreshold]);
   if (!data || !computed) return null;
-  const { rows, adherenceRows, summary, muscles, completion } = computed;
+  const { rows, adherenceRows, start, weeks, summary, muscles, completion } = computed;
   const maxMuscle = Math.max(1, ...muscles.map(([, v]) => v));
 
   const fmtMain = (key: string, v: number | undefined) =>
@@ -92,13 +162,16 @@ export function Analysis() {
       <div className="page-head">
         <h1>{t('analysis.title')}</h1>
       </div>
-      <div className="seg" role="tablist" aria-label={t('analysis.period')}>
+      <div className="segmented" role="tablist" aria-label={t('analysis.period')}>
         {PERIODS.map((p) => (
           <button key={p} role="tab" aria-selected={days === p} className={days === p ? 'on' : ''} onClick={() => setDays(p)}>
             {t(`analysis.p${p}`)}
           </button>
         ))}
       </div>
+      <p className="period-range num">
+        {fmtDate(start.toISOString(), s.language)} – {fmtDate(new Date().toISOString(), s.language)}
+      </p>
       {data.plans.length > 1 && (
         <label style={{ margin: '0.6rem 0' }}>
           {t('analysis.plan')}
@@ -127,6 +200,8 @@ export function Analysis() {
           <div className="label">{t('analysis.completionRate')}</div>
         </div>
       </div>
+
+      {summary.workouts > 0 && <WeekBars weeks={weeks} lang={s.language} />}
 
       {rows.length === 0 ? (
         <div className="empty">{t('analysis.noData')}</div>

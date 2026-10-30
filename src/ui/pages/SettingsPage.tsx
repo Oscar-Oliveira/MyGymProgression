@@ -11,7 +11,7 @@ import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
 import { coachMessage } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
-import type { CoachSettings, CoachStyle } from '../../domain/types';
+import type { CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant'];
 const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
@@ -270,6 +270,16 @@ export function SettingsPage() {
               </select>
             </label>
             <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+            <label className="setting-row">
+              <span>{t('coach.when')}</span>
+              <select value={coach.when ?? 'random'} onChange={(e) => void saveCoach({ when: e.target.value as CoachWhen })}>
+                {(['random', 'each', 'start'] as const).map((w) => (
+                  <option key={w} value={w}>
+                    {t(`coach.whenOptions.${w}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
             {coach.style === 'spite' && (
               <label className="setting-row">
                 <span>{t('coach.profanity')}</span>

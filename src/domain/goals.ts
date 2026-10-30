@@ -5,8 +5,8 @@ import type { Exercise, Plan, PlanDay, ProgressionConfig, SetPrescription } from
 export const followsGoal = (ex: Pick<Exercise, 'progression' | 'metrics'>) => ex.progression.strategy === 'double' && ex.metrics.some((m) => m.key === 'reps');
 
 /** Goal that applies to a day: the plan goal, or in a mixed plan the day's own goal (when set). */
-export function dayGoal(plan: Pick<Plan, 'goal' | 'strengthMode'> | undefined, day: Pick<PlanDay, 'goal' | 'strengthMode'> | undefined): Pick<Plan, 'goal' | 'strengthMode'> | undefined {
-  if (plan?.goal === 'mixed' && day?.goal) return { goal: day.goal, strengthMode: day.strengthMode };
+export function dayGoal(plan: Pick<Plan, 'goal'> | undefined, day: Pick<PlanDay, 'goal'> | undefined): Pick<Plan, 'goal'> | undefined {
+  if (plan?.goal === 'mixed' && day?.goal) return { goal: day.goal };
   return plan;
 }
 
@@ -25,12 +25,15 @@ export function goalProgression(plan: Pick<Plan, 'goal'> | undefined, ex: Pick<E
   return base;
 }
 
-/** Default sets when an exercise is added to a plan. Loads and other targets come from the exercise defaults. */
-export function goalSets(plan: Pick<Plan, 'goal' | 'strengthMode'> | undefined, ex: Pick<Exercise, 'progression' | 'metrics' | 'defaultSets'>): SetPrescription[] {
+/**
+ * Default sets when an exercise is added to a plan: hypertrophy 3×8–12, strength 5×5 (D22: a rep range such as 4–6
+ * is set per exercise). Loads and other targets come from the exercise defaults.
+ */
+export function goalSets(plan: Pick<Plan, 'goal'> | undefined, ex: Pick<Exercise, 'progression' | 'metrics' | 'defaultSets'>): SetPrescription[] {
   if (!plan || !followsGoal(ex) || (plan.goal !== 'hypertrophy' && plan.goal !== 'strength')) return structuredClone(ex.defaultSets);
   const template = ex.defaultSets.find((s) => s.kind === 'working') ?? { kind: 'working' as const, targets: {} };
   const warm = ex.defaultSets.filter((s) => s.kind === 'warmup');
-  const [n, min, max] = plan.goal === 'hypertrophy' ? [3, 8, 12] : plan.strengthMode === 'range' ? [4, 4, 6] : [5, 5, 5];
+  const [n, min, max] = plan.goal === 'hypertrophy' ? [3, 8, 12] : [5, 5, 5];
   const working = Array.from({ length: n }, () => ({ ...structuredClone(template), targets: { ...structuredClone(template.targets), reps: { min, max } } }));
   return [...structuredClone(warm), ...working];
 }

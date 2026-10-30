@@ -69,6 +69,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   5: (raw) => ({ ...raw, schemaVersion: 6 }),
   // v7 only adds optional fields: colours, circuits, theme and personal trainer settings.
   6: (raw) => ({ ...raw, schemaVersion: 7 }),
+  // v8 only adds when the personal trainer speaks during a workout.
+  7: (raw) => ({ ...raw, schemaVersion: 8 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

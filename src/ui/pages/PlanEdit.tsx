@@ -7,7 +7,7 @@ import { repo } from '../../data/repo';
 import { addCircuit, addToCircuit, blocks, moveCircuit, moveItem, removeCircuit, removeFromCircuit, updateCircuit } from '../../domain/circuit';
 import { newDay, newPlanItem } from '../../domain/factory';
 import { dayGoal, followsGoal, goalProgression, goalSets } from '../../domain/goals';
-import type { Circuit, DayGoal, Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription, StrengthMode } from '../../domain/types';
+import type { Circuit, DayGoal, Exercise, ItemRole, MetricKey, Plan, PlanDay, PlanGoal, PlanItem, ProgressionState, SetPrescription } from '../../domain/types';
 import { PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { NumInput } from '../components/NumInput';
@@ -18,11 +18,10 @@ import { toneStyle } from '../colors';
 import { dialog } from '../components/Dialog';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
-const MODES: StrengthMode[] = ['fixed', 'range'];
 /** Day goals of a mixed plan; 'free' = each exercise uses its own rule. */
 const DAY_GOALS: (DayGoal | 'free')[] = ['hypertrophy', 'strength', 'free'];
-type Goal = Pick<Plan, 'goal' | 'strengthMode'>;
-const setsLabel = (g: Goal) => (g.goal === 'hypertrophy' ? '3×8–12' : g.strengthMode === 'range' ? '4×4–6' : '5×5');
+type Goal = Pick<Plan, 'goal'>;
+const setsLabel = (g: Goal) => (g.goal === 'hypertrophy' ? '3×8–12' : '5×5');
 const ROLES: ItemRole[] = ['warmup', 'main', 'optional'];
 type Targets = Partial<Record<MetricKey, number>>;
 
@@ -292,15 +291,15 @@ export function PlanEdit() {
   /** Changes the plan goal or strength mode. */
   const changeGoal = async (patch: Partial<Goal>) => {
     const next = { ...plan, ...patch };
-    if (next.goal === plan.goal && (next.strengthMode ?? 'fixed') === (plan.strengthMode ?? 'fixed')) return;
+    if (next.goal === plan.goal) return;
     setPlan(next);
     await offerDefaults(next, days);
   };
 
   /** Changes the goal of the current day (mixed plans). */
-  const changeDayGoal = async (patch: Pick<PlanDay, 'goal' | 'strengthMode'>) => {
+  const changeDayGoal = async (patch: Pick<PlanDay, 'goal'>) => {
     const next = { ...day, ...patch };
-    if (next.goal === day.goal && (next.strengthMode ?? 'fixed') === (day.strengthMode ?? 'fixed')) return;
+    if (next.goal === day.goal) return;
     const nextDays = days.map((d) => (d.id === day.id ? next : d));
     setDays(nextDays);
     await offerDefaults(plan, nextDays, day.id);
@@ -387,15 +386,6 @@ export function PlanEdit() {
             </button>
           ))}
         </div>
-        {plan.goal === 'strength' && (
-          <div className="seg" role="radiogroup" aria-label={t('plan.strengthMode')} style={{ marginTop: '0.5rem' }}>
-            {MODES.map((m) => (
-              <button key={m} role="radio" aria-checked={(plan.strengthMode ?? 'fixed') === m} className={(plan.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => void changeGoal({ strengthMode: m })}>
-                {t(`plan.mode.${m}`)}
-              </button>
-            ))}
-          </div>
-        )}
         <p className="help" style={{ marginTop: '0.5rem' }}>
           {t(`plan.goalHelp.${plan.goal}`)} <small>· {t('plan.version', { n: version.number })}</small>
         </p>
@@ -461,21 +451,12 @@ export function PlanEdit() {
                     role="radio"
                     aria-checked={(day.goal ?? 'free') === g}
                     className={(day.goal ?? 'free') === g ? 'on' : ''}
-                    onClick={() => void changeDayGoal(g === 'free' ? { goal: undefined, strengthMode: undefined } : { goal: g, strengthMode: day.strengthMode })}
+                    onClick={() => void changeDayGoal({ goal: g === 'free' ? undefined : g })}
                   >
                     {g === 'free' ? t('plan.dayFree') : t(`goal.${g}`)}
                   </button>
                 ))}
               </div>
-              {day.goal === 'strength' && (
-                <div className="seg" role="radiogroup" aria-label={t('plan.strengthMode')} style={{ marginTop: '0.5rem' }}>
-                  {MODES.map((m) => (
-                    <button key={m} role="radio" aria-checked={(day.strengthMode ?? 'fixed') === m} className={(day.strengthMode ?? 'fixed') === m ? 'on' : ''} onClick={() => void changeDayGoal({ goal: 'strength', strengthMode: m })}>
-                      {t(`plan.mode.${m}`)}
-                    </button>
-                  ))}
-                </div>
-              )}
               <p className="help" style={{ marginTop: '0.5rem' }}>
                 {t(`plan.goalHelp.${day.goal ?? 'other'}`)}
               </p>
