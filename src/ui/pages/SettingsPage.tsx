@@ -337,6 +337,13 @@ export function SettingsPage() {
                 ))}
               </select>
             </label>
+            <label className="setting-row">
+              <span className="lbl">
+                {t('coach.pages')}
+                <small>{t('coach.pagesSub')}</small>
+              </span>
+              <input type="checkbox" role="switch" className="switch" checked={coach.pages !== false} onChange={(e) => void saveCoach({ pages: e.target.checked })} />
+            </label>
             {coach.style === 'spite' && (
               <label className="setting-row">
                 <span>{t('coach.profanity')}</span>
@@ -349,7 +356,7 @@ export function SettingsPage() {
                 <p>{sample}</p>
               </div>
             )}
-            <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={() => setSample(coachMessage(COACH_BANKS[s.language], coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
+            <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={() => setSample(coachMessage(COACH_BANKS[s.language].start, coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
               {t('coach.preview')}
             </button>
           </>

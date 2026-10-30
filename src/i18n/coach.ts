@@ -1,11 +1,16 @@
-// Personal trainer messages per style and language (D20).
+// Personal trainer messages per style and language (D20), per place (D35).
 // Placeholders: {{month}} workouts this month, {{days}} days since the last workout,
-// {{exercise}} {{from}} {{to}} the latest increase. A message is only used when its data exists.
+// {{exercise}} {{from}} {{to}} the latest increase, {{ups}} increases this month, {{total}} all workouts,
+// {{day}} next workout (Home), {{sets}} {{records}} of the finished workout. A message is only used when its data exists.
+import type { CoachPlace, DayPart } from '../domain/coach';
 import type { CoachStyle } from '../domain/types';
 
-export type CoachBank = Record<CoachStyle | 'spiteProfane', string[]>;
+type Key = CoachStyle | 'spiteProfane';
+export type CoachBank = Record<Key, string[]>;
+/** `start`: workout start and between exercises. `greet`: put before the Home message. */
+export type CoachBanks = Record<'start' | CoachPlace, CoachBank> & { greet: Record<Key, Record<DayPart, string>> };
 
-const pt: CoachBank = {
+const ptStart: CoachBank = {
   support: [
     'Estás aqui. Isso já é metade do trabalho. Vamos a isto!',
     'Uma série de cada vez. Tu consegues.',
@@ -68,7 +73,7 @@ const pt: CoachBank = {
   ],
 };
 
-const en: CoachBank = {
+const enStart: CoachBank = {
   support: [
     "You're here. That's half the work done. Let's go!",
     'One set at a time. You can do this.',
@@ -131,4 +136,302 @@ const en: CoachBank = {
   ],
 };
 
-export const COACH_BANKS: Record<'pt' | 'en', CoachBank> = { pt, en };
+const pt: CoachBanks = {
+  start: ptStart,
+  greet: {
+    support: { morning: 'Bom dia!', afternoon: 'Boa tarde!', evening: 'Boa noite!' },
+    spite: { morning: 'Bom dia, rebelde.', afternoon: 'Boa tarde, rebelde.', evening: 'Boa noite, rebelde.' },
+    spiteProfane: { morning: 'Bom dia, porra.', afternoon: 'Boa tarde, porra.', evening: 'Boa noite, porra.' },
+    stoic: { morning: 'Bom dia.', afternoon: 'Boa tarde.', evening: 'Boa noite.' },
+    sergeant: { morning: 'Bom dia, recruta!', afternoon: 'Boa tarde, recruta!', evening: 'Boa noite, recruta!' },
+  },
+  home: {
+    support: [
+      'Que bom ver-te por aqui.',
+      'Hoje toca {{day}}. Vais fazer um ótimo trabalho.',
+      'Já são {{month}} treinos este mês. Que orgulho em ti!',
+      'Passaram {{days}} dias. Sem culpas: hoje é um bom dia para voltar.',
+      'Último aumento: {{exercise}} de {{from}} para {{to}}. Continua!',
+    ],
+    spite: [
+      'Eles ainda acham que vais desistir. Mostra-lhes hoje.',
+      'Hoje é {{day}}. As desculpas já estão a preparar-se. Ignora-as.',
+      '{{month}} treinos este mês. Quem duvidou está calado.',
+      '{{days}} dias parado. É exatamente o que eles esperavam. Não lhes dês razão.',
+      '{{exercise}} já vai em {{to}}. Diz-lhes agora que não dá.',
+    ],
+    spiteProfane: [
+      'Eles ainda acham que vais desistir. Que se fodam. Mostra-lhes hoje.',
+      'Hoje é {{day}}. As desculpas que se lixem.',
+      '{{month}} treinos este mês. Quem duvidou que vá à merda.',
+      '{{days}} dias parado, porra. Levanta-te e vai.',
+      '{{exercise}} já vai em {{to}}. Caralho, isso é progresso.',
+    ],
+    stoic: [
+      'Um novo dia. Faz o que está ao teu alcance.',
+      'Hoje: {{day}}. Não penses muito. Começa.',
+      '{{month}} treinos este mês. A constância faz o trabalho.',
+      '{{days}} dias sem treino. Não importa a pausa, importa o regresso.',
+      '{{exercise}}: de {{from}} para {{to}}. O progresso vem de repetir o simples.',
+    ],
+    sergeant: [
+      'Plano feito. Agora é executar.',
+      'Ordem do dia: {{day}}. Sem atrasos.',
+      '{{month}} treinos este mês. Quero mais.',
+      '{{days}} dias parado. Acabou a licença.',
+      '{{exercise}} está em {{to}}. Hoje confirmas essa carga.',
+    ],
+  },
+  done: {
+    support: [
+      'Treino feito! Descansa bem, mereces.',
+      '{{sets}} séries feitas hoje. Excelente trabalho!',
+      '{{records}} recordes novos hoje. Que dia!',
+      'Mais um para a conta: {{month}} treinos este mês.',
+      '{{exercise}} subiu para {{to}}. O esforço está a dar frutos.',
+    ],
+    spite: [
+      'Feito. Enquanto eles falavam, tu treinavas.',
+      '{{sets}} séries. Escreve isso na cara de quem duvidou.',
+      '{{records}} recordes novos. Eles não vão gostar.',
+      '{{month}} treinos este mês. E ainda dizem que não aguentas.',
+      '{{exercise}} em {{to}}. Agora diz-lhes que não dá.',
+    ],
+    spiteProfane: [
+      'Feito, caralho. Eles que falem.',
+      '{{sets}} séries. Isso é que é calar bocas, porra.',
+      '{{records}} recordes novos. Que se fodam os que duvidaram.',
+      '{{month}} treinos este mês. Não aguentas? Vai-te lixar.',
+      '{{exercise}} em {{to}}. Partiste tudo, porra.',
+    ],
+    stoic: [
+      'Feito. Agora descansa: o descanso também é treino.',
+      '{{sets}} séries feitas. Hoje fizeste a tua parte.',
+      '{{records}} recordes novos. Aceita-os sem vaidade.',
+      '{{month}} treinos este mês. A constância é o caminho.',
+      '{{exercise}}: de {{from}} para {{to}}. Pequenos passos.',
+    ],
+    sergeant: [
+      'Missão cumprida. Come, dorme, recupera.',
+      '{{sets}} séries. Aceitável. Na próxima, melhor.',
+      '{{records}} recordes. Bom. Agora não te habitues.',
+      '{{month}} treinos este mês. Mantém o ritmo.',
+      '{{exercise}} subiu para {{to}}. Agora segura essa carga.',
+    ],
+  },
+  analysis: {
+    support: [
+      'Os números contam a tua história. Olha o caminho que já fizeste.',
+      '{{ups}} aumentos este mês. Estás a ficar mais forte!',
+      '{{month}} treinos este mês. A consistência vê-se aqui.',
+      '{{exercise}} passou de {{from}} para {{to}}. Isso é progresso real.',
+    ],
+    spite: [
+      'Gráficos não mentem. Os que duvidaram de ti, sim.',
+      '{{ups}} aumentos este mês. Mostra isto a quem duvidou.',
+      '{{month}} treinos este mês. Os números calam qualquer um.',
+      '{{exercise}}: de {{from}} para {{to}}. Prova feita.',
+    ],
+    spiteProfane: [
+      'Gráficos não mentem. Os que duvidaram de ti que se lixem.',
+      '{{ups}} aumentos este mês, caralho. Mostra-lhes isto.',
+      '{{month}} treinos este mês. Isso cala qualquer um, porra.',
+      '{{exercise}}: de {{from}} para {{to}}. Toma, foda-se.',
+    ],
+    stoic: [
+      'Olha para os dados sem pressa e sem julgamento.',
+      '{{ups}} aumentos este mês. O processo funciona.',
+      '{{month}} treinos este mês. Mede o esforço, não só o resultado.',
+      '{{exercise}}: de {{from}} para {{to}}. Paciência e repetição.',
+    ],
+    sergeant: [
+      'Relatório. Onde está parado, mais atenção.',
+      '{{ups}} aumentos este mês. Quero o dobro.',
+      '{{month}} treinos este mês. Abaixo disso não aceito.',
+      '{{exercise}} em {{to}}. Próximo objetivo: mais.',
+    ],
+  },
+  history: {
+    support: [
+      'Cada linha aqui é um dia em que apareceste.',
+      '{{total}} treinos no total. Isso é muito!',
+      '{{month}} treinos este mês. Continua assim.',
+      'O último foi há {{days}} dias. Que tal hoje?',
+    ],
+    spite: [
+      'Cada treino aqui é uma resposta a quem duvidou.',
+      '{{total}} treinos. Eles diziam que não passavas de três.',
+      '{{month}} treinos este mês. Eles nem um.',
+      'Já lá vão {{days}} dias. Não lhes dês razão.',
+    ],
+    spiteProfane: [
+      'Cada treino aqui é um "vai-te foder" a quem duvidou.',
+      '{{total}} treinos, caralho. Eles diziam que não passavas de três.',
+      '{{month}} treinos este mês. Eles nem um, porra.',
+      'Já lá vão {{days}} dias. Mexe-te, foda-se.',
+    ],
+    stoic: [
+      'O passado não se muda. O próximo treino, sim.',
+      '{{total}} treinos. Cada um, uma escolha.',
+      '{{month}} treinos este mês. Sem pressa, sem paragem.',
+      'Passaram {{days}} dias. Retoma com calma.',
+    ],
+    sergeant: [
+      'Registo de serviço. Quero esta lista mais comprida.',
+      '{{total}} treinos. Já não és recruta.',
+      '{{month}} treinos este mês. Mantém a cadência.',
+      '{{days}} dias sem registo. Inaceitável.',
+    ],
+  },
+};
+
+const en: CoachBanks = {
+  start: enStart,
+  greet: {
+    support: { morning: 'Good morning!', afternoon: 'Good afternoon!', evening: 'Good evening!' },
+    spite: { morning: 'Morning, rebel.', afternoon: 'Afternoon, rebel.', evening: 'Evening, rebel.' },
+    spiteProfane: { morning: 'Good f*cking morning.', afternoon: 'Good f*cking afternoon.', evening: 'Good f*cking evening.' },
+    stoic: { morning: 'Good morning.', afternoon: 'Good afternoon.', evening: 'Good evening.' },
+    sergeant: { morning: 'Morning, recruit!', afternoon: 'Afternoon, recruit!', evening: 'Evening, recruit!' },
+  },
+  home: {
+    support: [
+      'Great to see you here.',
+      "Today it's {{day}}. You'll do great.",
+      "That's {{month}} workouts this month. I'm proud of you!",
+      "It's been {{days}} days. No guilt: today is a good day to come back.",
+      'Latest increase: {{exercise}} from {{from}} to {{to}}. Keep going!',
+    ],
+    spite: [
+      "They still think you'll quit. Show them today.",
+      "Today it's {{day}}. Your excuses are getting ready. Ignore them.",
+      '{{month}} workouts this month. The doubters went quiet.',
+      "{{days}} days off. Exactly what they expected. Don't prove them right.",
+      "{{exercise}} is at {{to}} now. Tell them it can't be done.",
+    ],
+    spiteProfane: [
+      "They still think you'll quit. F*ck them. Show them today.",
+      "Today it's {{day}}. Screw the excuses.",
+      '{{month}} workouts this month. The doubters can go to hell.',
+      '{{days}} days off, damn it. Get up and go.',
+      '{{exercise}} is at {{to}} now. That is f*cking progress.',
+    ],
+    stoic: [
+      "A new day. Do what's in your power.",
+      "Today: {{day}}. Don't overthink it. Start.",
+      '{{month}} workouts this month. Consistency does the work.',
+      "{{days}} days without training. The break doesn't matter, the return does.",
+      '{{exercise}}: from {{from}} to {{to}}. Progress comes from repeating the simple.',
+    ],
+    sergeant: [
+      'The plan is made. Now execute.',
+      "Today's orders: {{day}}. No delays.",
+      '{{month}} workouts this month. I want more.',
+      '{{days}} days off. Leave is over.',
+      '{{exercise}} is at {{to}}. Today you confirm that load.',
+    ],
+  },
+  done: {
+    support: [
+      'Workout done! Rest well, you earned it.',
+      '{{sets}} sets done today. Great work!',
+      '{{records}} new records today. What a day!',
+      'One more on the board: {{month}} workouts this month.',
+      '{{exercise}} went up to {{to}}. The effort is paying off.',
+    ],
+    spite: [
+      'Done. While they talked, you trained.',
+      "{{sets}} sets. Rub that in the doubters' faces.",
+      "{{records}} new records. They won't like it.",
+      "{{month}} workouts this month. And they say you can't last.",
+      "{{exercise}} at {{to}}. Now tell them it can't be done.",
+    ],
+    spiteProfane: [
+      'Done, damn it. Let them talk.',
+      '{{sets}} sets. That shuts them the f*ck up.',
+      '{{records}} new records. F*ck whoever doubted you.',
+      "{{month}} workouts this month. Can't last? Screw that.",
+      '{{exercise}} at {{to}}. You f*cking crushed it.',
+    ],
+    stoic: [
+      'Done. Now rest: rest is training too.',
+      '{{sets}} sets done. Today you did your part.',
+      '{{records}} new records. Accept them without vanity.',
+      '{{month}} workouts this month. Consistency is the way.',
+      '{{exercise}}: from {{from}} to {{to}}. Small steps.',
+    ],
+    sergeant: [
+      'Mission complete. Eat, sleep, recover.',
+      '{{sets}} sets. Acceptable. Next time, better.',
+      "{{records}} records. Good. Don't get used to it.",
+      '{{month}} workouts this month. Keep the pace.',
+      '{{exercise}} went up to {{to}}. Now own that load.',
+    ],
+  },
+  analysis: {
+    support: [
+      'The numbers tell your story. Look how far you have come.',
+      "{{ups}} increases this month. You're getting stronger!",
+      '{{month}} workouts this month. Consistency shows here.',
+      '{{exercise}} went from {{from}} to {{to}}. That is real progress.',
+    ],
+    spite: [
+      "Charts don't lie. The people who doubted you do.",
+      '{{ups}} increases this month. Show this to the doubters.',
+      '{{month}} workouts this month. Numbers silence anyone.',
+      '{{exercise}}: from {{from}} to {{to}}. Proof delivered.',
+    ],
+    spiteProfane: [
+      "Charts don't lie. Screw the people who doubted you.",
+      '{{ups}} increases this month, damn it. Show them.',
+      '{{month}} workouts this month. That shuts anyone the f*ck up.',
+      '{{exercise}}: from {{from}} to {{to}}. Take that, damn it.',
+    ],
+    stoic: [
+      'Look at the data without hurry and without judgement.',
+      '{{ups}} increases this month. The process works.',
+      '{{month}} workouts this month. Measure the effort, not only the result.',
+      '{{exercise}}: from {{from}} to {{to}}. Patience and repetition.',
+    ],
+    sergeant: [
+      'Report. Where it stalls, more attention.',
+      '{{ups}} increases this month. I want double.',
+      "{{month}} workouts this month. I won't accept less.",
+      '{{exercise}} at {{to}}. Next target: more.',
+    ],
+  },
+  history: {
+    support: [
+      'Every line here is a day you showed up.',
+      "{{total}} workouts in total. That's a lot!",
+      '{{month}} workouts this month. Keep it up.',
+      'The last one was {{days}} days ago. How about today?',
+    ],
+    spite: [
+      'Every workout here is an answer to the doubters.',
+      "{{total}} workouts. They said you wouldn't make it past three.",
+      '{{month}} workouts this month. They did zero.',
+      "{{days}} days already. Don't prove them right.",
+    ],
+    spiteProfane: [
+      'Every workout here is a f*ck you to the doubters.',
+      "{{total}} workouts, damn it. They said you wouldn't make it past three.",
+      '{{month}} workouts this month. They did f*cking zero.',
+      '{{days}} days already. Move your ass.',
+    ],
+    stoic: [
+      "The past can't change. The next workout can.",
+      '{{total}} workouts. Each one a choice.',
+      '{{month}} workouts this month. No hurry, no stopping.',
+      "It's been {{days}} days. Resume calmly.",
+    ],
+    sergeant: [
+      'Service record. I want this list longer.',
+      "{{total}} workouts. You're not a recruit any more.",
+      '{{month}} workouts this month. Keep the cadence.',
+      '{{days}} days without a record. Unacceptable.',
+    ],
+  },
+};
+
+export const COACH_BANKS: Record<'pt' | 'en', CoachBanks> = { pt, en };

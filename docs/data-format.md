@@ -42,6 +42,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v8 → v9: additive only — `coach.pages` in settings (boolean).
    - v7 → v8: additive only — `coach.when` in settings (`start` | `each` | `random`).
    - v6 → v7: additive only — `color` on plans and days, `circuits` on days and `circuitId` on plan items, `circuit` snapshot on workout entries, `theme` and `coach` in settings.
    - v5 → v6: additive only — optional `goal` (`hypertrophy` | `strength`) and `strengthMode` per plan day, used by mixed plans.

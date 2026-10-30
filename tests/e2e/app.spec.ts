@@ -213,7 +213,7 @@ test('personal trainer: off by default; when on, a message shows at the start of
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Discard workout' }).click();
 
   await more(page, /^Settings/);
-  const enable = page.getByLabel('Motivating messages when a workout starts');
+  const enable = page.getByLabel('Turn on personal trainer');
   await enable.click();
   await expect(enable).toBeChecked();
   await page.getByLabel('Style').selectOption({ label: 'Sergeant + data' });
@@ -224,6 +224,32 @@ test('personal trainer: off by default; when on, a message shows at the start of
   const note = page.getByRole('note', { name: 'Personal trainer' });
   await expect(note).toBeVisible();
   await note.getByRole('button', { name: 'Close' }).click();
+  await expect(note).toHaveCount(0);
+});
+
+test('personal trainer outside the workout: greeting on Home and a comment in History, once a day; can be switched off', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-02T10:00:00'));
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Settings/);
+  await page.getByLabel('Turn on personal trainer').click();
+  const pages = page.getByLabel(/Also speak outside the workout/);
+  await expect(pages).toBeChecked();
+  await tab(page, 'Home');
+  const note = page.getByRole('note', { name: 'Personal trainer' });
+  await expect(note).toContainText(/^Good morning!/);
+  await tab(page, 'History');
+  await expect(note).toBeVisible();
+  await tab(page, 'Home');
+  await expect(page.getByText('Decide for next time')).toBeVisible();
+  await expect(note).toHaveCount(0);
+
+  await page.evaluate(() => localStorage.clear());
+  await more(page, /^Settings/);
+  await pages.click();
+  await expect(pages).not.toBeChecked();
+  await tab(page, 'Home');
+  await expect(page.getByText('Decide for next time')).toBeVisible();
   await expect(note).toHaveCount(0);
 });
 
@@ -255,7 +281,7 @@ test('personal trainer "after every exercise": a message appears when an exercis
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
   await more(page, /^Settings/);
-  const enable = page.getByLabel('Motivating messages when a workout starts');
+  const enable = page.getByLabel('Turn on personal trainer');
   await enable.click();
   await expect(enable).toBeChecked();
   await page.getByRole('combobox', { name: 'When' }).selectOption({ label: 'After every exercise' });

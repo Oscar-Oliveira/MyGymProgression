@@ -8,6 +8,7 @@ import { currentTarget } from '../../domain/progression';
 import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
+import { PageCoach } from '../components/CoachCard';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
 
@@ -181,6 +182,7 @@ export function Analysis() {
       <div className="page-head">
         <h1>{t('analysis.title')}</h1>
       </div>
+      <PageCoach place="analysis" />
       <div className="segmented" role="tablist" aria-label={t('analysis.period')}>
         {PERIODS.map((p) => (
           <button key={p} role="tab" aria-selected={days === p} className={days === p ? 'on' : ''} onClick={() => setDays(p)}>

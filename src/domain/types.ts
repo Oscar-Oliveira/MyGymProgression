@@ -340,7 +340,7 @@ export interface Settings {
   librarySync?: string;
   /** Default: dark. */
   theme?: 'dark' | 'light' | 'system';
-  /** Personal trainer messages shown when a workout starts. */
+  /** Personal trainer messages: in the workout, and optionally on other pages. */
   coach?: CoachSettings;
 }
 
@@ -352,5 +352,7 @@ export interface CoachSettings {
   profanity: boolean;
   /** Messages after an exercise or circuit is done: never (start only), always, or about 4 in 10. Default: random. */
   when?: CoachWhen;
+  /** Also speak outside the workout: greeting on Home, comments on the summary, Analysis and History. Default: true. */
+  pages?: boolean;
 }
 export type CoachWhen = 'start' | 'each' | 'random';

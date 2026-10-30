@@ -8,6 +8,7 @@ import { db } from '../../data/db';
 import type { Workout } from '../../domain/types';
 import { Empty } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
+import { PageCoach } from '../components/CoachCard';
 import { useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
 
@@ -60,6 +61,7 @@ export function History() {
         <h1>{t('history.title')}</h1>
         {total > 0 && <span className="pill">{t('history.count', { count: total })}</span>}
       </div>
+      {total > 0 && <PageCoach place="history" />}
       {total === 0 ? (
         <Empty>{t('history.empty')}</Empty>
       ) : (

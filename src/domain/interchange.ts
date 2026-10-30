@@ -71,6 +71,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   6: (raw) => ({ ...raw, schemaVersion: 7 }),
   // v8 only adds when the personal trainer speaks during a workout.
   7: (raw) => ({ ...raw, schemaVersion: 8 }),
+  // v9 only adds whether the personal trainer also speaks on other pages.
+  8: (raw) => ({ ...raw, schemaVersion: 9 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

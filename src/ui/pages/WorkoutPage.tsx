@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import type { Exercise, MetricKey, ProgressionEvent, Workout, WorkoutEntry } from '../../domain/types';
+import type { Exercise, Workout, WorkoutEntry } from '../../domain/types';
 import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
@@ -15,12 +15,12 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, rxLine, setsLine, setText } from '../progress';
-import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, useSettings, useThumbs, useWakeLock } from '../util';
+import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
-import { CoachCard } from '../components/CoachCard';
+import { CoachCard, coachIncrease, PageCoach } from '../components/CoachCard';
 import { CircuitFocus } from '../components/CircuitFocus';
 import { CorrectionEditor } from '../components/CorrectionEditor';
 
@@ -107,14 +107,7 @@ export function WorkoutPage() {
 
   // Personal trainer: the same context for every message of this workout; the seed picks the message.
   const coach = s.coach?.enabled ? s.coach : undefined;
-  const increase = (ev: ProgressionEvent) => {
-    const ex = ctx.exercises.get(ev.exerciseId);
-    const k = (Object.keys(ev.after) as MetricKey[]).find((m) => ev.after[m] !== ev.before[m]);
-    if (!ex || !k) return undefined;
-    const unit = ex.metrics.find((m) => m.key === k)?.unit ?? '';
-    return { exercise: ex.name, from: fmtValue(ev.before[k], unit, s.language), to: fmtValue(ev.after[k], unit, s.language) };
-  };
-  const coachLine = (seed: string) => (coach ? coachMessage(COACH_BANKS[s.language], coach, coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), increase), seed) : '');
+  const coachLine = (seed: string) => (coach ? coachMessage(COACH_BANKS[s.language].start, coach, coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), coachIncrease(ctx.exercises, s.language)), seed) : '');
 
   const upEntries = (es: WorkoutEntry[]) => {
     const next = { ...draft, entries: draft.entries.map((x) => es.find((e) => e.id === x.id) ?? x) };
@@ -192,7 +185,7 @@ export function WorkoutPage() {
           </div>
         </div>
 
-        {coach && <CoachCard workoutId={draft.id} message={coachLine(draft.id)} style={coach.style} />}
+        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} />}
 
         {step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
@@ -349,6 +342,7 @@ export function WorkoutPage() {
         </>
       ) : (
         <>
+          {ctx.latest === draft.id && <PageCoach place="done" id={draft.id} extra={{ sets: doneWorking, records: records.length }} />}
           <div className="grid3" style={{ margin: '0.25rem 0 0.5rem' }}>
             <div className="stat">
               <div className="value">{draft.entries.length}</div>

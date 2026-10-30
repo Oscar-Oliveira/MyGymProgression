@@ -83,7 +83,8 @@ export const en = {
   loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell' },
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
   coach: {
-    title: 'Personal trainer', enabled: 'Motivating messages when a workout starts', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
+    title: 'Personal trainer', enabled: 'Turn on personal trainer', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
+    pages: 'Also speak outside the workout', pagesSub: 'Greeting on Home and comments at the end of a workout, in Analysis and in History (once a day).',
     when: 'When', whenOptions: { random: 'Sometimes, between exercises', each: 'After every exercise', start: 'Only at the start' },
     styles: { support: 'Support', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
     styleHelp: {

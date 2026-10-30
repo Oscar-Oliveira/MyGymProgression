@@ -10,6 +10,7 @@ import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
 import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
+import { PageCoach } from '../components/CoachCard';
 import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
@@ -177,6 +178,8 @@ export function Home() {
           })}
         </div>
       </div>
+
+      <PageCoach place="home" extra={{ day: active ? undefined : day?.name }} />
 
       {open !== undefined && (
         <DaySheet

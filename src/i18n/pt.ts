@@ -85,7 +85,8 @@ export const pt: Resources = {
   loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter' },
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
   coach: {
-    title: 'Personal trainer', enabled: 'Mensagens motivadoras ao começar o treino', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
+    title: 'Personal trainer', enabled: 'Ativar personal trainer', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
+    pages: 'Falar também fora do treino', pagesSub: 'Saudação no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia).',
     when: 'Quando', whenOptions: { random: 'Às vezes, entre exercícios', each: 'Depois de cada exercício', start: 'Só no início' },
     styles: { support: 'Apoio', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
     styleHelp: {

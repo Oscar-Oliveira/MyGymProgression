@@ -42,6 +42,7 @@ Source requirements: [`context.md`](../context.md).
 | D32 | Settings page: cards with action rows (icon, title, description); backup status, full backup and restore together; other exports folded; switches for on/off; danger zone. | 2026-10-30 |
 | D33 | Pause: a labelled "Pause" button (top of the workout) and a menu item; the workout stays in progress ("Paused"). Resume: only the most recent workout, when paused or interrupted (History banner, summary). Resuming an interrupted workout undoes its still-current progression changes, keeps a revision, and turns skipped sets back to pending; finishing evaluates it again. | 2026-10-30 |
 | D34 | Correcting a workout can change its status (completed, partial, interrupted); exercises and sets not done are highlighted. | 2026-10-30 |
+| D35 | Personal trainer outside the workout (setting "Also speak outside the workout", on by default): a greeting for the time of day on Home, and comments on the summary of the latest workout, Analysis and History, in the trainer's style and with real numbers. Once per page per day (once per workout on the summary). Schema v9 (additive `coach.pages`). | 2026-10-30 |
 | D31 | Workout and plan editor components moved to their own files (`EntryFocus`, `CircuitFocus`, `CorrectionEditor`, `CoachCard`, `PlanItemCard`); no change in behaviour. | 2026-10-30 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)

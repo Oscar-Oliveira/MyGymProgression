@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
+    pt: ['Personal trainer também fora do treino: bom dia/boa tarde no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia; pode desligar nas Definições).'],
+    en: ['Personal trainer outside the workout too: a greeting on Home and comments at the end of a workout, in Analysis and in History (once a day; can be switched off in Settings).'],
+  },
+  {
+    date: '2026-10-30',
     pt: [
       'Definições redesenhadas: cópia e restauro juntos, ações com descrição, interruptores.',
       'Treino: botão "Pausar" visível no topo e no menu.',
