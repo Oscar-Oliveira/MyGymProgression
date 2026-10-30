@@ -111,6 +111,7 @@ export const pt: Resources = {
     getStarted: 'Começar', welcome: 'Registe depressa. Saiba como progredir.', welcomeText: 'Crie um plano com os seus exercícios. No fim de cada treino a app diz-lhe o que fazer na próxima vez.',
     seed: 'Adicionar exercícios iniciais', createPlan: 'Criar um plano', demo: 'Experimentar com dados de exemplo',
     backup: 'Última cópia {{date}}.', noBackup: 'Ainda sem cópia de segurança — os dados estão só neste navegador.',
+    backupDue: 'Sem cópia há {{count}} dias. Os dados estão só neste navegador.', backupDue_one: 'Sem cópia há {{count}} dia. Os dados estão só neste navegador.', saveBackup: 'Guardar cópia',
   },
   dashboard: { emptyLibrary: 'A biblioteca de exercícios está vazia.', backupReminder: 'Última cópia: {{date}}.' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },

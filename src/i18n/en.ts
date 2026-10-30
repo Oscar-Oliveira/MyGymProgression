@@ -109,6 +109,7 @@ export const en = {
     getStarted: 'Get started', welcome: 'Log fast. Know how to progress.', welcomeText: 'Create a plan with your exercises. At the end of each workout the app tells you what to do next time.',
     seed: 'Add starter exercises', createPlan: 'Create a plan', demo: 'Try with example data',
     backup: 'Last backup {{date}}.', noBackup: 'No backup yet — data lives only in this browser.',
+    backupDue: 'No backup for {{count}} days. Data lives only in this browser.', backupDue_one: 'No backup for {{count}} day. Data lives only in this browser.', saveBackup: 'Save backup',
   },
   dashboard: { emptyLibrary: 'Your exercise library is empty.', backupReminder: 'Last backup: {{date}}.' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },

@@ -1,14 +1,42 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useEffect } from 'react';
 import type { TFunction } from 'i18next';
 import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { DEFAULT_SETTINGS } from '../domain/factory';
+import { buildBundle } from '../domain/interchange';
 import type { MetricDef, MetricKey, Reason, Settings } from '../domain/types';
 import { convert, round } from '../domain/units';
 
 export function useSettings(): Settings {
   return useLiveQuery(() => repo.getSettings(), [], DEFAULT_SETTINGS);
 }
+
+/** Keeps the screen on while `on` is true (e.g. during a workout). The browser releases the lock when the page is hidden, so it is taken again on return. */
+export function useWakeLock(on: boolean) {
+  useEffect(() => {
+    if (!on || !navigator.wakeLock) return;
+    let lock: WakeLockSentinel | undefined;
+    let stopped = false;
+    const take = () => {
+      if (document.visibilityState !== 'visible') return;
+      navigator.wakeLock.request('screen').then(
+        (l) => (stopped ? void l.release() : (lock = l)),
+        () => undefined,
+      );
+    };
+    take();
+    document.addEventListener('visibilitychange', take);
+    return () => {
+      stopped = true;
+      document.removeEventListener('visibilitychange', take);
+      void lock?.release();
+    };
+  }, [on]);
+}
+
+/** Short vibration as feedback for a done set (devices without vibration ignore it). */
+export const buzz = () => navigator.vibrate?.(40);
 
 /** Current image of each exercise, so older records also show the images added later. */
 export function useThumbs(): (exerciseId: string, fallback?: string) => string | undefined {
@@ -86,6 +114,32 @@ export function download(filename: string, text: string, mime = 'application/jso
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * Gives a file to the user. On a phone (touch screen) the share menu opens, so the file can go to Drive, email or a chat;
+ * elsewhere, or without file sharing, it is downloaded. Returns false when the user closes the share menu.
+ */
+export async function shareFile(filename: string, text: string, mime = 'application/json'): Promise<boolean> {
+  const file = new File([text], filename, { type: mime });
+  if (matchMedia('(pointer: coarse)').matches && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return true;
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return false;
+    }
+  }
+  download(filename, text, mime);
+  return true;
+}
+
+/** Full backup as a file (share menu on a phone). The backup date is saved only when the file was given. */
+export async function saveBackup(): Promise<boolean> {
+  const bundle = buildBundle(await repo.readAll(), 'full', __APP_VERSION__);
+  const ok = await shareFile(`mygymprogression-full-${stamp()}.json`, JSON.stringify(bundle, null, 2));
+  if (ok) await repo.saveSettings({ lastBackupAt: new Date().toISOString() });
+  return ok;
 }
 
 export const splitList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);

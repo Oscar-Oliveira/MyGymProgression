@@ -3,7 +3,7 @@ import type { Circuit, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
-import { metricLabel, metricShort } from '../util';
+import { buzz, metricLabel, metricShort } from '../util';
 
 /** A whole circuit on one screen: every round with its exercises, pre-filled; one "done" at the end marks all sets. */
 export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit: Circuit; entries: WorkoutEntry[]; onChange: (es: WorkoutEntry[]) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
@@ -44,7 +44,7 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
           })}
         </div>
       ))}
-      <button className={done ? 'outline xl' : 'primary xl'} disabled={blocked || done} onClick={() => onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) })))}>
+      <button className={done ? 'outline xl' : 'primary xl'} disabled={blocked || done} onClick={() => (buzz(), onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) }))))}>
         ✓ {done ? t('circuit.doneAll') : t('circuit.done')}
       </button>
     </section>

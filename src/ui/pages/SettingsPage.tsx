@@ -6,7 +6,7 @@ import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
 import { generateDemo } from '../../domain/demo';
 import { buildBundle, parseBundle, planMerge, previewImport, TABLES, type Bundle, type ConflictPolicy, type DuplicatePolicy, type Preview, type Scope } from '../../domain/interchange';
 import { NumInput } from '../components/NumInput';
-import { download, fmtDate, stamp, useSettings } from '../util';
+import { download, fmtDate, saveBackup, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
 import { coachMessage } from '../../domain/coach';
@@ -19,9 +19,9 @@ const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: f
 
 
 async function exportJson(scope: Scope) {
+  if (scope === 'full') return void (await saveBackup());
   const data = await repo.readAll();
   download(`mygymprogression-${scope}-${stamp()}.json`, JSON.stringify(buildBundle(data, scope, __APP_VERSION__), null, 2));
-  if (scope === 'full') await repo.saveSettings({ lastBackupAt: new Date().toISOString() });
 }
 
 function ImportPanel() {

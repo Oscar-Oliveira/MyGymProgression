@@ -12,7 +12,8 @@ import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
-import { fmtDate, useSettings, useThumbs } from '../util';
+import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
+import { backupDue } from '../../domain/backup';
 
 const PREVIEW = 4;
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -119,6 +120,7 @@ export function Home() {
   const active = workouts.find((w) => w.status === 'in_progress');
   const finished = workouts.filter((w) => w.status !== 'in_progress');
   const last = finished[0];
+  const due = backupDue(s.lastBackupAt, finished.length);
 
   // Next workout: the plan used most recently, else the first active plan.
   const plan = plans.find((p) => p.id === finished.find((w) => w.planId && plans.some((x) => x.id === w.planId))?.planId) ?? plans[0];
@@ -278,10 +280,19 @@ export function Home() {
         </Section>
       )}
 
-      <p className="help" style={{ textAlign: 'center' }}>
-        {s.lastBackupAt ? t('home.backup', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}{' '}
-        <Link to="/settings">{t('nav.settings')}</Link>
-      </p>
+      {due !== undefined ? (
+        <section className="card warn" role="status">
+          <p style={{ marginTop: 0 }}>{due === Infinity ? t('home.noBackup') : t('home.backupDue', { count: due })}</p>
+          <button className="primary" onClick={() => void saveBackup()}>
+            ⤓ {t('home.saveBackup')}
+          </button>
+        </section>
+      ) : (
+        <p className="help" style={{ textAlign: 'center' }}>
+          {s.lastBackupAt ? t('home.backup', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}{' '}
+          <Link to="/settings">{t('nav.settings')}</Link>
+        </p>
+      )}
     </div>
   );
 }

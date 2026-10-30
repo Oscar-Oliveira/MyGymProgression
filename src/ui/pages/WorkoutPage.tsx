@@ -15,7 +15,7 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, rxLine, setsLine, setText } from '../progress';
-import { fmtDate, fmtSeconds, fmtValue, useSettings, useThumbs } from '../util';
+import { fmtDate, fmtSeconds, fmtValue, useSettings, useThumbs, useWakeLock } from '../util';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
@@ -74,6 +74,9 @@ export function WorkoutPage() {
       setDraft(stored);
     }
   }, [stored, editing]);
+
+  // The screen stays on during a workout.
+  useWakeLock(stored?.status === 'in_progress');
 
   if (stored === undefined && ctx) return <p className="empty">{t('history.empty')}</p>;
   if (!draft || !ctx) return null;

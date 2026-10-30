@@ -6,7 +6,7 @@ import { addSet } from '../../domain/workout';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { progressHint, rxLine, setsLine, setText } from '../progress';
-import { fmtNum, metricLabel, useSettings } from '../util';
+import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -66,7 +66,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
                 ))}
               </div>
               <div className="row">
-                <button className="primary xl" disabled={blocked} onClick={() => up(set.id, { status: 'done' })}>
+                <button className="primary xl" disabled={blocked} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
                   ✓ {t('workout.setDone')}
                 </button>
               </div>
