@@ -425,3 +425,66 @@ test('language switch to Portuguese', async ({ page }) => {
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Início' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Definições' })).toBeVisible();
 });
+
+test('backup: Home warns when there is no backup; saving it removes the warning', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  const warning = page.locator('.card.warn', { hasText: 'No backup yet' });
+  await expect(warning).toBeVisible();
+  const download = page.waitForEvent('download');
+  await warning.getByRole('button', { name: /Save backup/ }).click();
+  expect((await download).suggestedFilename()).toMatch(/^mygymprogression-full-.*\.json$/);
+  await expect(warning).toHaveCount(0);
+  await expect(page.getByText(/^Last backup /)).toBeVisible();
+});
+
+test('share a plan by link: the link opens a preview and imports a new copy of the plan', async ({ page }) => {
+  // Capture the link instead of opening the system share menu or the clipboard.
+  await page.addInitScript(() => {
+    const keep = async (u: string) => void ((window as unknown as { shared: string }).shared = u);
+    Object.defineProperty(navigator, 'share', { value: (d: ShareData) => keep(d.url ?? '') });
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: keep } });
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await more(page, /^Plans/);
+  const name = (await page.locator('.nav-row .title').first().innerText()).trim();
+  await page.getByRole('button', { name: `Options for ${name}` }).click();
+  await page.getByRole('button', { name: 'Share', exact: true }).click();
+  await page.getByRole('button', { name: /Share link/ }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { shared?: string }).shared)).toContain('#/share?d=');
+  const link = await page.evaluate(() => (window as unknown as { shared: string }).shared);
+  await page.goto(link);
+  await expect(page.getByText('Shared plan')).toBeVisible();
+  await expect(page.getByRole('heading', { name })).toBeVisible();
+  await expect(page.getByText(/0 new exercises for the library/)).toBeVisible();
+  await page.getByRole('button', { name: /Import plan/ }).click();
+  await expect(page).toHaveURL(/#\/plans\//);
+  await more(page, /^Plans/);
+  await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
+});
+
+test('a damaged share link shows an error', async ({ page }) => {
+  await page.goto('/#/share?d=broken');
+  await expect(page.getByText('This link is not valid or is incomplete.')).toBeVisible();
+});
+
+test('open library: installs from the app, with images for built-in exercises', async ({ page }) => {
+  await more(page, /^Settings/);
+  await page.getByRole('button', { name: /Install open library/ }).click();
+  await expect(page.getByText(/^\d{3} added, 0 updated\.$/)).toBeVisible({ timeout: 30000 });
+  await tab(page, 'More');
+  await page.getByRole('link', { name: /^Exercises/ }).click();
+  await page.getByRole('searchbox').fill('Barbell Squat');
+  await expect(page.getByRole('link', { name: /^Barbell Squat/ }).first().locator('img.thumb')).toBeVisible();
+});
+
+test('analysis: weekly sets per muscle with the guideline, and comparison with the previous period', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Analysis/);
+  await expect(page.getByRole('heading', { name: 'Sets per muscle per week' })).toBeVisible();
+  await expect(page.locator('.mbar .guide').first()).toBeVisible();
+  // 4 weeks: the demo has 6 weeks, so the 4 weeks before have workouts to compare with.
+  await page.getByRole('tab', { name: '4 wks' }).click();
+  await expect(page.getByText(/^▲▼ compared with /)).toBeVisible();
+});

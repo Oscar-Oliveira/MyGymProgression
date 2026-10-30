@@ -17,7 +17,13 @@ npm run preview    # serve dist/ at http://localhost:4173 (PWA/offline works her
 
 ## Exercise library
 
-The app has no built-in external library. It imports a library file from any source (format: [docs/data-format.md](docs/data-format.md#exercise-library-file)): **More → Settings → Exercise library → Import library file**.
+**Open library (recommended):** **More → Settings → Exercise library → Install open library** adds about 870 exercises with photos and instructions from [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (The Unlicense, public domain). The file `public/library/free-exercise-db.json` is published with the app and downloaded only when you tap the button. To rebuild it (needs Pillow):
+
+```bash
+python scripts/import_free_exercise_db.py
+```
+
+The app also imports a library file from any other source (format: [docs/data-format.md](docs/data-format.md#exercise-library-file)): **More → Settings → Exercise library → Import library file**.
 
 Optional: `scripts/import_exsercise.py` builds such a file from Exsercise.com (see the notice below):
 
@@ -60,7 +66,8 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 4. **Finish workout**: the summary shows ⬆ up / ＝ keep / ⬇ down for each exercise.
 5. **Plans**: give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
 6. **Settings → Personal trainer**: optional motivating message when a workout starts.
-7. **More → Analysis**: progress per exercise. **More → Settings**: JSON/CSV export and import.
+7. **More → Analysis**: progress per exercise, sets per muscle per week, comparison with the previous period. **More → Settings**: JSON/CSV export and import.
+8. **Plans → ⋯ → Share**: send the plan as a file or a link; the link opens a preview and imports a copy.
 
 ## Structure
 
@@ -84,4 +91,4 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 
 ## Privacy
 
-There are no network calls, no telemetry and no external resources at runtime. Backup files contain personal training data; store them safely. Browser storage can be cleared by the browser or by the user, so export backups regularly.
+There is no telemetry and no server. The app makes network calls only when you ask: installing the open library (from the app's own site) and full-size exercise images (from the library's source, then kept offline). Backup files contain personal training data; store them safely. Browser storage can be cleared by the browser or by the user, so save backups regularly: on a phone the backup opens the share menu (for example to Google Drive), and Home warns when the last backup is more than 7 days old. A shared plan contains no workouts, progress or personal notes.

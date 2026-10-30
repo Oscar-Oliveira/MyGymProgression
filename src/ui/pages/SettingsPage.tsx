@@ -191,6 +191,18 @@ export function SettingsPage() {
     if (!records) return flash(t('settings.libraryInvalid'));
     flash(t('settings.libraryResult', await repo.importLibrary(records)));
   };
+  // The open library is published with the app (public/library), and downloaded only when asked for.
+  const openLibrary = async () => {
+    flash('…');
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}library/free-exercise-db.json`);
+      const records = res.ok ? parseLibraryFile(await res.json()) : undefined;
+      if (!records) return flash(t('settings.openLibraryFailed'));
+      flash(t('settings.libraryResult', await repo.importLibrary(records)));
+    } catch {
+      flash(t('settings.openLibraryFailed'));
+    }
+  };
   const demo = async () => {
     if (!(await dialog.confirm(t('settings.demoConfirm')))) return;
     await repo.seedLibrary();
@@ -356,6 +368,10 @@ export function SettingsPage() {
         <p className="help" style={{ marginTop: 0 }}>
           {t('settings.libraryNotice')}
         </p>
+        <button className="primary" onClick={() => void openLibrary()}>
+          ⤓ {t('settings.openLibrary')}
+        </button>
+        <p className="help">{t('settings.openLibraryHelp')}</p>
         <div className="actions" style={{ marginTop: 0 }}>
           <label className="btn btn-outline file-btn">
             ⤒ {t('settings.importLibrary')}

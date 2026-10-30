@@ -124,6 +124,26 @@ describe('library import', () => {
     expect(names.filter((n) => !BUILTIN_LIBRARY_SLUG[n])).toEqual([]);
   });
 
+  it('open library (free-exercise-db): every built-in exercise maps to a record, and records convert', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { seedExercises } = await import('./seed');
+    const { BUILTIN_OPEN_SLUG } = await import('./library');
+    const records = parseLibraryFile(JSON.parse(readFileSync(new URL('../../public/library/free-exercise-db.json', import.meta.url), 'utf8')))!;
+    expect(records.length).toBeGreaterThan(800);
+    const slugs = new Set(records.map((r) => r.slug));
+    const names = seedExercises({ language: 'en', loadUnit: 'kg', distanceUnit: 'km' }).map((e) => e.name);
+    // The open library has no shoulder dislocates; that exercise keeps no image from it.
+    expect(names.filter((n) => !slugs.has(BUILTIN_OPEN_SLUG[n]))).toEqual(['Band Shoulder Dislocates']);
+    // Built-in exercises get the open library image.
+    const own = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Barbell Back Squat' });
+    const { updated } = mergeLibrary([own], records, DEFAULT_SETTINGS);
+    expect(updated.find((e) => e.id === own.id)?.thumb).toMatch(/^data:image\/webp/);
+    // Plain muscle names are mapped.
+    const ex = toExercise(records.find((r) => r.slug === 'barbell-bench-press---medium-grip')!, DEFAULT_SETTINGS);
+    expect(ex).toMatchObject({ primaryMuscles: ['chest'], equipment: 'barbell', group: 'chest' });
+    expect(muscleKeys(['Lats', 'Traps', 'Shoulders', 'Calves', 'Abductors', 'Lower Back'])).toEqual(['back', 'shoulders', 'calves', 'glutes']);
+  });
+
   it('muscle keys and groups', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');

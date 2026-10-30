@@ -33,6 +33,13 @@ Source requirements: [`context.md`](../context.md).
 | D22 | Strength mode (fixed 5×5 / range 4×4–6) removed: same rule, only the starting sets differed. Strength starts at 5×5; a rep range is set per exercise. Old `strengthMode` values are kept but ignored. Main buttons and highlights use the day colour, else the plan colour, else the default. | 2026-10-30 |
 | D23 | Personal trainer setting "when": start only, after every exercise/circuit, or randomly (about 4 in 10, stable per step). Messages after a step show as a short notice. Schema v8 (additive `coach.when`). | 2026-10-30 |
 | D24 | Analysis: full-width period control with the dates, and a workouts-per-week bar chart (blocks in plan/day colour; tap a week to list it). | 2026-10-30 |
+| D25 | During a workout the screen stays on (Wake Lock API) and a done set or circuit gives a short vibration (where supported). | 2026-10-30 |
+| D26 | Backup without a server: on a phone the full backup opens the share menu (Drive, email, chat); elsewhere it is downloaded. Home shows a warning with "Save backup" when there is no backup, or the last one is more than 7 days old. No Google Drive sign-in. | 2026-10-30 |
+| D27 | Workout summary shows new personal records against earlier workouts: heaviest set, estimated 1RM (only when the heaviest set is not also a record), most reps (exercises without load), longest set, distance. The first session of an exercise sets no record. | 2026-10-30 |
+| D28 | Analysis: sets per muscle **per week** (total ÷ days × 7), with 10–20 as a dashed guideline band (common hypertrophy guideline, not a rule). Totals and muscles compare with the previous period of the same length (not for "All", only when it has workouts). | 2026-10-30 |
+| D29 | Share a plan: as a file (import in Settings → Import) or as a link `#/share?d=<deflate+base64url>`. The share is a copy with new ids (always added as a new plan), with the exercises it uses and target loads; never workouts, progress or personal notes. The link leaves out library text and images. Existing exercises are reused (same id, or same name and equipment). | 2026-10-30 |
+| D30 | Open exercise library: free-exercise-db (The Unlicense, public domain), built by `scripts/import_free_exercise_db.py` into `public/library/free-exercise-db.json` (thumbnails embedded, ~2.8 MB), published with the app and downloaded only when the user taps "Install open library". Built-in exercises map to it (`BUILTIN_OPEN_SLUG`) for images. The Exsercise.com path stays. | 2026-10-30 |
+| D31 | Workout and plan editor components moved to their own files (`EntryFocus`, `CircuitFocus`, `CorrectionEditor`, `CoachCard`, `PlanItemCard`); no change in behaviour. | 2026-10-30 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 
@@ -307,7 +314,7 @@ At the end of each milestone I will report the changes, the test results and the
 
 ## 15. Backlog (not in MVP)
 
-~~Rest timer~~ (excluded, D13) · body measurements and photos · cloud sync/accounts · reminders · template sharing · wearables · fatigue/plateau modelling · AI analysis · encrypted backups · local image upload.
+~~Rest timer~~ (excluded, D13) · body measurements and photos · cloud sync/accounts · reminders · ~~template sharing~~ (done as plan sharing, D29) · wearables · fatigue/plateau modelling · AI analysis · encrypted backups · local image upload.
 
 ## 16. Decision log
 

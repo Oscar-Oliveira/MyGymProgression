@@ -87,3 +87,10 @@ A separate file to add many exercises at once (Settings → Exercise library →
 - `thumb`: small image, embedded as a `data:` URL so it works offline. `imageUrl`: full image, loaded from the web and then kept offline.
 - `type`: `weight_reps`, `reps_only`, `duration` or `distance_duration`; it chooses what is recorded.
 - Import is repeatable: an exercise with the same `sid`, or the same name, is updated (id, settings, plans and history are kept); others are added.
+
+## Shared plan
+
+A shared plan is a normal export bundle (scope `plans`) with one plan, one version and the exercises it uses. The plan, version, days, items and lineages have new ids, so an import always adds a new plan. It has no progression states, workouts or personal notes.
+
+- **File:** `<plan name>.mygymprogression.json`; import it in Settings → Import.
+- **Link:** `<app address>#/share?d=<code>`. The code is the bundle JSON, compressed with raw DEFLATE and encoded as base64url. Exercises in a link have no library text or images (`instructions`, `overview`, `steps`, `tips`, `thumb`, `image`, `video`, `muscleDetail`, `related`, `links` are empty). The link opens a preview; on import, exercises that already exist (same id, or same name and equipment) are reused.

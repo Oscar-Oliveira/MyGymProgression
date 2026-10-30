@@ -8,6 +8,25 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
+    pt: [
+      'Durante o treino o ecrã fica ligado e o telemóvel vibra ao concluir uma série.',
+      'Cópia de segurança pelo menu de partilha do telemóvel (Drive, email…); aviso no Início após 7 dias sem cópia.',
+      'Novos recordes no resumo do treino.',
+      'Análise: séries por músculo por semana (referência 10–20) e comparação com o período anterior.',
+      'Partilhar um plano por ficheiro ou link.',
+      'Biblioteca aberta: cerca de 870 exercícios com fotos, instalada a partir das Definições.',
+    ],
+    en: [
+      'During a workout the screen stays on and the phone vibrates when a set is done.',
+      'Backup through the phone share menu (Drive, email…); a warning on Home after 7 days without a backup.',
+      'New records in the workout summary.',
+      'Analysis: sets per muscle per week (10–20 guideline) and comparison with the previous period.',
+      'Share a plan as a file or a link.',
+      'Open library: about 870 exercises with photos, installed from Settings.',
+    ],
+  },
+  {
+    date: '2026-10-30',
     pt: ['Início: tocar numa data abre o dia — treinos feitos ou dias do plano para esse dia da semana, com Começar.', 'Personal trainer com avatar próprio para cada estilo, que "fala" quando aparece.'],
     en: ['Home: tap a date to open the day — workouts done, or the plan days set to that weekday, with Start.', 'Personal trainer has its own face for each style, which "talks" when it appears.'],
   },

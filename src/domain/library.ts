@@ -98,19 +98,19 @@ const EQUIPMENT: Record<string, string> = {
 
 /** Detailed muscle name → app muscle key (used by analysis). */
 const MUSCLE_KEY: [RegExp, string][] = [
-  [/pectoralis|serratus/i, 'chest'],
-  [/splenius|sternocleidomastoid/i, 'neck'],
-  [/deltoid|levator scapulae|trapezius upper|subscapularis/i, 'shoulders'],
-  [/latissimus|teres|infraspinatus|trapezius|rhomboid|erector spinae|back/i, 'back'],
+  [/pectoralis|serratus|^chest$/i, 'chest'],
+  [/splenius|sternocleidomastoid|^neck$/i, 'neck'],
+  [/deltoid|levator scapulae|trapezius upper|subscapularis|^shoulders$/i, 'shoulders'],
+  [/latissimus|teres|infraspinatus|trapezius|rhomboid|erector spinae|back|^lats$|^traps$/i, 'back'],
   [/biceps|brachialis$/i, 'biceps'],
   [/brachioradialis|wrist|forearm|flexor|extensor/i, 'forearms'],
   [/triceps/i, 'triceps'],
   [/rectus abdominis|oblique|transvers|iliopsoas|abdomin/i, 'core'],
-  [/gluteus|glute|hip external rotators/i, 'glutes'],
+  [/gluteus|glute|hip external rotators|abductor/i, 'glutes'],
   [/adductor|pectineous|gracilis/i, 'adductors'],
   [/hamstring|biceps femoris|semitendinosus|popliteus/i, 'hamstrings'],
   [/quadricep|sartorius|tensor fasciae|rectus femoris|vastus/i, 'quads'],
-  [/gastrocnemius|soleus|calf|tibialis/i, 'calves'],
+  [/gastrocnemius|soleus|calf|calves|tibialis/i, 'calves'],
 ];
 
 /** Portuguese names for detailed muscles (display only). */
@@ -128,6 +128,9 @@ export const MUSCLE_DETAIL_PT: Record<string, string> = {
   'Wrist Extensors': 'Extensores do punho', 'Wrist Flexors': 'Flexores do punho', Rhomboids: 'Romboides', 'Transverse Abdominis': 'Transverso abdominal',
   'Deep Hip External Rotators': 'Rotadores externos profundos da anca', Gracilis: 'Grácil', Popliteus: 'Popliteu', 'Serratus Ante': 'Serrátil anterior',
   Splenius: 'Esplénio', Sternocleidomastoid: 'Esternocleidomastoideu', Subscapularis: 'Subescapular',
+  // Plain names used by free-exercise-db.
+  Abdominals: 'Abdominais', Abductors: 'Abdutores', Adductors: 'Adutores', Biceps: 'Bíceps', Calves: 'Gémeos', Chest: 'Peito', Forearms: 'Antebraços',
+  Glutes: 'Glúteos', Lats: 'Grande dorsal', 'Lower Back': 'Lombar', 'Middle Back': 'Meio das costas', Neck: 'Pescoço', Shoulders: 'Ombros', Traps: 'Trapézio', Triceps: 'Tríceps',
 };
 
 const norm = (s: string) => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -255,7 +258,7 @@ export function mergeLibrary(
   const updatedIds = new Set(updated.map((e) => e.id));
   for (const ex of existing) {
     if (ex.source || updatedIds.has(ex.id)) continue;
-    const slug = [ex.name, ...ex.aliases].map((n) => BUILTIN_LIBRARY_SLUG[n]).find(Boolean);
+    const slug = [ex.name, ...ex.aliases].flatMap((n) => [BUILTIN_LIBRARY_SLUG[n], BUILTIN_OPEN_SLUG[n]]).find((x) => x && bySlug.has(x));
     const rec = slug && bySlug.get(slug);
     if (!rec) continue;
     updated.push(illustrate(ex, rec, settings.language === 'pt' ? translations[rec.slug] : undefined));
@@ -280,6 +283,20 @@ export const BUILTIN_LIBRARY_SLUG: Record<string, string> = {
   'Cable Crunch': 'cable-kneeling-crunch-641', 'Treadmill Warm-up': 'walking-on-treadmill-7u2', 'Treadmill Walking': 'walking-on-treadmill-7u2',
   Running: 'run-on-treadmill-7so', 'Stationary Bike': 'stationary-bike-walk-6vm', 'Rowing Machine': 'rowing-6ee', 'Hip Mobility Routine': 'standing-hip-circle-8pc',
   "Farmer's Walk": 'dumbbell-farmers-carry-82k', 'Band Shoulder Dislocates': 'pvc-pass-through-9lx',
+};
+
+/** The same for the open library (free-exercise-db); its slug is the source id in lower case with "-" for "_". */
+export const BUILTIN_OPEN_SLUG: Record<string, string> = {
+  'Barbell Bench Press': 'barbell-bench-press---medium-grip', 'Incline Dumbbell Press': 'incline-dumbbell-press', 'Machine Chest Press': 'machine-bench-press',
+  'Push-up': 'pushups', 'Cable Fly': 'cable-crossover', 'Barbell Back Squat': 'barbell-squat', 'Leg Press': 'leg-press', 'Romanian Deadlift': 'romanian-deadlift',
+  Deadlift: 'barbell-deadlift', 'Leg Extension': 'leg-extensions', 'Lying Leg Curl': 'lying-leg-curls', 'Barbell Hip Thrust': 'barbell-hip-thrust',
+  'Walking Lunge': 'bodyweight-walking-lunge', 'Standing Calf Raise': 'standing-calf-raises', 'Pull-up': 'pullups', 'Lat Pulldown': 'wide-grip-lat-pulldown',
+  'Barbell Row': 'bent-over-barbell-row', 'Seated Cable Row': 'seated-cable-rows', 'One-arm Dumbbell Row': 'one-arm-dumbbell-row', 'Overhead Press': 'standing-military-press',
+  'Dumbbell Shoulder Press': 'dumbbell-shoulder-press', 'Lateral Raise': 'side-lateral-raise', 'Face Pull': 'face-pull', 'Barbell Curl': 'barbell-curl',
+  'Dumbbell Curl': 'dumbbell-bicep-curl', 'Hammer Curl': 'hammer-curls', 'Triceps Pushdown': 'triceps-pushdown', 'Overhead Triceps Extension': 'cable-rope-overhead-triceps-extension',
+  Dips: 'dips---chest-version', Plank: 'plank', 'Side Plank': 'side-bridge', 'Hanging Leg Raise': 'hanging-leg-raise', 'Cable Crunch': 'cable-crunch',
+  'Treadmill Warm-up': 'walking-treadmill', 'Treadmill Walking': 'walking-treadmill', Running: 'running-treadmill', 'Stationary Bike': 'bicycling-stationary',
+  'Rowing Machine': 'rowing-stationary', 'Hip Mobility Routine': 'standing-hip-circles', "Farmer's Walk": 'farmers-walk',
 };
 
 /** Media and how-to of a library record for an exercise that keeps its own identity and settings. */
