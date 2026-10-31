@@ -9,6 +9,7 @@ export const en = {
   common: {
     save: 'Save', saved: 'Saved', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', add: 'Add', remove: 'Remove', duplicate: 'Duplicate', archive: 'Archive', unarchive: 'Restore',
     close: 'Close', search: 'Search', all: 'All', name: 'Name', notes: 'Notes', description: 'Description', moveUp: 'Move up', moveDown: 'Move down', from: 'Date',
+    dbBlocked: 'The app is being updated, but it is also open somewhere else (another tab or the installed app). Close it there, then open the app again.',
     confirmDelete: 'Delete "{{name}}"? This cannot be undone.', actual: 'Actual', derived: 'Derived', estimated: 'Estimated',
   },
   metric: { reps: 'Reps', load: 'Load', duration: 'Duration', distance: 'Distance', speed: 'Speed', incline: 'Incline', resistance: 'Resistance', calories: 'Calories', custom: 'Custom' },

@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-31',
+    pt: ['Atualizações mais seguras: uma página antiga da app recarrega sozinha, e um aviso pede para a fechar quando bloqueia a atualização.'],
+    en: ['Safer updates: an old page of the app reloads by itself, and a notice asks to close it when it blocks the update.'],
+  },
+  {
+    date: '2026-10-31',
     pt: [
       'Jogos com os personal trainers (Mais → Jogos): Memória, Whack-a-PT, Adivinha o músculo, Flappy Halter, PT Runner e Starship, com recordes que pode repor.',
       'Desafio semanal (ligue nas Definições): um objetivo novo todas as semanas no Início, feito a partir dos seus treinos, com histórico.',

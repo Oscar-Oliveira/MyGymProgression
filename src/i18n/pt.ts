@@ -11,6 +11,7 @@ export const pt: Resources = {
   common: {
     save: 'Guardar', saved: 'Guardado', cancel: 'Cancelar', delete: 'Eliminar', edit: 'Editar', add: 'Adicionar', remove: 'Remover', duplicate: 'Duplicar', archive: 'Arquivar', unarchive: 'Restaurar',
     close: 'Fechar', search: 'Pesquisar', all: 'Todos', name: 'Nome', notes: 'Notas', description: 'Descrição', moveUp: 'Subir', moveDown: 'Descer', from: 'Data',
+    dbBlocked: 'A app está a ser atualizada, mas também está aberta noutro sítio (outro separador ou a app instalada). Feche-a aí e volte a abrir a app.',
     confirmDelete: 'Eliminar "{{name}}"? Esta ação não pode ser anulada.', actual: 'Real', derived: 'Derivado', estimated: 'Estimado',
   },
   metric: { reps: 'Repetições', load: 'Carga', duration: 'Duração', distance: 'Distância', speed: 'Velocidade', incline: 'Inclinação', resistance: 'Resistência', calories: 'Calorias', custom: 'Personalizada' },
