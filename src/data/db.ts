@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { dropRest, v1to2 } from '../domain/migrations';
-import type { Exercise, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
+import type { Challenge, Exercise, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
 
 export class GymDB extends Dexie {
   exercises!: Table<Exercise, string>;
@@ -11,6 +11,8 @@ export class GymDB extends Dexie {
   progressionEvents!: Table<ProgressionEvent, string>;
   revisions!: Table<Revision, string>;
   settings!: Table<Settings, string>;
+  gameScores!: Table<GameScore, string>;
+  challenges!: Table<Challenge, string>;
 
   constructor(name = 'mygymprogression') {
     super(name);
@@ -40,6 +42,8 @@ export class GymDB extends Dexie {
         await tx.table(t).toCollection().modify((x, ref) => void (ref.value = dropRest(x)));
       }
     });
+    // v4: game scores and weekly challenges.
+    this.version(4).stores({ gameScores: 'id, game, at', challenges: 'id, week' });
   }
 }
 

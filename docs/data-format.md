@@ -1,17 +1,17 @@
-# Interchange format (schema version 8)
+# Interchange format (schema version 10)
 
 JSON file produced by **Settings → Export**. The authoritative definition is the zod schema in [`src/domain/schema.ts`](../src/domain/schema.ts).
 
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 8,
+  "schemaVersion": 10,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
   "data": {
     "exercises": [], "plans": [], "planVersions": [], "progressionStates": [],
-    "workouts": [], "progressionEvents": [], "revisions": [], "settings": {}
+    "workouts": [], "progressionEvents": [], "revisions": [], "gameScores": [], "challenges": [], "settings": {}
   }
 }
 ```
@@ -42,6 +42,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v9 → v10: additive only — `gameScores` (game, score, date), `challenges` (weekly challenge per Monday, with `kind`, `target` and `status` `open` | `done` | `missed`) and `challenge` in settings (boolean).
    - v8 → v9: additive only — `coach.pages` in settings (boolean).
    - v7 → v8: additive only — `coach.when` in settings (`start` | `each` | `random`).
    - v6 → v7: additive only — `color` on plans and days, `circuits` on days and `circuitId` on plan items, `circuit` snapshot on workout entries, `theme` and `coach` in settings.

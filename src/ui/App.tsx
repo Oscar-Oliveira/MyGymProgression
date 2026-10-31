@@ -19,6 +19,8 @@ import { Analysis } from './pages/Analysis';
 import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
+import { Challenges } from './pages/Challenges';
+import { GamePage, GamesPage } from './games/Games';
 
 // Outline icons (24×24, stroke = currentColor).
 const ICONS = {
@@ -33,7 +35,7 @@ const TABS = [
   ['/history', 'history'],
   ['/more', 'more'],
 ] as const;
-const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about'];
+const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about', '/games', '/challenges'];
 
 /** Touches that must not change the tab: form fields, windows, charts and areas that scroll sideways. */
 function keepsSwipe(target: EventTarget | null): boolean {
@@ -108,6 +110,9 @@ function Shell() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/share" element={<ShareImport />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/games/:id" element={<GamePage />} />
+          <Route path="/challenges" element={<Challenges />} />
         </Routes>
       </main>
       <DialogHost />

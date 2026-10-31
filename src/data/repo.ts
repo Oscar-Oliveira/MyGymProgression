@@ -7,7 +7,8 @@ import { seedExercises } from '../domain/seed';
 import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
-import type { Exercise, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
+import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
+import type { Exercise, GameId, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
@@ -269,6 +270,31 @@ export function createRepo(db: GymDB) {
 
     async lastEntry(lineageId: string): Promise<WorkoutEntry | undefined> {
       return lastEntryFinder(await db.workouts.toArray())(lineageId);
+    },
+
+    async addScore(game: GameId, score: number) {
+      await db.gameScores.add({ id: uid(), game, score, at: nowIso() });
+    },
+
+    /** Deletes the scores of one game, or of all games. */
+    async resetScores(game?: GameId) {
+      if (game) await db.gameScores.where('game').equals(game).delete();
+      else await db.gameScores.clear();
+    },
+
+    /** Closes the challenges of past weeks and creates the one of this week when it is missing. */
+    async ensureChallenge(now = new Date()) {
+      await db.transaction('rw', db.challenges, db.workouts, async () => {
+        const week = weekKey(now);
+        const [all, workouts] = await Promise.all([db.challenges.toArray(), db.workouts.toArray()]);
+        await db.challenges.bulkPut(settleChallenges(all, workouts, week, now.toISOString()));
+        if (!all.some((c) => c.week === week)) await db.challenges.add(createChallenge(week, workouts, uid(), now.toISOString()));
+      });
+    },
+
+    /** Marks the challenge done, or open again. */
+    async setChallengeDone(id: string, done: boolean) {
+      await db.challenges.update(id, done ? { status: 'done', doneAt: nowIso() } : { status: 'open', doneAt: undefined });
     },
 
     /** Writes records from a merge plan (see planMerge). Existing records not in the plan are untouched. */

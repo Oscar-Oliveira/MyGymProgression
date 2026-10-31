@@ -9,6 +9,17 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-31',
     pt: [
+      'Jogos com os personal trainers (Mais → Jogos): Memória, Whack-a-PT, Adivinha o músculo, Flappy Halter, PT Runner e Starship, com recordes que pode repor.',
+      'Desafio semanal (ligue nas Definições): um objetivo novo todas as semanas no Início, feito a partir dos seus treinos, com histórico.',
+    ],
+    en: [
+      'Games with the personal trainers (More → Games): Memory, Whack-a-PT, Guess the muscle, Flappy Dumbbell, PT Runner and Starship, with records you can reset.',
+      'Weekly challenge (turn it on in Settings): a new goal every week on Home, made from your workouts, with a history.',
+    ],
+  },
+  {
+    date: '2026-10-31',
+    pt: [
       'Início: o próximo treino respeita os dias da semana definidos nos planos (o de hoje primeiro).',
       'Deslize para a esquerda ou direita para mudar de separador.',
       'Ecrã inteiro na app instalada (Android).',

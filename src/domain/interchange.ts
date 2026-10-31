@@ -1,5 +1,5 @@
 // Export/import logic for the versioned JSON interchange format. Pure functions; storage is done in src/data.
-import type { Exercise, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
+import type { Challenge, Exercise, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
 import { bundleSchema, FORMAT_ID, SCHEMA_VERSION } from './schema';
 import { v1to2 } from './migrations';
 
@@ -11,11 +11,13 @@ export interface DataSet {
   workouts: Workout[];
   progressionEvents: ProgressionEvent[];
   revisions: Revision[];
+  gameScores: GameScore[];
+  challenges: Challenge[];
   settings?: Settings;
 }
 
 export type TableName = Exclude<keyof DataSet, 'settings'>;
-export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions'];
+export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions', 'gameScores', 'challenges'];
 export type Scope = 'full' | 'library' | 'plans';
 
 export interface Bundle {
@@ -33,7 +35,7 @@ export const keyOf = (table: TableName, r: object): string =>
   table === 'progressionStates' ? (r as ProgressionState).lineageId : (r as { id: string }).id;
 
 export function emptyDataSet(): DataSet {
-  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [] };
+  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [], gameScores: [], challenges: [] };
 }
 
 /** Builds an export bundle. "library" = exercises only; "plans" = plans, versions, states and referenced exercises. */
@@ -73,6 +75,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   7: (raw) => ({ ...raw, schemaVersion: 8 }),
   // v9 only adds whether the personal trainer also speaks on other pages.
   8: (raw) => ({ ...raw, schemaVersion: 9 }),
+  // v10 only adds game scores, weekly challenges and the challenge setting.
+  9: (raw) => ({ ...raw, schemaVersion: 10 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

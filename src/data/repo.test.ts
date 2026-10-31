@@ -155,6 +155,31 @@ describe('repo (IndexedDB)', () => {
     expect(await db2.workouts.count()).toBe(1);
   });
 
+  it('scores and challenges: saved, reset, in the backup; past challenges are closed', async () => {
+    await repo.addScore('runner', 120);
+    await repo.addScore('memory', 14);
+    await repo.ensureChallenge(new Date(2026, 9, 20));
+    await repo.ensureChallenge(new Date(2026, 9, 21)); // same week: no second challenge
+    expect(await db.challenges.count()).toBe(1);
+    await repo.ensureChallenge(new Date(2026, 9, 27)); // next week: the old one is missed (no workouts)
+    const all = await db.challenges.orderBy('week').toArray();
+    expect(all.map((c) => [c.week, c.status])).toEqual([
+      ['2026-10-19', 'missed'],
+      ['2026-10-26', 'open'],
+    ]);
+    await repo.setChallengeDone(all[1].id, true);
+    expect((await db.challenges.get(all[1].id))?.status).toBe('done');
+
+    const parsed = parseBundle(JSON.stringify(buildBundle(await repo.readAll(), 'full', 't')));
+    expect(parsed.ok && parsed.bundle.data.gameScores.length).toBe(2);
+    expect(parsed.ok && parsed.bundle.data.challenges.length).toBe(2);
+
+    await repo.resetScores('runner');
+    expect((await db.gameScores.toArray()).map((s) => s.game)).toEqual(['memory']);
+    await repo.resetScores();
+    expect(await db.gameScores.count()).toBe(0);
+  });
+
   it('delete plan keeps versions used by workouts', async () => {
     const { plan, day } = await setupPlan();
     await doSession(plan.id, day.id, [10, 10, 10]);

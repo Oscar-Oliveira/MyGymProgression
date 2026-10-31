@@ -11,6 +11,7 @@ import { toneOf, toneStyle, useTones } from '../colors';
 import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
+import { ChallengeCard } from '../components/ChallengeCard';
 import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
@@ -178,6 +179,7 @@ export function Home() {
       </div>
 
       <PageCoach place="home" extra={{ day: active ? undefined : day?.name }} />
+      <ChallengeCard />
 
       {open !== undefined && (
         <DaySheet

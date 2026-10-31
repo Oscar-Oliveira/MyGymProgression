@@ -342,6 +342,8 @@ export interface Settings {
   theme?: 'dark' | 'light' | 'system';
   /** Personal trainer messages: in the workout, and optionally on other pages. */
   coach?: CoachSettings;
+  /** Weekly challenge on Home. Default: off. */
+  challenge?: boolean;
 }
 
 export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant' | 'energy';
@@ -359,3 +361,29 @@ export interface CoachSettings {
   pages?: boolean;
 }
 export type CoachWhen = 'start' | 'each' | 'random';
+
+export type GameId = 'memory' | 'whack' | 'muscle' | 'flappy' | 'runner' | 'starship';
+/** One finished game. */
+export interface GameScore {
+  id: string;
+  game: GameId;
+  score: number;
+  at: string;
+}
+
+export type ChallengeKind = 'workouts' | 'sets' | 'record' | 'muscle';
+/** Weekly challenge (Monday to Sunday). */
+export interface Challenge {
+  id: string;
+  /** Monday of the week, local date YYYY-MM-DD. */
+  week: string;
+  kind: ChallengeKind;
+  /** workouts, sets: count. record: load to beat, canonical kg. muscle: sets of that muscle. */
+  target: number;
+  exerciseId?: string;
+  exerciseName?: string;
+  muscle?: string;
+  status: 'open' | 'done' | 'missed';
+  doneAt?: string;
+  createdAt: string;
+}

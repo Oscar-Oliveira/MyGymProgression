@@ -563,3 +563,44 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 @keyframes crew-shake { 20%, 60% { transform: translateX(-4px) rotate(-6deg); } 40%, 80% { transform: translateX(4px) rotate(6deg); } }
 @keyframes crew-attention { 30% { transform: translateY(-30%) scale(1.12); } 60% { transform: translateY(0) scale(0.95); } }
 @media (prefers-reduced-motion: reduce) { .splash-crew span, .splash-crew .crew-stoic { transform: none; animation: none; } }
+
+/* Games */
+.menu a .ico.game-ico { font-size: 1.35rem; }
+.game-hud { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0 0 0.6rem; font-size: 1.05rem; }
+.game-canvas canvas { display: block; width: 100%; max-width: 480px; margin: 0 auto; border-radius: var(--radius); border: 1px solid var(--border); touch-action: none; user-select: none; -webkit-user-select: none; }
+.game-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; max-width: 480px; margin: 0.75rem auto 0; }
+.game-pad button { touch-action: none; user-select: none; -webkit-user-select: none; }
+.memory-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; max-width: 420px; margin: 0 auto; }
+.memory-card { aspect-ratio: 1; min-height: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 14px; border: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); font-size: 1.6rem; font-weight: 800; transition: transform 0.25s, background 0.2s; }
+.memory-card.up { background: var(--surface-2); transform: rotateY(180deg) scaleX(-1); }
+.memory-card.found { border-color: var(--up); background: var(--up-bg); }
+.whack-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.7rem; max-width: 360px; margin: 0 auto; }
+.whack-hole { position: relative; aspect-ratio: 1; min-height: 0; padding: 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; border-radius: 50% 50% 22px 22px; border: 1px solid var(--border); background: radial-gradient(ellipse at 50% 92%, var(--border) 0 34%, var(--surface-2) 35%); touch-action: manipulation; }
+.whack-hole .coach-avatar { margin-bottom: 8%; animation: pop-up 0.15s ease-out; }
+@keyframes pop-up { from { transform: translateY(70%); } }
+.whack-hit { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; animation: page-in 0.2s ease-out; }
+.whack-hit.up { color: var(--up); }
+.whack-hit.down { color: var(--down); }
+.muscle-q { display: flex; align-items: center; gap: 0.9rem; }
+.muscle-q h2 { margin: 0; }
+.muscle-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.muscle-options button.right { background: var(--up-bg); border-color: var(--up); color: var(--up); }
+.muscle-options button.wrong { border-color: var(--down); color: var(--down); }
+.score-list { list-style: none; padding: 0; margin: 0 0 0.6rem; }
+.score-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+.score-list li:last-child { border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .memory-card, .whack-hole .coach-avatar, .whack-hit { transition: none; animation: none; } }
+
+/* Weekly challenge */
+.challenge-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.4rem; }
+.challenge-head .eyebrow, .challenge-head .help { margin: 0; }
+.challenge h2 { margin: 0.4rem 0 0.6rem; }
+.challenge-bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.challenge-bar span { display: block; height: 100%; background: var(--up); border-radius: inherit; transition: width 0.4s; }
+.challenge-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.challenge-link { display: block; margin-top: 0.6rem; text-align: right; font-weight: 650; }
+.challenge-list { list-style: none; padding: 0 1rem; }
+.challenge-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.challenge-list li:last-child { border-bottom: 0; }
+.challenge-list small { display: block; }
+@media (prefers-reduced-motion: reduce) { .challenge-bar span { transition: none; } }

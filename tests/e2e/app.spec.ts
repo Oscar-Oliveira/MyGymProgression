@@ -582,3 +582,69 @@ test('exercise page: add the exercise to a plan day; a day that has it is marked
   await expect(page.getByText('Lat Pulldown').first()).toBeVisible();
   expect(nativeDialogs).toEqual([]);
 });
+
+test('games: each game opens and plays; scores are saved and can be reset', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Games/);
+  for (const name of ['Trainer memory', 'Whack-a-PT', 'Guess the muscle', 'Flappy Dumbbell', 'PT Runner', 'Starship']) await expect(page.getByRole('link', { name: new RegExp(`^${name}`) })).toBeVisible();
+
+  await page.getByRole('link', { name: /^Trainer memory/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.getByRole('button', { name: /^Card \d+$/ })).toHaveCount(20);
+  await page.getByRole('link', { name: '‹ Games' }).click();
+
+  await page.getByRole('link', { name: /^Whack-a-PT/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.locator('.whack-hole')).toHaveCount(9);
+  await page.getByRole('link', { name: '‹ Games' }).click();
+
+  await page.getByRole('link', { name: /^Guess the muscle/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.locator('.muscle-options button')).toHaveCount(4);
+  await page.getByRole('link', { name: '‹ Games' }).click();
+
+  // Without input the runner hits the first obstacle: the score is saved.
+  await page.getByRole('link', { name: /^PT Runner/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.getByLabel('PT Runner')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Play again/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('status')).toContainText(' m');
+  await expect(page.getByText(/^Best: \d+ m$/)).toBeVisible();
+
+  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('link', { name: /^Flappy Dumbbell/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await page.getByLabel('Flappy Dumbbell').click();
+  await expect(page.getByRole('button', { name: /Play again/ })).toBeVisible({ timeout: 15_000 });
+
+  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('link', { name: /^Starship/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.getByLabel('Starship')).toBeVisible();
+
+  await page.getByRole('link', { name: '‹ Games' }).click();
+  await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Best:');
+  await page.getByRole('button', { name: 'Reset all scores' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Reset all scores' }).click();
+  await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Not played yet');
+});
+
+test('weekly challenge: off by default; when on, shows on Home, can be marked done and is in the history', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await expect(page.getByRole('region', { name: 'Weekly challenge' })).toHaveCount(0);
+  await tab(page, 'More');
+  await expect(page.getByRole('link', { name: /^Weekly challenge/ })).toHaveCount(0);
+
+  await more(page, /^Settings/);
+  await page.getByLabel(/^Weekly challenge/).click();
+  await tab(page, 'Home');
+  const card = page.getByRole('region', { name: 'Weekly challenge' });
+  await expect(card.getByRole('heading', { level: 2 })).toHaveText(/this week|record/);
+  await card.getByRole('button', { name: /Mark as done/ }).click();
+  await expect(card).toContainText('Done');
+  await card.getByRole('link', { name: /History/ }).click();
+  await expect(page.getByRole('heading', { name: 'Weekly challenge', level: 1 })).toBeVisible();
+  await expect(page.locator('.challenge-list li')).toHaveCount(1);
+  await expect(page.locator('.challenge-list li')).toContainText('Done');
+});

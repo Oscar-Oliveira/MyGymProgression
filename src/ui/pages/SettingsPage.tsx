@@ -374,6 +374,19 @@ export function SettingsPage() {
       </section>
 
       <div className="section-head">
+        <h2>{t('challenge.title')}</h2>
+      </div>
+      <section className="card">
+        <label className="setting-row">
+          <span className="lbl">
+            {t('challenge.title')}
+            <small>{t('challenge.settingSub')}</small>
+          </span>
+          <input type="checkbox" role="switch" className="switch" checked={!!s.challenge} onChange={(e) => void repo.saveSettings({ challenge: e.target.checked })} />
+        </label>
+      </section>
+
+      <div className="section-head">
         <h2>{t('settings.data')}</h2>
       </div>
       <section className="card">

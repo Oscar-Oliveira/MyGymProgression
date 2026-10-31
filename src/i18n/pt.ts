@@ -1,8 +1,8 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições', about: 'Sobre' },
-  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos' },
+  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal' },
+  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
     whatsNew: 'Novidades', privacy: 'Dados e privacidade', privacyText: 'Todos os dados ficam neste dispositivo, no navegador. Nada é enviado para servidores. Faça cópias de segurança em Definições.',
@@ -218,6 +218,56 @@ export const pt: Resources = {
     exercises: '{{added}} exercícios novos para a biblioteca · {{existing}} já existem', help: 'O plano é adicionado como um plano novo. Os seus planos, treinos e progresso não mudam.',
     menu: 'Partilhar', help2: 'Partilha uma cópia do plano com os exercícios e as cargas previstas. Os seus treinos, progresso e notas pessoais não são incluídos.',
     file: 'Enviar ficheiro', link: 'Partilhar link', copied: 'Link copiado.', fileHelp: 'A outra pessoa importa o ficheiro em Definições → Importar.',
+  },
+  games: {
+    title: 'Jogos', play: 'Jogar', again: 'Jogar outra vez', best: 'Recorde', noScore: 'Ainda não jogado', last: 'Últimas pontuações', newRecord: 'Novo recorde!',
+    reset: 'Repor pontuações', resetAll: 'Repor todas as pontuações', resetConfirm: 'Apagar as pontuações de "{{name}}"?', resetAllConfirm: 'Apagar as pontuações de todos os jogos?',
+    jump: 'Saltar', duck: 'Baixar', time: 'Tempo', lives: 'Vidas', moves: 'Jogadas', wave: 'Vaga', card: 'Carta {{n}}', mainMuscle: 'Músculo principal de',
+    noExercises: 'Ainda não há exercícios com músculos. Adicione exercícios em Exercícios.', tapToStart: 'Toque para começar', ouch: 'Ai!',
+    names: { memory: 'Memória dos PTs', whack: 'Whack-a-PT', muscle: 'Adivinha o músculo', flappy: 'Flappy Halter', runner: 'PT Runner', starship: 'Starship' },
+    help: {
+      memory: 'Vire duas cartas de cada vez e encontre os 10 pares de PTs. Menos jogadas é melhor.',
+      whack: 'Toque nos PTs que aparecem. O Sargento vale 2. Não bata no PT de Apoio: perde 3 pontos. 30 segundos.',
+      muscle: 'Escolha o músculo principal de cada exercício da sua biblioteca. Tem 3 vidas.',
+      flappy: 'Toque no ecrã (ou na barra de espaços) para subir. Passe entre as torres de discos.',
+      runner: 'Toque no ecrã ou em Saltar para saltar. Mantenha Baixar para passar debaixo das barras. Teclado: ↑ / espaço e ↓.',
+      starship: 'Arraste a nave com o dedo; ela dispara sozinha. Destrua a junk food. O shake 🥛 dá escudo e a creatina 💊 dá tiro triplo. De 5 em 5 vagas vem o Sofá.',
+    },
+    unit: { memory: 'jogadas', whack: 'pontos', muscle: 'certas', flappy: 'torres', runner: 'm', starship: 'pontos' },
+    react: {
+      support: { record: 'Novo recorde: {{score}}! Que orgulho em ti.', score: '{{score}}. Bom jogo! Para a próxima ainda melhor.' },
+      spite: { record: '{{score}}?! Afinal sabes jogar. Quem diria.', score: '{{score}}. A minha avó fazia mais. De olhos fechados.' },
+      stoic: { record: '{{score}}. Recorde. Mantém a calma e repete.', score: '{{score}}. O resultado não importa. O esforço sim.' },
+      sergeant: { record: 'NOVO RECORDE: {{score}}! ISSO É QUE É, RECRUTA!', score: '{{score}}. INACEITÁVEL. OUTRA VEZ!' },
+      energy: { record: 'UAU! {{score}}! RECORDE! Estás em chamas! 🔥', score: '{{score}}! Boa! Bora outra, bora, bora!' },
+    },
+    cheer: {
+      support: ['{{m}} metros! Continua, estás a ir lindamente.', 'Já vais em {{m}} m. Respira e segue!'],
+      spite: ['{{m}} m. Ainda não tropeçaste? Milagre.', '{{m}} metros. O sofá tem saudades tuas.'],
+      stoic: ['{{m}} m. Um passo de cada vez.', '{{m}} m. Foco no próximo obstáculo.'],
+      sergeant: ['{{m}} METROS! MEXE-TE!', '{{m}} M! NINGUÉM PARA NO MEU GINÁSIO!'],
+      energy: ['{{m}} METROS!! ISTO É FOGO!', 'BORA! {{m}} m e a subir!'],
+    },
+  },
+  challenge: {
+    title: 'Desafio semanal', settingSub: 'Um objetivo novo todas as segundas-feiras no Início, feito a partir dos seus treinos recentes.',
+    kinds: {
+      workouts: 'Faz {{target}} treinos esta semana.',
+      sets: 'Faz {{target}} séries de trabalho esta semana.',
+      record: 'Bate o teu recorde em {{exercise}}: mais de {{load}}.',
+      muscle: 'Faz {{target}} séries de {{muscle}} esta semana.',
+    },
+    progress: 'Progresso: {{value}} de {{target}}', progressRecord: 'Melhor desta semana: {{value}}', met: 'Os teus treinos dizem que conseguiste!',
+    markDone: 'Marcar como cumprido', undo: 'Ainda não cumpri', history: 'Histórico', empty: 'Ainda não há desafios.', rate: '{{done}} de {{total}} cumpridos', weekOf: 'Semana de {{date}}',
+    off: 'O desafio semanal está desligado. Ligue-o nas Definições.',
+    status: { open: 'Em curso', done: 'Cumprido', missed: 'Não cumprido' },
+    intro: {
+      support: 'O teu desafio desta semana. Vais conseguir!',
+      spite: 'Desafio da semana. Duvido que consigas. Prova-me o contrário.',
+      stoic: 'O desafio desta semana. Faz o trabalho, um dia de cada vez.',
+      sergeant: 'MISSÃO DA SEMANA, RECRUTA. SEM DESCULPAS.',
+      energy: 'DESAFIO NOVO! Esta semana vai ser épica!',
+    },
   },
   picker: { title: 'Escolher exercício', placeholder: 'Pesquisar por nome, outro nome ou etiqueta' },
 };
