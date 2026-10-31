@@ -165,6 +165,29 @@ describe('nextDay', () => {
     expect(nextDay(version, [w(version.days[0].id, '2026-01-01'), w(version.days[1].id, '2026-01-03')])?.name).toBe('A');
     expect(nextDay(version, [w(version.days[0].id, '2026-01-01', 'in_progress')])?.name).toBe('A');
   });
+
+  it('prefers the nearest day set to a weekday, over all active plans', async () => {
+    const { nextDay, nextPlanned } = await import('./workout');
+    const sat = new Date(2026, 9, 31, 10); // Saturday
+    const one = newPlan('One');
+    one.version.days = [newDay('Mon'), newDay('Sat A'), newDay('Sat B')];
+    [0, 5, 5].forEach((wd, i) => (one.version.days[i].weekday = wd));
+    const two = newPlan('Two');
+    two.version.days = [newDay('Mon 2')];
+    two.version.days[0].weekday = 0;
+    const plans = [two.plan, one.plan];
+    const versions = [one.version, two.version];
+    // The other plan was used most recently, but Saturday days come first today.
+    const recent = { planId: two.plan.id, dayId: two.version.days[0].id, startedAt: new Date(2026, 9, 26, 10).toISOString(), status: 'completed' } as Workout;
+    expect(nextPlanned(plans, versions, [recent], sat)?.day.name).toBe('Sat A');
+    // Sat A done today: Sat B is next; both done: Monday of the first plan in the list.
+    const done = (name: string) => ({ planId: one.plan.id, dayId: one.version.days.find((d) => d.name === name)!.id, startedAt: new Date(2026, 9, 31, 9).toISOString(), status: 'completed' }) as Workout;
+    expect(nextDay(one.version, [done('Sat A')], sat)?.name).toBe('Sat B');
+    expect(nextPlanned(plans, versions, [recent, done('Sat A'), done('Sat B')], sat)?.day.name).toBe('Mon 2');
+    // Without weekdays: the plan used most recently.
+    for (const d of [...one.version.days, ...two.version.days]) d.weekday = undefined;
+    expect(nextPlanned(plans, versions, [recent], sat)?.plan.name).toBe('Two');
+  });
 });
 
 describe('demo data', () => {

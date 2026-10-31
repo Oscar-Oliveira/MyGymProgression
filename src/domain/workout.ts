@@ -327,11 +327,47 @@ export function manualAdjust(
   };
 }
 
-/** Next training day of a plan: the day after the last finished day in plan order, else the first day. */
-export function nextDay(version: PlanVersion, workouts: Workout[]): PlanDay | undefined {
+/**
+ * Days from `now` to the next date of a plan day set to a weekday (0 = today), or undefined without a weekday.
+ * A day already finished today counts from next week.
+ */
+export function daysUntil(day: PlanDay, workouts: Workout[], now: Date): number | undefined {
+  if (day.weekday === undefined) return undefined;
+  const d = (day.weekday - ((now.getDay() + 6) % 7) + 7) % 7;
+  const today = now.toLocaleDateString('sv');
+  const doneToday = workouts.some((w) => w.dayId === day.id && w.status !== 'in_progress' && new Date(w.startedAt).toLocaleDateString('sv') === today);
+  return d === 0 && doneToday ? 7 : d;
+}
+
+/**
+ * Next training day of a plan. When days are set to a weekday: the nearest one from today (plan order on a tie).
+ * Otherwise the day after the last finished day in plan order, else the first day.
+ */
+export function nextDay(version: PlanVersion, workouts: Workout[], now = new Date()): PlanDay | undefined {
+  const scheduled = version.days.flatMap((day) => {
+    const d = daysUntil(day, workouts, now);
+    return d === undefined ? [] : [{ day, d }];
+  });
+  if (scheduled.length) return scheduled.reduce((a, b) => (b.d < a.d ? b : a)).day;
   const last = workouts
     .filter((w) => w.planId === version.planId && w.status !== 'in_progress' && w.dayId)
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
   const i = last ? version.days.findIndex((d) => d.id === last.dayId) : -1;
   return version.days[(i + 1) % Math.max(1, version.days.length)];
+}
+
+/**
+ * Next workout over the active plans: the nearest day set to a weekday in any plan (plan order on a tie).
+ * Without weekdays: the next day of the plan used most recently, else of the first plan.
+ */
+export function nextPlanned(plans: Plan[], versions: PlanVersion[], workouts: Workout[], now = new Date()): { plan: Plan; version: PlanVersion; day: PlanDay } | undefined {
+  const options = plans.flatMap((plan) => {
+    const version = versions.find((v) => v.id === plan.currentVersionId);
+    const day = version && nextDay(version, workouts, now);
+    return version && day ? [{ plan, version, day, d: daysUntil(day, workouts, now) }] : [];
+  });
+  const scheduled = options.filter((o) => o.d !== undefined);
+  if (scheduled.length) return scheduled.reduce((a, b) => (b.d! < a.d! ? b : a));
+  const recent = workouts.filter((w) => w.status !== 'in_progress').sort((a, b) => b.startedAt.localeCompare(a.startedAt)).find((w) => options.some((o) => o.plan.id === w.planId));
+  return options.find((o) => o.plan.id === recent?.planId) ?? options[0];
 }

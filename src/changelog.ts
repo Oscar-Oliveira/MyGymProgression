@@ -7,6 +7,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-10-31',
+    pt: [
+      'Início: o próximo treino respeita os dias da semana definidos nos planos (o de hoje primeiro).',
+      'Deslize para a esquerda ou direita para mudar de separador.',
+      'Ecrã inteiro na app instalada (Android).',
+      'Personal trainer: escolha homem ou mulher, novo estilo Energético e muitas frases novas.',
+      'Os personal trainers aparecem no ecrã de arranque.',
+      'Página do exercício: botão "Adicionar a plano" para o pôr num dia de um plano.',
+    ],
+    en: [
+      'Home: the next workout follows the weekdays set in the plans (today first).',
+      'Swipe left or right to change tab.',
+      'Full screen in the installed app (Android).',
+      'Personal trainer: choose a man or a woman, a new Energetic style and many new messages.',
+      'The personal trainers appear on the start screen.',
+      'Exercise page: "Add to plan" button to put it in a plan day.',
+    ],
+  },
+  {
     date: '2026-10-30',
     pt: ['Personal trainer também fora do treino: bom dia/boa tarde no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia; pode desligar nas Definições).'],
     en: ['Personal trainer outside the workout too: a greeting on Home and comments at the end of a workout, in Analysis and in History (once a day; can be switched off in Settings).'],

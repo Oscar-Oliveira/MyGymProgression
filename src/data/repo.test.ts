@@ -103,6 +103,24 @@ describe('repo (IndexedDB)', () => {
     expect(await db.planVersions.get(v1.id)).toBeDefined();
   });
 
+  it('adds an exercise to a plan day from the exercise; a used version gets a new version', async () => {
+    const { plan, day } = await setupPlan();
+    const squat = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Squat' });
+    await repo.saveExercise(squat);
+    await repo.addToPlanDay(plan.id, day.id, squat.id);
+    const v1 = (await db.planVersions.get((await db.plans.get(plan.id))!.currentVersionId))!;
+    expect(v1.id).toBe(plan.currentVersionId);
+    expect(v1.days[0].items.map((i) => i.exerciseId)).toEqual([day.items[0].exerciseId, squat.id]);
+    // Strength plan: the new item gets the goal's sets.
+    expect(v1.days[0].items[1].sets.length).toBeGreaterThan(0);
+    await doSession(plan.id, day.id, [5, 5, 5]);
+    await repo.addToPlanDay(plan.id, day.id, squat.id);
+    const v2 = (await db.planVersions.get((await db.plans.get(plan.id))!.currentVersionId))!;
+    expect(v2.number).toBe(2);
+    expect(v2.days[0].items).toHaveLength(3);
+    expect((await db.planVersions.get(v1.id))!.days[0].items).toHaveLength(2);
+  });
+
   it('correction keeps a revision and re-evaluates', async () => {
     const { plan, day } = await setupPlan();
     const wid = await doSession(plan.id, day.id, [12, 12, 11]);

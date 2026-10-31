@@ -553,3 +553,32 @@ test('correction: not-done sets stand out, and the status can be changed', async
   await page.getByRole('button', { name: 'Save correction' }).click();
   await expect(page.getByText(/· Completed$/)).toBeVisible();
 });
+
+test('exercise page: add the exercise to a plan day; a day that has it is marked', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: '+ New plan' }).click();
+  await page.getByLabel('Plan name').fill('Push');
+  await page.getByRole('button', { name: '+ Day' }).click();
+  await page.getByRole('button', { name: '+ Add exercise' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await more(page, /^Exercises/);
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('link', { name: /Machine Chest Press/ }).first().click();
+  await page.getByRole('button', { name: '＋ Add to plan' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Add to plan' });
+  await expect(sheet.getByRole('button', { name: /already there/ })).toBeDisabled();
+  await page.goBack();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Lat Pulldown');
+  await page.getByRole('link', { name: /Lat Pulldown/ }).first().click();
+  await page.getByRole('button', { name: '＋ Add to plan' }).click();
+  await sheet.getByRole('button', { name: /1 exercise/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Notice' })).toContainText('Added to');
+  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await more(page, /^Plans/);
+  await page.getByText('Push').first().click();
+  await expect(page.getByText('Lat Pulldown').first()).toBeVisible();
+  expect(nativeDialogs).toEqual([]);
+});

@@ -28,7 +28,7 @@ describe('personal trainer', () => {
   it('every place and style has messages in both languages that work without data', () => {
     for (const lang of ['pt', 'en'] as const)
       for (const place of ['start', 'home', 'done', 'analysis', 'history'] as const)
-        for (const style of ['support', 'spite', 'stoic', 'sergeant'] as const)
+        for (const style of ['support', 'spite', 'stoic', 'sergeant', 'energy'] as const)
           for (const profanity of [false, true]) expect(coachMessage(COACH_BANKS[lang][place], { style, profanity }, { month: 0 }, 'seed')).not.toBe('');
   });
 

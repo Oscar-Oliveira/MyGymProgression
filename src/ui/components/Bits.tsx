@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { Outcome } from '../../domain/types';
+import type { Outcome, ProgressionStrategy } from '../../domain/types';
 
 const TONE: Record<Outcome, string> = {
   increase: 'up',
@@ -15,9 +15,10 @@ const TONE: Record<Outcome, string> = {
   restricted: 'warn',
 };
 
-export function OutcomeBadge({ outcome }: { outcome: Outcome }) {
+export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy?: ProgressionStrategy }) {
   const { t } = useTranslation();
-  return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${outcome}`)}</span>;
+  const key = outcome === 'missed' && strategy && strategy !== 'double' ? 'missedTarget' : outcome;
+  return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${key}`)}</span>;
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {

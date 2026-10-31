@@ -13,10 +13,10 @@ import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
 import { coachMessage } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
-import type { CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
+import type { CoachGender, CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
 import { CoachAvatar } from '../components/CoachAvatar';
 
-const COACH_STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant'];
+const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
 const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
 
 
@@ -323,8 +323,18 @@ export function SettingsPage() {
                 ))}
               </select>
             </label>
+            <label className="setting-row">
+              <span>{t('coach.gender')}</span>
+              <select value={coach.gender ?? 'male'} onChange={(e) => void saveCoach({ gender: e.target.value as CoachGender })}>
+                {(['male', 'female'] as const).map((g) => (
+                  <option key={g} value={g}>
+                    {t(`coach.genders.${g}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="coach-style">
-              <CoachAvatar style={coach.style} />
+              <CoachAvatar style={coach.style} gender={coach.gender} />
               <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
             </div>
             <label className="setting-row">
@@ -352,7 +362,7 @@ export function SettingsPage() {
             )}
             {sample && (
               <div key={sample} className="coach" role="status" aria-label={t('coach.title')}>
-                <CoachAvatar style={coach.style} />
+                <CoachAvatar style={coach.style} gender={coach.gender} />
                 <p>{sample}</p>
               </div>
             )}

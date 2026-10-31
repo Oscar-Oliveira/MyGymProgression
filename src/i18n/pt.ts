@@ -40,7 +40,7 @@ export const pt: Resources = {
       none: 'Prescrição fixa. Só regista se cumpriu; nunca sobe e nunca é marcado como estagnado.',
     },
   },
-  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo' },
+  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', missedTarget: 'Abaixo do alvo', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo' },
   decision: { applied: 'Subiu', reverted: 'Subida desfeita', pending: 'Por decidir', kept: 'Manteve', stepped_back: 'Desceu', reps_up: 'Subiu reps', overridden: 'Definido à mão', none: 'Sem alteração' },
   reason: {
     sets_missing: '{{done}} de {{prescribed}} séries feitas.',
@@ -71,6 +71,7 @@ export const pt: Resources = {
   decide: {
     up: 'Sobe para {{value}}', keep: 'Mantém {{value}}', down: 'Desce para {{value}}', set: 'Definido para {{value}}', reverted: 'Mantém {{value}} (subida desfeita)',
     missed: 'Faltaram repetições — manter ou descer?',
+    missedTarget: 'Abaixo do alvo — manter ou descer?',
     ready: 'Pronto para progredir — carga ou reps?',
     repsUp: 'Reps {{range}} com {{value}}',
     loadBtn: 'Carga {{value}}',
@@ -88,9 +89,11 @@ export const pt: Resources = {
     title: 'Personal trainer', enabled: 'Ativar personal trainer', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
     pages: 'Falar também fora do treino', pagesSub: 'Saudação no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia).',
     when: 'Quando', whenOptions: { random: 'Às vezes, entre exercícios', each: 'Depois de cada exercício', start: 'Só no início' },
-    styles: { support: 'Apoio', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
+    gender: 'Género', genders: { male: 'Homem', female: 'Mulher' },
+    styles: { support: 'Apoio', energy: 'Energético', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
     styleHelp: {
       support: 'Positivo e próximo. Bom para a consistência a longo prazo.',
+      energy: 'Entusiasmo puro: muita energia, festa a cada série e a cada recorde.',
       spite: 'Usa quem duvidou de ti, e as tuas desculpas, como combustível. Funciona bem a curto prazo; combine com objetivos seus.',
       stoic: 'Calmo e firme: foco no que controla, no esforço e na constância.',
       sergeant: 'Duro e direto, com os seus números reais (treinos, subidas, dias parado).',
@@ -142,6 +145,7 @@ export const pt: Resources = {
     defaults: 'Séries predefinidas', progressionSettings: 'Progressão', noResults: 'Nenhum exercício encontrado.', count: '{{count}} exercícios', count_one: '{{count}} exercício',
     usedIn: 'Usado nos planos: {{plans}}. Remova-o desses planos primeiro, ou marque-o como inativo.', history: 'Histórico', prs: 'Melhores', noHistory: 'Ainda sem sessões.',
     applyPreset: 'Aplicar tipo', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', showMore: 'Mostrar mais {{n}} ({{left}} restantes)',
+    addToPlan: 'Adicionar a plano', inDay: 'já está', addedToPlan: 'Adicionado a {{day}} ({{plan}}).',
     join: 'Juntar duplicado', joinOk: 'Juntar', joinConfirm: 'Juntar «{{dup}}» em «{{keep}}»? Passam para «{{keep}}»: {{plans}} planos, {{workouts}} treinos e {{progression}} registos de progressão. «{{dup}}» fica como outro nome e é apagado.', joinDone: '«{{dup}}» foi junto em «{{keep}}».',
     video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
   },

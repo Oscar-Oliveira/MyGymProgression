@@ -5,12 +5,13 @@ import { Link, useParams } from 'react-router-dom';
 import { repo } from '../../data/repo';
 import { dialog } from '../components/Dialog';
 import { ExercisePicker } from '../components/ExercisePicker';
+import { Modal } from '../components/Modal';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
 import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
 import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
-import type { Exercise, MetricDef, SetRecord } from '../../domain/types';
+import type { Exercise, MetricDef, Plan, PlanDay, SetRecord } from '../../domain/types';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, tr, useSettings } from '../util';
 
@@ -55,6 +56,7 @@ function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction 
 export function ExerciseDetail() {
   const { t } = useTranslation();
   const [joining, setJoining] = useState(false);
+  const [adding, setAdding] = useState(false);
   const { id } = useParams();
   const s = useSettings();
   const data = useLiveQuery(async () => {
@@ -63,7 +65,10 @@ export function ExerciseDetail() {
     const events = (await db.progressionEvents.where('exerciseId').equals(id!).toArray()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const parent = ex?.variationOf ? await db.exercises.get(ex.variationOf) : undefined;
     const all = ex ? await db.exercises.toArray() : [];
-    return { ex, workouts, events, parent, all };
+    const plans = (await db.plans.toArray()).filter((p) => p.status === 'active');
+    const versions = await db.planVersions.bulkGet(plans.map((p) => p.currentVersionId));
+    const planDays = plans.map((plan, i) => ({ plan, days: versions[i]?.days ?? [] }));
+    return { ex, workouts, events, parent, all, planDays };
   }, [id]);
   if (!data) return null;
   const { ex, workouts, events, parent } = data;
@@ -92,6 +97,14 @@ export function ExerciseDetail() {
     await repo.joinExercises(ex.id, dup.id);
     await dialog.alert(t('exercise.joinDone', { dup: dup.name, keep: ex.name }));
   };
+  /** Adds the exercise at the end of a plan day. */
+  const addTo = async (plan: Plan, day: PlanDay) => {
+    if (!ex) return;
+    setAdding(false);
+    await repo.addToPlanDay(plan.id, day.id, ex.id);
+    await dialog.alert(t('exercise.addedToPlan', { day: day.name, plan: plan.name }));
+  };
+  const weekdays = t('weekday', { returnObjects: true }) as string[];
   const muscle = (n: string) => (s.language === 'pt' ? (MUSCLE_DETAIL_PT[n] ?? n) : n);
   const name = ex?.name ?? history[0].entry.exercise.name;
 
@@ -114,9 +127,38 @@ export function ExerciseDetail() {
             <button className="outline" onClick={() => setJoining(true)}>
               ⇆ {t('exercise.join')}
             </button>
+            <button className="outline" onClick={() => setAdding(true)}>
+              ＋ {t('exercise.addToPlan')}
+            </button>
           </div>
         )}
       </div>
+      {adding && ex && (
+        <Modal title={t('exercise.addToPlan')} onClose={() => setAdding(false)}>
+          {data.planDays.length === 0 && (
+            <p className="muted">
+              {t('train.noPlans')} <Link to="/plans">{t('home.createPlan')}</Link>
+            </p>
+          )}
+          {data.planDays.map(({ plan, days }) => (
+            <div key={plan.id}>
+              <p className="eyebrow">{plan.name}</p>
+              {days.map((day) => {
+                const has = day.items.some((i) => i.exerciseId === ex.id);
+                return (
+                  <button key={day.id} className="outline" style={{ width: '100%', marginBottom: '0.4rem', justifyContent: 'space-between' }} disabled={has} onClick={() => void addTo(plan, day)}>
+                    <span>
+                      {day.name}
+                      {day.weekday !== undefined && ` · ${weekdays[day.weekday]}`}
+                    </span>
+                    <small>{has ? `✓ ${t('exercise.inDay')}` : t('train.exercises', { count: day.items.length })}</small>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </Modal>
+      )}
       {joining && ex && <ExercisePicker exclude={[ex.id]} onPick={(dup) => void join(dup)} onClose={() => setJoining(false)} />}
 
       {ex && (
@@ -280,7 +322,7 @@ export function ExerciseDetail() {
                         .join(', ')}
                       {h.entry.substitutedFor && <small> ({t('workout.substitute')})</small>}
                     </td>
-                    <td>{h.entry.evaluation && <OutcomeBadge outcome={h.entry.evaluation.outcome} />}</td>
+                    <td>{h.entry.evaluation && <OutcomeBadge outcome={h.entry.evaluation.outcome} strategy={h.entry.evaluation.strategy} />}</td>
                   </tr>
                 ))}
               </tbody>

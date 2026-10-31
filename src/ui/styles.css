@@ -90,7 +90,7 @@ small, .muted { color: var(--muted); }
 .num, .value { font-variant-numeric: tabular-nums; }
 
 /* App shell */
-.shell { max-width: 760px; margin: 0 auto; padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(var(--tabs-h) + 2.5rem + env(safe-area-inset-bottom)); animation: page-in 0.25s ease-out; }
+.shell { max-width: 760px; min-height: 100dvh; margin: 0 auto; padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(var(--tabs-h) + 2.5rem + env(safe-area-inset-bottom)); animation: page-in 0.25s ease-out; }
 @keyframes page-in { from { opacity: 0; transform: translateY(6px); } }
 /* Mobile: floating tab bar with blur. */
 .tabs { position: fixed; z-index: 20; left: 0.75rem; right: 0.75rem; bottom: calc(0.6rem + env(safe-area-inset-bottom)); height: var(--tabs-h); display: grid; grid-template-columns: repeat(4, 1fr); padding: 0.35rem; border-radius: 22px; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px); border: 1px solid var(--border); box-shadow: 0 8px 30px rgb(10 12 30 / 0.16); }
@@ -548,3 +548,18 @@ label.setting-row > input.switch:checked { background: var(--tone); border-color
 label.setting-row > input.switch:checked::after { transform: translateX(1.25rem); background: #fff; }
 @media (prefers-reduced-motion: reduce) { label.setting-row > input.switch, label.setting-row > input.switch::after { transition: none; } }
 .privacy-note { font-size: 0.8rem; color: var(--muted); margin: 0.75rem 0 0; }
+
+/* Splash: the trainers pop up from the bottom, then each does its own move (main.tsx). */
+.splash-crew { position: absolute; left: 0; right: 0; bottom: calc(2.5rem + env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: 0.6rem; }
+.splash-crew span { display: block; transform: translateY(170%); animation: crew-pop 0.45s cubic-bezier(0.34, 1.7, 0.64, 1) calc(var(--i) * 0.11s) forwards, var(--move) 0.6s ease-in-out 0.85s; }
+.splash-crew .crew-support { --move: crew-wave; transform-origin: 50% 100%; }
+.splash-crew .crew-energy { --move: crew-flip; }
+.splash-crew .crew-spite { --move: crew-shake; }
+.splash-crew .crew-sergeant { --move: crew-attention; }
+.splash-crew .crew-stoic { animation: crew-pop 0.9s ease-out 0.55s forwards; }
+@keyframes crew-pop { to { transform: translateY(0); } }
+@keyframes crew-wave { 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
+@keyframes crew-flip { 50% { transform: translateY(-70%) rotate(180deg); } 100% { transform: translateY(0) rotate(360deg); } }
+@keyframes crew-shake { 20%, 60% { transform: translateX(-4px) rotate(-6deg); } 40%, 80% { transform: translateX(4px) rotate(6deg); } }
+@keyframes crew-attention { 30% { transform: translateY(-30%) scale(1.12); } 60% { transform: translateY(0) scale(0.95); } }
+@media (prefers-reduced-motion: reduce) { .splash-crew span, .splash-crew .crew-stoic { transform: none; animation: none; } }

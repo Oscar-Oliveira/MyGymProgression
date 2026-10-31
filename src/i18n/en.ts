@@ -38,7 +38,7 @@ export const en = {
       none: 'Fixed prescription. Only completion is recorded; it never goes up and is never flagged as stalled.',
     },
   },
-  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed' },
+  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', missedTarget: 'Below target', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed' },
   decision: { applied: 'Increased', reverted: 'Increase undone', pending: 'To decide', kept: 'Kept', stepped_back: 'Stepped back', reps_up: 'Reps up', overridden: 'Set manually', none: 'No change' },
   reason: {
     sets_missing: '{{done}} of {{prescribed}} sets done.',
@@ -69,6 +69,7 @@ export const en = {
   decide: {
     up: 'Up to {{value}}', keep: 'Keep {{value}}', down: 'Down to {{value}}', set: 'Set to {{value}}', reverted: 'Kept at {{value}} (increase undone)',
     missed: 'Missed reps — keep or step back?',
+    missedTarget: 'Below target — keep or step back?',
     ready: 'Ready to progress — load or reps?',
     repsUp: 'Reps {{range}} at {{value}}',
     loadBtn: 'Load {{value}}',
@@ -86,9 +87,11 @@ export const en = {
     title: 'Personal trainer', enabled: 'Turn on personal trainer', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
     pages: 'Also speak outside the workout', pagesSub: 'Greeting on Home and comments at the end of a workout, in Analysis and in History (once a day).',
     when: 'When', whenOptions: { random: 'Sometimes, between exercises', each: 'After every exercise', start: 'Only at the start' },
-    styles: { support: 'Support', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
+    gender: 'Gender', genders: { male: 'Man', female: 'Woman' },
+    styles: { support: 'Support', energy: 'Energetic', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
     styleHelp: {
       support: 'Positive and warm. Good for long-term consistency.',
+      energy: 'Pure enthusiasm: lots of energy, a party for every set and every record.',
       spite: 'Uses doubters, and your own excuses, as fuel. Works well short term; combine it with goals of your own.',
       stoic: 'Calm and firm: focus on what you control, on effort and on consistency.',
       sergeant: 'Hard and direct, with your real numbers (workouts, increases, days off).',
@@ -140,6 +143,7 @@ export const en = {
     defaults: 'Default sets', progressionSettings: 'Progression', noResults: 'No exercises found.', count: '{{count}} exercises', count_one: '{{count}} exercise',
     usedIn: 'Used in plans: {{plans}}. Remove it from those plans first, or set it inactive.', history: 'History', prs: 'Best', noHistory: 'No sessions yet.',
     applyPreset: 'Apply type', groups: 'Muscle groups', allEquipment: 'All equipment', showMore: 'Show {{n}} more ({{left}} left)',
+    addToPlan: 'Add to plan', inDay: 'already there', addedToPlan: 'Added to {{day}} ({{plan}}).',
     join: 'Join a duplicate', joinOk: 'Join', joinConfirm: 'Join «{{dup}}» into «{{keep}}»? Moving to «{{keep}}»: {{plans}} plans, {{workouts}} workouts and {{progression}} progression records. «{{dup}}» becomes another name and is deleted.', joinDone: '«{{dup}}» was joined into «{{keep}}».',
     video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
   },

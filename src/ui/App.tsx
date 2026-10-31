@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
+import { useEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
@@ -35,12 +35,39 @@ const TABS = [
 ] as const;
 const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about'];
 
+/** Touches that must not change the tab: form fields, windows, charts and areas that scroll sideways. */
+function keepsSwipe(target: EventTarget | null): boolean {
+  for (let el = target instanceof Element ? target : null; el && el !== document.body; el = el.parentElement) {
+    if (el.matches('input, select, textarea, dialog, .recharts-wrapper')) return true;
+    const x = getComputedStyle(el).overflowX;
+    if ((x === 'auto' || x === 'scroll') && el.scrollWidth > el.clientWidth) return true;
+  }
+  return false;
+}
+
 function Shell() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const active = useLiveQuery(() => db.workouts.where('status').equals('in_progress').first(), []);
   // The active workout screen hides the tab bar to keep the focus on logging.
   const focus = !!active && pathname === `/workout/${active.id}`;
+  // On a main tab, a horizontal swipe opens the tab to the left or right.
+  const nav = useNavigate();
+  const touch = useRef<{ x: number; y: number; t: number }>(undefined);
+  const tab = TABS.findIndex(([to]) => to === pathname);
+  const onTouchStart = (e: TouchEvent) => {
+    touch.current = tab >= 0 && e.touches.length === 1 && !keepsSwipe(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : undefined;
+  };
+  const onTouchEnd = (e: TouchEvent) => {
+    const start = touch.current;
+    touch.current = undefined;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < 2 * Math.abs(dy) || Date.now() - start.t > 700) return;
+    const next = TABS[tab + (dx < 0 ? 1 : -1)];
+    if (next) nav(next[0]);
+  };
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -64,7 +91,7 @@ function Shell() {
           ))}
         </nav>
       )}
-      <main className={`shell ${focus ? 'focus' : ''}`}>
+      <main className={`shell ${focus ? 'focus' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/train" element={<Train />} />

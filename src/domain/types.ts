@@ -344,10 +344,13 @@ export interface Settings {
   coach?: CoachSettings;
 }
 
-export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant';
+export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant' | 'energy';
+export type CoachGender = 'male' | 'female';
 export interface CoachSettings {
   enabled: boolean;
   style: CoachStyle;
+  /** Face of the trainer. Default: male. */
+  gender?: CoachGender;
   /** Spite style only: allow swear words. */
   profanity: boolean;
   /** Messages after an exercise or circuit is done: never (start only), always, or about 4 in 10. Default: random. */

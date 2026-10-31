@@ -4,6 +4,20 @@
 
 Be concise with all of your responses.
 
+Always follow this 4-phase workflow for every task:
+- Analyse – Examine the request, its context, constraints, dependencies and expected outcome. Identify ambiguities, missing information and potential risks.
+- Ask – Ask clarifying questions whenever essential information is missing or requirements are ambiguous. Do not make assumptions that could significantly affect the outcome. If everything is clear, proceed directly.
+- Plan – Define a clear, structured plan of action. Break complex tasks into manageable steps, identify dependencies and establish how the expected outcome will be validated. Present the plan before execution when the task is substantial.
+- Execute – Carry out the plan systematically. Follow established requirements and constraints, verify the results, handle errors and adjust the approach when necessary.
+
+General principles:
+- Do not skip phases, but adapt their depth to the complexity of the task.
+- Do not start implementation before resolving essential ambiguities.
+- Avoid unnecessary questions when the requirements are already clear.
+- Keep the user informed of important decisions, deviations and blockers.
+- Validate the final result against the original requirements.
+- Never claim completion without verifying the outcome.
+
 ## Behavioral guidelines
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.

@@ -6,7 +6,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
 import type { Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
-import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
+import { lastEntryFinder, nextPlanned, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
 import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
@@ -123,10 +123,8 @@ export function Home() {
   const last = finished[0];
   const due = backupDue(s.lastBackupAt, finished.length);
 
-  // Next workout: the plan used most recently, else the first active plan.
-  const plan = plans.find((p) => p.id === finished.find((w) => w.planId && plans.some((x) => x.id === w.planId))?.planId) ?? plans[0];
-  const version = plan && versions.find((v) => v.id === plan.currentVersionId);
-  const day = version && nextDay(version, workouts);
+  // Next workout: the nearest day set to a weekday, else the plan used most recently.
+  const { plan, version, day } = nextPlanned(plans, versions, workouts) ?? {};
   const ctx = { exercises: new Map(exercises.map((e) => [e.id, e])), states: new Map(states.map((x) => [x.lineageId, x])), lastEntry: lastEntryFinder(workouts) };
   const preview = plan && version && day ? startWorkout(plan, version, day, ctx) : undefined;
   // Plan days set to a weekday (0 = Monday), in the active plans.
@@ -204,7 +202,7 @@ export function Home() {
             ▶ {t('home.continue')}
           </Link>
         </section>
-      ) : preview && day ? (
+      ) : preview && plan && day ? (
         <section className="hero toned" style={toneStyle(toneOf(plan, day))}>
           <p className="eyebrow">{t('home.next')}</p>
           <h1>{day.name}</h1>

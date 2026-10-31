@@ -1,6 +1,7 @@
 // Storage use-cases. Each multi-table change runs in one transaction.
 import { db as defaultDb, type GymDB } from './db';
-import { DEFAULT_SETTINGS, nowIso, saveVersion, uid } from '../domain/factory';
+import { DEFAULT_SETTINGS, newPlanItem, nowIso, saveVersion, uid } from '../domain/factory';
+import { dayGoal } from '../domain/goals';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
 import { mergeLibrary, type LibraryRecord } from '../domain/library';
@@ -135,6 +136,20 @@ export function createRepo(db: GymDB) {
       await db.transaction('rw', db.plans, db.planVersions, async () => {
         const current = await db.planVersions.get(plan.currentVersionId);
         if (!current) throw new Error('version_missing');
+        const next = saveVersion(current, days);
+        await db.planVersions.put(next);
+        await db.plans.put({ ...plan, currentVersionId: next.id, updatedAt: nowIso() });
+      });
+    },
+
+    /** Adds an exercise at the end of a plan day, with the sets of the day's goal. A locked version produces a new version. */
+    async addToPlanDay(planId: string, dayId: string, exerciseId: string) {
+      await db.transaction('rw', db.plans, db.planVersions, db.exercises, async () => {
+        const plan = await db.plans.get(planId);
+        const current = plan && (await db.planVersions.get(plan.currentVersionId));
+        const ex = await db.exercises.get(exerciseId);
+        if (!plan || !current || !ex) throw new Error('not_found');
+        const days = current.days.map((d) => (d.id === dayId ? { ...d, items: [...d.items, newPlanItem(ex, dayGoal(plan, d))] } : d));
         const next = saveVersion(current, days);
         await db.planVersions.put(next);
         await db.plans.put({ ...plan, currentVersionId: next.id, updatedAt: nowIso() });

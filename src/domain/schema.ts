@@ -194,7 +194,7 @@ export const settingsSchema = z.object({
   lastBackupAt: iso.optional(),
   librarySync: z.string().optional(),
   theme: z.enum(['dark', 'light', 'system']).optional(),
-  coach: z.object({ enabled: z.boolean(), style: z.enum(['support', 'spite', 'stoic', 'sergeant']), profanity: z.boolean(), when: z.enum(['start', 'each', 'random']).optional(), pages: z.boolean().optional() }).optional(),
+  coach: z.object({ enabled: z.boolean(), style: z.enum(['support', 'spite', 'stoic', 'sergeant', 'energy']), gender: z.enum(['male', 'female']).optional(), profanity: z.boolean(), when: z.enum(['start', 'each', 'random']).optional(), pages: z.boolean().optional() }).optional(),
 });
 
 export const SCHEMA_VERSION = 9;

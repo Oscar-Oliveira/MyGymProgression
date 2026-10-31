@@ -30,7 +30,7 @@ export default defineConfig({
         description: 'Training plans, workout logging and progression',
         theme_color: '#5b4cf5',
         background_color: '#5b4cf5',
-        display: 'standalone',
+        display: 'fullscreen',
         start_url: '.',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

@@ -117,8 +117,16 @@ function mainValue(entry: WorkoutEntry, targets?: Partial<Record<MetricKey, numb
 
 const firstReason = (t: TFunction, reasons: Reason[], metrics: MetricDef[]) => (reasons[0] ? reasonText(t, reasons[0], metrics) : '');
 
+/** "Keep" has several causes; "building reps" only fits sets below the rep max. */
+function keepWhy(t: TFunction, reasons: Reason[], metrics: MetricDef[]): string {
+  const code = reasons[0]?.code;
+  if (code === 'set_below_max') return t('decide.building');
+  if (code === 'top_reached') return t('reason.top_reached_short');
+  return firstReason(t, reasons, metrics);
+}
+
 /** One line "what happens next" and one line "why" for an evaluated entry. */
-function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: TFunction, lang: string): { what: string; why: string } {
+export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: TFunction, lang: string): { what: string; why: string } {
   const metrics = entry.exercise.metrics;
   const evn = entry.evaluation;
   const sets = setsLine(entry.sets, metrics, lang);
@@ -136,20 +144,26 @@ function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefined, t: 
   }
   if (ev?.decision === 'pending' && evn.outcome === 'ready') return { what: t('decide.ready'), why: `${sets} — ${t('reason.top_reached_short')}` };
   if (ev?.decision === 'reverted') return { what: t('decide.reverted', { value: val(ev.after) }), why: sets };
-  if (ev?.decision === 'pending') return { what: t('decide.missed'), why: `${sets} — ${firstReason(t, evn.reasons, metrics)}` };
+  if (ev?.decision === 'pending') {
+    // Without a step-back suggestion there is nothing to choose, so no question.
+    const key = entry.progression.strategy === 'double' ? 'missed' : 'missedTarget';
+    return { what: t(ev.suggestion ? `decide.${key}` : `outcome.${key}`), why: `${sets} — ${firstReason(t, evn.reasons, metrics)}` };
+  }
   if (ev?.decision === 'kept') return { what: t('decide.keep', { value: val(ev.after) }), why: sets };
   if (ev?.decision === 'stepped_back') return { what: t('decide.down', { value: val(ev.after) }), why: sets };
   if (ev?.decision === 'overridden') return { what: t('decide.set', { value: val(ev.after) }), why: ev.decisionReason || sets };
   const keep = t('decide.keep', { value: val() });
+  // setsLine returns '—' when no set was done; then the reason alone is clearer.
+  const withSets = (reason: string) => (!reason ? sets : sets === '—' ? reason : `${sets} — ${reason}`);
   switch (evn.outcome) {
     case 'progress':
       return { what: keep, why: `${sets} — ${t('reason.reps_improved_short')}` };
     case 'keep':
-      return { what: keep, why: `${sets} — ${t('decide.building')}` };
+      return { what: keep, why: `${sets} — ${keepWhy(t, evn.reasons, metrics)}` };
     case 'incomplete':
-      return { what: keep, why: firstReason(t, evn.reasons, metrics) };
+      return { what: keep, why: withSets(firstReason(t, evn.reasons, metrics)) };
     case 'restricted':
-      return { what: keep, why: evn.reasons.filter((r) => r.code !== 'top_reached').map((r) => reasonText(t, r, metrics)).join(' ') };
+      return { what: keep, why: withSets(evn.reasons.filter((r) => r.code !== 'top_reached').map((r) => reasonText(t, r, metrics)).join(' ')) };
     case 'at_cap':
       return { what: t('hint.cap'), why: sets };
     case 'manual':

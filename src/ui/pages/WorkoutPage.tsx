@@ -185,7 +185,7 @@ export function WorkoutPage() {
           </div>
         </div>
 
-        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} />}
+        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} />}
 
         {step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
@@ -199,7 +199,7 @@ export function WorkoutPage() {
 
         {toast && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
-            <CoachAvatar style={coach?.style ?? 'support'} />
+            <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} />
             <p>{toast}</p>
             <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
               ✕
