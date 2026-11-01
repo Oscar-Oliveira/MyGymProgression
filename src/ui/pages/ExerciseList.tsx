@@ -15,15 +15,20 @@ const PAGE = 60;
 export function ExerciseList() {
   const { t } = useTranslation();
   const all = useLiveQuery(() => db.exercises.toArray(), []);
-  // The filters are kept in the URL, so "back" from an exercise returns to the same search.
+  // The filters are copied to the URL, so "back" from an exercise returns to the same search.
+  // They are read from it once: the URL changes after a short delay, and typing must not wait for it.
   const [params, setParams] = useSearchParams();
-  const q = params.get('q') ?? '';
-  const group = (params.get('group') ?? '') as MuscleGroup | '';
-  const equip = params.get('equip') ?? '';
-  const inactive = params.get('inactive') === '1';
-  const limit = Math.max(PAGE, Number(params.get('n')) || PAGE);
-  const set = (next: { q?: string; group?: string; equip?: string; inactive?: boolean; n?: number }) => {
-    const v = { q, group, equip, inactive, n: PAGE, ...next };
+  const [filters, setFilters] = useState(() => ({
+    q: params.get('q') ?? '',
+    group: (params.get('group') ?? '') as MuscleGroup | '',
+    equip: params.get('equip') ?? '',
+    inactive: params.get('inactive') === '1',
+    n: Math.max(PAGE, Number(params.get('n')) || PAGE),
+  }));
+  const { q, group, equip, inactive, n: limit } = filters;
+  const set = (next: Partial<typeof filters>) => {
+    const v = { ...filters, n: PAGE, ...next };
+    setFilters(v);
     const out: Record<string, string> = {};
     if (v.q) out.q = v.q;
     if (v.group) out.group = v.group;

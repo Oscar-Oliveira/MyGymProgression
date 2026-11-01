@@ -9,7 +9,7 @@ import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
 import type { Exercise, GameId, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, startWorkout, type DecisionInput } from '../domain/workout';
+import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   // Library imports run one at a time (app start and a button click may overlap); otherwise both would add the same exercises.
@@ -62,9 +62,17 @@ export function createRepo(db: GymDB) {
       if (state && canRevert(ev, state)) await db.progressionStates.put(decide(ev, state, { kind: 'revert' }).state);
     }
     await db.progressionEvents.bulkDelete(evs.map((e) => e.id));
-    // Questions this workout closed are open again.
+    // Questions this workout closed are open again, unless another later workout of the same exercise closes them now.
     const closed = (await db.progressionEvents.where('decision').equals('kept').toArray()).filter((e) => e.closedBy === workoutId);
-    await db.progressionEvents.bulkPut(closed.map(({ closedBy: _c, decidedAt: _d, ...e }) => ({ ...e, decision: 'pending' as const })));
+    if (!closed.length) return;
+    const workouts = (await db.workouts.toArray()).filter((x) => x.id !== workoutId && x.status !== 'in_progress').sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    await db.progressionEvents.bulkPut(
+      closed.map(({ closedBy: _c, decidedAt: _d, ...e }) => {
+        const asked = workouts.find((x) => x.id === e.workoutId)?.startedAt ?? e.createdAt;
+        const later = workouts.find((x) => x.startedAt > asked && x.entries.some((en) => en.lineageId === e.lineageId));
+        return later ? { ...e, decision: 'kept' as const, decidedAt: later.endedAt, closedBy: later.id } : { ...e, decision: 'pending' as const };
+      }),
+    );
   }
 
   return {
@@ -286,6 +294,17 @@ export function createRepo(db: GymDB) {
       });
     },
 
+    /** The plan's rep range applies again for a lineage (after it was changed in the plan). Nothing happens without a "reps up" range. */
+    async resetRepsRange(lineageId: string, reason: string, strategy: ProgressionEvent['strategy']) {
+      await db.transaction('rw', db.progressionEvents, db.progressionStates, async () => {
+        const state = await db.progressionStates.get(lineageId);
+        if (!state?.repsRange) return;
+        const res = resetRepsRange(state, reason, strategy);
+        await db.progressionEvents.add(res.event);
+        await db.progressionStates.put(res.state);
+      });
+    },
+
     async lastEntry(lineageId: string): Promise<WorkoutEntry | undefined> {
       return lastEntryFinder(await db.workouts.toArray())(lineageId);
     },
@@ -318,7 +337,13 @@ export function createRepo(db: GymDB) {
     /** Writes records from a merge plan (see planMerge). Existing records not in the plan are untouched. */
     async importMerge(data: DataSet) {
       await db.transaction('rw', db.tables, async () => {
-        for (const t of TABLES) if (data[t].length) await db.table(t).bulkPut(data[t]);
+        // One workout in progress at a time: imported open workouts become interrupted when one is already open here
+        // (or, among themselves, all but the latest).
+        const open = await db.workouts.where('status').equals('in_progress').first();
+        const latest = data.workouts.filter((w) => w.status === 'in_progress').sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+        const keep = open ? open.id : latest?.id;
+        const workouts = data.workouts.map((w) => (w.status === 'in_progress' && w.id !== keep ? { ...w, status: 'interrupted' as const, endedAt: w.endedAt ?? w.updatedAt } : w));
+        for (const t of TABLES) if (data[t].length) await db.table(t).bulkPut(t === 'workouts' ? workouts : data[t]);
       });
     },
 

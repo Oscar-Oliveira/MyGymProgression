@@ -7,11 +7,12 @@ import { duplicateAsVariation, newExercise } from '../../domain/factory';
 import type { Exercise, ExerciseCategory, LoadMode } from '../../domain/types';
 import { MEASUREMENT_PRESETS, presetDefaults, presetMetrics, type MeasurementPreset } from '../../domain/units';
 import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../components/Editors';
-import { splitList, useSettings } from '../util';
+import { splitList, useSettings, useUnsavedGuard } from '../util';
+import { Empty } from '../components/Bits';
 import { dialog } from '../components/Dialog';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
-const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'cardio', 'full_body'];
+const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'adductors', 'neck', 'cardio', 'full_body'];
 const EQUIPMENT = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'band', 'treadmill', 'bike', 'rower', 'other'];
 
 function Chips({ value, onChange, label }: { value: string[]; onChange: (v: string[]) => void; label: string }) {
@@ -46,16 +47,28 @@ export function ExerciseEdit() {
   const [preset, setPreset] = useState<MeasurementPreset>('reps_load');
   const [errors, setErrors] = useState<string[]>([]);
   const [original, setOriginal] = useState<Exercise>();
+  // What the form started from (the stored exercise, or the new draft), to know about unsaved changes.
+  const [base, setBase] = useState<Exercise>();
+  const [missing, setMissing] = useState(false);
+  const unsaved = useUnsavedGuard();
 
   useEffect(() => {
     if (id) {
       void db.exercises.get(id).then((e) => {
         setEx(e);
         setOriginal(e);
+        setBase(e);
+        setMissing(!e);
       });
-    } else setEx(newExercise('reps_load', s));
+    } else {
+      const draft = newExercise('reps_load', s);
+      setEx(draft);
+      setBase(draft);
+    }
     // Settings only matter for the initial draft.
   }, [id]);
+  unsaved.current = !!ex && JSON.stringify(ex) !== JSON.stringify(base);
+  if (missing) return <Empty>{t('exercise.noResults')}</Empty>;
   if (!ex) return null;
   const up = (patch: Partial<Exercise>) => setEx({ ...ex, ...patch });
 
@@ -77,6 +90,7 @@ export function ExerciseEdit() {
     setErrors(errs);
     if (errs.length) return;
     await repo.saveExercise({ ...ex, name: ex.name.trim(), links: ex.links.filter((l) => l.url) });
+    unsaved.current = false;
     nav(`/exercises/${ex.id}`);
   };
 
@@ -85,12 +99,14 @@ export function ExerciseEdit() {
     if (used.length) return dialog.alert(t('exercise.usedIn', { plans: used.join(', ') }));
     if (!(await dialog.confirm(t('common.confirmDelete', { name: ex.name }), { danger: true, ok: t('common.delete') }))) return;
     await repo.deleteExercise(ex.id);
+    unsaved.current = false;
     nav('/exercises');
   };
 
   const variation = async () => {
     const v = duplicateAsVariation(ex, t('exercise.variationName', { name: ex.name }));
     await repo.saveExercise(v);
+    unsaved.current = false; // the copy takes the changes made here
     nav(`/exercises/${v.id}/edit`);
   };
 

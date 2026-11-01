@@ -203,14 +203,14 @@ export function filterWorkouts(workouts: Workout[], f: WorkoutFilter): Workout[]
   return f.exerciseId ? out.map((w) => ({ ...w, entries: w.entries.filter((e) => e.exerciseId === f.exerciseId) })) : out;
 }
 
-/** Completed working sets per muscle. A primary muscle counts 1, a secondary muscle counts 0.5. */
-export function muscleDistribution(workouts: Workout[]): Record<string, number> {
+/** Completed working sets per muscle. A primary muscle counts 1, a secondary muscle counts `secondaryWeight` (default 0.5). */
+export function muscleDistribution(workouts: Workout[], secondaryWeight = SECONDARY_MUSCLE_WEIGHT): Record<string, number> {
   const out: Record<string, number> = {};
   for (const w of workouts.filter(isFinished)) {
     for (const e of w.entries) {
       const n = entryMetrics(e).doneWorkingSets;
       for (const m of e.exercise.primaryMuscles) out[m] = (out[m] ?? 0) + n;
-      for (const m of e.exercise.secondaryMuscles) out[m] = (out[m] ?? 0) + n * SECONDARY_MUSCLE_WEIGHT;
+      if (secondaryWeight) for (const m of e.exercise.secondaryMuscles) out[m] = (out[m] ?? 0) + n * secondaryWeight;
     }
   }
   return out;

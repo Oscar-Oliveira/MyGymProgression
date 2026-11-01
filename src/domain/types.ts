@@ -384,6 +384,8 @@ export interface Challenge {
   target: number;
   exerciseId?: string;
   exerciseName?: string;
+  /** record: the exercise is logged per side; the load is shown per side (target stays the total). */
+  perSide?: boolean;
   muscle?: string;
   status: 'open' | 'done' | 'missed';
   doneAt?: string;

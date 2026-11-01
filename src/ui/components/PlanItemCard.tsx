@@ -134,6 +134,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
               –
               <NumInput label={`${ex.name} ${t('plan.repsMax')}`} value={first?.targets.reps?.max} onChange={(v) => setReps('max', v)} />
             </span>
+            {state?.repsRange && <small className="help">{t('plan.rangeHelp', { range: `${state.repsRange.min}–${state.repsRange.max}` })}</small>}
           </span>
         )}
         {valueMetrics.map((m) => (
@@ -184,7 +185,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
           </div>
           <div>
             <h3>{t('plan.setBySet')}</h3>
-            <PrescriptionEditor sets={item.sets} metrics={ex.metrics} onChange={(sets) => onChange({ ...item, sets })} />
+            <PrescriptionEditor sets={item.sets} metrics={ex.metrics} fixedCount={inCircuit} onChange={(sets) => onChange({ ...item, sets })} />
           </div>
           <div>
             <h3>{t('strategy.label')}</h3>

@@ -1,12 +1,35 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { useBlocker } from 'react-router-dom';
+import { dialog } from './components/Dialog';
 import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { DEFAULT_SETTINGS } from '../domain/factory';
 import { buildBundle } from '../domain/interchange';
 import type { MetricDef, MetricKey, Reason, Settings } from '../domain/types';
 import { convert, round } from '../domain/units';
+
+/**
+ * Asks before leaving the page with unsaved changes (in the app, and when the tab is closed).
+ * The page sets `.current` on each render, and to false just before it leaves after saving.
+ */
+export function useUnsavedGuard() {
+  const { t } = useTranslation();
+  const unsaved = useRef(false);
+  const blocker = useBlocker(() => unsaved.current);
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    void dialog.confirm(t('common.leaveUnsaved'), { danger: true, ok: t('common.leave') }).then((ok) => (ok ? blocker.proceed() : blocker.reset()));
+  }, [blocker, t]);
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => unsaved.current && e.preventDefault();
+    addEventListener('beforeunload', warn);
+    return () => removeEventListener('beforeunload', warn);
+  }, []);
+  return unsaved;
+}
 
 export function useSettings(): Settings {
   return useLiveQuery(() => repo.getSettings(), [], DEFAULT_SETTINGS);
@@ -145,5 +168,6 @@ export async function saveBackup(): Promise<boolean> {
 }
 
 export const splitList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
-export const today = () => new Date().toISOString().slice(0, 10);
+/** Local date YYYY-MM-DD. */
+export const today = () => new Date().toLocaleDateString('sv');
 export const stamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');

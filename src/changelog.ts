@@ -15,6 +15,9 @@ export const CHANGELOG: ChangeEntry[] = [
       'Plano: aviso ao sair sem guardar. Circuito marcado como feito por engano pode ser desfeito.',
       'Análise: períodos em semanas completas e datas locais. Velocidade em mph quando usas milhas.',
       'Treinar: o próximo dia de cada plano tem a etiqueta "próximo"; todos os dias usam a cor do plano.',
+      'Plano: mudar as reps depois de "subir reps" volta a usar a faixa do plano. Num circuito, as séries são as voltas.',
+      'Desafio semanal: recorde por lado nos exercícios por lado; o desafio de músculo conta só as séries em que é músculo principal.',
+      'Exercício: aviso ao sair sem guardar; músculos Adutores e Pescoço.',
       'Todos os textos em português tratam-te por tu.',
     ],
     en: [
@@ -24,6 +27,9 @@ export const CHANGELOG: ChangeEntry[] = [
       'Plan: a warning when you leave without saving. A circuit marked done by mistake can be undone.',
       'Analysis: periods in whole weeks and local dates. Speed in mph when you use miles.',
       'Train: the next day of each plan has a "next" label; every day uses the plan colour.',
+      'Plan: changing the reps after "reps up" makes the plan range apply again. In a circuit, the sets are the rounds.',
+      'Weekly challenge: a record per side for per-side exercises; the muscle challenge counts only sets where it is a primary muscle.',
+      'Exercise: a warning when you leave without saving; Adductors and Neck muscles.',
     ],
   },
   {

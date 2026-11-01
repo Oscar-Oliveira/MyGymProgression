@@ -68,6 +68,21 @@ test('library file: existing exercises get the embedded image', async ({ page })
   await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first().locator('img.thumb')).toHaveAttribute('src', THUMB);
 });
 
+test('exercises: the search and filters stay after opening an exercise and going back', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').pressSequentially('Back Squat'); // typed key by key: no letter may be lost
+  await expect(page.getByRole('searchbox')).toHaveValue('Back Squat');
+  await page.getByRole('checkbox', { name: 'Show inactive' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Show inactive' })).toBeChecked();
+  await page.getByRole('link', { name: /Barbell Back Squat/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'Barbell Back Squat' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('searchbox')).toHaveValue('Back Squat');
+  await expect(page.getByRole('checkbox', { name: 'Show inactive' })).toBeChecked();
+  await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first()).toBeVisible();
+});
+
 test('library file: a file that is not a library shows an error', async ({ page }) => {
   await importLibraryFile(page, { hello: 'world' });
   await expect(page.getByText('This file is not an exercise library.')).toBeVisible();
@@ -571,6 +586,19 @@ test('correction: an increase the corrected sets no longer support is undone onl
   await expect(ask).toContainText('no longer reached the top of the range');
   await ask.getByRole('button', { name: 'Undo increase' }).click();
   await expect(chest.getByText(/increase undone/)).toBeVisible();
+});
+
+test('exercise editor: leaving with unsaved changes asks first; saving does not ask', async ({ page }) => {
+  await more(page, /^Exercises/);
+  await page.getByRole('link', { name: '+ New exercise' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Cable fly');
+  await tab(page, 'Home');
+  const ask = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(ask).toContainText('unsaved changes');
+  await ask.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Cable fly' })).toBeVisible();
+  await expect(ask).toHaveCount(0);
 });
 
 test('plan editor: leaving with unsaved changes asks first', async ({ page }) => {

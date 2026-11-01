@@ -39,7 +39,7 @@ function hash(s: string): number {
  * - workouts: one more workout than the weekly average (2 to 7).
  * - sets: 10 % more working sets than the weekly average (at least 10).
  * - record: beat the top load of the exercise with load done most often.
- * - muscle: 2 more sets than the weekly average for the least trained muscle (at least 4).
+ * - muscle: 2 more sets than the weekly average for the least trained muscle (at least 4). Only sets where it is a primary muscle count.
  * Without recent workouts, only "workouts" is possible.
  */
 export function createChallenge(week: string, workouts: Workout[], id: string, now: string): Challenge {
@@ -50,15 +50,18 @@ export function createChallenge(week: string, workouts: Workout[], id: string, n
   ];
   if (recent.length) {
     options.push({ kind: 'sets', target: Math.max(10, Math.round((sets(recent) / HISTORY_WEEKS) * 1.1)) });
-    const counts = new Map<string, { n: number; name: string }>();
+    const counts = new Map<string, { n: number; name: string; perSide: boolean }>();
     for (const e of recent.flatMap((w) => w.entries)) {
       if (!entryMetrics(e).topLoad) continue;
       const c = counts.get(e.exerciseId);
-      counts.set(e.exerciseId, { n: (c?.n ?? 0) + 1, name: e.exercise.name });
+      counts.set(e.exerciseId, { n: (c?.n ?? 0) + 1, name: e.exercise.name, perSide: e.exercise.loadMode === 'perSide' });
     }
     const [best] = [...counts].sort((a, b) => b[1].n - a[1].n || a[0].localeCompare(b[0]));
-    if (best) options.push({ kind: 'record', target: topLoad(between(workouts, new Date(0), start), best[0]), exerciseId: best[0], exerciseName: best[1].name });
-    const [weak] = Object.entries(muscleDistribution(recent))
+    if (best) {
+      const target = topLoad(between(workouts, new Date(0), start), best[0]);
+      options.push({ kind: 'record', target, exerciseId: best[0], exerciseName: best[1].name, ...(best[1].perSide ? { perSide: true } : {}) });
+    }
+    const [weak] = Object.entries(muscleDistribution(recent, 0))
       .filter(([m, v]) => MUSCLES.includes(m) && v > 0)
       .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]));
     if (weak) options.push({ kind: 'muscle', target: Math.max(4, Math.ceil(weak[1] / HISTORY_WEEKS) + 2), muscle: weak[0] });
@@ -74,7 +77,7 @@ export function challengeProgress(ch: Challenge, workouts: Workout[]): { value: 
     workouts: () => ws.length,
     sets: () => sets(ws),
     record: () => topLoad(ws, ch.exerciseId ?? ''),
-    muscle: () => muscleDistribution(ws)[ch.muscle ?? ''] ?? 0,
+    muscle: () => muscleDistribution(ws, 0)[ch.muscle ?? ''] ?? 0,
   };
   const v = value[ch.kind]();
   return { value: v, met: ch.kind === 'record' ? v > ch.target : v >= ch.target };

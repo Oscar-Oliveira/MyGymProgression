@@ -7,6 +7,7 @@ export const en = {
     credits: 'Credits', creditsText: 'Made by Oscar Oliveira. Open source on GitHub.', source: 'Source code',
   },
   common: {
+    leaveUnsaved: 'There are unsaved changes. Leave without saving?', leave: 'Leave',
     save: 'Save', saved: 'Saved', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', add: 'Add', remove: 'Remove', duplicate: 'Duplicate', archive: 'Archive', unarchive: 'Restore',
     close: 'Close', search: 'Search', all: 'All', name: 'Name', notes: 'Notes', description: 'Description', moveUp: 'Move up', moveDown: 'Move down', from: 'Date',
     dbBlocked: 'The app is being updated, but it is also open somewhere else (another tab or the installed app). Close it there, then open the app again.',
@@ -154,7 +155,7 @@ export const en = {
     blockOnPain: 'pain is recorded', blockOnTechnique: 'a technique issue is recorded', blockOnSubstitution: 'the exercise is substituted',
   },
   plan: {
-    leaveUnsaved: 'This plan has unsaved changes. Leave without saving?', leave: 'Leave',
+    rangeReason: 'Rep range changed in the plan', rangeHelp: 'The workouts use {{range}} (after “reps up”). Changing the reps here makes the plan range apply again.',
     title: 'Plans', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
     color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
     removeDay: 'Remove this day', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
@@ -250,6 +251,7 @@ export const en = {
     },
   },
   challenge: {
+    perSide: '{{load}} per side',
     title: 'Weekly challenge', settingSub: 'A new goal every Monday on Home, made from your recent workouts.',
     kinds: {
       workouts: 'Do {{target}} workouts this week.',

@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useUnsavedGuard } from '../util';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { addCircuit, addToCircuit, blocks, moveCircuit, moveItem, removeCircuit, removeFromCircuit, updateCircuit } from '../../domain/circuit';
@@ -41,18 +42,7 @@ export function PlanEdit() {
   const [openId, setOpenId] = useState<string>();
   const [msg, setMsg] = useState('');
   const [nameError, setNameError] = useState(false);
-  // Unsaved changes: ask before leaving the page (in the app, and when the tab is closed).
-  const unsaved = useRef(false);
-  const blocker = useBlocker(() => unsaved.current);
-  useEffect(() => {
-    if (blocker.state !== 'blocked') return;
-    void dialog.confirm(t('plan.leaveUnsaved'), { danger: true, ok: t('plan.leave') }).then((ok) => (ok ? blocker.proceed() : blocker.reset()));
-  }, [blocker, t]);
-  useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => unsaved.current && e.preventDefault();
-    addEventListener('beforeunload', warn);
-    return () => removeEventListener('beforeunload', warn);
-  }, []);
+  const unsaved = useUnsavedGuard();
 
   useEffect(() => {
     if (stored?.plan && stored.version && (!plan || plan.currentVersionId !== stored.plan.currentVersionId)) {
@@ -118,6 +108,14 @@ export function PlanEdit() {
   const save = async () => {
     if (!plan.name.trim()) return setNameError(true);
     await repo.savePlan(plan, days);
+    // A rep range changed in the plan replaces a "reps up" range, so the plan shows what the workouts use.
+    const reps = (it: PlanItem) => JSON.stringify(working(it.sets)[0]?.targets.reps ?? null);
+    const before = new Map(version.days.flatMap((d) => d.items).map((i) => [i.id, i]));
+    for (const it of days.flatMap((d) => d.items)) {
+      const old = before.get(it.id);
+      const ex = exercises.get(it.exerciseId);
+      if (old && ex && states.get(it.lineageId)?.repsRange && reps(old) !== reps(it)) await repo.resetRepsRange(it.lineageId, t('plan.rangeReason'), (it.progression ?? ex.progression).strategy);
+    }
     for (const [lineage, targets] of Object.entries(edits)) {
       const it = days.flatMap((d) => d.items).find((x) => x.lineageId === lineage);
       const ex = it && exercises.get(it.exerciseId);

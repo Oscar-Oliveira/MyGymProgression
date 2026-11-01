@@ -207,6 +207,7 @@ export const challengeSchema = z.object({
   target: num,
   exerciseId: z.string().optional(),
   exerciseName: z.string().optional(),
+  perSide: z.boolean().optional(),
   muscle: z.string().optional(),
   status: z.enum(['open', 'done', 'missed']),
   doneAt: iso.optional(),

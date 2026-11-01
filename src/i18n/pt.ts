@@ -9,6 +9,7 @@ export const pt: Resources = {
     credits: 'Créditos', creditsText: 'Criado por Oscar Oliveira. Código aberto no GitHub.', source: 'Código fonte',
   },
   common: {
+    leaveUnsaved: 'Há alterações por guardar. Sair sem guardar?', leave: 'Sair',
     save: 'Guardar', saved: 'Guardado', cancel: 'Cancelar', delete: 'Eliminar', edit: 'Editar', add: 'Adicionar', remove: 'Remover', duplicate: 'Duplicar', archive: 'Arquivar', unarchive: 'Restaurar',
     close: 'Fechar', search: 'Pesquisar', all: 'Todos', name: 'Nome', notes: 'Notas', description: 'Descrição', moveUp: 'Subir', moveDown: 'Descer', from: 'Data',
     dbBlocked: 'A app está a ser atualizada, mas também está aberta noutro sítio (outro separador ou a app instalada). Fecha-a aí e volta a abrir a app.',
@@ -156,7 +157,7 @@ export const pt: Resources = {
     blockOnPain: 'há dor registada', blockOnTechnique: 'há problema de técnica', blockOnSubstitution: 'o exercício é substituído',
   },
   plan: {
-    leaveUnsaved: 'Este plano tem alterações por guardar. Sair sem guardar?', leave: 'Sair',
+    rangeReason: 'Faixa de reps alterada no plano', rangeHelp: 'Os treinos usam {{range}} (depois de “subir reps”). Se mudares as reps aqui, volta a valer a faixa do plano.',
     title: 'Planos', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
     color: 'Cor do plano', dayColor: 'Cor do dia', samePlanColor: 'Igual ao plano', daySummary: '{{count}} exercícios · {{sets}} séries', daySummary_one: '{{count}} exercício · {{sets}} séries',
     removeDay: 'Remover este dia', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
@@ -252,6 +253,7 @@ export const pt: Resources = {
     },
   },
   challenge: {
+    perSide: '{{load}} por lado',
     title: 'Desafio semanal', settingSub: 'Um objetivo novo todas as segundas-feiras no Início, feito a partir dos teus treinos recentes.',
     kinds: {
       workouts: 'Faz {{target}} treinos esta semana.',

@@ -351,6 +351,18 @@ describe('joining duplicate exercises (D19)', () => {
       expect(await load()).toBe(37.5);
     });
 
+    it('deleting the closing workout keeps the question closed when a later workout of the exercise exists', async () => {
+      const { plan, day: d } = await setupPlan();
+      await session(plan.id, d.id, 1);
+      const question = (await db.progressionEvents.toArray()).find((e) => e.decision === 'pending')!;
+      const closing = await session(plan.id, d.id, 9);
+      const later = await session(plan.id, d.id, 9);
+      await repo.deleteWorkout(closing);
+      const ev = (await db.progressionEvents.get(question.id))!;
+      expect(ev.decision).toBe('kept');
+      expect(ev.closedBy).toBe(later);
+    });
+
     it('correcting an older workout does not change the current load', async () => {
       const { plan, day: d } = await setupPlan();
       const old = await session(plan.id, d.id, 9);
@@ -375,6 +387,28 @@ describe('joining duplicate exercises (D19)', () => {
       expect(await load()).toBe(42.5); // nothing is undone without the user
       await repo.decide(ask[0].id, { kind: 'revert' });
       expect(await load()).toBe(40);
+    });
+
+    it('changing the rep range in the plan removes a "reps up" range', async () => {
+      const { day: d } = await setupPlan();
+      const lineageId = d.items[0].lineageId;
+      await db.progressionStates.put({ lineageId, exerciseId: d.items[0].exerciseId, targets: { load: 40 }, repsRange: { min: 9, max: 13 }, updatedAt: '2026-01-01T00:00:00.000Z' });
+      await repo.resetRepsRange(lineageId, 'plan', 'double');
+      const st = (await db.progressionStates.get(lineageId))!;
+      expect(st.repsRange).toBeUndefined();
+      expect(st.targets).toEqual({ load: 40 });
+      const ev = (await db.progressionEvents.toArray()).find((e) => e.lineageId === lineageId)!;
+      expect(ev).toMatchObject({ decision: 'overridden', rangeBefore: { min: 9, max: 13 } });
+    });
+
+    it('importing an open workout while one is open here makes the imported one interrupted', async () => {
+      const { plan, day: d } = await setupPlan();
+      const here = await repo.startWorkout(plan.id, d.id);
+      const other = { ...(await db.workouts.get(here))!, id: 'imported', startedAt: '2026-01-05T10:00:00.000Z' };
+      const data = { ...(await repo.readAll()), exercises: [], plans: [], planVersions: [], workouts: [other] };
+      await repo.importMerge(data);
+      expect((await db.workouts.get('imported'))!.status).toBe('interrupted');
+      expect((await db.workouts.get(here))!.status).toBe('in_progress');
     });
 
     it('only one workout can be in progress', async () => {

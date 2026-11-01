@@ -10,11 +10,13 @@ import type { Challenge, Settings } from '../../domain/types';
 import { fmtNum, fmtValue, loadOut, tr, useSettings } from '../util';
 import { CoachAvatar } from './CoachAvatar';
 
-const load = (kg: number, s: Settings) => fmtValue(loadOut(kg, s), s.loadUnit, s.language);
+const fmtLoad = (kg: number, s: Settings) => fmtValue(loadOut(kg, s), s.loadUnit, s.language);
+/** A record load as the user logs it: per side for a per-side exercise (the stored value is the total). */
+const load = (t: TFunction, ch: Challenge, kg: number, s: Settings) => (ch.perSide ? t('challenge.perSide', { load: fmtLoad(kg / 2, s) }) : fmtLoad(kg, s));
 
 /** The challenge as a sentence. */
 export function challengeText(t: TFunction, ch: Challenge, s: Settings): string {
-  return t(`challenge.kinds.${ch.kind}`, { target: ch.target, exercise: ch.exerciseName, load: load(ch.target, s), muscle: tr(t, 'muscle', ch.muscle ?? '') });
+  return t(`challenge.kinds.${ch.kind}`, { target: ch.target, exercise: ch.exerciseName, load: load(t, ch, ch.target, s), muscle: tr(t, 'muscle', ch.muscle ?? '') });
 }
 
 /** This week's challenge on Home, when the weekly challenge is on. It is created on the first visit of the week. */
@@ -47,7 +49,7 @@ export function ChallengeCard() {
         <span style={{ width: `${(done ? 1 : share) * 100}%` }} />
       </div>
       <p className="muted">
-        {ch.kind === 'record' ? t('challenge.progressRecord', { value: value ? load(value, s) : '—' }) : t('challenge.progress', { value: fmtNum(value, s.language, 1), target: ch.target })}
+        {ch.kind === 'record' ? t('challenge.progressRecord', { value: value ? load(t, ch, value, s) : '—' }) : t('challenge.progress', { value: fmtNum(value, s.language, 1), target: ch.target })}
       </p>
       {done ? (
         <div className="challenge-actions">

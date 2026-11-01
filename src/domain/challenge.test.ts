@@ -74,6 +74,23 @@ describe('challengeProgress', () => {
     expect(challengeProgress({ ...base, kind: 'muscle', muscle: 'chest', target: 3 }, week)).toEqual({ value: 3, met: true });
   });
 
+  it('a muscle counts only the sets where it is a primary muscle', () => {
+    const e = { ...entry('bench', [60, 60]), exercise: { ...entry('bench', []).exercise, secondaryMuscles: ['triceps'] } };
+    const ws = [workout('2026-11-03', [e])];
+    expect(challengeProgress({ ...base, kind: 'muscle', muscle: 'chest', target: 2 }, ws).value).toBe(2);
+    expect(challengeProgress({ ...base, kind: 'muscle', muscle: 'triceps', target: 2 }, ws).value).toBe(0);
+  });
+
+  it('a record of a per-side exercise is marked per side', () => {
+    const e = { ...entry('curl', [10]), exercise: { ...entry('curl', []).exercise, loadMode: 'perSide' as const } };
+    let c: Challenge | undefined;
+    for (let i = 0; i < 60 && c?.kind !== 'record'; i++) {
+      const d = new Date(2026, 10, 2 + 7 * i);
+      c = createChallenge(weekKey(d), [workout(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 3).toLocaleDateString('sv'), [e])], 'c', NOW);
+    }
+    expect(c).toMatchObject({ kind: 'record', perSide: true, target: 20 }); // total load: 10 per side × 2
+  });
+
   it('a record must be beaten, not equalled', () => {
     expect(challengeProgress({ ...base, kind: 'record', exerciseId: 'bench', target: 70 }, week)).toEqual({ value: 70, met: false });
     expect(challengeProgress({ ...base, kind: 'record', exerciseId: 'bench', target: 65 }, week).met).toBe(true);

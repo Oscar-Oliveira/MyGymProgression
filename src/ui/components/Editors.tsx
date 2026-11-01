@@ -69,7 +69,8 @@ export function MetricsEditor({ metrics, onChange }: { metrics: MetricDef[]; onC
 
 const KINDS: SetKind[] = ['warmup', 'working', 'backoff'];
 
-export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPrescription[]; metrics: MetricDef[]; onChange: (s: SetPrescription[]) => void }) {
+/** `fixedCount`: sets cannot be added or removed (a circuit item: one set per round, set by the circuit). */
+export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { sets: SetPrescription[]; metrics: MetricDef[]; fixedCount?: boolean; onChange: (s: SetPrescription[]) => void }) {
   const { t } = useTranslation();
   const upd = (i: number, f: (s: SetPrescription) => SetPrescription) => onChange(sets.map((s, j) => (j === i ? f(structuredClone(s)) : s)));
   const setTarget = (i: number, key: MetricKey, field: 'value' | 'min' | 'max', v: number | undefined) =>
@@ -117,21 +118,27 @@ export function PrescriptionEditor({ sets, metrics, onChange }: { sets: SetPresc
                   <NumInput key={m.key} label={`${metricLabel(t, m.key, metrics)} ${i + 1}`} placeholder={t('prescription.target')} value={s.targets[m.key]?.value} onChange={(v) => setTarget(i, m.key, 'value', v)} />
                 ),
               )}
-              <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
-                ✕
-              </button>
+              {fixedCount ? (
+                <span />
+              ) : (
+                <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
+                  ✕
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
-      <button
-        type="button"
-        className="outline sm"
-        style={{ marginTop: '0.6rem' }}
-        onClick={() => onChange([...sets, sets.length ? structuredClone(sets[sets.length - 1]) : { kind: 'working', targets: {} }])}
-      >
-        + {t('prescription.addSet')}
-      </button>
+      {!fixedCount && (
+        <button
+          type="button"
+          className="outline sm"
+          style={{ marginTop: '0.6rem' }}
+          onClick={() => onChange([...sets, sets.length ? structuredClone(sets[sets.length - 1]) : { kind: 'working', targets: {} }])}
+        >
+          + {t('prescription.addSet')}
+        </button>
+      )}
     </div>
   );
 }

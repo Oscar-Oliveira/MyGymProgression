@@ -338,6 +338,19 @@ export function manualAdjust(
   };
 }
 
+/** Removes a "reps up" range, so the plan's rep range applies again (the plan range was changed). Targets do not change. */
+export function resetRepsRange(state: ProgressionState, reason: string, strategy: ProgressionEvent['strategy']): { event: ProgressionEvent; state: ProgressionState } {
+  const now = nowIso();
+  const { repsRange, ...rest } = state;
+  return {
+    event: {
+      id: uid(), lineageId: state.lineageId, exerciseId: state.exerciseId, strategy, outcome: 'manual', reasons: [], decision: 'overridden', decisionReason: reason,
+      before: { ...state.targets }, after: { ...state.targets }, ...(repsRange ? { rangeBefore: repsRange } : {}), createdAt: now, decidedAt: now,
+    },
+    state: { ...rest, updatedAt: now },
+  };
+}
+
 /**
  * Days from `now` to the next date of a plan day set to a weekday (0 = today), or undefined without a weekday.
  * A day already finished today counts from next week.
