@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-01',
+    pt: ['Botão "Voltar" nas páginas abaixo dos separadores (exercício, plano, definições…); deslizar para a direita também volta.'],
+    en: ['"Back" button on the pages below the tabs (exercise, plan, settings…); a swipe to the right also goes back.'],
+  },
+  {
+    date: '2026-11-01',
     pt: [
       'Progressão mais segura: uma decisão antiga ou a correção de um treino antigo já não apagam progresso mais recente; se corrigires um treino e a subida deixar de se justificar, a app pergunta se a anula.',
       'Só pode haver um treino em curso de cada vez.',

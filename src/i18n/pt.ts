@@ -9,6 +9,7 @@ export const pt: Resources = {
     credits: 'Créditos', creditsText: 'Criado por Oscar Oliveira. Código aberto no GitHub.', source: 'Código fonte',
   },
   common: {
+    back: 'Voltar',
     leaveUnsaved: 'Há alterações por guardar. Sair sem guardar?', leave: 'Sair',
     save: 'Guardar', saved: 'Guardado', cancel: 'Cancelar', delete: 'Eliminar', edit: 'Editar', add: 'Adicionar', remove: 'Remover', duplicate: 'Duplicar', archive: 'Arquivar', unarchive: 'Restaurar',
     close: 'Fechar', search: 'Pesquisar', all: 'Todos', name: 'Nome', notes: 'Notas', description: 'Descrição', moveUp: 'Subir', moveDown: 'Descer', from: 'Data',

@@ -37,6 +37,14 @@ const TABS = [
 ] as const;
 const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about', '/games', '/challenges'];
 
+/** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
+function parentOf(pathname: string): string {
+  if (pathname.startsWith('/workout/')) return '/history';
+  if (pathname === '/share') return '/';
+  const up = pathname.replace(/\/[^/]+$/, '');
+  return up && up !== pathname ? up : '/more';
+}
+
 /** Touches that must not change the tab: form fields, windows, charts and areas that scroll sideways. */
 function keepsSwipe(target: EventTarget | null): boolean {
   for (let el = target instanceof Element ? target : null; el && el !== document.body; el = el.parentElement) {
@@ -88,8 +96,11 @@ function Shell() {
   const nav = useNavigate();
   const touch = useRef<{ x: number; y: number; t: number }>(undefined);
   const tab = TABS.findIndex(([to]) => to === pathname);
+  // Pages below a tab have "back" (a button, and a swipe to the right); not the workout being logged.
+  const sub = tab < 0 && !focus;
+  const back = () => ((window.history.state as { idx?: number } | null)?.idx ? nav(-1) : nav(parentOf(pathname), { replace: true }));
   const onTouchStart = (e: TouchEvent) => {
-    touch.current = tab >= 0 && e.touches.length === 1 && !keepsSwipe(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : undefined;
+    touch.current = (tab >= 0 || sub) && e.touches.length === 1 && !keepsSwipe(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : undefined;
   };
   const onTouchEnd = (e: TouchEvent) => {
     const start = touch.current;
@@ -98,6 +109,7 @@ function Shell() {
     const dx = e.changedTouches[0].clientX - start.x;
     const dy = e.changedTouches[0].clientY - start.y;
     if (Math.abs(dx) < 70 || Math.abs(dx) < 2 * Math.abs(dy) || Date.now() - start.t > 700) return;
+    if (sub) return void (dx > 0 && back());
     const next = TABS[tab + (dx < 0 ? 1 : -1)];
     if (next) nav(next[0]);
   };
@@ -121,6 +133,11 @@ function Shell() {
         </nav>
       )}
       <main className={`shell ${focus ? 'focus' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {sub && (
+          <button type="button" className="ghost back-btn" onClick={back}>
+            ‹ {t('common.back')}
+          </button>
+        )}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/train" element={<Train />} />

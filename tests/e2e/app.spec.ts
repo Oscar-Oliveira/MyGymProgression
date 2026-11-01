@@ -97,6 +97,36 @@ test('back returns to where the page was; a new page starts at the top', async (
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(y - 50);
 });
 
+/** A quick horizontal swipe on the page (touch events, as the app listens to them). */
+async function swipe(page: Page, dx: number) {
+  await page.locator('main.shell').evaluate((el, d) => {
+    const touch = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: 300 });
+    el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, touches: [touch(150)], changedTouches: [touch(150)] }));
+    el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, touches: [], changedTouches: [touch(150 + d)] }));
+  }, dx);
+}
+
+test('pages below a tab have back: a button and a swipe to the right; without an earlier page it goes up', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await expect(page.getByRole('button', { name: '‹ Back' })).toHaveCount(0); // a main tab
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Squat');
+  await page.getByRole('link', { name: /Barbell Back Squat/ }).first().click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
+  await expect(page.getByRole('searchbox')).toHaveValue('Squat');
+  await page.getByRole('link', { name: /Barbell Back Squat/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'Barbell Back Squat' })).toBeVisible();
+  await swipe(page, 120);
+  await expect(page.getByRole('searchbox')).toHaveValue('Squat');
+  await swipe(page, -120); // to the left: nothing on a page below a tab
+  await expect(page.getByRole('searchbox')).toBeVisible();
+  // Opened directly (no earlier page in the app): back goes to the page above.
+  await page.goto('/#/settings');
+  await page.reload();
+  await page.getByRole('button', { name: '‹ Back' }).click();
+  await expect(page).toHaveURL(/#\/more$/);
+});
+
 test('library file: a file that is not a library shows an error', async ({ page }) => {
   await importLibraryFile(page, { hello: 'world' });
   await expect(page.getByText('This file is not an exercise library.')).toBeVisible();

@@ -7,6 +7,7 @@ export const en = {
     credits: 'Credits', creditsText: 'Made by Oscar Oliveira. Open source on GitHub.', source: 'Source code',
   },
   common: {
+    back: 'Back',
     leaveUnsaved: 'There are unsaved changes. Leave without saving?', leave: 'Leave',
     save: 'Save', saved: 'Saved', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', add: 'Add', remove: 'Remove', duplicate: 'Duplicate', archive: 'Archive', unarchive: 'Restore',
     close: 'Close', search: 'Search', all: 'All', name: 'Name', notes: 'Notes', description: 'Description', moveUp: 'Move up', moveDown: 'Move down', from: 'Date',
