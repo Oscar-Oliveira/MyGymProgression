@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createHashRouter, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { createHashRouter, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
@@ -47,9 +47,40 @@ function keepsSwipe(target: EventTarget | null): boolean {
   return false;
 }
 
+/**
+ * A new page starts at the top; "back" returns to where the page was; a page that only updates its URL stays put.
+ * Pages load their data after the first render, so the position is set again on each frame (up to about a second) until the page is tall enough.
+ */
+function useScrollMemory() {
+  const { key } = useLocation();
+  const type = useNavigationType();
+  const positions = useRef(new Map<string, number>());
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const save = () => positions.current.set(key, window.scrollY);
+    addEventListener('scroll', save, { passive: true });
+    return () => removeEventListener('scroll', save);
+  }, [key]);
+  useEffect(() => {
+    // The same page updated its URL (filters, "show more"): stay where it is.
+    if (type === 'REPLACE') return void positions.current.set(key, window.scrollY);
+    const y = type === 'POP' ? positions.current.get(key) : undefined;
+    if (!y) return void window.scrollTo(0, 0);
+    let frame = 0;
+    let tries = 0;
+    const restore = () => {
+      window.scrollTo(0, y);
+      if (Math.abs(window.scrollY - y) > 2 && tries++ < 60) frame = requestAnimationFrame(restore);
+    };
+    restore();
+    return () => cancelAnimationFrame(frame);
+  }, [key, type]);
+}
+
 function Shell() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  useScrollMemory();
   const active = useLiveQuery(() => db.workouts.where('status').equals('in_progress').first(), []);
   // The active workout screen hides the tab bar to keep the focus on logging.
   const focus = !!active && pathname === `/workout/${active.id}`;
@@ -70,10 +101,6 @@ function Shell() {
     const next = TABS[tab + (dx < 0 ? 1 : -1)];
     if (next) nav(next[0]);
   };
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
   return (
     <>
       {!focus && (

@@ -83,6 +83,20 @@ test('exercises: the search and filters stay after opening an exercise and going
   await expect(page.getByRole('link', { name: /Barbell Back Squat/ }).first()).toBeVisible();
 });
 
+test('back returns to where the page was; a new page starts at the top', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('e');
+  const last = page.locator('.card a.xitem, .card a').last();
+  await last.scrollIntoViewIfNeeded();
+  const y = await page.evaluate(() => window.scrollY);
+  expect(y).toBeGreaterThan(200);
+  await last.click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(50);
+  await page.goBack();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(y - 50);
+});
+
 test('library file: a file that is not a library shows an error', async ({ page }) => {
   await importLibraryFile(page, { hello: 'world' });
   await expect(page.getByText('This file is not an exercise library.')).toBeVisible();
@@ -599,6 +613,19 @@ test('exercise editor: leaving with unsaved changes asks first; saving does not 
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Cable fly' })).toBeVisible();
   await expect(ask).toHaveCount(0);
+});
+
+test('correction: leaving with unsaved changes asks first', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10, 10, 10]);
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await page.getByRole('button', { name: 'Correct records' }).click();
+  await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('8');
+  await tab(page, 'History');
+  const ask = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(ask).toContainText('unsaved changes');
+  await ask.getByRole('button', { name: 'Leave' }).click();
+  await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
 });
 
 test('plan editor: leaving with unsaved changes asks first', async ({ page }) => {

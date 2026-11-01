@@ -168,6 +168,4 @@ export async function saveBackup(): Promise<boolean> {
 }
 
 export const splitList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
-/** Local date YYYY-MM-DD. */
-export const today = () => new Date().toLocaleDateString('sv');
 export const stamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');

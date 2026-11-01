@@ -77,6 +77,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   8: (raw) => ({ ...raw, schemaVersion: 9 }),
   // v10 only adds game scores, weekly challenges and the challenge setting.
   9: (raw) => ({ ...raw, schemaVersion: 10 }),
+  // v11 only adds which workout closed a question (event.closedBy) and per-side records (challenge.perSide).
+  10: (raw) => ({ ...raw, schemaVersion: 11 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };
@@ -177,6 +179,8 @@ function remap<T>(value: T, map: Map<string, string>): T {
  * - overwrite: replace the local record on conflict.
  * - keepBoth: import the conflicting record under a new id (references inside the import are rewritten).
  *   Progression states are keyed by lineage, so they are skipped under keepBoth.
+ * There is one weekly challenge per week: an imported challenge of a week that already has one here is not imported
+ * (on a conflict of the same challenge, only "overwrite" replaces it).
  */
 export function planMerge(
   incoming: DataSet,
@@ -204,9 +208,11 @@ export function planMerge(
   for (const t of TABLES) {
     const conflicts = new Set(preview.tables[t].conflicts);
     const local = new Set((existing[t] as object[]).map((r) => keyOf(t, r)));
+    const weeks = new Set(existing.challenges.map((c) => c.week));
     const rows = (incoming[t] as object[]).filter((r) => {
       const k = keyOf(t, r);
       if (t === 'exercises' && dropExercise.has(k)) return false;
+      if (t === 'challenges') return conflicts.has(k) ? policy === 'overwrite' : !local.has(k) && !weeks.has((r as { week: string }).week);
       // Identical records already exist; never rewrite them.
       if (!conflicts.has(k)) return !local.has(k);
       if (policy === 'overwrite') return true;

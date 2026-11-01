@@ -15,7 +15,7 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, fmtMetric, rxLine, setsLine, setText } from '../progress';
-import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useWakeLock } from '../util';
+import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
@@ -79,6 +79,9 @@ export function WorkoutPage() {
 
   // The screen stays on during a workout.
   useWakeLock(stored?.status === 'in_progress');
+  // A correction that is not saved: ask before leaving.
+  const unsaved = useUnsavedGuard();
+  unsaved.current = editing && JSON.stringify(draft) !== JSON.stringify(stored);
 
   if (stored === undefined && ctx) return <p className="empty">{t('history.empty')}</p>;
   if (!draft || !ctx) return null;

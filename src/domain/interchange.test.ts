@@ -153,3 +153,39 @@ describe('schema migration v6 → v7', () => {
     expect(parseBundle(JSON.stringify(v7)).ok).toBe(false);
   });
 });
+
+describe('schema migration v10 → v11', () => {
+  it('imports a v10 file as is, and keeps the new optional fields (closedBy, perSide)', () => {
+    const d = sample();
+    const old = JSON.parse(JSON.stringify(buildBundle(d, 'full', 'x')));
+    old.schemaVersion = 10;
+    const r10 = parseBundle(JSON.stringify(old));
+    expect(r10.ok && r10.migratedFrom).toBe(10);
+
+    const now = { ...d, progressionEvents: [{ ...d.progressionEvents[0], decision: 'kept' as const, closedBy: 'w2' }] };
+    now.challenges = [{ id: 'c', week: '2026-11-02', kind: 'record', target: 40, perSide: true, status: 'open', createdAt: '2026-11-02T08:00:00.000Z' }];
+    const r11 = parseBundle(JSON.stringify(buildBundle(now, 'full', 'x')));
+    expect(r11.ok).toBe(true);
+    if (!r11.ok) return;
+    expect(r11.bundle.data.progressionEvents[0].closedBy).toBe('w2');
+    expect(r11.bundle.data.challenges[0].perSide).toBe(true);
+  });
+});
+
+describe('merge: one weekly challenge per week', () => {
+  const ch = (id: string, week: string) => ({ id, week, kind: 'workouts' as const, target: 2, status: 'open' as const, createdAt: '2026-11-02T08:00:00.000Z' });
+  it('an imported challenge of a week that has one here is not imported; other weeks are', () => {
+    const existing = { ...emptyDataSet(), challenges: [ch('here', '2026-11-02')] };
+    const incoming = { ...emptyDataSet(), challenges: [ch('there', '2026-11-02'), ch('older', '2026-10-26')] };
+    for (const policy of ['skip', 'overwrite', 'keepBoth'] as const) {
+      expect(planMerge(incoming, existing, policy, 'useExisting').challenges.map((c) => c.id)).toEqual(['older']);
+    }
+  });
+  it('the same challenge changed elsewhere replaces the local one only with "overwrite"', () => {
+    const existing = { ...emptyDataSet(), challenges: [ch('c', '2026-11-02')] };
+    const incoming = { ...emptyDataSet(), challenges: [{ ...ch('c', '2026-11-02'), status: 'done' as const }] };
+    expect(planMerge(incoming, existing, 'overwrite', 'useExisting').challenges).toHaveLength(1);
+    expect(planMerge(incoming, existing, 'skip', 'useExisting').challenges).toHaveLength(0);
+    expect(planMerge(incoming, existing, 'keepBoth', 'useExisting').challenges).toHaveLength(0);
+  });
+});

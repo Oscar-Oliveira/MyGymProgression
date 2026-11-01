@@ -18,6 +18,8 @@ export const CHANGELOG: ChangeEntry[] = [
       'Plano: mudar as reps depois de "subir reps" volta a usar a faixa do plano. Num circuito, as séries são as voltas.',
       'Desafio semanal: recorde por lado nos exercícios por lado; o desafio de músculo conta só as séries em que é músculo principal.',
       'Exercício: aviso ao sair sem guardar; músculos Adutores e Pescoço.',
+      'Voltar atrás repõe a posição da página. Aviso ao sair de uma correção de treino sem guardar.',
+      'Importar uma cópia já não duplica o desafio de uma semana.',
       'Todos os textos em português tratam-te por tu.',
     ],
     en: [
@@ -30,6 +32,8 @@ export const CHANGELOG: ChangeEntry[] = [
       'Plan: changing the reps after "reps up" makes the plan range apply again. In a circuit, the sets are the rounds.',
       'Weekly challenge: a record per side for per-side exercises; the muscle challenge counts only sets where it is a primary muscle.',
       'Exercise: a warning when you leave without saving; Adductors and Neck muscles.',
+      'Back returns to where the page was. A warning when you leave a workout correction without saving.',
+      'Importing a backup no longer duplicates the challenge of a week.',
     ],
   },
   {

@@ -214,7 +214,7 @@ export const challengeSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({
