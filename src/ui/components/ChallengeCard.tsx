@@ -53,10 +53,11 @@ export function ChallengeCard() {
       </p>
       {done ? (
         <div className="challenge-actions">
-          <span className="pill up">✓ {t('challenge.status.done')}</span>
           <button className="ghost" onClick={() => void repo.setChallengeDone(ch.id, false)}>
             {t('challenge.undo')}
           </button>
+          {/* The status on the right, as in the week report and the challenge history. */}
+          <span className="pill up">✓ {t('challenge.status.done')}</span>
         </div>
       ) : (
         <>
