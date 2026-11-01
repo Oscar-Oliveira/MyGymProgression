@@ -766,3 +766,33 @@ test('weekly challenge: off by default; when on, shows on Home, can be marked do
   await expect(page.locator('.challenge-list li')).toHaveCount(1);
   await expect(page.locator('.challenge-list li')).toContainText('Done');
 });
+
+test('loads across plans: hypertrophy load up → asks to update the strength plan → strength uses the new load', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  for (const [name, goal] of [['Heavy', 'Strength'], ['Pump', 'Hypertrophy']]) {
+    await more(page, /^Plans/);
+    await page.getByRole('button', { name: '+ New plan' }).click();
+    await page.getByLabel('Plan name').fill(name);
+    await page.getByRole('radio', { name: goal }).click();
+    await page.getByRole('button', { name: '+ Day' }).click();
+    await page.getByRole('button', { name: '+ Add exercise' }).click();
+    await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+    await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.getByText('Saved')).toBeVisible();
+  }
+  await page.getByRole('button', { name: /Start this day/ }).click();
+  await logChest(page, [12, 12, 12]);
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  await page.getByRole('button', { name: '⬆ Load 22.5 kg' }).click();
+  // 20 kg × 12 → 1RM 28 kg → 5 reps 24 kg → 22.5 kg.
+  await expect(page.getByRole('heading', { name: 'Loads across plans' })).toBeVisible();
+  await expect(page.getByText('Update 20 kg → 22.5 kg?')).toBeVisible();
+  await expect(page.getByText('Hypertrophy in Pump — Day A went up to 22.5 kg.')).toBeVisible();
+  await page.getByRole('button', { name: '⬆ Update to 22.5 kg' }).click();
+  await expect(page.getByText('Set to 22.5 kg')).toBeVisible();
+  await more(page, /^Plans/);
+  await page.getByText('Heavy', { exact: true }).click();
+  await page.getByRole('button', { name: /Start this day/ }).click();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('22.5');
+});

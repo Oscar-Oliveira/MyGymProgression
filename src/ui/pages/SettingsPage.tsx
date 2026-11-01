@@ -13,7 +13,8 @@ import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
 import { coachMessage } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
-import type { CoachGender, CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
+import type { CoachGender, CoachSettings, CoachStyle, CoachWhen, LoadSync } from '../../domain/types';
+import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
 import { CoachAvatar } from '../components/CoachAvatar';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
@@ -198,6 +199,7 @@ export function SettingsPage() {
   const [msg, setMsg] = useState('');
   const [sample, setSample] = useState<string>();
   const coach = s.coach ?? NO_COACH;
+  const loadSync = s.loadSync ?? DEFAULT_LOAD_SYNC;
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
   const due = backupDue(s.lastBackupAt, workouts);
   const saveCoach = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
@@ -371,6 +373,41 @@ export function SettingsPage() {
             <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={() => setSample(coachMessage(COACH_BANKS[s.language].start, coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
               {t('coach.preview')}
             </button>
+          </>
+        )}
+      </section>
+
+      <div className="section-head">
+        <h2>{t('sync.title')}</h2>
+      </div>
+      <section className="card">
+        <p className="help" style={{ marginTop: 0 }}>
+          {t('sync.settingSub')}
+        </p>
+        <label className="setting-row">
+          <span>{t('sync.trigger')}</span>
+          <select value={loadSync.trigger} onChange={(e) => void repo.saveSettings({ loadSync: { ...loadSync, trigger: e.target.value as LoadSync['trigger'] } })}>
+            {(['below', 'order', 'off'] as const).map((v) => (
+              <option key={v} value={v}>
+                {t(`sync.triggers.${v}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="help">{t(`sync.triggerHelp.${loadSync.trigger}`)}</p>
+        {loadSync.trigger !== 'off' && (
+          <>
+            <label className="setting-row">
+              <span>{t('sync.method')}</span>
+              <select value={loadSync.method} onChange={(e) => void repo.saveSettings({ loadSync: { ...loadSync, method: e.target.value as LoadSync['method'] } })}>
+                {(['e1rm', 'increment'] as const).map((v) => (
+                  <option key={v} value={v}>
+                    {t(`sync.methods.${v}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="help">{t(`sync.methodHelp.${loadSync.method}`)}</p>
           </>
         )}
       </section>

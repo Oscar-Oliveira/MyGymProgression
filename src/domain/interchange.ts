@@ -79,6 +79,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   9: (raw) => ({ ...raw, schemaVersion: 10 }),
   // v11 only adds which workout closed a question (event.closedBy) and per-side records (challenge.perSide).
   10: (raw) => ({ ...raw, schemaVersion: 11 }),
+  // v12 only adds load sync between plans (outcome "sync", event.sourceEventId, settings.loadSync).
+  11: (raw) => ({ ...raw, schemaVersion: 12 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

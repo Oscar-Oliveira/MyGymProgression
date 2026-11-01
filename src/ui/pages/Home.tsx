@@ -8,7 +8,7 @@ import { generateDemo } from '../../domain/demo';
 import type { Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
 import { canDecide, lastEntryFinder, nextPlanned, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
-import { DecisionCard, rxLine } from '../progress';
+import { DecisionCard, rxLine, SyncCard } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { ChallengeCard } from '../components/ChallengeCard';
@@ -267,6 +267,7 @@ export function Home() {
             <h2>{t('home.decide')}</h2>
           </div>
           {pending.map((ev) => {
+            if (ev.outcome === 'sync') return <SyncCard key={ev.id} ev={ev} exercise={ctx.exercises.get(ev.exerciseId)} />;
             const e = entryOf(ev.entryId);
             return e ? <DecisionCard key={ev.id} entry={e} ev={ev} /> : null;
           })}

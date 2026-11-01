@@ -7,7 +7,7 @@ import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { canDecide, canRevert } from '../domain/workout';
 import { currentTarget } from '../domain/progression';
-import type { MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
+import type { Exercise, MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
 import { NumInput } from './components/NumInput';
 import { fmtNum, fmtValue, metricLabel, reasonText, useSettings, useThumbs } from './util';
 import { ExerciseItem } from './components/ExerciseItem';
@@ -240,6 +240,75 @@ export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEnt
               <NumInput label={metricLabel(t, sug.metric, metrics)} value={value} onChange={setValue} />
               <span className="muted">{unitOf(metrics, sug.metric)}</span>
               <button className="primary" disabled={value === undefined} onClick={() => void repo.decide(ev.id, { kind: 'set', value: value!, reason: '' })}>
+                {t('common.save')}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {undoable && (
+        <div className="actions">
+          <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
+            ↶ {t('decide.undo')}
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Question about another plan with the same exercise (D36): the load went up in one plan, so this item may be out of date.
+ * Pending: update / other value / not now. Applied: undo while still current.
+ */
+export function SyncCard({ ev: stored, exercise }: { ev: ProgressionEvent; exercise?: Exercise }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const thumbOf = useThumbs();
+  const [custom, setCustom] = useState(false);
+  const [value, setValue] = useState<number | undefined>(stored.suggestion?.to);
+  const state = useLiveQuery(() => db.progressionStates.get(stored.lineageId), [stored.lineageId]);
+  // A question that newer progress has made out of date is shown as kept.
+  const ev = stored.decision === 'pending' && state && !canDecide(stored, state) ? { ...stored, decision: 'kept' as const, after: stored.before } : stored;
+  const sug = ev.suggestion;
+  const p = ev.reasons[0]?.params ?? {};
+  const metrics = exercise?.metrics ?? [];
+  const fmt = (v?: number) => fmtMetric(metrics, 'load', v, s.language);
+  const pending = canDecide(ev, state);
+  const changed = ev.decision === 'applied' || ev.decision === 'overridden';
+  const trend: Trend = pending ? 'ask' : changed ? 'up' : 'same';
+  const target = `${t(`goal.${p.targetGoal}`)} · ${p.targetPlan} — ${p.targetDay}`;
+  const what = pending
+    ? t('sync.ask', { from: fmt(sug?.from), to: fmt(sug?.to) })
+    : changed
+      ? t('decide.set', { value: fmt(ev.after.load) })
+      : t('decide.keep', { value: fmt(ev.before.load) });
+  const why = t('sync.why', { goal: t(`goal.${p.goal}`), plan: p.plan, day: p.day, load: fmt(Number(p.load)) });
+  const undoable = changed && canRevert(ev, state);
+  return (
+    <section className={`card decision-card ${trend === 'up' ? 'up' : trend === 'ask' ? 'warn' : ''}`} aria-label={exercise?.name}>
+      <ExerciseItem name={exercise?.name ?? ''} thumb={thumbOf(ev.exerciseId, exercise?.thumb)} sub={target} trailing={<TrendPill trend={trend} />} />
+      <p className="why">
+        <strong>{what}</strong> {why}
+      </p>
+      {pending && sug && (
+        <>
+          <div className="actions">
+            <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
+              ⬆ {t('sync.applyBtn', { value: fmt(sug.to) })}
+            </button>
+            <button className="ghost" aria-expanded={custom} onClick={() => setCustom(!custom)}>
+              {t('decide.other')}
+            </button>
+            <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
+              {t('sync.later')}
+            </button>
+          </div>
+          {custom && (
+            <div className="actions">
+              <NumInput label={metricLabel(t, 'load', metrics)} value={value} onChange={setValue} />
+              <span className="muted">{unitOf(metrics, 'load')}</span>
+              <button className="primary" disabled={value === undefined} onClick={() => void repo.decide(ev.id, { kind: 'set', value: value!, reason: t('sync.reason') })}>
                 {t('common.save')}
               </button>
             </div>

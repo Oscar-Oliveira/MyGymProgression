@@ -5,7 +5,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 10,
+  "schemaVersion": 12,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
@@ -42,6 +42,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v11 → v12: additive only — outcome `sync` (a question to update another plan with the same exercise after its load went up), `event.sourceEventId` (the event that raised the load) and `loadSync` in settings (`trigger` `off` | `order` | `below`, `method` `e1rm` | `increment`).
    - v10 → v11: additive only — `event.closedBy` (the workout that closed an open question as kept; it opens again when that workout is deleted or resumed) and `challenge.perSide` (a record of a per-side exercise is shown per side).
    - v9 → v10: additive only — `gameScores` (game, score, date), `challenges` (weekly challenge per Monday, with `kind`, `target` and `status` `open` | `done` | `missed`) and `challenge` in settings (boolean).
    - v8 → v9: additive only — `coach.pages` in settings (boolean).

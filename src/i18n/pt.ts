@@ -43,9 +43,10 @@ export const pt: Resources = {
       none: 'Prescrição fixa. Só regista se cumpriste; nunca sobe e nunca é marcado como estagnado.',
     },
   },
-  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', missedTarget: 'Abaixo do alvo', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo' },
+  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', missedTarget: 'Abaixo do alvo', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo', sync: 'Outro plano' },
   decision: { applied: 'Subiu', reverted: 'Subida desfeita', pending: 'Por decidir', kept: 'Manteve', stepped_back: 'Desceu', reps_up: 'Subiu reps', overridden: 'Definido à mão', none: 'Sem alteração' },
   reason: {
+    sync: '{{goal}} em {{plan}} — {{day}} subiu para {{load}}.',
     sets_missing: '{{done}} de {{prescribed}} séries feitas.',
     value_missing: 'Série {{set}}: {{metric}} não registada.',
     set_below_target: 'Série {{set}}: {{metric}} {{actual}} (alvo {{target}}).',
@@ -251,6 +252,24 @@ export const pt: Resources = {
       stoic: ['{{m}} m. Um passo de cada vez.', '{{m}} m. Foco no próximo obstáculo.'],
       sergeant: ['{{m}} METROS! MEXE-TE!', '{{m}} M! NINGUÉM PARA NO MEU GINÁSIO!'],
       energy: ['{{m}} METROS!! ISTO É FOGO!', 'BORA! {{m}} m e a subir!'],
+    },
+  },
+  sync: {
+    title: 'Cargas entre planos',
+    ask: 'Atualizar {{from}} → {{to}}?',
+    why: '{{goal}} em {{plan}} — {{day}} subiu para {{load}}.',
+    applyBtn: 'Atualizar para {{value}}', later: 'Agora não', reason: 'Carga de outro plano',
+    settingSub: 'Quando a carga de um exercício sobe num plano, a app pergunta se queres atualizar os outros planos ativos com o mesmo exercício (hipertrofia e força, nos dois sentidos e entre planos do mesmo objetivo). Nunca sugere descer.',
+    trigger: 'Perguntar', triggers: { below: 'Abaixo do sugerido', order: 'Hipertrofia ≥ força', off: 'Desligado' },
+    triggerHelp: {
+      below: 'Pergunta sempre que o outro plano fica abaixo da carga sugerida, nas duas direções.',
+      order: 'Pergunta só quando a hipertrofia chega à carga da força (ou outro plano com o mesmo objetivo fica abaixo). Quando a força sobe, não pergunta.',
+      off: 'Nunca pergunta. Cada plano progride sozinho.',
+    },
+    method: 'Carga sugerida', methods: { e1rm: '1RM estimado', increment: '+1 incremento' },
+    methodHelp: {
+      e1rm: 'Converte pelo 1RM estimado da última sessão. Ex.: 60 kg × 12 → 1RM ≈ 84 kg → 5 reps ≈ 72 kg → 70 kg (arredonda para baixo ao incremento).',
+      increment: 'Força = hipertrofia + 1 incremento (ex.: 62,5 → 65 kg). Conservador: a diferença fica pequena para 5 reps.',
     },
   },
   challenge: {

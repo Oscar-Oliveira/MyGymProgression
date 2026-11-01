@@ -419,3 +419,76 @@ describe('joining duplicate exercises (D19)', () => {
     });
   });
 });
+
+describe('load sync between plans (D36)', () => {
+  /** One exercise in a hypertrophy plan (3×8–12) and a strength plan (5×5), both at 60 kg. */
+  async function twoPlans() {
+    const ex = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Bench' });
+    ex.defaultSets.forEach((s) => (s.targets.load = { value: 60 }));
+    await repo.saveExercise(ex);
+    const make = async (goal: 'hypertrophy' | 'strength') => {
+      const { plan, version } = newPlan(goal);
+      plan.goal = goal;
+      const day = newDay('A');
+      day.items.push(newPlanItem(ex, plan));
+      version.days.push(day);
+      await repo.createPlan(plan, version);
+      return { plan, day, lineage: day.items[0].lineageId };
+    };
+    return { ex, hyp: await make('hypertrophy'), str: await make('strength') };
+  }
+  const syncs = async () => (await db.progressionEvents.toArray()).filter((e) => e.outcome === 'sync');
+
+  it('hypertrophy load up → asks to update strength (1RM); the answer asks nothing more', async () => {
+    const { hyp, str } = await twoPlans();
+    await doSession(hyp.plan.id, hyp.day.id, [12, 12, 12]);
+    const ready = (await db.progressionEvents.toArray()).find((e) => e.outcome === 'ready')!;
+    await repo.decide(ready.id, { kind: 'apply' });
+    const [q] = await syncs();
+    expect(q).toMatchObject({ lineageId: str.lineage, decision: 'pending', suggestion: { from: 60, to: 70 }, sourceEventId: ready.id });
+    await repo.decide(q.id, { kind: 'apply' });
+    expect((await db.progressionStates.get(str.lineage))!.targets.load).toBe(70);
+    expect(await syncs()).toHaveLength(1);
+  });
+
+  it('undoing the source removes its open question', async () => {
+    const { hyp } = await twoPlans();
+    await doSession(hyp.plan.id, hyp.day.id, [12, 12, 12]);
+    const ready = (await db.progressionEvents.toArray()).find((e) => e.outcome === 'ready')!;
+    await repo.decide(ready.id, { kind: 'apply' });
+    expect(await syncs()).toHaveLength(1);
+    await repo.decide(ready.id, { kind: 'revert' });
+    expect(await syncs()).toHaveLength(0);
+  });
+
+  it('deleting the source workout removes its questions', async () => {
+    const { ex, str, hyp } = await twoPlans();
+    await repo.manualAdjust(hyp.lineage, ex.id, { load: 40 }, 'test', 'double');
+    const wid = await doSession(str.plan.id, str.day.id, [5, 5, 5, 5, 5]);
+    expect(await syncs()).toHaveLength(1);
+    await repo.deleteWorkout(wid);
+    expect(await syncs()).toHaveLength(0);
+  });
+
+  it('strength load up → hypertrophy only with "below"; never with "order" or "off"', async () => {
+    const { str, hyp } = await twoPlans();
+    // Hypertrophy lower, so a question makes sense: 60 × 5 → 1RM 70 → 8 reps 55.3 → 55.
+    await repo.manualAdjust(hyp.lineage, (await db.exercises.toArray())[0].id, { load: 40 }, 'test', 'double');
+    await doSession(str.plan.id, str.day.id, [5, 5, 5, 5, 5]);
+    expect((await syncs()).map((e) => [e.lineageId, e.suggestion?.to])).toEqual([[hyp.lineage, 55]]);
+    for (const trigger of ['order', 'off'] as const) {
+      await db.progressionEvents.clear();
+      await repo.saveSettings({ loadSync: { trigger, method: 'e1rm' } });
+      await doSession(str.plan.id, str.day.id, [5, 5, 5, 5, 5]);
+      expect(await syncs()).toHaveLength(0);
+    }
+  });
+
+  it('a strength item added later starts from the hypertrophy history', async () => {
+    const { ex, hyp, str } = await twoPlans();
+    await doSession(hyp.plan.id, hyp.day.id, [12, 12, 12]);
+    await repo.addToPlanDay(str.plan.id, str.day.id, ex.id);
+    const v = (await db.planVersions.get((await db.plans.get(str.plan.id))!.currentVersionId))!;
+    expect(v.days[0].items[1].sets.filter((s) => s.kind === 'working').map((s) => s.targets.load?.value)).toEqual([70, 70, 70, 70, 70]);
+  });
+});

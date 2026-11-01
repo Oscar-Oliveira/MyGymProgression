@@ -226,8 +226,9 @@ export interface ExerciseSnapshot {
  * missed: reps (or the progressed value) fell below the minimum; the user chooses keep or step back.
  * ready: every set reached the top (hypertrophy); the user chooses load up or reps up.
  * at_cap: targets met, but the configured cap is reached.
+ * sync: the load went up in another plan with the same exercise; the user chooses to update this item (D36).
  */
-export type Outcome = 'increase' | 'ready' | 'progress' | 'keep' | 'incomplete' | 'restricted' | 'missed' | 'at_cap' | 'manual' | 'no_progression';
+export type Outcome = 'increase' | 'ready' | 'progress' | 'keep' | 'incomplete' | 'restricted' | 'missed' | 'at_cap' | 'manual' | 'no_progression' | 'sync';
 
 export type Completion = 'complete' | 'incomplete' | 'below_target';
 
@@ -321,6 +322,8 @@ export interface ProgressionEvent {
   decidedAt?: string;
   /** Set when a later workout closed this question as kept; it opens again if that workout is deleted or resumed. */
   closedBy?: string;
+  /** Sync questions only: the event that raised the load in the other plan. */
+  sourceEventId?: string;
 }
 
 export interface Revision {
@@ -346,6 +349,17 @@ export interface Settings {
   coach?: CoachSettings;
   /** Weekly challenge on Home. Default: off. */
   challenge?: boolean;
+  /** Load sync between plans with the same exercise (D36). Default: below, e1rm. */
+  loadSync?: LoadSync;
+}
+
+/**
+ * trigger — off: never ask; order: only when hypertrophy reaches strength (or another hypertrophy item is below);
+ * below: whenever the other item is below the suggestion. method — e1rm: convert through the estimated 1RM; increment: +1 increment.
+ */
+export interface LoadSync {
+  trigger: 'off' | 'order' | 'below';
+  method: 'e1rm' | 'increment';
 }
 
 export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant' | 'energy';

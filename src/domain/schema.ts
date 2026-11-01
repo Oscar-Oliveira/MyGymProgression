@@ -108,7 +108,7 @@ export const planVersionSchema = z.object({
 export const progressionStateSchema = z.object({ lineageId: z.string().min(1), exerciseId: z.string(), targets: metricValues, repsRange: repRange.optional(), updatedAt: iso });
 
 const reason = z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), num])).optional() });
-const outcome = z.enum(['increase', 'ready', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression']);
+const outcome = z.enum(['increase', 'ready', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression', 'sync']);
 const suggestion = z.object({ metric: metricKey, from: num, to: num, kind: z.enum(['increase', 'decrease']) });
 
 const setRecord = z.object({
@@ -182,6 +182,7 @@ export const progressionEventSchema = z.object({
   createdAt: iso,
   decidedAt: iso.optional(),
   closedBy: z.string().optional(),
+  sourceEventId: z.string().optional(),
 });
 
 export const revisionSchema = z.object({ id: z.string().min(1), workoutId: z.string(), at: iso, previous: workoutSchema });
@@ -197,6 +198,7 @@ export const settingsSchema = z.object({
   theme: z.enum(['dark', 'light', 'system']).optional(),
   coach: z.object({ enabled: z.boolean(), style: z.enum(['support', 'spite', 'stoic', 'sergeant', 'energy']), gender: z.enum(['male', 'female']).optional(), profanity: z.boolean(), when: z.enum(['start', 'each', 'random']).optional(), pages: z.boolean().optional() }).optional(),
   challenge: z.boolean().optional(),
+  loadSync: z.object({ trigger: z.enum(['off', 'order', 'below']), method: z.enum(['e1rm', 'increment']) }).optional(),
 });
 
 export const gameScoreSchema = z.object({ id: z.string().min(1), game: z.enum(['memory', 'whack', 'muscle', 'flappy', 'runner', 'starship']), score: num, at: iso });
@@ -214,7 +216,7 @@ export const challengeSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

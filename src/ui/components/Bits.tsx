@@ -13,6 +13,7 @@ const TONE: Record<Outcome, string> = {
   missed: 'warn',
   incomplete: 'warn',
   restricted: 'warn',
+  sync: 'warn',
 };
 
 export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy?: ProgressionStrategy }) {

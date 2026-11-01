@@ -14,7 +14,7 @@ import { CoachAvatar } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
-import { DecisionCard, fmtMetric, rxLine, setsLine, setText } from '../progress';
+import { DecisionCard, fmtMetric, rxLine, setsLine, setText, SyncCard } from '../progress';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { ExerciseItem } from '../components/ExerciseItem';
@@ -397,6 +397,18 @@ export function WorkoutPage() {
           {draft.entries.map((e) => (
             <DecisionCard key={e.id} entry={e} ev={ctx.events.find((x) => x.entryId === e.id)} />
           ))}
+          {ctx.events.some((x) => x.outcome === 'sync') && (
+            <>
+              <div className="section-head">
+                <h2>{t('sync.title')}</h2>
+              </div>
+              {ctx.events
+                .filter((x) => x.outcome === 'sync')
+                .map((x) => (
+                  <SyncCard key={x.id} ev={x} exercise={ctx.exercises.get(x.exerciseId)} />
+                ))}
+            </>
+          )}
           {draft.notes && <p className="card">{draft.notes}</p>}
           <details className="card tight">
             <summary>{t('workout.details')}</summary>

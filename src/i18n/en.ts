@@ -41,9 +41,10 @@ export const en = {
       none: 'Fixed prescription. Only completion is recorded; it never goes up and is never flagged as stalled.',
     },
   },
-  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', missedTarget: 'Below target', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed' },
+  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', missedTarget: 'Below target', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed', sync: 'Other plan' },
   decision: { applied: 'Increased', reverted: 'Increase undone', pending: 'To decide', kept: 'Kept', stepped_back: 'Stepped back', reps_up: 'Reps up', overridden: 'Set manually', none: 'No change' },
   reason: {
+    sync: '{{goal}} in {{plan}} — {{day}} went up to {{load}}.',
     sets_missing: '{{done}} of {{prescribed}} sets done.',
     value_missing: 'Set {{set}}: {{metric}} not recorded.',
     set_below_target: 'Set {{set}}: {{metric}} {{actual}} (target {{target}}).',
@@ -249,6 +250,24 @@ export const en = {
       stoic: ['{{m}} m. One step at a time.', '{{m}} m. Focus on the next obstacle.'],
       sergeant: ['{{m}} METRES! MOVE IT!', '{{m}} M! NOBODY STOPS IN MY GYM!'],
       energy: ['{{m}} METRES!! THIS IS FIRE!', 'GO! {{m}} m and climbing!'],
+    },
+  },
+  sync: {
+    title: 'Loads across plans',
+    ask: 'Update {{from}} → {{to}}?',
+    why: '{{goal}} in {{plan}} — {{day}} went up to {{load}}.',
+    applyBtn: 'Update to {{value}}', later: 'Not now', reason: 'Load from another plan',
+    settingSub: 'When the load of an exercise goes up in one plan, the app asks whether to update the other active plans with the same exercise (hypertrophy and strength, both ways and between plans with the same goal). It never suggests going down.',
+    trigger: 'Ask', triggers: { below: 'Below the suggestion', order: 'Hypertrophy ≥ strength', off: 'Off' },
+    triggerHelp: {
+      below: 'Asks whenever the other plan is below the suggested load, in both directions.',
+      order: 'Asks only when hypertrophy reaches the strength load (or another plan with the same goal is below). When strength goes up, it does not ask.',
+      off: 'Never asks. Each plan progresses on its own.',
+    },
+    method: 'Suggested load', methods: { e1rm: 'Estimated 1RM', increment: '+1 increment' },
+    methodHelp: {
+      e1rm: 'Converts through the estimated 1RM of the last session. E.g. 60 kg × 12 → 1RM ≈ 84 kg → 5 reps ≈ 72 kg → 70 kg (rounded down to the increment).',
+      increment: 'Strength = hypertrophy + 1 increment (e.g. 62.5 → 65 kg). Conservative: the gap is small for 5 reps.',
     },
   },
   challenge: {

@@ -136,13 +136,14 @@ export function PlanEdit() {
     unsaved.current = false; // just saved; the page has not reloaded the plan yet
     nav(`/workout/${await repo.startWorkout(plan.id, day.id)}`);
   };
-  const pick = (ex: Exercise) => {
+  const pick = async (ex: Exercise) => {
     if (!picker) return;
     if (picker.item) {
       const it = day.items.find((x) => x.id === picker.item);
       if (it) upItem({ ...it, substitutes: [...it.substitutes, ex.id] });
     } else {
-      const item = newPlanItem(ex, dayGoal(plan, day));
+      // The starting load comes from other plans with the same exercise (D36).
+      const item = await repo.startLoad(plan, day, newPlanItem(ex, dayGoal(plan, day)), ex);
       upDay((d) => (picker.circuit ? addToCircuit(d, item, picker.circuit) : { ...d, items: [...d.items, item] }));
       setOpenId(item.id);
     }

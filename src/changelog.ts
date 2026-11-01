@@ -8,6 +8,17 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-01',
+    pt: [
+      'Cargas entre planos: quando a carga de um exercício sobe num plano (ex.: hipertrofia), a app pergunta se queres atualizar os outros planos com o mesmo exercício (ex.: força), com uma carga calculada pelo 1RM estimado. Escolhe nas Definições quando perguntar e como calcular.',
+      'Um exercício novo num plano começa com a carga calculada a partir dos teus outros planos.',
+    ],
+    en: [
+      'Loads across plans: when the load of an exercise goes up in one plan (e.g. hypertrophy), the app asks whether to update the other plans with the same exercise (e.g. strength), with a load from the estimated 1RM. Choose in Settings when to ask and how to calculate.',
+      'A new exercise in a plan starts with a load calculated from your other plans.',
+    ],
+  },
+  {
+    date: '2026-11-01',
     pt: ['Botão "Voltar" nas páginas abaixo dos separadores (exercício, plano, definições…); deslizar para a direita também volta.'],
     en: ['"Back" button on the pages below the tabs (exercise, plan, settings…); a swipe to the right also goes back.'],
   },

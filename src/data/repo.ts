@@ -8,7 +8,8 @@ import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
-import type { Exercise, GameId, Plan, PlanDay, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
+import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } from '../domain/sync';
+import type { Exercise, GameId, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
@@ -54,6 +55,55 @@ export function createRepo(db: GymDB) {
     return { added: added.length, updated: updated.length };
   }
 
+  /** Tables read by load sync, besides events, states and workouts. */
+  const syncTables = () => [db.plans, db.planVersions, db.exercises, db.settings];
+
+  /** Plans, exercises, states and workouts needed for load sync (D36). Call inside a transaction that includes them. */
+  async function syncContext() {
+    const [plans, versions, exercises, stateList, workouts] = await Promise.all([db.plans.toArray(), db.planVersions.toArray(), db.exercises.toArray(), db.progressionStates.toArray(), db.workouts.toArray()]);
+    const states = new Map(stateList.map((s) => [s.lineageId, s]));
+    return { items: syncItems(plans, versions, new Map(exercises.map((e) => [e.id, e])), states), states, workouts };
+  }
+
+  /** Asks to update other plans with the same exercise after these events raised a load (D36). Call inside a transaction with syncTables(). */
+  async function addSyncQuestions(sources: ProgressionEvent[]) {
+    const raised = sources.filter(raisesLoad);
+    const settings = (await getSettings()).loadSync ?? DEFAULT_LOAD_SYNC;
+    if (!raised.length || settings.trigger === 'off') return;
+    const { items, states, workouts } = await syncContext();
+    const last = lastEntryFinder(workouts);
+    const now = nowIso();
+    // One question per item: the highest suggestion wins when two sources ask about the same item.
+    const best = new Map<string, ProgressionEvent>();
+    for (const ev of raised.flatMap((src) => syncEvents(src, items, settings, (l) => last(l)?.sets, states, uid, now))) {
+      const prev = best.get(ev.lineageId);
+      if (!prev || ev.suggestion!.to > prev.suggestion!.to) best.set(ev.lineageId, ev);
+    }
+    if (!best.size) return;
+    // A newer question replaces an older open one for the same item.
+    const old = (await db.progressionEvents.where('decision').equals('pending').toArray()).filter((e) => e.outcome === 'sync' && best.has(e.lineageId));
+    await db.progressionEvents.bulkDelete(old.map((e) => e.id));
+    await db.progressionEvents.bulkAdd([...best.values()]);
+  }
+
+  /** The new item with a starting load from other plans with the same exercise (D36). Call inside a transaction with syncTables(), or alone. */
+  async function startLoad(plan: Plan, day: PlanDay, item: PlanItem, ex: Exercise): Promise<PlanItem> {
+    const settings = (await getSettings()).loadSync ?? DEFAULT_LOAD_SYNC;
+    if (settings.trigger === 'off') return item;
+    const { items, workouts } = await syncContext();
+    const finished = workouts.filter((w) => w.status !== 'in_progress').sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+    // Most recently trained first; items never trained last.
+    const sources = items
+      .filter((x) => x.exerciseId === ex.id)
+      .map((x) => {
+        const entry = (w: Workout) => w.entries.find((e) => e.lineageId === x.lineageId && !e.substitutedFor);
+        const w = finished.find(entry);
+        return { item: x, sets: w && entry(w)?.sets, at: w?.startedAt ?? '' };
+      })
+      .sort((a, b) => b.at.localeCompare(a.at));
+    return withStartLoad(plan, day, item, ex, sources, settings.method);
+  }
+
   /** Undoes the still-current progression changes of a workout, removes its events and opens the questions it closed. Call inside a transaction. */
   async function undoEvents(workoutId: string) {
     const evs = await db.progressionEvents.where('workoutId').equals(workoutId).toArray();
@@ -78,6 +128,7 @@ export function createRepo(db: GymDB) {
   return {
     getSettings,
     readAll,
+    startLoad,
 
     async saveSettings(patch: Partial<Settings>) {
       const s = await getSettings();
@@ -156,12 +207,14 @@ export function createRepo(db: GymDB) {
 
     /** Adds an exercise at the end of a plan day, with the sets of the day's goal. A locked version produces a new version. */
     async addToPlanDay(planId: string, dayId: string, exerciseId: string) {
-      await db.transaction('rw', db.plans, db.planVersions, db.exercises, async () => {
+      await db.transaction('rw', [db.progressionStates, db.workouts, ...syncTables()], async () => {
         const plan = await db.plans.get(planId);
         const current = plan && (await db.planVersions.get(plan.currentVersionId));
         const ex = await db.exercises.get(exerciseId);
+        const day = current?.days.find((d) => d.id === dayId);
         if (!plan || !current || !ex) throw new Error('not_found');
-        const days = current.days.map((d) => (d.id === dayId ? { ...d, items: [...d.items, newPlanItem(ex, dayGoal(plan, d))] } : d));
+        const item = day && (await startLoad(plan, day, newPlanItem(ex, dayGoal(plan, day)), ex));
+        const days = current.days.map((d) => (d.id === dayId && item ? { ...d, items: [...d.items, item] } : d));
         const next = saveVersion(current, days);
         await db.planVersions.put(next);
         await db.plans.put({ ...plan, currentVersionId: next.id, updatedAt: nowIso() });
@@ -201,7 +254,7 @@ export function createRepo(db: GymDB) {
     },
 
     async finishWorkout(w: Workout, interrupted: boolean) {
-      await db.transaction('rw', db.workouts, db.progressionEvents, db.progressionStates, async () => {
+      await db.transaction('rw', [db.workouts, db.progressionEvents, db.progressionStates, ...syncTables()], async () => {
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const res = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
@@ -212,6 +265,7 @@ export function createRepo(db: GymDB) {
         await db.workouts.put(res.workout);
         await db.progressionEvents.bulkAdd(res.events);
         await db.progressionStates.bulkPut(res.states);
+        await addSyncQuestions(res.events);
       });
     },
 
@@ -226,7 +280,7 @@ export function createRepo(db: GymDB) {
      * Returns the applied increases that the correction no longer supports, so the user can choose to undo them.
      */
     async correctWorkout(w: Workout): Promise<ProgressionEvent[]> {
-      return db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
+      return db.transaction('rw', [db.workouts, db.revisions, db.progressionEvents, db.progressionStates, ...syncTables()], async () => {
         const previous = await db.workouts.get(w.id);
         if (!previous) throw new Error('workout_missing');
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
@@ -245,6 +299,7 @@ export function createRepo(db: GymDB) {
         await db.progressionEvents.bulkDelete(undecided.map((e) => e.id));
         await db.progressionEvents.bulkAdd(res.events);
         await db.progressionStates.bulkPut(res.states);
+        await addSyncQuestions(res.events);
         const outcome = new Map(evaluated.entries.map((e) => [e.id, e.evaluation?.outcome]));
         return events.filter(
           (e) => (e.decision === 'applied' || e.decision === 'reps_up') && !['increase', 'ready'].includes(outcome.get(e.entryId!) ?? '') && canRevert(e, states.get(e.lineageId)),
@@ -277,20 +332,27 @@ export function createRepo(db: GymDB) {
     },
 
     async decide(eventId: string, input: DecisionInput) {
-      await db.transaction('rw', db.progressionEvents, db.progressionStates, async () => {
+      await db.transaction('rw', [db.progressionEvents, db.progressionStates, db.workouts, ...syncTables()], async () => {
         const ev = await db.progressionEvents.get(eventId);
         if (!ev) throw new Error('event_missing');
         const res = decide(ev, await db.progressionStates.get(ev.lineageId), input);
         await db.progressionEvents.put(res.event);
         await db.progressionStates.put(res.state);
+        if (res.event.decision === ev.decision) return;
+        // Undoing a load change also removes the open questions it asked about other plans.
+        if (res.event.decision === 'reverted') {
+          const asked = (await db.progressionEvents.where('decision').equals('pending').toArray()).filter((e) => e.sourceEventId === ev.id);
+          await db.progressionEvents.bulkDelete(asked.map((e) => e.id));
+        } else await addSyncQuestions([res.event]);
       });
     },
 
     async manualAdjust(lineageId: string, exerciseId: string, targets: ProgressionEvent['after'], reason: string, strategy: ProgressionEvent['strategy']) {
-      await db.transaction('rw', db.progressionEvents, db.progressionStates, async () => {
+      await db.transaction('rw', [db.progressionEvents, db.progressionStates, db.workouts, ...syncTables()], async () => {
         const res = manualAdjust(await db.progressionStates.get(lineageId), lineageId, exerciseId, targets, reason, strategy);
         await db.progressionEvents.add(res.event);
         await db.progressionStates.put(res.state);
+        await addSyncQuestions([res.event]);
       });
     },
 
