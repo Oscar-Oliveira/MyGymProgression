@@ -23,11 +23,20 @@ const LIBRARY = {
 
 let nativeDialogs: string[] = [];
 
+/** The splash stays until a tap outside the trainers (D51). A change of the # part only does not load the page again: no splash. */
+async function closeSplash(page: Page) {
+  if (!(await page.locator('#splash').count())) return;
+  await page.locator('#splash .splash-tap').waitFor();
+  await page.locator('#splash').click({ position: { x: 8, y: 8 } });
+  await expect(page.locator('#splash')).toHaveCount(0);
+}
+
 test.beforeEach(async ({ page }) => {
   // All messages must use the in-app dialog; a browser alert/confirm/prompt fails the test.
   nativeDialogs = [];
   page.on('dialog', (d) => void (nativeDialogs.push(d.message()), d.dismiss()));
   await page.goto('/');
+  await closeSplash(page);
 });
 
 test.afterEach(() => expect(nativeDialogs).toEqual([]));
@@ -122,7 +131,9 @@ test('pages below a tab have back: a button and a swipe to the right; without an
   await expect(page.getByRole('searchbox')).toBeVisible();
   // Opened directly (no earlier page in the app): back goes to the page above.
   await page.goto('/#/settings');
+  await closeSplash(page);
   await page.reload();
+  await closeSplash(page);
   await page.getByRole('button', { name: '‹ Back' }).click();
   await expect(page).toHaveURL(/#\/more$/);
 });
@@ -194,6 +205,7 @@ test('plan goal is saved; a mixed plan sets the type of each day', async ({ page
   await expect(page.getByRole('button', { name: 'Saved', exact: true })).toBeVisible();
 
   await page.reload();
+  await closeSplash(page);
   await expect(planGoal.getByRole('radio', { name: 'Mixed' })).toHaveAttribute('aria-checked', 'true');
   await expect(dayGoal.getByRole('radio', { name: 'Strength' })).toHaveAttribute('aria-checked', 'true');
   // Exercises are listed collapsed, with a summary; tapping one opens its editor.
@@ -534,6 +546,7 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: keep } });
   });
   await page.reload();
+  await closeSplash(page);
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await more(page, /^Plans/);
   const name = (await page.locator('.nav-row .title').first().innerText()).trim();
@@ -543,6 +556,7 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
   await expect.poll(() => page.evaluate(() => (window as unknown as { shared?: string }).shared)).toContain('#/share?d=');
   const link = await page.evaluate(() => (window as unknown as { shared: string }).shared);
   await page.goto(link);
+  await closeSplash(page);
   await expect(page.getByText('Shared plan')).toBeVisible();
   await expect(page.getByRole('heading', { name })).toBeVisible();
   await expect(page.getByText(/0 new exercises for the library/)).toBeVisible();
@@ -554,6 +568,7 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
 
 test('a damaged share link shows an error', async ({ page }) => {
   await page.goto('/#/share?d=broken');
+  await closeSplash(page);
   await expect(page.getByText('This link is not valid or is incomplete.')).toBeVisible();
 });
 
@@ -709,17 +724,17 @@ test('games: each game opens and plays; scores are saved and can be reset', asyn
   await page.getByRole('link', { name: /^Trainer memory/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
   await expect(page.getByRole('button', { name: /^Card \d+$/ })).toHaveCount(20);
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
 
   await page.getByRole('link', { name: /^Whack-a-PT/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
   await expect(page.locator('.whack-hole')).toHaveCount(9);
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
 
   await page.getByRole('link', { name: /^Guess the muscle/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
   await expect(page.locator('.muscle-options button')).toHaveCount(4);
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
 
   // Without input the runner hits the first obstacle: the score is saved.
   await page.getByRole('link', { name: /^PT Runner/ }).click();
@@ -729,18 +744,18 @@ test('games: each game opens and plays; scores are saved and can be reset', asyn
   await expect(page.getByRole('status')).toContainText(' m');
   await expect(page.getByText(/^Best: \d+ m$/)).toBeVisible();
 
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
   await page.getByRole('link', { name: /^Flappy Dumbbell/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
   await page.getByLabel('Flappy Dumbbell').click();
   await expect(page.getByRole('button', { name: /Play again/ })).toBeVisible({ timeout: 15_000 });
 
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
   await page.getByRole('link', { name: /^Starship/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
   await expect(page.getByLabel('Starship')).toBeVisible();
 
-  await page.getByRole('link', { name: '‹ Games' }).click();
+  await page.getByRole('button', { name: '‹ Back' }).click();
   await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Best:');
   await page.getByRole('button', { name: 'Reset all scores' }).click();
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Reset all scores' }).click();
@@ -797,9 +812,8 @@ test('loads across plans: hypertrophy load up → asks to update the strength pl
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('22.5');
 });
 
-test('personal trainer page: own menu entry; extras off by default; Settings links to it', async ({ page }) => {
-  await more(page, /^Settings/);
-  await page.getByRole('link', { name: /^Personal trainer/ }).click();
+test('personal trainer page: own menu entry; extras off by default', async ({ page }) => {
+  await more(page, /^Personal trainer/);
   await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
   await expect(page.getByText('The trainer is off.')).toBeVisible();
   await page.getByLabel('Turn on personal trainer').click();
@@ -875,4 +889,33 @@ test('trainer extras: rival on the summary, share image, and the Sunday report o
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: '⤴ Share image' }).click();
   expect((await download).suggestedFilename()).toMatch(/^mygymprogression-\d{4}-\d{2}-\d{2}\.png$/);
+});
+
+test('splash: stays until a tap; a tapped trainer talks and the splash stays; a tap elsewhere or Escape closes it', async ({ page }) => {
+  await page.reload();
+  const splash = page.locator('#splash');
+  await expect(splash.getByText('Tap to start')).toBeVisible();
+  await page.waitForTimeout(2500);
+  await expect(splash).toBeVisible();
+  await splash.getByRole('button', { name: 'Sergeant + data' }).click();
+  await expect(splash.locator('.crew-sergeant .bubble')).toBeVisible();
+  await expect(splash).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(splash).toHaveCount(0);
+});
+
+test('games: one back button; sound and vibration can be turned off', async ({ page }) => {
+  await more(page, /^Games/);
+  const sound = page.getByLabel('Sound');
+  await expect(sound).toBeChecked();
+  await sound.click();
+  await expect(sound).not.toBeChecked();
+  await page.reload();
+  await closeSplash(page);
+  await expect(page.getByLabel('Sound')).not.toBeChecked();
+  await expect(page.getByLabel('Vibration')).toBeChecked();
+  await page.getByRole('link', { name: /^Trainer memory/ }).click();
+  await expect(page.getByRole('link', { name: /Games/ })).toHaveCount(0);
+  await page.getByRole('button', { name: '‹ Back' }).click();
+  await expect(page.getByRole('heading', { name: 'Games', level: 1 })).toBeVisible();
 });

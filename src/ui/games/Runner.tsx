@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { drawFace, fitCanvas, loop, overlap, pick, rand, roundRect, themeColors, useAvatarImage, useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const W = 360;
 const H = 220;
@@ -21,7 +22,10 @@ const SIZE: Record<Kind, { w: number; h: number }> = { dumbbell: { w: 36, h: 16 
 const BAR_BOTTOM = GROUND - 38;
 
 /** PT Runner, like the offline dinosaur game: the trainer runs through the gym. Score: metres. */
-export function Runner({ style, gender, onEnd }: GameProps) {
+export function Runner({ style, gender, onEnd, onSay }: GameProps) {
+  // The trainer's voice reads the cheers (when it is on); the loop uses the latest function.
+  const say = useRef(onSay);
+  say.current = onSay;
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
   const { img, node } = useAvatarImage(style, gender);
@@ -36,7 +40,10 @@ export function Runner({ style, gender, onEnd }: GameProps) {
     const st = { y: GROUND, vy: 0, duck: false, speed: 230, px: 0, time: 0, obstacles: [] as { kind: Kind; x: number }[], said: 0, bubble: '', bubbleT: 0, dead: false };
     input.current = {
       jump: () => {
-        if (!st.dead && st.y >= GROUND) st.vy = JUMP;
+        if (!st.dead && st.y >= GROUND) {
+          st.vy = JUMP;
+          fx('tap');
+        }
       },
       duck: (on) => void (st.duck = on),
     };
@@ -140,6 +147,8 @@ export function Runner({ style, gender, onEnd }: GameProps) {
         st.said += CHEER;
         st.bubble = pick(cheers).replace('{{m}}', String(st.said));
         st.bubbleT = 2.2;
+        fx('good');
+        say.current?.(st.bubble);
       }
       st.bubbleT -= dt;
       const h = st.duck ? DUCK : STAND;
@@ -151,6 +160,7 @@ export function Runner({ style, gender, onEnd }: GameProps) {
       draw();
       if (hit) {
         st.dead = true;
+        fx('bad');
         setTimeout(() => end(m), 600);
         return false;
       }

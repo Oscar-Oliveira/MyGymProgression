@@ -7,6 +7,8 @@ export interface GameProps {
   style: CoachStyle;
   gender?: CoachGender;
   onEnd: (score: number) => void;
+  /** Reads a trainer line aloud, when the trainer's voice is on (D52). */
+  onSay?: (text: string) => void;
 }
 
 /** Sizes the canvas for the screen density; drawing then uses `w` × `h` logical pixels. */

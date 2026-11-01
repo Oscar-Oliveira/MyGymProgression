@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { canvasPoint, drawFace, fitCanvas, loop, pick, rand, roundRect, themeColors, useAvatarImage, useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const W = 360;
 const H = 520;
@@ -78,6 +79,7 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       if (st.shield > 0 || st.hurt > 0) return;
       st.lives--;
       st.hurt = 1.2;
+      fx('bad');
     };
 
     const draw = () => {
@@ -223,6 +225,7 @@ export function Starship({ style, gender, onEnd }: GameProps) {
           s.y = -100;
           if (--st.boss.hp <= 0) {
             st.score += 250;
+            fx('power');
             st.boss = undefined;
             st.crumbs = [];
             nextWave();
@@ -240,6 +243,7 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       }
       for (const p of st.powers) {
         if (!near(p, sh, 32)) continue;
+        fx('power');
         if (p.kind === 'shield') st.shield = POWER_TIME;
         else st.triple = POWER_TIME;
         p.y = H + 100;

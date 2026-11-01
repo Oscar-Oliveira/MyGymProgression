@@ -13,7 +13,6 @@ import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
 import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
-import { Link } from 'react-router-dom';
 
 
 /** One action in a settings list: icon, title and a short description. */
@@ -310,13 +309,6 @@ export function SettingsPage() {
           </span>
           <input type="checkbox" role="switch" className="switch" checked={!!s.warmup} onChange={(e) => void repo.saveSettings({ warmup: e.target.checked })} />
         </label>
-        <Link to="/coach" className="setting-row">
-          <span className="lbl">
-            {t('coach.title')}
-            <small>{t('coach.moved')}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-        </Link>
       </section>
 
       <div className="section-head">

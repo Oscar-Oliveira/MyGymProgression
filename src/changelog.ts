@@ -9,6 +9,21 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-01',
     pt: [
+      'Voz do PT com o género escolhido (homem ou mulher) e o ritmo do estilo; na página do PT podes escolher a voz à mão.',
+      'Jogos com som e vibração (podes desligar na página dos Jogos) e com a voz do PT, quando está ligada. Só um botão "Voltar".',
+      'Relatório da semana: o estado do desafio aparece como nos outros sítios.',
+      'Ecrã de arranque novo: os PTs falam, reagem quando lhes tocas e há um número teu ou uma dica. Fecha quando tocas fora dos PTs.',
+    ],
+    en: [
+      'Trainer voice with the chosen gender (man or woman) and the pace of the style; on the trainer page you can choose the voice by hand.',
+      'Games with sound and vibration (you can turn them off on the Games page) and with the voice of the trainer, when it is on. Only one "Back" button.',
+      'Week report: the challenge status shows as elsewhere.',
+      'New splash: the trainers talk, react when you tap them, and there is a number of yours or a tip. It closes when you tap outside the trainers.',
+    ],
+  },
+  {
+    date: '2026-11-01',
+    pt: [
       'Personal trainer com página própria (Mais → Personal trainer), com extras que ligas um a um: reação quando bates a última vez, dicas de técnica, voz, "tu vs o teu eu antigo" no fim do treino e relatório da semana ao domingo.',
       'Aquecimento automático (Definições → Treino): séries de aquecimento antes do 1.º exercício composto de cada músculo.',
       'Treino: nota de setup do exercício (📌), "Pouco tempo" para encurtar o treino e "Fazer depois" para passar um exercício para o fim.',

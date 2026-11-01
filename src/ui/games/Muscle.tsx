@@ -7,6 +7,7 @@ import type { Exercise } from '../../domain/types';
 import { Thumb } from '../components/Thumb';
 import { tr } from '../util';
 import { pick, useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const LIVES = 3;
 const OPTIONS = 4;
@@ -50,6 +51,7 @@ function Quiz({ pool, onEnd }: { pool: Exercise[]; onEnd: (score: number) => voi
     if (chosen) return;
     setChosen(m);
     const right = m === current.answer;
+    fx(right ? 'good' : 'bad');
     const nextScore = score + (right ? 1 : 0);
     const nextLives = lives - (right ? 0 : 1);
     setScore(nextScore);

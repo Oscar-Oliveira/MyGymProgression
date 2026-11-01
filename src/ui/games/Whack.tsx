@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CoachGender, CoachStyle } from '../../domain/types';
 import { CoachAvatar } from '../components/CoachAvatar';
 import { pick, rand, useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const HOLES = 9;
 const SECONDS = 30;
@@ -55,6 +56,7 @@ export function Whack({ onEnd }: GameProps) {
     const p = POINTS[m.style];
     s.score = Math.max(0, s.score + p);
     s.holes[i] = undefined;
+    fx(p < 0 ? 'bad' : 'good');
     s.hits[i] = p < 0 ? `${t('games.ouch')} ${p}` : `+${p}`;
     setTimeout(() => {
       s.hits[i] = undefined;

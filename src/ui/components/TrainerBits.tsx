@@ -12,9 +12,11 @@ import { repo } from '../../data/repo';
 /** Reads `text` aloud once when it shows, and again when it changes (D47). Renders nothing. */
 export function Speak({ text }: { text?: string }) {
   const s = useSettings();
+  const style = s.coach?.style ?? 'support';
+  const gender = s.coach?.gender;
   useEffect(() => {
-    if (text) speak(text, s.language);
-  }, [text, s.language]);
+    if (text) speak(text, s.language, { style, gender });
+  }, [text, s.language, style, gender]);
   return null;
 }
 
@@ -85,7 +87,10 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
         {report.challenge && (
           <li>
             <span>{t('trainer.report.challenge')}</span>
-            <strong>{t(`trainer.report.challengeStatus.${report.challenge}`)}</strong>
+            <span className={`pill ${report.challenge === 'done' ? 'up' : report.challenge === 'missed' ? 'down' : ''}`}>
+              {report.challenge === 'done' ? '✓ ' : ''}
+              {t(`trainer.report.challengeStatus.${report.challenge}`)}
+            </span>
           </li>
         )}
       </ul>

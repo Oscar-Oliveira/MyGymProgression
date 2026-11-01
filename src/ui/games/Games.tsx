@@ -15,6 +15,8 @@ import { Muscle } from './Muscle';
 import { Runner } from './Runner';
 import { Starship } from './Starship';
 import { Whack } from './Whack';
+import { fx, fxOn, setFx, type FxSetting } from './feedback';
+import { canSpeak, speak } from '../voice';
 
 /** `lower`: a lower score is better (memory counts moves). */
 const GAMES: { id: GameId; icon: string; lower?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
@@ -29,10 +31,34 @@ const LAST = 10;
 
 const bestOf = (lower: boolean | undefined, scores: GameScore[]) => (scores.length ? (lower ? Math.min : Math.max)(...scores.map((s) => s.score)) : undefined);
 
-/** The trainer chosen in Settings plays; without one, the energetic trainer. */
+/** The trainer chosen on the trainer page plays; without one, the energetic trainer. It speaks only when its voice is on. */
 function useTrainer() {
   const s = useSettings();
-  return { style: s.coach?.style ?? 'energy', gender: s.coach?.gender };
+  const style = s.coach?.style ?? 'energy';
+  const gender = s.coach?.gender;
+  const voice = !!(s.coach?.enabled && s.coach.voice && canSpeak());
+  return { style, gender, say: voice ? (text: string) => speak(text, s.language, { style, gender }) : undefined };
+}
+
+/** Sound and vibration switches (D52), kept on this device. */
+function FxSwitches() {
+  const { t } = useTranslation();
+  const [on, setOn] = useState({ sound: fxOn('sound'), haptic: fxOn('haptic') });
+  const toggle = (k: FxSetting, v: boolean) => {
+    setFx(k, v);
+    setOn({ ...on, [k]: v });
+    if (v) fx('good');
+  };
+  return (
+    <section className="card">
+      {(['sound', 'haptic'] as const).map((k) => (
+        <label key={k} className="setting-row">
+          <span>{t(`games.${k}`)}</span>
+          <input type="checkbox" role="switch" className="switch" checked={on[k]} onChange={(e) => toggle(k, e.target.checked)} />
+        </label>
+      ))}
+    </section>
+  );
 }
 
 export function GamesPage() {
@@ -68,6 +94,7 @@ export function GamesPage() {
           );
         })}
       </ul>
+      <FxSwitches />
       {scores.length > 0 && (
         <button className="danger" style={{ width: '100%' }} onClick={() => void resetAll()}>
           {t('games.resetAll')}
@@ -103,6 +130,8 @@ function OneGame({ id }: { id?: string }) {
     // The first game is a record, except a score of 0.
     const record = best === undefined ? game.lower || score > 0 : game.lower ? score < best : score > best;
     await repo.addScore(game.id, score);
+    fx(record ? 'record' : 'end');
+    trainer.say?.(t(`games.react.${trainer.style}.${record ? 'record' : 'score'}`, { score: fmt(score) }));
     setResult({ score, record });
     setRun(0);
   };
@@ -118,15 +147,12 @@ function OneGame({ id }: { id?: string }) {
     <div className="game-page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">
-            <Link to="/games">‹ {t('games.title')}</Link>
-          </p>
           <h1>{name}</h1>
         </div>
         {best !== undefined && <span className="pill up">{`${t('games.best')}: ${fmt(best)}`}</span>}
       </div>
       {run > 0 ? (
-        <game.Game key={run} style={trainer.style} gender={trainer.gender} onEnd={(n) => void end(n)} />
+        <game.Game key={run} style={trainer.style} gender={trainer.gender} onEnd={(n) => void end(n)} onSay={trainer.say} />
       ) : (
         <>
           {result && (

@@ -33,18 +33,19 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// The splash (index.html) shows the trainers popping up, then fades out; a tap closes it sooner.
+// The splash (index.html) shows the trainers (D51). It stays until a tap outside a trainer, or Enter, Space or Escape.
 const splash = document.getElementById('splash');
-const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const crew = splash && createRoot(splash.appendChild(document.createElement('div')));
 crew?.render(<SplashCrew />);
 const hide = () => {
   if (!splash || splash.classList.contains('hide')) return;
   splash.classList.add('hide');
+  removeEventListener('keydown', onKey);
   setTimeout(() => (crew?.unmount(), splash.remove()), 400);
 };
+const onKey = (e: KeyboardEvent) => ['Enter', ' ', 'Escape'].includes(e.key) && (e.preventDefault(), hide());
 if (splash) {
   splash.style.pointerEvents = 'auto';
   splash.addEventListener('click', hide);
+  addEventListener('keydown', onKey);
 }
-setTimeout(hide, calm ? 900 : 1800);

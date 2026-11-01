@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CoachGender, CoachStyle } from '../../domain/types';
 import { CoachAvatar } from '../components/CoachAvatar';
 import { useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const STYLES: CoachStyle[] = ['support', 'spite', 'stoic', 'sergeant', 'energy'];
 const GENDERS: CoachGender[] = ['male', 'female'];
@@ -32,10 +33,12 @@ export function Memory({ onEnd }: GameProps) {
     if (open.length !== 2) return;
     const [a, b] = open;
     if (same(a, b)) {
+      fx('good');
       setFound((f) => new Set([...f, a, b]));
       setOpen([]);
       return;
     }
+    fx('bad');
     const id = setTimeout(() => setOpen([]), SHOW_MS);
     return () => clearTimeout(id);
   }, [open]);
@@ -47,6 +50,7 @@ export function Memory({ onEnd }: GameProps) {
   const turn = (i: number) => {
     if (open.length === 2 || open.includes(i) || found.has(i)) return;
     if (open.length === 1) setMoves((m) => m + 1);
+    else fx('tap');
     setOpen([...open, i]);
   };
 

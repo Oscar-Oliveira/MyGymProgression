@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { drawFace, fitCanvas, loop, overlap, rand, roundRect, themeColors, useAvatarImage, useEnd, type GameProps } from './canvas';
+import { fx } from './feedback';
 
 const W = 360;
 const H = 480;
@@ -31,6 +32,7 @@ export function Flappy({ style, gender, onEnd }: GameProps) {
       if (st.dead) return;
       st.started = true;
       st.vy = FLAP;
+      fx('tap');
     };
     const x = 90;
 
@@ -87,6 +89,7 @@ export function Flappy({ style, gender, onEnd }: GameProps) {
         if (!tw.passed && tw.x + TOWER < x - R) {
           tw.passed = true;
           st.score++;
+          fx('good');
         }
       }
       st.towers = st.towers.filter((tw) => tw.x > -TOWER);
@@ -95,6 +98,7 @@ export function Flappy({ style, gender, onEnd }: GameProps) {
       draw();
       if (hit) {
         st.dead = true;
+        fx('bad');
         setTimeout(() => end(st.score), 600);
         return false;
       }
