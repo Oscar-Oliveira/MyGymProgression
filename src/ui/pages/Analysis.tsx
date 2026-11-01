@@ -116,6 +116,7 @@ function Spark({ values }: { values: number[] }) {
   );
 }
 
+/** The Analysis tab of Reports (D57); the page title is in Reports. */
 export function Analysis() {
   const { t } = useTranslation();
   const s = useSettings();
@@ -184,9 +185,6 @@ export function Analysis() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('analysis.title')}</h1>
-      </div>
       <PageCoach place="analysis" />
       <div className="segmented" role="tablist" aria-label={t('analysis.period')}>
         {PERIODS.map((p) => (

@@ -1,22 +1,25 @@
-// Personal trainer cards beyond messages: the week report (D46) and the rival (D49).
+// Report cards: the week report (D46) and the rival (D49). With the trainer on, they show its face and comment (D57).
 import type { TFunction } from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CoachReport, CoachSettings } from '../../domain/types';
-import type { RivalRow } from '../../domain/trainer';
+import { reportOn, type RivalRow } from '../../domain/trainer';
 import { fmtDate, fmtNum, fmtSeconds, distOut, loadOut, tr, useSettings } from '../util';
 import { CoachAvatar } from './CoachAvatar';
 import { speak } from '../voice';
 import { repo } from '../../data/repo';
 
-/** Reads `text` aloud once when it shows, and again when it changes (D47). Renders nothing. */
-export function Speak({ text }: { text?: string }) {
-  const s = useSettings();
-  const style = s.coach?.style ?? 'support';
-  const gender = s.coach?.gender;
+/**
+ * Reads `text` aloud once when it shows, and again when it changes (D47). Renders nothing. The voice comes from the
+ * caller: settings loaded here start as the defaults, and the change to the real ones read the text a second time.
+ */
+export function Speak({ text, lang, coach }: { text?: string; lang: 'pt' | 'en'; coach: Pick<CoachSettings, 'style' | 'gender'> }) {
+  const said = useRef<string>(undefined);
   useEffect(() => {
-    if (text) speak(text, s.language, { style, gender });
-  }, [text, s.language, style, gender]);
+    if (!text || said.current === text) return;
+    said.current = text;
+    speak(text, lang, coach);
+  });
   return null;
 }
 
@@ -35,8 +38,8 @@ export function trainerLine(t: TFunction, key: string, coach: Pick<CoachSettings
 /** great: 2 or more workouts and 2 or more increases (its message counts both). ok: some workouts. none: no workouts. */
 export const reportMood = (r: CoachReport) => (r.workouts >= 2 && r.ups >= 2 ? 'great' : r.workouts > 0 ? 'ok' : 'none');
 
-/** The trainer's week report: figures and a comment in the trainer's style. */
-export function ReportCard({ report, coach, onClose }: { report: CoachReport; coach: CoachSettings; onClose?: () => void }) {
+/** The week report: figures, and a comment in the trainer's style when the trainer is on (`coach`). */
+export function ReportCard({ report, coach, onClose }: { report: CoachReport; coach?: CoachSettings; onClose?: () => void }) {
   const { t } = useTranslation();
   const s = useSettings();
   const load = (kg: number) => `${fmtNum(loadOut(kg, s), s.language)} ${s.loadUnit}`;
@@ -48,7 +51,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
   return (
     <section className="card report" aria-label={t('trainer.report.title')}>
       <div className="challenge-head">
-        <CoachAvatar style={coach.style} gender={coach.gender} size={40} />
+        {coach && <CoachAvatar style={coach.style} gender={coach.gender} size={40} />}
         <div style={{ flex: 1 }}>
           <p className="eyebrow">{t('trainer.report.title')}</p>
           <p className="help">{t('trainer.report.weekOf', { date: fmtDate(`${report.week}T12:00:00`, s.language) })}</p>
@@ -59,7 +62,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
           </button>
         )}
       </div>
-      <p className="report-say">{t(`trainer.reportSay.${coach.style}.${reportMood(report)}`, { workouts: report.workouts, ups: report.ups })}</p>
+      {coach && <p className="report-say">{t(`trainer.reportSay.${coach.style}.${reportMood(report)}`, { workouts: report.workouts, ups: report.ups })}</p>}
       <div className="grid3">
         {rows.map(([label, value]) => (
           <div key={label} className="stat">
@@ -98,8 +101,8 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
   );
 }
 
-/** "You vs 3 months ago" on the workout summary: one row per exercise and a comment. */
-export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: string; coach: CoachSettings }) {
+/** "You vs 3 months ago": one row per exercise, and a comment when the trainer is on (`coach`). */
+export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: string; coach?: CoachSettings }) {
   const { t } = useTranslation();
   const s = useSettings();
   const count = (r: RivalRow['result']) => rows.filter((x) => x.result === r).length;
@@ -120,10 +123,12 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
       <p className="help">
         {t('trainer.rival.vs', { date: fmtDate(date, s.language) })} · {t('trainer.rival.score', { won, lost, tie })}
       </p>
-      <div className="coach" role="note" aria-label={t('coach.title')}>
-        <CoachAvatar style={coach.style} gender={coach.gender} />
-        <p>{t(`trainer.rivalSay.${coach.style}.${mood}`)}</p>
-      </div>
+      {coach && (
+        <div className="coach" role="note" aria-label={t('coach.title')}>
+          <CoachAvatar style={coach.style} gender={coach.gender} />
+          <p>{t(`trainer.rivalSay.${coach.style}.${mood}`)}</p>
+        </div>
+      )}
       <ul className="report-list">
         {rows.map((r) => (
           <li key={r.exerciseId}>
@@ -144,8 +149,8 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
 /** Sunday report on Home (D46): made or refreshed when Home opens on a Sunday; closed until the next week. */
 export function HomeReport() {
   const s = useSettings();
-  const coach = s.coach;
-  const on = !!(coach?.enabled && coach.report);
+  const coach = s.coach?.enabled ? s.coach : undefined;
+  const on = reportOn(s);
   const [report, setReport] = useState<CoachReport>();
   const [closed, setClosed] = useState<string>(() => {
     try {
@@ -157,7 +162,7 @@ export function HomeReport() {
   useEffect(() => {
     if (on) void repo.ensureReport().then(setReport);
   }, [on]);
-  if (!on || !coach || !report || closed === report.week) return null;
+  if (!on || !report || closed === report.week) return null;
   const close = () => {
     setClosed(report.week);
     try {

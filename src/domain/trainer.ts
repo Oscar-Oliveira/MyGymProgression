@@ -2,7 +2,7 @@
 import { entryMetrics, mondayOf, muscleDistribution } from './analysis';
 import { challengeProgress, MUSCLES, weekKey } from './challenge';
 import { toCanonical } from './units';
-import type { Challenge, CoachReport, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from './types';
+import type { Challenge, CoachReport, ProgressionEvent, SetRecord, Settings, Workout, WorkoutEntry } from './types';
 
 const DAY = 86_400_000;
 const finished = (w: Workout) => w.status !== 'in_progress';
@@ -83,6 +83,13 @@ const inRange = (iso: string, from: Date, to: Date) => {
   const t = Date.parse(iso);
   return t >= from.getTime() && t < to.getTime();
 };
+
+/**
+ * The week report and the rival no longer need the trainer (D57). Their switches are in Settings; before, they were in
+ * the trainer settings and counted only with the trainer on, so that is the default when the new switch was never set.
+ */
+export const reportOn = (s: Settings): boolean => s.report ?? !!(s.coach?.enabled && s.coach.report);
+export const rivalOn = (s: Settings): boolean => s.rival ?? !!(s.coach?.enabled && s.coach.rival);
 
 /** The week report is made on Sundays (D46): the week of Sunday `now`, else undefined. */
 export function reportWeek(now: Date): string | undefined {

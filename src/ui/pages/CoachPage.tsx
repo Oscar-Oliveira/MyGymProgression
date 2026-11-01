@@ -1,29 +1,25 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { coachMessage } from '../../domain/coach';
 import type { CoachGender, CoachSettings, CoachStyle, CoachWhen } from '../../domain/types';
 import { COACH_BANKS } from '../../i18n/coach';
 import { CoachAvatar } from '../components/CoachAvatar';
-import { ReportCard } from '../components/TrainerBits';
 import { useSettings } from '../util';
 import { canSpeak, speak } from '../voice';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
 export const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
-/** Extras of the trainer (D45–D49), all off by default. Voice only where the device can speak. */
-const EXTRAS = ['live', 'tips', 'voice', 'rival', 'report'] as const;
+/** Extras of the trainer (D45, D47, D48), all off by default. Voice only where the device can speak. The week report and the rival are in Reports (D57). */
+const EXTRAS = ['live', 'tips', 'voice'] as const;
 
-/** Personal trainer page (D37): style, when it speaks, the extras and the week reports. */
+/** Personal trainer page (D37): style, when it speaks and the extras. */
 export function CoachPage() {
   const { t } = useTranslation();
   const s = useSettings();
   const [sample, setSample] = useState<string>();
   const coach = s.coach ?? NO_COACH;
   const save = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
-  const reports = useLiveQuery(() => db.coachReports.orderBy('week').reverse().toArray(), [], []);
   const showSample = () => {
     const text = coachMessage(COACH_BANKS[s.language].start, coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now()));
     setSample(text);
@@ -126,15 +122,6 @@ export function CoachPage() {
               </label>
             ))}
           </section>
-        </>
-      )}
-
-      {(coach.report || reports.length > 0) && (
-        <>
-          <div className="section-head">
-            <h2>{t('coach.reports')}</h2>
-          </div>
-          {reports.length === 0 ? <p className="muted">{t('coach.noReports')}</p> : reports.map((r) => <ReportCard key={r.id} report={r} coach={coach} />)}
         </>
       )}
     </div>

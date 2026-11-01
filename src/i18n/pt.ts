@@ -1,12 +1,13 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', analysis: 'Análise', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', coach: 'Personal trainer' },
-  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', analysis: 'Progresso por exercício', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', coach: 'Estilo, mensagens, voz e relatórios' },
+  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', coach: 'Personal trainer' },
+  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', coach: 'Estilo, mensagens, voz e dicas' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
     whatsNew: 'Novidades', privacy: 'Dados e privacidade', privacyText: 'Todos os dados ficam neste dispositivo, no navegador. Nada é enviado para servidores. Faz cópias de segurança em Definições.',
     credits: 'Créditos', creditsText: 'Criado por Oscar Oliveira. Código aberto no GitHub.', source: 'Código fonte',
+    egg: { left: 'faltam {{count}}…', left_one: 'falta 1…', on: 'MODO 1987 LIGADO!', unlocked: 'MODO 1987 LIGADO! Há um jogo secreto em Jogos.', off: 'De volta ao presente.' },
   },
   common: {
     back: 'Voltar',
@@ -105,11 +106,8 @@ export const pt: Resources = {
     },
     messages: 'Mensagens', extras: 'Extras', off: 'O personal trainer está desligado. Liga-o para escolheres o estilo e os extras.',
     live: 'Reação quando bates a última vez', liveSub: 'Uma mensagem curta quando uma série bate a mesma série da última vez.',
-    report: 'Relatório da semana ao domingo', reportSub: 'No Início, todos os domingos: a tua semana, com um comentário. Os relatórios anteriores ficam nesta página.',
     voice: 'Voz', voiceSub: 'Lê as mensagens em voz alta durante o treino, na língua da app (português de Portugal ou inglês britânico), com uma voz deste dispositivo do género do PT quando existe; senão, com o tom mais grave ou mais agudo.',
     tips: 'Dicas de técnica', tipsSub: 'Um 💡 ao lado do nome do exercício quando a biblioteca tem dicas para ele; toca para veres uma.',
-    rival: 'Tu vs tu de há 3 meses', rivalSub: 'No fim do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
-    reports: 'Relatórios da semana', noReports: 'Ainda não há relatórios. O primeiro chega no domingo.',
   },
   circuit: {
     label: 'Circuito', name: 'Nome do circuito', rounds: 'Voltas', new: 'Circuito', addExercise: 'Exercício no circuito',
@@ -189,7 +187,7 @@ export const pt: Resources = {
     rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
   },
   analysis: {
-    title: 'Análise', period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
+    period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
     consistency: 'Consistência', streak: 'Semanas seguidas', bestStreak: 'Melhor sequência', weeksN: '{{count}} semanas', weeksN_one: '{{count}} semana', dayCell: '{{date}}: {{count}} treinos', dayCell_one: '{{date}}: {{count}} treino', consistencyHelp: 'Últimos 12 meses. Cada quadrado é um dia, na cor do plano.', less: 'Menos', more: 'Mais',
     goals: 'Metas', newGoal: 'Nova meta', goalExercise: 'Exercício', goalLoad: 'Carga ({{unit}})', goalBy: 'Até (opcional)', goalMet: 'Atingida em {{date}}', goalBest: 'melhor {{load}}', goalProjected: 'A este ritmo: {{date}}', goalLate: 'depois da tua data ({{date}})', goalOnTime: 'antes da tua data ({{date}})',
     goalNoTrend: 'Sem tendência de subida nas últimas 8 semanas.', goalFew: 'Uma projeção precisa de 3 sessões nas últimas 8 semanas.', goalDelete: 'Apagar meta', goalDeleteConfirm: 'Apagar a meta {{load}} em {{name}}?', noGoals: 'Ainda não há metas.',
@@ -246,7 +244,7 @@ export const pt: Resources = {
     reset: 'Repor pontuações', resetAll: 'Repor todas as pontuações', resetConfirm: 'Apagar as pontuações de "{{name}}"?', resetAllConfirm: 'Apagar as pontuações de todos os jogos?',
     jump: 'Saltar', duck: 'Baixar', time: 'Tempo', lives: 'Vidas', moves: 'Jogadas', wave: 'Vaga', card: 'Carta {{n}}', mainMuscle: 'Músculo principal de',
     noExercises: 'Ainda não há exercícios com músculos. Adiciona exercícios em Exercícios.', tapToStart: 'Toca para começar', ouch: 'Ai!',
-    names: { memory: 'Memória dos PTs', whack: 'Whack-a-PT', muscle: 'Adivinha o músculo', flappy: 'Flappy Halter', runner: 'PT Runner', starship: 'Starship' },
+    names: { memory: 'Memória dos PTs', whack: 'Whack-a-PT', muscle: 'Adivinha o músculo', flappy: 'Flappy Halter', runner: 'PT Runner', starship: 'Starship', legday: 'Fuga ao Dia de Pernas', rerack: 'Arruma os Pesos!' },
     help: {
       memory: 'Vira duas cartas de cada vez e encontra os 10 pares de PTs. Menos jogadas é melhor.',
       whack: 'Toca nos PTs que aparecem. O Sargento vale 2. Não batas no PT de Apoio: perdes 3 pontos. 30 segundos.',
@@ -254,8 +252,16 @@ export const pt: Resources = {
       flappy: 'Toca no ecrã (ou na barra de espaços) para subir. Passa entre as torres de discos.',
       runner: 'Toca no ecrã ou em Saltar para saltar. Mantém Baixar para passar debaixo das barras. Teclado: ↑ / espaço e ↓.',
       starship: 'Arrasta a nave com o dedo; ela dispara sozinha. Destrói a junk food. O shake 🥛 dá escudo e a creatina 💊 dá tiro triplo. De 5 em 5 vagas vem o Sofá.',
+      legday: 'Foge do Sargento pelo ginásio: desliza o dedo ou usa as setas (teclado: setas ou WASD). O batido 🥛 dá velocidade e 10 pontos. Apanhado? Toca depressa para fazeres os agachamentos e fugires: de cada vez são mais.',
+      rerack: 'Arrasta cada peso para o seu lugar no suporte. Com mais de 10 no chão, chega o dono do ginásio. Toca duas vezes no tipo do telemóvel para libertar o lugar, toca no gemedor para o calar e não largues pesos no suor 💦: escorregam.',
     },
-    unit: { memory: 'jogadas', whack: 'pontos', muscle: 'certas', flappy: 'torres', runner: 'm', starship: 'pontos' },
+    unit: { memory: 'jogadas', whack: 'pontos', muscle: 'certas', flappy: 'torres', runner: 'm', starship: 'pontos', legday: 'pontos', rerack: 'pesos' },
+    legday: {
+      caught: ['APANHEI-TE! AGACHAMENTOS, JÁ!', 'NINGUÉM FALTA AO DIA DE PERNAS!', 'ACABOU A FUGA, RECRUTA! PARA BAIXO!'],
+      escaped: ['VOLTA AQUI!', 'ISTO NÃO FICA ASSIM!', 'FOGE, FOGE… EU TENHO TEMPO.'],
+      squat: 'AGACHAMENTOS!', squatBtn: 'Agacha', up: 'Cima', down: 'Baixo', left: 'Esquerda', right: 'Direita',
+    },
+    rerack: { floor: 'CHÃO', owner: 'CHEGOU O DONO!', grunt: 'UAAARGH!', phone: 'SÓ 1 SÉRIE…' },
     react: {
       support: { record: 'Novo recorde: {{score}}! Que orgulho em ti.', score: '{{score}}. Bom jogo! Para a próxima ainda melhor.' },
       spite: { record: '{{score}}?! Afinal sabes jogar. Quem diria.', score: '{{score}}. A minha avó fazia mais. De olhos fechados.' },
@@ -270,6 +276,13 @@ export const pt: Resources = {
       sergeant: ['{{m}} METROS! MEXE-TE!', '{{m}} M! NINGUÉM PARA NO MEU GINÁSIO!'],
       energy: ['{{m}} METROS!! ISTO É FOGO!', 'BORA! {{m}} m e a subir!'],
     },
+  },
+  reports: {
+    title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Semana', rival: 'Tu vs 3 meses' },
+    reportOn: 'Mostrar no Início ao domingo', reportOnSub: 'Todos os domingos, no Início: a tua semana. Os relatórios de domingo ficam guardados aqui. Com o personal trainer ligado, tem um comentário dele.',
+    rivalOn: 'Mostrar no fim do treino', rivalOnSub: 'No resumo do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
+    thisWeek: 'Esta semana, até agora', earlier: 'Semanas anteriores', noReports: 'Ainda não há relatórios anteriores. Com "Mostrar no Início ao domingo" ligado, cada relatório de domingo fica guardado aqui.',
+    latest: 'Último treino', noRival: 'Ainda não há com que comparar: o último treino precisa do mesmo dia do plano feito há pelo menos 4 semanas.',
   },
   sync: {
     title: 'Cargas entre planos',
@@ -300,7 +313,7 @@ export const pt: Resources = {
     },
     progress: 'Progresso: {{value}} de {{target}}', progressRecord: 'Melhor desta semana: {{value}}', met: 'Os teus treinos dizem que conseguiste!',
     markDone: 'Marcar como cumprido', undo: 'Ainda não cumpri', history: 'Histórico', empty: 'Ainda não há desafios.', rate: '{{done}} de {{total}} cumpridos', weekOf: 'Semana de {{date}}', pages: 'Páginas dos desafios',
-    off: 'O desafio semanal está desligado. Liga-o nas Definições.',
+    enabled: 'Ativar desafio semanal',
     status: { open: 'Em curso', done: 'Cumprido', missed: 'Não cumprido' },
     intro: {
       support: 'O teu desafio desta semana. Vais conseguir!',

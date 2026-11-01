@@ -370,7 +370,7 @@ test('personal trainer "after every exercise": a message appears when an exercis
 test('analysis: period dates and workouts per week; a week lists its workouts', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Analysis/);
+  await more(page, /^Reports/);
   await expect(page.getByRole('heading', { name: 'Workouts per week' })).toBeVisible();
   await expect(page.locator('.period-range')).toContainText('–');
   await page.getByRole('button', { name: /^Week of .*: 2 workouts$/ }).first().click();
@@ -482,7 +482,7 @@ test('demo data → analysis → export → delete all → import restores data'
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await expect(page.getByText('Decide for next time')).toBeVisible();
 
-  await more(page, /^Analysis/);
+  await more(page, /^Reports/);
   await expect(page.getByRole('heading', { name: 'By exercise' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Treadmill Warm-up.*Fixed/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Romanian Deadlift.*50 kg/ })).toBeVisible();
@@ -585,7 +585,7 @@ test('open library: installs from the app, with images for built-in exercises', 
 test('analysis: weekly sets per muscle with the guideline, and comparison with the previous period', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Analysis/);
+  await more(page, /^Reports/);
   await expect(page.getByRole('heading', { name: 'Sets per muscle per week' })).toBeVisible();
   await expect(page.locator('.mbar .guide').first()).toBeVisible();
   // 4 weeks: the demo has 6 weeks, so the 4 weeks before have workouts to compare with.
@@ -719,7 +719,18 @@ test('exercise page: add the exercise to a plan day; a day that has it is marked
 test('games: each game opens and plays; scores are saved and can be reset', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   await more(page, /^Games/);
-  for (const name of ['Trainer memory', 'Whack-a-PT', 'Guess the muscle', 'Flappy Dumbbell', 'PT Runner', 'Starship']) await expect(page.getByRole('link', { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ['Trainer memory', 'Whack-a-PT', 'Guess the muscle', 'Flappy Dumbbell', 'PT Runner', 'Starship', 'Leg Day Escape']) await expect(page.getByRole('link', { name: new RegExp(`^${name}`) })).toBeVisible();
+  // The secret game is listed only after the easter egg.
+  await expect(page.getByRole('link', { name: /^Rerack!/ })).toHaveCount(0);
+
+  // Without input the sergeant catches you, the squats are not done in time: the score is saved.
+  await page.getByRole('link', { name: /^Leg Day Escape/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.getByLabel('Leg Day Escape')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Squat/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('button', { name: /Play again/ })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/^Best: \d+ points$/)).toBeVisible();
+  await page.getByRole('button', { name: '‹ Back' }).click();
 
   await page.getByRole('link', { name: /^Trainer memory/ }).click();
   await page.getByRole('button', { name: /Play/ }).click();
@@ -762,15 +773,13 @@ test('games: each game opens and plays; scores are saved and can be reset', asyn
   await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Not played yet');
 });
 
-test('weekly challenge: off by default; when on, shows on Home, can be marked done and is in the history', async ({ page }) => {
+test('weekly challenge: off by default; turned on on its own page, shows on Home, can be marked done, is in the history and can be closed', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
   await expect(page.getByRole('region', { name: 'Weekly challenge' })).toHaveCount(0);
-  await tab(page, 'More');
-  await expect(page.getByRole('link', { name: /^Weekly challenge/ })).toHaveCount(0);
 
-  await more(page, /^Settings/);
-  await page.getByLabel(/^Weekly challenge/).click();
+  await more(page, /^Weekly challenge/);
+  await page.getByLabel(/^Turn on weekly challenge/).click();
   await tab(page, 'Home');
   const card = page.getByRole('region', { name: 'Weekly challenge' });
   await expect(card.getByRole('heading', { level: 2 })).toHaveText(/this week|record/);
@@ -780,6 +789,12 @@ test('weekly challenge: off by default; when on, shows on Home, can be marked do
   await expect(page.getByRole('heading', { name: 'Weekly challenge', level: 1 })).toBeVisible();
   await expect(page.locator('.challenge-list li')).toHaveCount(1);
   await expect(page.locator('.challenge-list li')).toContainText('Done');
+  await tab(page, 'Home');
+  await card.getByRole('button', { name: 'Close' }).click();
+  await expect(card).toHaveCount(0);
+  await page.reload();
+  await closeSplash(page);
+  await expect(page.getByRole('region', { name: 'Weekly challenge' })).toHaveCount(0);
 });
 
 test('loads across plans: hypertrophy load up → asks to update the strength plan → strength uses the new load', async ({ page }) => {
@@ -812,14 +827,13 @@ test('loads across plans: hypertrophy load up → asks to update the strength pl
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('22.5');
 });
 
-test('personal trainer page: own menu entry; extras off by default', async ({ page }) => {
+test('personal trainer page: own menu entry; extras off by default; reports are not there', async ({ page }) => {
   await more(page, /^Personal trainer/);
   await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
   await expect(page.getByText('The trainer is off.')).toBeVisible();
   await page.getByLabel('Turn on personal trainer').click();
-  for (const name of [/Reaction when you beat last time/, /Technique tips/, /You vs 3 months ago/, /Week report on Sunday/]) await expect(page.getByLabel(name)).not.toBeChecked();
-  await page.getByLabel(/Week report on Sunday/).click();
-  await expect(page.getByText('No reports yet. The first one comes on Sunday.')).toBeVisible();
+  for (const name of [/Reaction when you beat last time/, /Technique tips/]) await expect(page.getByLabel(name)).not.toBeChecked();
+  await expect(page.getByLabel(/You vs 3 months ago|Week report/)).toHaveCount(0);
 });
 
 test('workout: short on time, do it later and the setup note', async ({ page }) => {
@@ -854,7 +868,7 @@ test('automatic warm-up: warm-up sets before the first compound exercise when on
 test('analysis: consistency map and a goal with its status; the goal also shows on the exercise page', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Analysis/);
+  await more(page, /^Reports/);
   await expect(page.getByRole('heading', { name: 'Consistency' })).toBeVisible();
   await expect(page.getByText('Weeks in a row')).toBeVisible();
   const goals = page.getByRole('region', { name: 'Goals' });
@@ -868,14 +882,18 @@ test('analysis: consistency map and a goal with its status; the goal also shows 
   await expect(page.getByRole('region', { name: 'Goals' }).getByText('200 kg')).toBeVisible();
 });
 
-test('trainer extras: rival on the summary, share image, and the Sunday report on Home', async ({ page }) => {
+test('reports without the trainer: tabs, the Sunday report on Home, the rival on the summary and the share image', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-11-01T18:00:00'));
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Personal trainer/);
-  await page.getByLabel('Turn on personal trainer').click();
-  await page.getByLabel(/You vs 3 months ago/).click();
-  await page.getByLabel(/Week report on Sunday/).click();
+  await more(page, /^Reports/);
+  await expect(page.getByRole('heading', { name: 'Reports', level: 1 })).toBeVisible();
+  await page.getByRole('tab', { name: 'Week' }).click();
+  await expect(page.getByRole('region', { name: 'Week report' })).toBeVisible();
+  await page.getByLabel(/Show on Home on Sundays/).click();
+  await page.getByRole('tab', { name: 'You vs 3 months' }).click();
+  await expect(page.getByRole('region', { name: 'You vs your past self' })).toBeVisible();
+  await page.getByLabel(/Show at the end of a workout/).click();
   await tab(page, 'Home');
   const report = page.getByRole('region', { name: 'Week report' });
   await expect(report).toBeVisible();
@@ -918,4 +936,26 @@ test('games: one back button; sound and vibration can be turned off', async ({ p
   await expect(page.getByRole('link', { name: /Games/ })).toHaveCount(0);
   await page.getByRole('button', { name: '‹ Back' }).click();
   await expect(page.getByRole('heading', { name: 'Games', level: 1 })).toBeVisible();
+});
+
+test('easter egg: 7 taps on the About logo turn the 1987 look on and unlock the secret game; 7 more turn it off', async ({ page }) => {
+  await more(page, /^About/);
+  const logo = page.getByRole('button', { name: 'MyGymProgression' });
+  for (let i = 0; i < 4; i++) await logo.click();
+  await expect(page.getByRole('status').filter({ hasText: '3 more…' })).toBeVisible();
+  for (let i = 0; i < 3; i++) await logo.click();
+  await expect(page.getByText('MODE 1987 ON! There is a secret game in Games.')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-retro', 'on');
+
+  await more(page, /^Games/);
+  await page.getByRole('link', { name: /^Rerack!/ }).click();
+  await page.getByRole('button', { name: /Play/ }).click();
+  await expect(page.getByLabel('Rerack!')).toBeVisible();
+
+  await more(page, /^About/);
+  for (let i = 0; i < 7; i++) await page.getByRole('button', { name: 'MyGymProgression' }).click();
+  await expect(page.getByText('Back to the present.')).toBeVisible();
+  await expect(page.locator('html')).not.toHaveAttribute('data-retro');
+  await more(page, /^Games/);
+  await expect(page.getByRole('link', { name: /^Rerack!/ })).toBeVisible();
 });

@@ -9,6 +9,25 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-01',
     pt: [
+      'Relatórios (Mais → Relatórios): Análise, Semana e Tu vs 3 meses num só sítio. O relatório da semana e o "tu vs" já não precisam do personal trainer.',
+      'Desafio semanal com página própria: liga-o lá. No Início, o ✕ fecha o cartão até à semana seguinte.',
+      'Definições mais arrumadas; o personal trainer fica só com o que é dele.',
+      'Jogo novo: Fuga ao Dia de Pernas. Foge do Sargento pelo ginásio!',
+      'A voz do PT já não repete a mesma frase.',
+      'Há um segredo no Sobre…',
+    ],
+    en: [
+      'Reports (More → Reports): Analysis, Week and You vs 3 months in one place. The week report and "you vs" no longer need the personal trainer.',
+      'Weekly challenge has its own page: turn it on there. On Home, ✕ closes the card until next week.',
+      'Tidier Settings; the personal trainer page keeps only trainer settings.',
+      'New game: Leg Day Escape. Run from the Sergeant through the gym!',
+      'The trainer voice no longer says the same line twice.',
+      'There is a secret in About…',
+    ],
+  },
+  {
+    date: '2026-11-01',
+    pt: [
       'Voz do PT com o género escolhido (homem ou mulher) e o ritmo do estilo; na página do PT podes escolher a voz à mão.',
       'Voz do PT só na língua da app (português de Portugal ou inglês britânico); o PT homem tem voz de homem, ou um tom bem mais grave quando o telemóvel só tem voz de mulher.',
       'Dicas de técnica: agora é um 💡 ao lado do nome do exercício; toca para veres a dica.',

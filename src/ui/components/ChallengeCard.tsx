@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -19,7 +19,7 @@ export function challengeText(t: TFunction, ch: Challenge, s: Settings): string 
   return t(`challenge.kinds.${ch.kind}`, { target: ch.target, exercise: ch.exerciseName, load: load(t, ch, ch.target, s), muscle: tr(t, 'muscle', ch.muscle ?? '') });
 }
 
-/** This week's challenge on Home, when the weekly challenge is on. It is created on the first visit of the week. */
+/** This week's challenge on Home, when the weekly challenge is on. It is created on the first visit of the week. Closed until the next week (D58). */
 export function ChallengeCard() {
   const { t } = useTranslation();
   const s = useSettings();
@@ -28,8 +28,23 @@ export function ChallengeCard() {
     if (on) void repo.ensureChallenge();
   }, [on]);
   const data = useLiveQuery(async () => (on ? { ch: await db.challenges.where('week').equals(weekKey(new Date())).first(), workouts: await db.workouts.toArray() } : undefined), [on]);
-  if (!data?.ch) return null;
+  const [closed, setClosed] = useState<string>(() => {
+    try {
+      return localStorage.getItem('challenge:closed') ?? '';
+    } catch {
+      return '';
+    }
+  });
+  if (!data?.ch || closed === data.ch.week) return null;
   const { ch } = data;
+  const close = () => {
+    setClosed(ch.week);
+    try {
+      localStorage.setItem('challenge:closed', ch.week);
+    } catch {
+      // Without storage the card only hides for this visit.
+    }
+  };
   const { value, met } = challengeProgress(ch, data.workouts);
   const style = s.coach?.style ?? 'energy';
   const done = ch.status === 'done';
@@ -39,10 +54,13 @@ export function ChallengeCard() {
     <section className="card challenge" aria-label={t('challenge.title')}>
       <div className="challenge-head">
         <CoachAvatar style={style} gender={s.coach?.gender} size={40} />
-        <div>
+        <div style={{ flex: 1 }}>
           <p className="eyebrow">{t('challenge.title')}</p>
           <p className="help">{t(`challenge.intro.${style}`)}</p>
         </div>
+        <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
+          ✕
+        </button>
       </div>
       <h2>{challengeText(t, ch, s)}</h2>
       <div className="challenge-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((done ? 1 : share) * 100)}>

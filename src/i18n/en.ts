@@ -1,10 +1,11 @@
 export const en = {
-  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', analysis: 'Analysis', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', coach: 'Personal trainer' },
-  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', analysis: 'Progress per exercise', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', coach: 'Style, messages, voice and week reports' },
+  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', coach: 'Personal trainer' },
+  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', coach: 'Style, messages, voice and tips' },
   about: {
     version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
     whatsNew: "What's new", privacy: 'Data and privacy', privacyText: 'All data stays on this device, in the browser. Nothing is sent to servers. Make backups in Settings.',
     credits: 'Credits', creditsText: 'Made by Oscar Oliveira. Open source on GitHub.', source: 'Source code',
+    egg: { left: '{{count}} more…', left_one: '1 more…', on: 'MODE 1987 ON!', unlocked: 'MODE 1987 ON! There is a secret game in Games.', off: 'Back to the present.' },
   },
   common: {
     back: 'Back',
@@ -103,11 +104,8 @@ export const en = {
     },
     messages: 'Messages', extras: 'Extras', off: 'The trainer is off. Turn it on to choose the style and the extras.',
     live: 'Reaction when you beat last time', liveSub: 'A short message when a set beats the same set of last time.',
-    report: 'Week report on Sunday', reportSub: 'On Home every Sunday: your week, with a comment. Earlier reports stay on this page.',
     voice: 'Voice', voiceSub: 'Reads the messages aloud during the workout, in the app language (British English or Portuguese of Portugal), with a voice of this device of the same gender as the trainer when there is one; otherwise with a lower or higher pitch.',
     tips: 'Technique tips', tipsSub: 'A 💡 next to the exercise name when the library has tips for it; tap it to see one.',
-    rival: 'You vs 3 months ago', rivalSub: 'At the end of a workout: the same plan day about 3 months ago, exercise by exercise.',
-    reports: 'Week reports', noReports: 'No reports yet. The first one comes on Sunday.',
   },
   circuit: {
     label: 'Circuit', name: 'Circuit name', rounds: 'Rounds', new: 'Circuit', addExercise: 'Exercise in circuit',
@@ -191,7 +189,7 @@ export const en = {
     goals: 'Goals', newGoal: 'New goal', goalExercise: 'Exercise', goalLoad: 'Load ({{unit}})', goalBy: 'By (optional)', goalMet: 'Reached on {{date}}', goalBest: 'best {{load}}', goalProjected: 'At this pace: {{date}}', goalLate: 'after your date ({{date}})', goalOnTime: 'before your date ({{date}})',
     goalNoTrend: 'No upward trend in the last 8 weeks.', goalFew: 'A projection needs 3 sessions in the last 8 weeks.', goalDelete: 'Delete goal', goalDeleteConfirm: 'Delete the goal {{load}} in {{name}}?', noGoals: 'No goals yet.',
     perWeek: 'Workouts per week', avgPerWeek: 'average {{n}}/week', tapWeek: 'Tap a week to see its workouts.', weekOf: 'Week of {{date}}: {{count}} workouts', weekOf_one: 'Week of {{date}}: {{count}} workout',
-    title: 'Analysis', period: 'Period', p28: '4 wks', p84: '12 wks', p182: '6 months', p0: 'All', plan: 'Plan',
+    period: 'Period', p28: '4 wks', p84: '12 wks', p182: '6 months', p0: 'All', plan: 'Plan',
     workouts: 'Workouts', workingSets: 'Sets', completionRate: 'Completed', byExercise: 'By exercise', now: 'now', fixed: 'Fixed', completionShort: '{{pct}}% completed',
     sessionsN: '{{count}} sessions', sessionsN_one: '{{count}} session', sessionsN_other: '{{count}} sessions', stalledShort: 'stalled', noData: 'No workouts in this period.',
     moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle per week', musclesGuide: 'Dashed lines: {{min}}–{{max}} sets per week, a common guideline for hypertrophy (not a rule).', vsPrevious: '▲▼ compared with {{from}} – {{to}}', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
@@ -244,7 +242,7 @@ export const en = {
     reset: 'Reset scores', resetAll: 'Reset all scores', resetConfirm: 'Delete the scores of "{{name}}"?', resetAllConfirm: 'Delete the scores of all games?',
     jump: 'Jump', duck: 'Duck', time: 'Time', lives: 'Lives', moves: 'Moves', wave: 'Wave', card: 'Card {{n}}', mainMuscle: 'Main muscle of',
     noExercises: 'There are no exercises with muscles yet. Add exercises in Exercises.', tapToStart: 'Tap to start', ouch: 'Ouch!',
-    names: { memory: 'Trainer memory', whack: 'Whack-a-PT', muscle: 'Guess the muscle', flappy: 'Flappy Dumbbell', runner: 'PT Runner', starship: 'Starship' },
+    names: { memory: 'Trainer memory', whack: 'Whack-a-PT', muscle: 'Guess the muscle', flappy: 'Flappy Dumbbell', runner: 'PT Runner', starship: 'Starship', legday: 'Leg Day Escape', rerack: 'Rerack!' },
     help: {
       memory: 'Turn two cards at a time and find the 10 pairs of trainers. Fewer moves is better.',
       whack: 'Tap the trainers that pop up. The sergeant is worth 2. Do not hit the support trainer: you lose 3 points. 30 seconds.',
@@ -252,8 +250,16 @@ export const en = {
       flappy: 'Tap the screen (or press space) to fly up. Pass between the towers of plates.',
       runner: 'Tap the screen or Jump to jump. Hold Duck to pass under the flying bars. Keyboard: ↑ / space and ↓.',
       starship: 'Drag the ship with your finger; it fires by itself. Destroy the junk food. The shake 🥛 gives a shield and creatine 💊 a triple shot. Every 5 waves the Sofa comes.',
+      legday: 'Run from the Sergeant through the gym: swipe or use the arrows (keyboard: arrows or WASD). A shake 🥛 gives speed and 10 points. Caught? Tap fast to do the squats and escape: more squats each time.',
+      rerack: 'Drag each weight to its slot on the rack. More than 10 on the floor and the gym owner comes. Tap the phone guy twice to free his slot, tap the grunter to stop him, and do not drop weights on the sweat 💦: they slide.',
     },
-    unit: { memory: 'moves', whack: 'points', muscle: 'right', flappy: 'towers', runner: 'm', starship: 'points' },
+    unit: { memory: 'moves', whack: 'points', muscle: 'right', flappy: 'towers', runner: 'm', starship: 'points', legday: 'points', rerack: 'weights' },
+    legday: {
+      caught: ['GOTCHA! SQUATS, NOW!', 'NOBODY SKIPS LEG DAY!', 'CAUGHT YOU, RECRUIT! DOWN!'],
+      escaped: ['COME BACK HERE!', 'THIS IS NOT OVER!', 'RUN, RUN… I HAVE TIME.'],
+      squat: 'SQUATS!', squatBtn: 'Squat', up: 'Up', down: 'Down', left: 'Left', right: 'Right',
+    },
+    rerack: { floor: 'FLOOR', owner: 'THE OWNER IS HERE!', grunt: 'UAAARGH!', phone: 'JUST 1 SET…' },
     react: {
       support: { record: 'New record: {{score}}! So proud of you.', score: '{{score}}. Good game! Next time even better.' },
       spite: { record: '{{score}}?! So you can play after all. Who knew.', score: '{{score}}. My grandmother does better. With her eyes closed.' },
@@ -268,6 +274,13 @@ export const en = {
       sergeant: ['{{m}} METRES! MOVE IT!', '{{m}} M! NOBODY STOPS IN MY GYM!'],
       energy: ['{{m}} METRES!! THIS IS FIRE!', 'GO! {{m}} m and climbing!'],
     },
+  },
+  reports: {
+    title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months' },
+    reportOn: 'Show on Home on Sundays', reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
+    rivalOn: 'Show at the end of a workout', rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
+    thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Show on Home on Sundays" on, each Sunday report is kept here.',
+    latest: 'Latest workout', noRival: 'Nothing to compare yet: the latest workout needs the same plan day done at least 4 weeks before.',
   },
   sync: {
     title: 'Loads across plans',
@@ -298,7 +311,7 @@ export const en = {
     },
     progress: 'Progress: {{value}} of {{target}}', progressRecord: 'Best this week: {{value}}', met: 'Your workouts say you did it!',
     markDone: 'Mark as done', undo: 'Not done yet', history: 'History', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}', pages: 'Challenge pages',
-    off: 'The weekly challenge is off. Turn it on in Settings.',
+    enabled: 'Turn on weekly challenge',
     status: { open: 'In progress', done: 'Done', missed: 'Not done' },
     intro: {
       support: 'Your challenge this week. You can do it!',

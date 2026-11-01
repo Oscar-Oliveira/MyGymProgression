@@ -408,7 +408,11 @@ a.xitem:hover .xitem-name { color: var(--accent); }
 
 /* About */
 .about-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.3rem; padding: 1rem 0 0.5rem; }
-.about-head img { border-radius: 18px; }
+.about-head img { border-radius: 18px; display: block; }
+.about-logo { padding: 0; min-height: 0; background: none; border: 0; border-radius: 18px; cursor: default; }
+.about-logo .spin { animation: logo-spin 0.8s ease-out; }
+@keyframes logo-spin { from { transform: rotate(0) scale(1); } 50% { transform: rotate(200deg) scale(1.25); } to { transform: rotate(360deg) scale(1); } }
+.egg-msg { min-height: 1.3em; margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--accent); }
 .about-head h1 { margin: 0.4rem 0 0; }
 
 /* History */
@@ -484,6 +488,10 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border-radius: 14px; background: var(--surface-2); }
 .segmented button { min-height: 40px; padding: 0 0.3rem; border-radius: 11px; background: transparent; color: var(--muted); font-size: 0.9rem; }
 .segmented button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+/* Reports tabs (D57): underlined, so they differ from the period selector of Analysis below. */
+.report-tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 1rem; border-bottom: 1px solid var(--border); }
+.report-tabs button { min-height: 44px; padding: 0 0.3rem; background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: var(--muted); font-weight: 700; font-size: 0.92rem; }
+.report-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 .period-range { text-align: center; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin: 0.45rem 0 0.2rem; }
 .weeks { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 0.2rem; scrollbar-width: none; }
 .weeks::-webkit-scrollbar { display: none; }
@@ -573,6 +581,10 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .game-canvas canvas { display: block; width: 100%; max-width: 480px; margin: 0 auto; border-radius: var(--radius); border: 1px solid var(--border); touch-action: none; user-select: none; -webkit-user-select: none; }
 .game-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; max-width: 480px; margin: 0.75rem auto 0; }
 .game-pad button { touch-action: none; user-select: none; -webkit-user-select: none; }
+.game-pad.one { grid-template-columns: 1fr; }
+.game-dpad { display: grid; grid-template-columns: repeat(3, 64px); justify-content: center; gap: 0.4rem; margin: 0.75rem auto 0; }
+.game-dpad button { min-height: 56px; font-size: 1.4rem; touch-action: none; user-select: none; -webkit-user-select: none; }
+.rerack canvas { image-rendering: pixelated; }
 .memory-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; max-width: 420px; margin: 0 auto; }
 .memory-card { aspect-ratio: 1; min-height: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 14px; border: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); font-size: 1.6rem; font-weight: 800; transition: transform 0.25s, background 0.2s; }
 .memory-card.up { background: var(--surface-2); transform: rotateY(180deg) scaleX(-1); }
@@ -671,3 +683,33 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .tip-body { flex: 1; min-width: 0; }
 .tip-body small { display: block; color: var(--muted); margin-top: 0.2rem; }
 .tip-body .ghost { margin-top: 0.3rem; padding-left: 0; }
+
+/* "1987" look, the About easter egg (D59): neon colours, a monospace font, square corners and screen lines, over any theme. */
+:root[data-retro] {
+  --bg: #0b0221;
+  --surface: #160737;
+  --surface-2: #22104f;
+  --text: #f6f1ff;
+  --muted: #b9a6e8;
+  --border: #5a1f8a;
+  --accent: #00f0ff;
+  --accent-soft: #10214d;
+  --brand: #b4009e;
+  --up: #39ff14;
+  --up-bg: #0d2a12;
+  --warn: #ffe600;
+  --warn-bg: #2e2a05;
+  --down: #ff3864;
+  --shadow: 0 0 0 1px #ff2bd655, 0 0 14px #ff2bd633;
+  --shadow-lg: 0 0 24px #00f0ff44;
+  --radius: 0px;
+  --tone-text: #00f0ff;
+  color-scheme: dark;
+  font-family: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
+}
+:root[data-retro] body { background: var(--bg); }
+:root[data-retro] .tabs { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-retro] *:not(.coach-avatar, .coach-avatar *) { border-radius: 0 !important; }
+:root[data-retro] h1, :root[data-retro] h2 { text-transform: uppercase; letter-spacing: 0.04em; text-shadow: 2px 2px 0 #ff2bd6; }
+:root[data-retro] body::after { content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px); animation: crt-flicker 5s steps(2) infinite; }
+@keyframes crt-flicker { 0%, 96% { opacity: 1; } 98% { opacity: 0.6; } }

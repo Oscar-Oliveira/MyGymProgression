@@ -215,3 +215,18 @@ describe('merge: one weekly challenge per week', () => {
     expect(planMerge(incoming, existing, 'keepBoth', 'useExisting').challenges).toHaveLength(0);
   });
 });
+
+describe('schema v14 (D57–D59)', () => {
+  it('a v13 file is migrated; the report, rival and easter egg settings and the new game scores round-trip', () => {
+    const old = JSON.parse(JSON.stringify(buildBundle(emptyDataSet(), 'full', 'x')));
+    old.schemaVersion = 13;
+    const r = parseBundle(JSON.stringify(old));
+    expect(r.ok && r.migratedFrom).toBe(13);
+
+    const d = emptyDataSet();
+    d.settings = { ...DEFAULT_SETTINGS, report: true, rival: false, retro: true, secretGame: true };
+    d.gameScores = [{ id: 'a', game: 'legday', score: 42, at: '2026-11-01T10:00:00.000Z' }, { id: 'b', game: 'rerack', score: 7, at: '2026-11-01T10:05:00.000Z' }];
+    const r14 = parseBundle(JSON.stringify(buildBundle(d, 'full', 'x')));
+    expect(r14.ok && r14.bundle.data).toMatchObject({ settings: d.settings, gameScores: d.gameScores });
+  });
+});

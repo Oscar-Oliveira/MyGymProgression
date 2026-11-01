@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createHashRouter, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { createHashRouter, Navigate, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
@@ -15,7 +15,7 @@ import { PlanList } from './pages/PlanList';
 import { PlanEdit } from './pages/PlanEdit';
 import { WorkoutPage } from './pages/WorkoutPage';
 import { History } from './pages/History';
-import { Analysis } from './pages/Analysis';
+import { Reports } from './pages/Reports';
 import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
@@ -36,7 +36,7 @@ const TABS = [
   ['/history', 'history'],
   ['/more', 'more'],
 ] as const;
-const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
+const MORE_PATHS = ['/more', '/exercises', '/plans', '/reports', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
 
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
@@ -151,7 +151,9 @@ function Shell() {
           <Route path="/plans/:id" element={<PlanEdit />} />
           <Route path="/workout/:id" element={<WorkoutPage />} />
           <Route path="/history" element={<History />} />
-          <Route path="/analysis" element={<Analysis />} />
+          <Route path="/reports" element={<Reports />} />
+          {/* Analysis is a tab of Reports (D57); old links still open it. */}
+          <Route path="/analysis" element={<Navigate to="/reports" replace />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/share" element={<ShareImport />} />
@@ -179,6 +181,11 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme ?? 'dark';
   }, [settings.theme]);
+  // The "1987" look of the About easter egg (D59), over any theme.
+  useEffect(() => {
+    if (settings.retro) document.documentElement.dataset.retro = 'on';
+    else delete document.documentElement.dataset.retro;
+  }, [settings.retro]);
 
   return (
     <RouterProvider router={router} />

@@ -1,11 +1,11 @@
-# Interchange format (schema version 13)
+# Interchange format (schema version 14)
 
 JSON file produced by **Settings → Export**. The authoritative definition is the zod schema in [`src/domain/schema.ts`](../src/domain/schema.ts).
 
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
@@ -45,6 +45,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v13 → v14: additive only — `report`, `rival`, `retro` and `secretGame` in settings (booleans; `coach.report` / `coach.rival` stay valid and are read when the new ones are not set) and the game ids `legday` and `rerack`.
    - v12 → v13: additive only — `goals`, `coachReports`, `workout.short` and `entry.short` ("short on time": no increase), `warmup` in settings (boolean) and `coach.live` / `report` / `voice` / `tips` / `rival` (booleans).
    - v11 → v12: additive only — outcome `sync` (a question to update another plan with the same exercise after its load went up), `event.sourceEventId` (the event that raised the load) and `loadSync` in settings (`trigger` `off` | `order` | `below`, `method` `e1rm` | `increment`).
    - v10 → v11: additive only — `event.closedBy` (the workout that closed an open question as kept; it opens again when that workout is deleted or resumed) and `challenge.perSide` (a record of a per-side exercise is shown per side).

@@ -357,6 +357,14 @@ export interface Settings {
   loadSync?: LoadSync;
   /** Automatic warm-up sets on the first compound exercise of each muscle (D38). Default: off. */
   warmup?: boolean;
+  /** Week report on Home on Sundays, without the trainer (D57). Default: the old coach.report (with the trainer on), else off. */
+  report?: boolean;
+  /** "You vs 3 months ago" on the workout summary, without the trainer (D57). Default: the old coach.rival (with the trainer on), else off. */
+  rival?: boolean;
+  /** "1987" look, the easter egg of About (D59). Default: off. */
+  retro?: boolean;
+  /** The secret game, unlocked by the first "1987" (D59). It stays unlocked. */
+  secretGame?: boolean;
 }
 
 /**
@@ -383,18 +391,18 @@ export interface CoachSettings {
   pages?: boolean;
   /** Reaction when a set beats the same set of last time (D45). Default: off. */
   live?: boolean;
-  /** Week report on Sunday, on Home (D46). Default: off. */
+  /** Old place of Settings.report (D46); read only when Settings.report is not set (D57). */
   report?: boolean;
   /** Reads the messages aloud with the device voice (D47). Default: off. */
   voice?: boolean;
   /** A technique tip from the library when an exercise opens (D48). Default: off. */
   tips?: boolean;
-  /** Workout summary compared with the same day about 3 months ago (D49). Default: off. */
+  /** Old place of Settings.rival (D49); read only when Settings.rival is not set (D57). */
   rival?: boolean;
 }
 export type CoachWhen = 'start' | 'each' | 'random';
 
-export type GameId = 'memory' | 'whack' | 'muscle' | 'flappy' | 'runner' | 'starship';
+export type GameId = 'memory' | 'whack' | 'muscle' | 'flappy' | 'runner' | 'starship' | 'legday' | 'rerack';
 /** One finished game. */
 export interface GameScore {
   id: string;

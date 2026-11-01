@@ -15,18 +15,23 @@ import { Muscle } from './Muscle';
 import { Runner } from './Runner';
 import { Starship } from './Starship';
 import { Whack } from './Whack';
+import { LegDay } from './LegDay';
+import { Rerack } from './Rerack';
 import { fx, fxOn, setFx, type FxSetting } from './feedback';
 import { canSpeak, speak } from '../voice';
 
-/** `lower`: a lower score is better (memory counts moves). */
-const GAMES: { id: GameId; icon: string; lower?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
+/** `lower`: a lower score is better (memory counts moves). `secret`: listed only once unlocked by the "1987" easter egg (D59). */
+const GAMES: { id: GameId; icon: string; lower?: boolean; secret?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
   { id: 'memory', icon: '🃏', lower: true, Game: Memory },
   { id: 'whack', icon: '🔨', Game: Whack },
   { id: 'muscle', icon: '💪', Game: Muscle },
   { id: 'flappy', icon: '🏋️', Game: Flappy },
   { id: 'runner', icon: '🏃', Game: Runner },
   { id: 'starship', icon: '🚀', Game: Starship },
+  { id: 'legday', icon: '🦵', Game: LegDay },
+  { id: 'rerack', icon: '🕹️', secret: true, Game: Rerack },
 ];
+const visible = (s: { secretGame?: boolean }) => GAMES.filter((g) => !g.secret || s.secretGame);
 const LAST = 10;
 
 const bestOf = (lower: boolean | undefined, scores: GameScore[]) => (scores.length ? (lower ? Math.min : Math.max)(...scores.map((s) => s.score)) : undefined);
@@ -74,7 +79,7 @@ export function GamesPage() {
         <h1>{t('games.title')}</h1>
       </div>
       <ul className="menu card" style={{ padding: 0 }}>
-        {GAMES.map((g) => {
+        {visible(s).map((g) => {
           const best = bestOf(g.lower, scores.filter((x) => x.game === g.id));
           return (
             <li key={g.id}>
@@ -115,7 +120,7 @@ function OneGame({ id }: { id?: string }) {
   const { t } = useTranslation();
   const s = useSettings();
   const trainer = useTrainer();
-  const game = GAMES.find((g) => g.id === id);
+  const game = visible(s).find((g) => g.id === id);
   const scores = useLiveQuery(() => db.gameScores.where('game').equals(id ?? '').toArray(), [id], []);
   const [run, setRun] = useState(0);
   const [result, setResult] = useState<{ score: number; record: boolean }>();

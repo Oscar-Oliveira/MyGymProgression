@@ -9,7 +9,7 @@ import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach'
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
 import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from '../../domain/workout';
-import { beatsLastTime, rivalRows, rivalWorkout } from '../../domain/trainer';
+import { beatsLastTime, rivalOn, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
 import { CoachAvatar } from '../components/CoachAvatar';
@@ -218,7 +218,7 @@ export function WorkoutPage() {
         </div>
 
         {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} />}
-        {coach?.voice && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} />}
+        {coach?.voice && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} lang={s.language} coach={coach} />}
         {!draft.short && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
           <button className="chip short-chip" onClick={() => void shorten()}>
             ⏱ {t('workout.short')}
@@ -251,7 +251,7 @@ export function WorkoutPage() {
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
             <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} />
             <p>{toast}</p>
-            {coach?.voice && <Speak text={toast} />}
+            {coach?.voice && <Speak text={toast} lang={s.language} coach={coach} />}
             <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
               ✕
             </button>
@@ -357,8 +357,8 @@ export function WorkoutPage() {
     }
   };
   const records = workoutRecords(draft, ctx.others);
-  // "You vs 3 months ago" (D49): only for the latest workout, when the trainer and the rival are on.
-  const rival = s.coach?.enabled && s.coach.rival && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
+  // "You vs 3 months ago" (D49, D57): only for the latest workout, when the rival is on.
+  const rival = rivalOn(s) && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
   const rivalList = rival ? rivalRows(draft, rival) : [];
   const fmtRecord = (r: RecordHit, v: number) =>
     r.kind === 'maxDuration'
@@ -477,7 +477,7 @@ export function WorkoutPage() {
               ))}
             </section>
           )}
-          {rival && rivalList.length > 0 && <RivalCard rows={rivalList} date={rival.startedAt} coach={s.coach!} />}
+          {rival && rivalList.length > 0 && <RivalCard rows={rivalList} date={rival.startedAt} coach={coach} />}
           <div className="section-head">
             <h2>{t('workout.nextTime')}</h2>
           </div>

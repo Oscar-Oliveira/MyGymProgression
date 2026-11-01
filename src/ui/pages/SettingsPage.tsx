@@ -289,13 +289,6 @@ export function SettingsPage() {
             <option>mi</option>
           </select>
         </label>
-        <label className="setting-row">
-          <span className="lbl">
-            {t('settings.stalledThreshold')}
-            <small>{t('settings.stalledSub')}</small>
-          </span>
-          <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
-        </label>
       </section>
 
       <div className="section-head">
@@ -308,6 +301,13 @@ export function SettingsPage() {
             <small>{t('settings.warmupSub')}</small>
           </span>
           <input type="checkbox" role="switch" className="switch" checked={!!s.warmup} onChange={(e) => void repo.saveSettings({ warmup: e.target.checked })} />
+        </label>
+        <label className="setting-row">
+          <span className="lbl">
+            {t('settings.stalledThreshold')}
+            <small>{t('settings.stalledSub')}</small>
+          </span>
+          <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
         </label>
       </section>
 
@@ -344,19 +344,6 @@ export function SettingsPage() {
             <p className="help">{t(`sync.methodHelp.${loadSync.method}`)}</p>
           </>
         )}
-      </section>
-
-      <div className="section-head">
-        <h2>{t('challenge.title')}</h2>
-      </div>
-      <section className="card">
-        <label className="setting-row">
-          <span className="lbl">
-            {t('challenge.title')}
-            <small>{t('challenge.settingSub')}</small>
-          </span>
-          <input type="checkbox" role="switch" className="switch" checked={!!s.challenge} onChange={(e) => void repo.saveSettings({ challenge: e.target.checked })} />
-        </label>
       </section>
 
       <div className="section-head">

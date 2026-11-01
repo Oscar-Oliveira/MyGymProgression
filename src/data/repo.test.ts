@@ -190,10 +190,10 @@ describe('repo (IndexedDB)', () => {
     expect(on.entries[0].sets.filter((x) => x.kind === 'warmup').map((x) => x.values.load)).toEqual([20, 27.5, 32.5]);
   });
 
-  it('week report (D46): only on Sundays with the report on; refreshed in place; goals and reports in the backup', async () => {
+  it('week report (D46, D57): only on Sundays with the report on, trainer or not; refreshed in place; goals and reports in the backup', async () => {
     const sunday = new Date(2026, 10, 1, 18);
     expect(await repo.ensureReport(sunday)).toBeUndefined();
-    await repo.saveSettings({ coach: { enabled: true, style: 'support', profanity: false, report: true } });
+    await repo.saveSettings({ report: true });
     expect(await repo.ensureReport(new Date(2026, 10, 2))).toBeUndefined();
     const first = await repo.ensureReport(sunday);
     expect(first).toMatchObject({ week: '2026-10-26', workouts: 0 });

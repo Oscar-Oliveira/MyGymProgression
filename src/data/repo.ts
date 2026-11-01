@@ -9,7 +9,7 @@ import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
 import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } from '../domain/sync';
-import { reportWeek, weekReport } from '../domain/trainer';
+import { reportOn, reportWeek, weekReport } from '../domain/trainer';
 import { addWarmups } from '../domain/warmup';
 import type { Exercise, GameId, Goal, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, type DecisionInput } from '../domain/workout';
@@ -413,13 +413,12 @@ export function createRepo(db: GymDB) {
     },
 
     /**
-     * On Sundays, with the trainer and its report on, makes or refreshes the report of this week (D46).
+     * On Sundays, with the week report on, makes or refreshes the report of this week (D46, D57).
      * It is refreshed each time, so a workout done later on Sunday is in it. Returns the report.
      */
     async ensureReport(now = new Date()) {
-      const coach = (await getSettings()).coach;
       const week = reportWeek(now);
-      if (!coach?.enabled || !coach.report || !week) return undefined;
+      if (!reportOn(await getSettings()) || !week) return undefined;
       return db.transaction('rw', db.coachReports, db.workouts, db.progressionEvents, db.challenges, async () => {
         const old = await db.coachReports.where('week').equals(week).first();
         const challenge = await db.challenges.where('week').equals(week).first();

@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { consistencyMap, weekStreak } from './analysis';
 import { goalStatus, linearFit } from './goal';
 import { evaluate } from './progression';
-import { beatsLastTime, reportWeek, rivalRows, rivalWorkout, weekReport } from './trainer';
-import type { Challenge, MetricDef, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from './types';
+import { beatsLastTime, reportOn, reportWeek, rivalOn, rivalRows, rivalWorkout, weekReport } from './trainer';
+import type { Challenge, MetricDef, ProgressionEvent, SetRecord, Settings, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
+import { DEFAULT_SETTINGS } from './factory';
 import { addWarmups, warmupLoads } from './warmup';
 import { moveToEnd, shortenWorkout } from './workout';
 
@@ -244,5 +245,17 @@ describe('week report (D46)', () => {
     const ch: Challenge = { id: 'c', week: '2026-10-26', kind: 'workouts', target: 2, status: 'open', createdAt: '2026-10-26T08:00:00Z' };
     const r = weekReport(new Date(2026, 10, 1, 20), ws, [ev('applied', '2026-10-27T11:00:00'), ev('reps_up', '2026-10-30T11:00:00'), ev('kept', '2026-10-30T11:00:00'), ev('applied', '2026-10-20T11:00:00')], ch, 'r');
     expect(r).toMatchObject({ id: 'r', week: '2026-10-26', workouts: 2, sets: 4, best: { exerciseName: 'squat', load: 100, reps: 8 }, ups: 2, weak: 'back', challenge: 'done' });
+  });
+});
+
+describe('reports without the trainer (D57)', () => {
+  const coach = (enabled: boolean) => ({ enabled, style: 'support' as const, profanity: false, report: true, rival: true });
+  it('the new switches win; without them, the old trainer switches count only with the trainer on', () => {
+    const s = (x: Partial<Settings>): Settings => ({ ...DEFAULT_SETTINGS, ...x });
+    expect([reportOn(s({})), rivalOn(s({}))]).toEqual([false, false]);
+    expect([reportOn(s({ report: true })), rivalOn(s({ rival: true }))]).toEqual([true, true]);
+    expect([reportOn(s({ coach: coach(true) })), rivalOn(s({ coach: coach(true) }))]).toEqual([true, true]);
+    expect([reportOn(s({ coach: coach(false) })), rivalOn(s({ coach: coach(false) }))]).toEqual([false, false]);
+    expect([reportOn(s({ coach: coach(true), report: false })), rivalOn(s({ coach: coach(true), rival: false }))]).toEqual([false, false]);
   });
 });
