@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { consistencyMap, weekStreak } from './analysis';
 import { goalStatus, linearFit } from './goal';
 import { evaluate } from './progression';
-import { beatsLastTime, pickTip, reportWeek, rivalRows, rivalWorkout, weekReport } from './trainer';
+import { beatsLastTime, reportWeek, rivalRows, rivalWorkout, weekReport } from './trainer';
 import type { Challenge, MetricDef, ProgressionEvent, SetRecord, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
 import { addWarmups, warmupLoads } from './warmup';
@@ -198,16 +198,6 @@ describe('live reaction (D45)', () => {
     expect(beatsLastTime(d, d.sets[0], prev)).toBeUndefined();
     expect(beatsLastTime(a, a.sets[0], undefined)).toBeUndefined();
     expect(beatsLastTime(a, a.sets[0], entry('other', [set(10, 1)]))).toBeUndefined();
-  });
-});
-
-describe('tips (D48)', () => {
-  it('same seed, same tip; nothing without tips', () => {
-    const tips = ['a', 'b', 'c'];
-    expect(pickTip(tips, 'x')).toBe(pickTip(tips, 'x'));
-    expect(tips).toContain(pickTip(tips, 'y'));
-    expect(pickTip([' ', ''], 'x')).toBeUndefined();
-    expect(pickTip(undefined, 'x')).toBeUndefined();
   });
 });
 

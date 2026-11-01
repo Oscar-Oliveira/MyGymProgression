@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
@@ -9,7 +9,7 @@ import { COACH_BANKS } from '../../i18n/coach';
 import { CoachAvatar } from '../components/CoachAvatar';
 import { ReportCard } from '../components/TrainerBits';
 import { useSettings } from '../util';
-import { canSpeak, chooseVoice, chosenVoice, speak, useVoices, voiceGender } from '../voice';
+import { canSpeak, speak } from '../voice';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
 export const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
@@ -23,16 +23,6 @@ export function CoachPage() {
   const [sample, setSample] = useState<string>();
   const coach = s.coach ?? NO_COACH;
   const save = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
-  const gender = coach.gender ?? 'male';
-  const voices = useVoices(s.language);
-  const [voice, setVoice] = useState(() => chosenVoice(s.language, gender));
-  // The chosen voice is per language and gender: read it again when they change.
-  useEffect(() => setVoice(chosenVoice(s.language, gender)), [s.language, gender]);
-  const pickVoice = (name: string) => {
-    chooseVoice(s.language, gender, name);
-    setVoice(name);
-    speak(t('coach.voiceSample'), s.language, coach);
-  };
   const reports = useLiveQuery(() => db.coachReports.orderBy('week').reverse().toArray(), [], []);
   const showSample = () => {
     const text = coachMessage(COACH_BANKS[s.language].start, coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now()));
@@ -135,23 +125,6 @@ export function CoachPage() {
                 <input type="checkbox" role="switch" className="switch" checked={!!coach[k]} onChange={(e) => void save({ [k]: e.target.checked })} />
               </label>
             ))}
-            {coach.voice && canSpeak() && (
-              <>
-                <label className="setting-row">
-                  <span>{t('coach.voiceChoice')}</span>
-                  <select value={voices.some((v) => v.name === voice) ? voice : ''} onChange={(e) => pickVoice(e.target.value)}>
-                    <option value="">{t('coach.voiceAuto')}</option>
-                    {voices.map((v) => (
-                      <option key={v.name} value={v.name}>
-                        {v.name}
-                        {voiceGender(v.name) ? ` · ${t(`coach.genders.${voiceGender(v.name)}`)}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="help">{t('coach.voiceHelp')}</p>
-              </>
-            )}
           </section>
         </>
       )}

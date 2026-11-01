@@ -55,6 +55,11 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       shield: 0,
       triple: 0,
       hurt: 0,
+      // Screen shake and red flash after a hit, white flash of the sofa when it is hit.
+      shake: 0,
+      flash: 0,
+      bossFlash: 0,
+      sparks: [] as { x: number; y: number; vx: number; vy: number; life: number; color: string }[],
       banner: 1.2,
       time: 0,
       shots: [] as (Thing & { vx: number })[],
@@ -66,25 +71,40 @@ export function Starship({ style, gender, onEnd }: GameProps) {
     };
     const isBossWave = () => st.wave % BOSS_EVERY === 0;
     const waveSize = () => 6 + 2 * st.wave;
+    /** A small explosion of sparks. */
+    const burst = (x: number, y: number, n: number, color: string) => {
+      for (let i = 0; i < n; i++) {
+        const a = rand(0, Math.PI * 2);
+        const v = rand(60, 220);
+        st.sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.3, 0.6), color });
+      }
+    };
     const nextWave = () => {
       st.wave++;
       st.spawned = 0;
       st.banner = 1.2;
+      fx(isBossWave() ? 'alarm' : 'wave');
       if (isBossWave()) {
         const max = 20 + 10 * (st.wave / BOSS_EVERY - 1);
         st.boss = { x: W / 2, y: -60, hp: max, max, shootT: 1.5 };
       }
     };
     const hurt = () => {
-      if (st.shield > 0 || st.hurt > 0) return;
+      if (st.hurt > 0) return;
+      if (st.shield > 0) return fx('block');
       st.lives--;
       st.hurt = 1.2;
+      st.shake = 0.35;
+      st.flash = 0.25;
+      burst(st.ship.x, st.ship.y, 14, col.down);
       fx('bad');
     };
 
     const draw = () => {
+      ctx.save();
+      if (st.shake > 0) ctx.translate(rand(-6, 6) * (st.shake / 0.35), rand(-6, 6) * (st.shake / 0.35));
       ctx.fillStyle = col.bg;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(-10, -10, W + 20, H + 20);
       ctx.fillStyle = col.muted;
       for (const s of st.stars) ctx.fillRect(s.x, s.y, s.s * 2, s.s * 2);
       ctx.textAlign = 'center';
@@ -96,6 +116,14 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       if (st.boss) {
         ctx.font = '72px system-ui, sans-serif';
         ctx.fillText('🛋️', st.boss.x, st.boss.y);
+        if (st.bossFlash > 0) {
+          ctx.globalAlpha = Math.min(1, st.bossFlash * 8) * 0.6;
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(st.boss.x, st.boss.y, 38, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
         roundRect(ctx, 40, 14, W - 80, 8, 4, col.border);
         roundRect(ctx, 40, 14, ((W - 80) * st.boss.hp) / st.boss.max, 8, 4, col.down);
       }
@@ -107,6 +135,12 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       }
       ctx.fillStyle = col.warn;
       for (const s of st.shots) ctx.fillRect(s.x - 2, s.y - 8, 4, 12);
+      for (const p of st.sparks) {
+        ctx.globalAlpha = Math.max(0, p.life / 0.6);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+      }
+      ctx.globalAlpha = 1;
       // The ship blinks after a hit.
       if (st.hurt <= 0 || Math.floor(st.hurt * 10) % 2 === 0) {
         const { x, y } = st.ship;
@@ -144,6 +178,13 @@ export function Starship({ style, gender, onEnd }: GameProps) {
         ctx.font = '800 26px system-ui, sans-serif';
         ctx.fillText(`${t('games.wave')} ${st.wave}${isBossWave() ? ' 🛋️' : ''}`, W / 2, H / 2);
       }
+      ctx.restore();
+      if (st.flash > 0) {
+        ctx.fillStyle = col.down;
+        ctx.globalAlpha = (st.flash / 0.25) * 0.3;
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalAlpha = 1;
+      }
     };
 
     const stop = loop((dt) => {
@@ -169,6 +210,15 @@ export function Starship({ style, gender, onEnd }: GameProps) {
       st.triple -= dt;
       st.hurt -= dt;
       st.banner -= dt;
+      st.shake -= dt;
+      st.flash -= dt;
+      st.bossFlash -= dt;
+      for (const p of st.sparks) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+      }
+      st.sparks = st.sparks.filter((p) => p.life > 0);
 
       st.fireT -= dt;
       if (st.fireT <= 0) {
@@ -219,13 +269,20 @@ export function Starship({ style, gender, onEnd }: GameProps) {
           s.y = -100;
           if (--e.hp === 0) {
             st.score += e.food === '🍔' ? 20 : 10;
+            burst(e.x, e.y, 10, col.warn);
+            fx('pop');
             if (Math.random() < 0.08) st.powers.push({ x: e.x, y: e.y, kind: Math.random() < 0.5 ? 'shield' : 'triple' });
           }
         } else if (st.boss && st.boss.y > 0 && Math.abs(s.x - st.boss.x) < 36 && Math.abs(s.y - st.boss.y) < 26) {
           s.y = -100;
+          st.bossFlash = 0.08;
+          fx('tick');
           if (--st.boss.hp <= 0) {
             st.score += 250;
-            fx('power');
+            burst(st.boss.x, st.boss.y, 40, col.warn);
+            burst(st.boss.x, st.boss.y, 20, col.down);
+            st.shake = 0.35;
+            fx('record');
             st.boss = undefined;
             st.crumbs = [];
             nextWave();

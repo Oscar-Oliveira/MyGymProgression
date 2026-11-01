@@ -663,3 +663,11 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .splash-crew .right .bubble::after { left: auto; right: 20px; }
 @keyframes bubble-in { from { opacity: 0; translate: 0 6px; } }
 @media (prefers-reduced-motion: reduce) { #splash img, .splash-tap, .splash-crew button.poked, .splash-crew .bubble { animation: none; } }
+
+/* Tip button and bubble (D54) */
+.tip-btn { min-height: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; font-size: 1rem; line-height: 1.4; vertical-align: middle; }
+.tip-btn.on { background: var(--warn-bg); border-color: var(--warn); }
+.coach.tip { align-items: flex-start; }
+.tip-body { flex: 1; min-width: 0; }
+.tip-body small { display: block; color: var(--muted); margin-top: 0.2rem; }
+.tip-body .ghost { margin-top: 0.3rem; padding-left: 0; }

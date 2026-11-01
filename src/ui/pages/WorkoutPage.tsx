@@ -9,7 +9,8 @@ import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach'
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
 import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from '../../domain/workout';
-import { beatsLastTime, pickTip, rivalRows, rivalWorkout } from '../../domain/trainer';
+import { beatsLastTime, rivalRows, rivalWorkout } from '../../domain/trainer';
+import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
 import { CoachAvatar } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -171,9 +172,9 @@ export function WorkoutPage() {
     window.scrollTo(0, 0);
   };
 
-  // Technique tip of the trainer for the open exercise (D48).
-  const tipText = coach?.tips && entry ? pickTip(ctx.exercises.get(entry.exerciseId)?.tips, `${draft.id}:${entry.id}`) : undefined;
-  const tip = coach && tipText ? trainerLine(t, 'tip', coach, '', { tip: tipText }) : undefined;
+  // Technique tips of the open exercise (D48, D54). They come from the library in English: read aloud only in English.
+  const tips = coach?.tips && entry ? ctx.exercises.get(entry.exerciseId)?.tips?.map((x) => x.trim()).filter(Boolean) : undefined;
+  const readTip = coach?.voice && s.language === 'en' ? (tip: string) => speak(tip, s.language, coach) : undefined;
 
   if (active) {
     const subs = ctx.version?.days.flatMap((d) => d.items).find((i) => i.lineageId === entry?.lineageId)?.substitutes ?? [];
@@ -236,7 +237,8 @@ export function WorkoutPage() {
             thumbOf={(eid) => ctx.exercises.get(eid)?.thumb}
             setup={ctx.exercises.get(entry.exerciseId)?.personalNotes || undefined}
             onSetup={ctx.exercises.has(entry.exerciseId) ? (text) => void repo.saveExerciseNote(entry.exerciseId, text) : undefined}
-            tip={tip}
+            tips={tips}
+            onTip={readTip}
             coach={coach}
           />
         ) : (
@@ -244,7 +246,6 @@ export function WorkoutPage() {
             <p>{t('workout.noEntries')}</p>
           </div>
         )}
-        {entry && coach?.voice && tip && <Speak key={entry.id} text={tip} />}
 
         {toast && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>

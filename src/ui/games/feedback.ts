@@ -1,7 +1,7 @@
 // Sound and vibration in the games (D52). Short tones made with Web Audio (no sound files); vibration where supported.
 // Both can be turned off on the Games page; the choice is kept on this device.
 
-export type Fx = 'tap' | 'good' | 'bad' | 'power' | 'end' | 'record';
+export type Fx = 'tap' | 'good' | 'bad' | 'power' | 'end' | 'record' | 'pop' | 'tick' | 'alarm' | 'block' | 'wave';
 
 const KEYS = { sound: 'games:sound', haptic: 'games:haptic' } as const;
 export type FxSetting = keyof typeof KEYS;
@@ -30,14 +30,25 @@ const SOUND: Record<Fx, { wave: OscillatorType; notes: [number, number, number][
   power: { wave: 'triangle', notes: [[523, 0, 0.07], [659, 0.07, 0.07], [784, 0.14, 0.1]], gain: 0.08 },
   end: { wave: 'triangle', notes: [[392, 0, 0.15], [330, 0.15, 0.15], [262, 0.3, 0.3]], gain: 0.09 },
   record: { wave: 'square', notes: [[523, 0, 0.1], [659, 0.1, 0.1], [784, 0.2, 0.1], [1047, 0.3, 0.3]], gain: 0.06 },
+  pop: { wave: 'square', notes: [[520, 0, 0.03], [260, 0.03, 0.06]], gain: 0.05 },
+  tick: { wave: 'triangle', notes: [[1200, 0, 0.025]], gain: 0.04 },
+  alarm: { wave: 'sawtooth', notes: [[440, 0, 0.18], [330, 0.2, 0.18], [440, 0.4, 0.18], [330, 0.6, 0.25]], gain: 0.05 },
+  block: { wave: 'sine', notes: [[300, 0, 0.08], [600, 0.06, 0.12]], gain: 0.1 },
+  wave: { wave: 'triangle', notes: [[392, 0, 0.08], [523, 0.08, 0.08], [659, 0.16, 0.14]], gain: 0.08 },
 };
-const VIBRATE: Record<Fx, number | number[]> = { tap: 10, good: 25, bad: [60, 40, 60], power: [20, 30, 20], end: 120, record: [40, 40, 40, 40, 120] };
+const VIBRATE: Record<Fx, number | number[]> = { tap: 10, good: 25, bad: [60, 40, 60], power: [20, 30, 20], end: 120, record: [40, 40, 40, 40, 120], pop: 8, tick: 0, alarm: [80, 60, 80, 60, 80], block: 30, wave: 20 };
+/** Sounds that can come many times a second play at most once in this many ms. */
+const THROTTLE: Partial<Record<Fx, number>> = { pop: 60, tick: 50 };
+const lastAt: Partial<Record<Fx, number>> = {};
 
 let audio: AudioContext | undefined;
 
 /** Plays the sound and the vibration of an event (each only when on). */
 export function fx(kind: Fx) {
-  if (fxOn('haptic')) navigator.vibrate?.(VIBRATE[kind]);
+  const now = performance.now();
+  if (THROTTLE[kind] && now - (lastAt[kind] ?? -Infinity) < THROTTLE[kind]!) return;
+  lastAt[kind] = now;
+  if (fxOn('haptic') && VIBRATE[kind]) navigator.vibrate?.(VIBRATE[kind]);
   if (!fxOn('sound') || typeof AudioContext === 'undefined') return;
   try {
     audio ??= new AudioContext();

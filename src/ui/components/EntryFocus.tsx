@@ -98,7 +98,8 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
 
 /**
  * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
- * `tip`: a technique tip from the trainer (D48).
+ * `tips`: technique tips of the exercise (D48, D54): a 💡 button opens one in a bubble of the trainer; "another tip" goes to the next.
+ * `onTip`: called with the tip shown (the voice reads it).
  */
 export function EntryFocus({
   entry,
@@ -108,7 +109,8 @@ export function EntryFocus({
   thumbOf,
   setup,
   onSetup,
-  tip,
+  tips,
+  onTip,
   coach,
 }: {
   entry: WorkoutEntry;
@@ -118,7 +120,8 @@ export function EntryFocus({
   thumbOf: (id: string) => string | undefined;
   setup?: string;
   onSetup?: (text: string) => void;
-  tip?: string;
+  tips?: string[];
+  onTip?: (tip: string) => void;
   coach?: CoachSettings;
 }) {
   const { t } = useTranslation();
@@ -126,6 +129,12 @@ export function EntryFocus({
   const [chosen, setChosen] = useState<string>();
   const [notes, setNotes] = useState(!!entry.notes);
   const [editSetup, setEditSetup] = useState(false);
+  // The open tip (index), or none.
+  const [tip, setTip] = useState<number>();
+  const showTip = (i: number | undefined) => {
+    setTip(i);
+    if (i !== undefined && tips) onTip?.(tips[i]);
+  };
   const firstPending = entry.sets.find((x) => x.status === 'pending')?.id;
   const chosenSet = entry.sets.find((x) => x.id === chosen);
   // The chosen set stays open until it is marked done or skipped; otherwise the first pending set is open.
@@ -137,7 +146,14 @@ export function EntryFocus({
       <div className="ex-head">
         <Thumb src={thumbOf(entry.exerciseId) ?? entry.exercise.thumb} name={entry.exercise.name} size={76} />
         <div style={{ minWidth: 0 }}>
-          <h1 className="ex-title">{entry.exercise.name}</h1>
+          <h1 className="ex-title">
+            {entry.exercise.name}
+            {coach && tips && tips.length > 0 && (
+              <button type="button" className={`tip-btn ${tip !== undefined ? 'on' : ''}`} aria-expanded={tip !== undefined} aria-label={t('workout.tip')} onClick={() => showTip(tip === undefined ? 0 : undefined)}>
+                💡
+              </button>
+            )}
+          </h1>
           <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
           <div className="ex-last">
             {t('workout.lastTime')}: {previous ? setsLine(previous.sets, previous.exercise.metrics, s.language) : t('workout.firstTime')}
@@ -164,10 +180,21 @@ export function EntryFocus({
           />
         </label>
       )}
-      {tip && coach && (
-        <div className="coach tip" role="note" aria-label={t('coach.title')}>
+      {tip !== undefined && coach && tips?.[tip] && (
+        <div className="coach tip" role="note" aria-label={t('workout.tip')}>
           <CoachAvatar style={coach.style} gender={coach.gender} size={32} />
-          <p>{tip}</p>
+          <div className="tip-body">
+            <p>{t(`trainer.tip.${coach.style}`, { tip: tips[tip] })}</p>
+            {s.language !== 'en' && <small>{t('workout.tipLanguage')}</small>}
+            {tips.length > 1 && (
+              <button type="button" className="ghost sm" onClick={() => showTip((tip + 1) % tips.length)}>
+                {t('workout.tipNext', { n: tip + 1, total: tips.length })}
+              </button>
+            )}
+          </div>
+          <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => showTip(undefined)}>
+            ✕
+          </button>
         </div>
       )}
       {entry.short && <p className="help">⏱ {t('reason.short')}</p>}

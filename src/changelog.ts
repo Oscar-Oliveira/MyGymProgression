@@ -10,12 +10,18 @@ export const CHANGELOG: ChangeEntry[] = [
     date: '2026-11-01',
     pt: [
       'Voz do PT com o género escolhido (homem ou mulher) e o ritmo do estilo; na página do PT podes escolher a voz à mão.',
+      'Voz do PT só na língua da app (português de Portugal ou inglês britânico); o PT homem tem voz de homem, ou um tom bem mais grave quando o telemóvel só tem voz de mulher.',
+      'Dicas de técnica: agora é um 💡 ao lado do nome do exercício; toca para veres a dica.',
+      'Starship com sons, explosões, ecrã a tremer quando és atingido e alarme quando chega o sofá.',
       'Jogos com som e vibração (podes desligar na página dos Jogos) e com a voz do PT, quando está ligada. Só um botão "Voltar".',
       'Relatório da semana: o estado do desafio aparece como nos outros sítios.',
       'Ecrã de arranque novo: os PTs falam, reagem quando lhes tocas e há um número teu ou uma dica. Fecha quando tocas fora dos PTs.',
     ],
     en: [
       'Trainer voice with the chosen gender (man or woman) and the pace of the style; on the trainer page you can choose the voice by hand.',
+      'Trainer voice only in the app language (British English or Portuguese of Portugal); the male trainer has a male voice, or a much lower pitch when the phone has only a female voice.',
+      'Technique tips: now a 💡 next to the exercise name; tap it to see the tip.',
+      'Starship with sounds, explosions, a screen shake when you are hit and an alarm when the sofa arrives.',
       'Games with sound and vibration (you can turn them off on the Games page) and with the voice of the trainer, when it is on. Only one "Back" button.',
       'Week report: the challenge status shows as elsewhere.',
       'New splash: the trainers talk, react when you tap them, and there is a number of yours or a tip. It closes when you tap outside the trainers.',

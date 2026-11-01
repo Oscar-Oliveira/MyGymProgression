@@ -1,4 +1,4 @@
-// Personal trainer functions beyond messages: live reactions (D45), tips (D48), the rival (D49) and the week report (D46). Pure functions.
+// Personal trainer functions beyond messages: live reactions (D45), the rival (D49) and the week report (D46). Pure functions.
 import { entryMetrics, mondayOf, muscleDistribution } from './analysis';
 import { challengeProgress, MUSCLES, weekKey } from './challenge';
 import { toCanonical } from './units';
@@ -31,15 +31,6 @@ export function beatsLastTime(entry: WorkoutEntry, set: SetRecord, previous?: Wo
   if (v.reps !== undefined && p.reps !== undefined) return v.reps > p.reps ? { kind: 'reps', from: p.reps, to: v.reps } : undefined;
   if (v.duration !== undefined && p.duration !== undefined && v.duration > p.duration) return { kind: 'duration', from: p.duration, to: v.duration };
   return undefined;
-}
-
-/** One technique tip of the exercise, the same for a seed (D48). */
-export function pickTip(tips: string[] | undefined, seed: string): string | undefined {
-  const list = (tips ?? []).map((x) => x.trim()).filter(Boolean);
-  if (!list.length) return undefined;
-  let h = 0;
-  for (const c of seed) h = (Math.imul(h, 31) + c.charCodeAt(0)) | 0;
-  return list[Math.abs(h) % list.length];
 }
 
 /** Rival window: about 3 months before (75–105 days, the nearest to 90). */
