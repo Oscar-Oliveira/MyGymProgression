@@ -1,5 +1,5 @@
 // Export/import logic for the versioned JSON interchange format. Pure functions; storage is done in src/data.
-import type { Challenge, Exercise, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
+import type { Challenge, CoachReport, Exercise, Goal, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
 import { bundleSchema, FORMAT_ID, SCHEMA_VERSION } from './schema';
 import { v1to2 } from './migrations';
 
@@ -13,11 +13,13 @@ export interface DataSet {
   revisions: Revision[];
   gameScores: GameScore[];
   challenges: Challenge[];
+  goals: Goal[];
+  coachReports: CoachReport[];
   settings?: Settings;
 }
 
 export type TableName = Exclude<keyof DataSet, 'settings'>;
-export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions', 'gameScores', 'challenges'];
+export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions', 'gameScores', 'challenges', 'goals', 'coachReports'];
 export type Scope = 'full' | 'library' | 'plans';
 
 export interface Bundle {
@@ -35,7 +37,7 @@ export const keyOf = (table: TableName, r: object): string =>
   table === 'progressionStates' ? (r as ProgressionState).lineageId : (r as { id: string }).id;
 
 export function emptyDataSet(): DataSet {
-  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [], gameScores: [], challenges: [] };
+  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [], gameScores: [], challenges: [], goals: [], coachReports: [] };
 }
 
 /** Builds an export bundle. "library" = exercises only; "plans" = plans, versions, states and referenced exercises. */
@@ -81,6 +83,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   10: (raw) => ({ ...raw, schemaVersion: 11 }),
   // v12 only adds load sync between plans (outcome "sync", event.sourceEventId, settings.loadSync).
   11: (raw) => ({ ...raw, schemaVersion: 12 }),
+  // v13 only adds goals, trainer reports, short workouts and new trainer and warm-up settings.
+  12: (raw) => ({ ...raw, schemaVersion: 13 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };
@@ -182,7 +186,7 @@ function remap<T>(value: T, map: Map<string, string>): T {
  * - keepBoth: import the conflicting record under a new id (references inside the import are rewritten).
  *   Progression states are keyed by lineage, so they are skipped under keepBoth.
  * There is one weekly challenge per week: an imported challenge of a week that already has one here is not imported
- * (on a conflict of the same challenge, only "overwrite" replaces it).
+ * (on a conflict of the same challenge, only "overwrite" replaces it). The same holds for the trainer's week reports.
  */
 export function planMerge(
   incoming: DataSet,
@@ -210,11 +214,11 @@ export function planMerge(
   for (const t of TABLES) {
     const conflicts = new Set(preview.tables[t].conflicts);
     const local = new Set((existing[t] as object[]).map((r) => keyOf(t, r)));
-    const weeks = new Set(existing.challenges.map((c) => c.week));
+    const weeks = new Set((t === 'coachReports' ? existing.coachReports : existing.challenges).map((c) => c.week));
     const rows = (incoming[t] as object[]).filter((r) => {
       const k = keyOf(t, r);
       if (t === 'exercises' && dropExercise.has(k)) return false;
-      if (t === 'challenges') return conflicts.has(k) ? policy === 'overwrite' : !local.has(k) && !weeks.has((r as { week: string }).week);
+      if (t === 'challenges' || t === 'coachReports') return conflicts.has(k) ? policy === 'overwrite' : !local.has(k) && !weeks.has((r as { week: string }).week);
       // Identical records already exist; never rewrite them.
       if (!conflicts.has(k)) return !local.has(k);
       if (policy === 'overwrite') return true;

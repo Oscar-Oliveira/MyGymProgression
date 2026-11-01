@@ -357,3 +357,54 @@ export function muscleSetsPerWeek(workouts: Workout[], from: string, to: string)
 }
 
 export const MUSCLE_SETS_GUIDE = { min: 10, max: 20 };
+
+/** One day of the consistency map (D43). */
+export interface DayCell {
+  /** Local date YYYY-MM-DD. */
+  date: string;
+  workouts: Workout[];
+}
+
+/**
+ * Consistency map (D43): whole weeks (Monday to Sunday) from the week `weeks - 1` weeks before `now` to the week of `now`,
+ * one cell per day with its finished workouts. Days after `now` are left out.
+ */
+export function consistencyMap(workouts: Workout[], now: Date, weeks = 53): DayCell[][] {
+  const byDay = new Map<string, Workout[]>();
+  for (const w of workouts.filter(isFinished).sort(byDate)) {
+    const k = localDay(new Date(w.startedAt));
+    byDay.set(k, [...(byDay.get(k) ?? []), w]);
+  }
+  const first = mondayOf(now);
+  const out: DayCell[][] = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const week: DayCell[] = [];
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(first.getFullYear(), first.getMonth(), first.getDate() - i * 7 + d);
+      if (day > now) break;
+      week.push({ date: localDay(day), workouts: byDay.get(localDay(day)) ?? [] });
+    }
+    out.push(week);
+  }
+  return out;
+}
+
+/**
+ * Weeks in a row with at least one finished workout. `current`: up to now (this week counts once it has a workout;
+ * while it has none, the count starts at last week). `best`: the longest run ever.
+ */
+export function weekStreak(workouts: Workout[], now: Date): { current: number; best: number } {
+  const weeks = new Set(workouts.filter(isFinished).map((w) => mondayOf(new Date(w.startedAt)).getTime()));
+  const back = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7 * n).getTime();
+  const thisWeek = mondayOf(now);
+  let current = 0;
+  for (let i = weeks.has(thisWeek.getTime()) ? 0 : 1; weeks.has(back(thisWeek, i)); i++) current++;
+  let best = 0;
+  for (const w of weeks) {
+    if (weeks.has(back(new Date(w), 1))) continue;
+    let n = 0;
+    while (weeks.has(back(new Date(w), -n))) n++;
+    best = Math.max(best, n);
+  }
+  return { current, best };
+}

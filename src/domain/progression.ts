@@ -30,6 +30,8 @@ export interface EvalInput {
   pain: boolean;
   technique: boolean;
   substituted: boolean;
+  /** "Short on time" removed a working set: an increase is blocked (D40). */
+  short?: boolean;
   /** The last earlier session of the same lineage, if any. */
   previous?: { prescription: SetPrescription[]; sets: SetRecord[] };
 }
@@ -79,6 +81,7 @@ function blockers(input: EvalInput): Reason[] {
   if (input.substituted && criteria.blockOnSubstitution) out.push({ code: 'substituted' });
   if (input.pain && criteria.blockOnPain) out.push({ code: 'pain' });
   if (input.technique && criteria.blockOnTechnique) out.push({ code: 'technique' });
+  if (input.short) out.push({ code: 'short' });
   return out;
 }
 

@@ -65,7 +65,7 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 3. **Start workout**. Each set is pre-filled with today's goal; tap **✓ Set done**. **Next ›** moves to the next exercise.
 4. **Finish workout**: the summary shows ⬆ up / ＝ keep / ⬇ down for each exercise.
 5. **Plans**: give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
-6. **Settings → Personal trainer**: optional motivating message when a workout starts.
+6. **More → Personal trainer**: optional motivating messages, and extras (live reactions, tips, voice, "you vs your past self", Sunday week report).
 7. **More → Analysis**: progress per exercise, sets per muscle per week, comparison with the previous period. **More → Settings**: JSON/CSV export and import.
 8. **Plans → ⋯ → Share**: send the plan as a file or a link; the link opens a preview and imports a copy.
 

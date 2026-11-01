@@ -11,14 +11,9 @@ import { NumInput } from '../components/NumInput';
 import { download, fmtDate, saveBackup, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
-import { coachMessage } from '../../domain/coach';
-import { COACH_BANKS } from '../../i18n/coach';
-import type { CoachGender, CoachSettings, CoachStyle, CoachWhen, LoadSync } from '../../domain/types';
+import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
-import { CoachAvatar } from '../components/CoachAvatar';
-
-const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
-const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
+import { Link } from 'react-router-dom';
 
 
 /** One action in a settings list: icon, title and a short description. */
@@ -197,12 +192,9 @@ export function SettingsPage() {
   const s = useSettings();
   const [persisted, setPersisted] = useState<boolean>();
   const [msg, setMsg] = useState('');
-  const [sample, setSample] = useState<string>();
-  const coach = s.coach ?? NO_COACH;
   const loadSync = s.loadSync ?? DEFAULT_LOAD_SYNC;
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
   const due = backupDue(s.lastBackupAt, workouts);
-  const saveCoach = (patch: Partial<CoachSettings>) => repo.saveSettings({ coach: { ...coach, ...patch } });
   useEffect(() => {
     void navigator.storage?.persisted?.().then(setPersisted);
   }, []);
@@ -308,73 +300,23 @@ export function SettingsPage() {
       </section>
 
       <div className="section-head">
-        <h2>{t('coach.title')}</h2>
+        <h2>{t('settings.workout')}</h2>
       </div>
       <section className="card">
         <label className="setting-row">
-          <span>{t('coach.enabled')}</span>
-          <input type="checkbox" role="switch" className="switch" checked={coach.enabled} onChange={(e) => void saveCoach({ enabled: e.target.checked })} />
+          <span className="lbl">
+            {t('settings.warmup')}
+            <small>{t('settings.warmupSub')}</small>
+          </span>
+          <input type="checkbox" role="switch" className="switch" checked={!!s.warmup} onChange={(e) => void repo.saveSettings({ warmup: e.target.checked })} />
         </label>
-        {coach.enabled && (
-          <>
-            <label className="setting-row">
-              <span>{t('coach.style')}</span>
-              <select value={coach.style} onChange={(e) => (setSample(undefined), void saveCoach({ style: e.target.value as CoachStyle }))}>
-                {COACH_STYLES.map((st) => (
-                  <option key={st} value={st}>
-                    {t(`coach.styles.${st}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="setting-row">
-              <span>{t('coach.gender')}</span>
-              <select value={coach.gender ?? 'male'} onChange={(e) => void saveCoach({ gender: e.target.value as CoachGender })}>
-                {(['male', 'female'] as const).map((g) => (
-                  <option key={g} value={g}>
-                    {t(`coach.genders.${g}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="coach-style">
-              <CoachAvatar style={coach.style} gender={coach.gender} />
-              <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
-            </div>
-            <label className="setting-row">
-              <span>{t('coach.when')}</span>
-              <select value={coach.when ?? 'random'} onChange={(e) => void saveCoach({ when: e.target.value as CoachWhen })}>
-                {(['random', 'each', 'start'] as const).map((w) => (
-                  <option key={w} value={w}>
-                    {t(`coach.whenOptions.${w}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="setting-row">
-              <span className="lbl">
-                {t('coach.pages')}
-                <small>{t('coach.pagesSub')}</small>
-              </span>
-              <input type="checkbox" role="switch" className="switch" checked={coach.pages !== false} onChange={(e) => void saveCoach({ pages: e.target.checked })} />
-            </label>
-            {coach.style === 'spite' && (
-              <label className="setting-row">
-                <span>{t('coach.profanity')}</span>
-                <input type="checkbox" role="switch" className="switch" checked={coach.profanity} onChange={(e) => void saveCoach({ profanity: e.target.checked })} />
-              </label>
-            )}
-            {sample && (
-              <div key={sample} className="coach" role="status" aria-label={t('coach.title')}>
-                <CoachAvatar style={coach.style} gender={coach.gender} />
-                <p>{sample}</p>
-              </div>
-            )}
-            <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={() => setSample(coachMessage(COACH_BANKS[s.language].start, coach, { month: 3, days: 4, increase: { exercise: t('coach.sampleExercise'), from: '40 kg', to: '42.5 kg' } }, String(Date.now())))}>
-              {t('coach.preview')}
-            </button>
-          </>
-        )}
+        <Link to="/coach" className="setting-row">
+          <span className="lbl">
+            {t('coach.title')}
+            <small>{t('coach.moved')}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </Link>
       </section>
 
       <div className="section-head">

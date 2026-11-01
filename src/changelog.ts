@@ -9,6 +9,23 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-01',
     pt: [
+      'Personal trainer com página própria (Mais → Personal trainer), com extras que ligas um a um: reação quando bates a última vez, dicas de técnica, voz, "tu vs o teu eu antigo" no fim do treino e relatório da semana ao domingo.',
+      'Aquecimento automático (Definições → Treino): séries de aquecimento antes do 1.º exercício composto de cada músculo.',
+      'Treino: nota de setup do exercício (📌), "Pouco tempo" para encurtar o treino e "Fazer depois" para passar um exercício para o fim.',
+      'Análise: mapa de consistência com semanas seguidas, e metas de carga com a data prevista. As metas também aparecem na página do exercício.',
+      'Resumo do treino: "Partilhar imagem" cria uma imagem do treino para enviar.',
+    ],
+    en: [
+      'Personal trainer has its own page (More → Personal trainer), with extras you turn on one by one: a reaction when you beat last time, technique tips, voice, "you vs your past self" at the end of a workout and a week report on Sunday.',
+      'Automatic warm-up (Settings → Workout): warm-up sets before the first compound exercise of each muscle.',
+      'Workout: setup note of the exercise (📌), "Short on time" to shorten the workout and "Do it later" to move an exercise to the end.',
+      'Analysis: consistency map with weeks in a row, and load goals with a projected date. Goals also show on the exercise page.',
+      'Workout summary: "Share image" makes a picture of the workout to send.',
+    ],
+  },
+  {
+    date: '2026-11-01',
+    pt: [
       'Cargas entre planos: quando a carga de um exercício sobe num plano (ex.: hipertrofia), a app pergunta se queres atualizar os outros planos com o mesmo exercício (ex.: força), com uma carga calculada pelo 1RM estimado. Escolhe nas Definições quando perguntar e como calcular.',
       'Um exercício novo num plano começa com a carga calculada a partir dos teus outros planos.',
     ],

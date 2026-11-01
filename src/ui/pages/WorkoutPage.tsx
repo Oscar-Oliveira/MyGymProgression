@@ -8,7 +8,8 @@ import type { Exercise, Workout, WorkoutEntry } from '../../domain/types';
 import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
-import { adHocLineage, entryAdHoc, substitute } from '../../domain/workout';
+import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from '../../domain/workout';
+import { beatsLastTime, pickTip, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { dialog } from '../components/Dialog';
 import { CoachAvatar } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -23,6 +24,8 @@ import { EntryFocus } from '../components/EntryFocus';
 import { CoachCard, coachIncrease, PageCoach } from '../components/CoachCard';
 import { CircuitFocus } from '../components/CircuitFocus';
 import { CorrectionEditor } from '../components/CorrectionEditor';
+import { RivalCard, Speak, trainerLine } from '../components/TrainerBits';
+import { drawShareCard, shareImage } from '../shareCard';
 
 export function WorkoutPage() {
   const { t } = useTranslation();
@@ -56,6 +59,8 @@ export function WorkoutPage() {
     return () => clearTimeout(timer);
   }, [toast]);
   const loadedFor = useRef<string>(undefined);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLSpanElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
 
   // On each exercise change: show it from the top and keep its tab visible in the scrolling row.
@@ -112,6 +117,8 @@ export function WorkoutPage() {
   const coach = s.coach?.enabled ? s.coach : undefined;
   const coachLine = (seed: string) => (coach ? coachMessage(COACH_BANKS[s.language].start, coach, coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), coachIncrease(ctx.exercises, s.language)), seed) : '');
 
+  /** A value of a beaten set, for the live reaction. */
+  const beatText = (e: WorkoutEntry, kind: 'load' | 'reps' | 'duration', v: number) => (kind === 'reps' ? `${fmtNum(v, s.language)} reps` : fmtMetric(e.exercise.metrics, kind, v, s.language));
   const upEntries = (es: WorkoutEntry[]) => {
     const next = { ...draft, entries: draft.entries.map((x) => es.find((e) => e.id === x.id) ?? x) };
     // A step that becomes done may get a trainer message (setting "when").
@@ -121,6 +128,16 @@ export function WorkoutPage() {
         const now = st.indexes.every((j) => entryDone(next.entries[j]));
         if (!was && now && speaksAfterStep(coach.when, `${draft.id}:${i}`)) setToast(coachLine(`${draft.id}:${i}`) || undefined);
       });
+      // A set done just now that beats the same set of last time: a live reaction (D45), shown instead.
+      if (coach.live) {
+        for (const e of es) {
+          const old = draft.entries.find((x) => x.id === e.id);
+          for (const set of e.sets.filter((x) => x.status === 'done' && old?.sets.find((y) => y.id === x.id)?.status !== 'done')) {
+            const beat = beatsLastTime(e, set, previousOf(e));
+            if (beat) setToast(trainerLine(t, 'live', coach, set.id, { exercise: e.exercise.name, from: beatText(e, beat.kind, beat.from), to: beatText(e, beat.kind, beat.to) }));
+          }
+        }
+      }
     }
     update(next);
   };
@@ -140,12 +157,23 @@ export function WorkoutPage() {
     update({ ...draft, entries: [...draft.entries, e] });
     setCur(steps.length);
   };
+  const shorten = async () => {
+    setMenu(false);
+    if (!(await dialog.confirm(t('workout.shortConfirm'), { ok: t('workout.shortOk') }))) return;
+    const next = shortenWorkout(draft);
+    update(next);
+    setCur((c) => Math.min(c, workoutSteps(next.entries).length - 1));
+  };
   const finish = async (interrupted = false) => {
     if (!interrupted && pendingSets > 0 && !(await dialog.confirm(t('workout.finishPending', { count: pendingSets })))) return;
     setMenu(false);
     await repo.finishWorkout(draft, interrupted);
     window.scrollTo(0, 0);
   };
+
+  // Technique tip of the trainer for the open exercise (D48).
+  const tipText = coach?.tips && entry ? pickTip(ctx.exercises.get(entry.exerciseId)?.tips, `${draft.id}:${entry.id}`) : undefined;
+  const tip = coach && tipText ? trainerLine(t, 'tip', coach, '', { tip: tipText }) : undefined;
 
   if (active) {
     const subs = ctx.version?.days.flatMap((d) => d.items).find((i) => i.lineageId === entry?.lineageId)?.substitutes ?? [];
@@ -189,21 +217,40 @@ export function WorkoutPage() {
         </div>
 
         {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} />}
+        {coach?.voice && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} />}
+        {!draft.short && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
+          <button className="chip short-chip" onClick={() => void shorten()}>
+            ⏱ {t('workout.short')}
+          </button>
+        )}
 
         {step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
         ) : entry ? (
-          <EntryFocus key={entry.id} entry={entry} previous={previousOf(entry)} onChange={upEntry} onSubstitute={() => setPicker('sub')} thumbOf={(eid) => ctx.exercises.get(eid)?.thumb} />
+          <EntryFocus
+            key={entry.id}
+            entry={entry}
+            previous={previousOf(entry)}
+            onChange={upEntry}
+            onSubstitute={() => setPicker('sub')}
+            thumbOf={(eid) => ctx.exercises.get(eid)?.thumb}
+            setup={ctx.exercises.get(entry.exerciseId)?.personalNotes || undefined}
+            onSetup={ctx.exercises.has(entry.exerciseId) ? (text) => void repo.saveExerciseNote(entry.exerciseId, text) : undefined}
+            tip={tip}
+            coach={coach}
+          />
         ) : (
           <div className="empty">
             <p>{t('workout.noEntries')}</p>
           </div>
         )}
+        {entry && coach?.voice && tip && <Speak key={entry.id} text={tip} />}
 
         {toast && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
             <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} />
             <p>{toast}</p>
+            {coach?.voice && <Speak text={toast} />}
             <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
               ✕
             </button>
@@ -232,6 +279,8 @@ export function WorkoutPage() {
             <div className="sheet">
               <button onClick={() => nav('/')}>⏸ {t('workout.pauseLong')}</button>
               <button onClick={() => (setMenu(false), setPicker('add'))}>+ {t('workout.addExercise')}</button>
+              {step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}>⤓ {t('workout.later')}</button>}
+              {!draft.short && <button onClick={() => void shorten()}>⏱ {t('workout.short')}</button>}
               {entry && (
                 <button onClick={() => (setMenu(false), update({ ...draft, entries: draft.entries.filter((x) => x.id !== entry.id) }), setCur(Math.max(0, cur - 1)))}>
                   {t('workout.removeEntry')}
@@ -307,6 +356,9 @@ export function WorkoutPage() {
     }
   };
   const records = workoutRecords(draft, ctx.others);
+  // "You vs 3 months ago" (D49): only for the latest workout, when the trainer and the rival are on.
+  const rival = s.coach?.enabled && s.coach.rival && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
+  const rivalList = rival ? rivalRows(draft, rival) : [];
   const fmtRecord = (r: RecordHit, v: number) =>
     r.kind === 'maxDuration'
       ? fmtSeconds(v)
@@ -315,8 +367,40 @@ export function WorkoutPage() {
         : r.kind === 'maxReps'
           ? fmtNum(v, s.language)
           : `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}`;
+  /** The workout as an image (D44), with the trainer when it is on. */
+  const shareCard = async () => {
+    const done = draft.entries.filter((e) => e.sets.some((x) => x.kind === 'working' && x.status === 'done'));
+    const withCoach = !!s.coach?.enabled;
+    const blob = await drawShareCard({
+      title: draft.dayName ?? t('workout.free'),
+      subtitle: [fmtDate(draft.startedAt, s.language), draft.planName].filter(Boolean).join(' · '),
+      stats: [
+        { value: String(draft.entries.length), label: t('nav.exercises') },
+        { value: `${doneWorking}/${totalWorking}`, label: t('analysis.workingSets') },
+        { value: draft.endedAt ? fmtSeconds((Date.parse(draft.endedAt) - Date.parse(draft.startedAt)) / 1000) : '—', label: t('analysis.duration') },
+      ],
+      lines: done.slice(0, 6).map((e) => ({ name: e.exercise.name, value: setsLine(e.sets, e.exercise.metrics, s.language) })),
+      more: done.length > 6 ? t('workout.shareMore', { count: done.length - 6 }) : undefined,
+      records: records.slice(0, withCoach ? 2 : 3).map((r) => ({ name: r.name, value: fmtRecord(r, r.value) })),
+      recordsTitle: t('workout.records'),
+      coach: withCoach
+        ? {
+            text: coachMessage(COACH_BANKS[s.language].done, s.coach!, { ...coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), coachIncrease(ctx.exercises, s.language)), sets: doneWorking, records: records.length }, draft.id),
+            svg: avatarRef.current?.innerHTML,
+          }
+        : undefined,
+      tone: (rootRef.current && getComputedStyle(rootRef.current).getPropertyValue('--tone').trim()) || '#5b4cf5',
+      footer: 'MyGymProgression',
+    });
+    if (blob) await shareImage(blob, `mygymprogression-${draft.startedAt.slice(0, 10)}.png`);
+  };
   return (
-    <div className="toned" style={tone}>
+    <div className="toned" style={tone} ref={rootRef}>
+      {s.coach?.enabled && (
+        <span ref={avatarRef} hidden>
+          <CoachAvatar style={s.coach.style} gender={s.coach.gender} size={104} />
+        </span>
+      )}
       <div className="page-head">
         <div>
           <p className="eyebrow">{fmtDate(draft.startedAt, s.language, true)}</p>
@@ -327,6 +411,7 @@ export function WorkoutPage() {
           <small>
             {draft.planName && `${draft.planName} · `}
             {t(`workout.status.${draft.status}`)}
+            {draft.short && ` · ⏱ ${t('workout.shortened')}`}
           </small>
         </div>
       </div>
@@ -391,6 +476,7 @@ export function WorkoutPage() {
               ))}
             </section>
           )}
+          {rival && rivalList.length > 0 && <RivalCard rows={rivalList} date={rival.startedAt} coach={s.coach!} />}
           <div className="section-head">
             <h2>{t('workout.nextTime')}</h2>
           </div>
@@ -468,6 +554,9 @@ export function WorkoutPage() {
           <div className="row wrap" style={{ marginTop: '1rem' }}>
             <button className="outline" onClick={() => setEditing(true)}>
               {t('workout.correct')}
+            </button>
+            <button className="outline" onClick={() => void shareCard()}>
+              ⤴ {t('workout.share')}
             </button>
             <span className="spacer" />
             <button

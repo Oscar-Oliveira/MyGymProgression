@@ -9,6 +9,8 @@ import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
+import { Consistency } from '../components/Consistency';
+import { Goals } from '../components/Goals';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
 
@@ -234,6 +236,8 @@ export function Analysis() {
       )}
 
       {summary.workouts > 0 && <WeekBars weeks={weeks} lang={s.language} />}
+      {data.workouts.some((w) => w.status !== 'in_progress') && <Consistency workouts={data.workouts} />}
+      <Goals />
 
       {muscles.length > 0 && (
         <section className="card">

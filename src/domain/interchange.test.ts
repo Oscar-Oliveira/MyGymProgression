@@ -172,6 +172,32 @@ describe('schema migration v10 → v11', () => {
   });
 });
 
+describe('schema v13 (D37–D49)', () => {
+  it('a v12 file (without goals and reports) is migrated; new fields round-trip', () => {
+    const old = JSON.parse(JSON.stringify(buildBundle(emptyDataSet(), 'full', 'x')));
+    old.schemaVersion = 12;
+    delete old.data.goals;
+    delete old.data.coachReports;
+    const r = parseBundle(JSON.stringify(old));
+    expect(r.ok && r.migratedFrom).toBe(12);
+    expect(r.ok && r.bundle.data.goals).toEqual([]);
+
+    const d = emptyDataSet();
+    d.goals = [{ id: 'g', exerciseId: 'e', exerciseName: 'Bench', load: 100, by: '2027-03-01', createdAt: '2026-11-01T10:00:00.000Z' }];
+    d.coachReports = [{ id: 'r', week: '2026-10-26', workouts: 3, sets: 40, best: { exerciseName: 'Squat', load: 120, reps: 5 }, ups: 2, weak: 'back', challenge: 'done', createdAt: '2026-11-01T18:00:00.000Z' }];
+    d.settings = { ...DEFAULT_SETTINGS, warmup: true, coach: { enabled: true, style: 'stoic', profanity: false, live: true, report: true, voice: false, tips: true, rival: true } };
+    const r13 = parseBundle(JSON.stringify(buildBundle(d, 'full', 'x')));
+    expect(r13.ok && r13.bundle.data).toMatchObject({ goals: d.goals, coachReports: d.coachReports, settings: d.settings });
+  });
+
+  it('merge: one trainer report per week', () => {
+    const rep = (id: string, week: string) => ({ id, week, workouts: 1, sets: 1, ups: 0, createdAt: '2026-11-01T18:00:00.000Z' });
+    const existing = { ...emptyDataSet(), coachReports: [rep('here', '2026-10-26')] };
+    const incoming = { ...emptyDataSet(), coachReports: [rep('there', '2026-10-26'), rep('older', '2026-10-19')] };
+    expect(planMerge(incoming, existing, 'keepBoth', 'useExisting').coachReports.map((c) => c.id)).toEqual(['older']);
+  });
+});
+
 describe('merge: one weekly challenge per week', () => {
   const ch = (id: string, week: string) => ({ id, week, kind: 'workouts' as const, target: 2, status: 'open' as const, createdAt: '2026-11-02T08:00:00.000Z' });
   it('an imported challenge of a week that has one here is not imported; other weeks are', () => {

@@ -135,6 +135,7 @@ const entry = z.object({
   pain: z.boolean(),
   technique: z.boolean(),
   notes: z.string(),
+  short: z.boolean().optional(),
   evaluation: z
     .object({
       strategy: progressionSchema.shape.strategy,
@@ -160,6 +161,7 @@ export const workoutSchema = z.object({
   notes: z.string(),
   entries: z.array(entry),
   updatedAt: iso,
+  short: z.boolean().optional(),
 });
 
 export const progressionEventSchema = z.object({
@@ -196,9 +198,24 @@ export const settingsSchema = z.object({
   lastBackupAt: iso.optional(),
   librarySync: z.string().optional(),
   theme: z.enum(['dark', 'light', 'system']).optional(),
-  coach: z.object({ enabled: z.boolean(), style: z.enum(['support', 'spite', 'stoic', 'sergeant', 'energy']), gender: z.enum(['male', 'female']).optional(), profanity: z.boolean(), when: z.enum(['start', 'each', 'random']).optional(), pages: z.boolean().optional() }).optional(),
+  coach: z
+    .object({
+      enabled: z.boolean(),
+      style: z.enum(['support', 'spite', 'stoic', 'sergeant', 'energy']),
+      gender: z.enum(['male', 'female']).optional(),
+      profanity: z.boolean(),
+      when: z.enum(['start', 'each', 'random']).optional(),
+      pages: z.boolean().optional(),
+      live: z.boolean().optional(),
+      report: z.boolean().optional(),
+      voice: z.boolean().optional(),
+      tips: z.boolean().optional(),
+      rival: z.boolean().optional(),
+    })
+    .optional(),
   challenge: z.boolean().optional(),
   loadSync: z.object({ trigger: z.enum(['off', 'order', 'below']), method: z.enum(['e1rm', 'increment']) }).optional(),
+  warmup: z.boolean().optional(),
 });
 
 export const gameScoreSchema = z.object({ id: z.string().min(1), game: z.enum(['memory', 'whack', 'muscle', 'flappy', 'runner', 'starship']), score: num, at: iso });
@@ -216,7 +233,21 @@ export const challengeSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 12;
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const goalSchema = z.object({ id: z.string().min(1), exerciseId: z.string(), exerciseName: z.string(), load: num, by: day.optional(), createdAt: iso });
+export const coachReportSchema = z.object({
+  id: z.string().min(1),
+  week: day,
+  workouts: num,
+  sets: num,
+  best: z.object({ exerciseName: z.string(), load: num, reps: num.optional() }).optional(),
+  ups: num,
+  weak: z.string().optional(),
+  challenge: z.enum(['open', 'done', 'missed']).optional(),
+  createdAt: iso,
+});
+
+export const SCHEMA_VERSION = 13;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({
@@ -235,6 +266,8 @@ export const bundleSchema = z.object({
     revisions: z.array(revisionSchema).default([]),
     gameScores: z.array(gameScoreSchema).default([]),
     challenges: z.array(challengeSchema).default([]),
+    goals: z.array(goalSchema).default([]),
+    coachReports: z.array(coachReportSchema).default([]),
     settings: settingsSchema.optional(),
   }),
 });

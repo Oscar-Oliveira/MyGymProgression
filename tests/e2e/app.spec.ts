@@ -275,7 +275,7 @@ test('personal trainer: off by default; when on, a message shows at the start of
   await page.getByRole('button', { name: 'Discard workout' }).click();
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Discard workout' }).click();
 
-  await more(page, /^Settings/);
+  await more(page, /^Personal trainer/);
   const enable = page.getByLabel('Turn on personal trainer');
   await enable.click();
   await expect(enable).toBeChecked();
@@ -294,7 +294,7 @@ test('personal trainer outside the workout: greeting on Home and a comment in Hi
   await page.clock.setFixedTime(new Date('2026-11-02T10:00:00'));
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Settings/);
+  await more(page, /^Personal trainer/);
   await page.getByLabel('Turn on personal trainer').click();
   const pages = page.getByLabel(/Also speak outside the workout/);
   await expect(pages).toBeChecked();
@@ -308,7 +308,7 @@ test('personal trainer outside the workout: greeting on Home and a comment in Hi
   await expect(note).toHaveCount(0);
 
   await page.evaluate(() => localStorage.clear());
-  await more(page, /^Settings/);
+  await more(page, /^Personal trainer/);
   await pages.click();
   await expect(pages).not.toBeChecked();
   await tab(page, 'Home');
@@ -343,7 +343,7 @@ test('plan colour without a day colour: the workout buttons use the plan colour;
 test('personal trainer "after every exercise": a message appears when an exercise is done', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Settings/);
+  await more(page, /^Personal trainer/);
   const enable = page.getByLabel('Turn on personal trainer');
   await enable.click();
   await expect(enable).toBeChecked();
@@ -795,4 +795,84 @@ test('loads across plans: hypertrophy load up → asks to update the strength pl
   await page.getByText('Heavy', { exact: true }).click();
   await page.getByRole('button', { name: /Start this day/ }).click();
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('22.5');
+});
+
+test('personal trainer page: own menu entry; extras off by default; Settings links to it', async ({ page }) => {
+  await more(page, /^Settings/);
+  await page.getByRole('link', { name: /^Personal trainer/ }).click();
+  await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
+  await expect(page.getByText('The trainer is off.')).toBeVisible();
+  await page.getByLabel('Turn on personal trainer').click();
+  for (const name of [/Reaction when you beat last time/, /Technique tips/, /You vs 3 months ago/, /Week report on Sunday/]) await expect(page.getByLabel(name)).not.toBeChecked();
+  await page.getByLabel(/Week report on Sunday/).click();
+  await expect(page.getByText('No reports yet. The first one comes on Sunday.')).toBeVisible();
+});
+
+test('workout: short on time, do it later and the setup note', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press', 'Barbell Back Squat', 'Push-up']);
+  const selected = page.getByRole('tablist').getByRole('tab', { selected: true });
+  await expect(selected).toHaveAccessibleName('Machine Chest Press');
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: '⤓ Do it later' }).click();
+  await expect(selected).toHaveAccessibleName('Barbell Back Squat');
+  await expect(page.getByRole('tablist').getByRole('tab').last()).toHaveAccessibleName('Machine Chest Press');
+
+  await page.getByRole('button', { name: '⏱ Short on time' }).click();
+  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Shorten' }).click();
+  await expect(page.getByRole('button', { name: '⏱ Short on time' })).toHaveCount(0);
+  await expect(page.getByText('Short on time: one set less, no increase this time.')).toBeVisible();
+
+  await page.getByRole('button', { name: '📌 Setup' }).click();
+  await page.getByRole('textbox', { name: 'Setup' }).fill('Safety bars on 5');
+  await page.getByRole('button', { name: '✓ Set done' }).focus();
+  await expect(page.getByRole('button', { name: 'Setup: Safety bars on 5' })).toBeVisible();
+});
+
+test('automatic warm-up: warm-up sets before the first compound exercise when on', async ({ page }) => {
+  await more(page, /^Settings/);
+  await page.getByLabel(/Automatic warm-up/).click();
+  await tab(page, 'Home');
+  await planAndStart(page, ['Machine Chest Press']);
+  await expect(page.getByRole('group', { name: 'Set W' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('10');
+});
+
+test('analysis: consistency map and a goal with its status; the goal also shows on the exercise page', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Analysis/);
+  await expect(page.getByRole('heading', { name: 'Consistency' })).toBeVisible();
+  await expect(page.getByText('Weeks in a row')).toBeVisible();
+  const goals = page.getByRole('region', { name: 'Goals' });
+  await goals.getByRole('button', { name: '+ New goal' }).click();
+  await goals.getByLabel('Exercise').selectOption({ label: 'Romanian Deadlift' });
+  await goals.getByRole('textbox', { name: 'Load (kg)' }).fill('200');
+  await goals.getByRole('button', { name: 'Add' }).click();
+  await expect(goals.getByText('Romanian Deadlift · 200 kg')).toBeVisible();
+  await expect(goals.getByText(/At this pace|No upward trend|A projection needs/)).toBeVisible();
+  await page.getByRole('link', { name: /^Romanian Deadlift/ }).first().click();
+  await expect(page.getByRole('region', { name: 'Goals' }).getByText('200 kg')).toBeVisible();
+});
+
+test('trainer extras: rival on the summary, share image, and the Sunday report on Home', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-01T18:00:00'));
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Personal trainer/);
+  await page.getByLabel('Turn on personal trainer').click();
+  await page.getByLabel(/You vs 3 months ago/).click();
+  await page.getByLabel(/Week report on Sunday/).click();
+  await tab(page, 'Home');
+  const report = page.getByRole('region', { name: 'Week report' });
+  await expect(report).toBeVisible();
+  await report.getByRole('button', { name: 'Close' }).click();
+  await expect(report).toHaveCount(0);
+
+  await tab(page, 'History');
+  await page.locator('a.hist-row').first().click();
+  // The latest workout of the demo: the same plan day 4+ weeks before is its rival.
+  await expect(page.getByRole('region', { name: 'You vs your past self' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: '⤴ Share image' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^mygymprogression-\d{4}-\d{2}-\d{2}\.png$/);
 });

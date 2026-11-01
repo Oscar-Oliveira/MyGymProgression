@@ -272,6 +272,8 @@ export interface WorkoutEntry {
   technique: boolean;
   notes: string;
   evaluation?: Evaluation;
+  /** "Short on time" removed a working set: no increase this time (D40). */
+  short?: boolean;
 }
 
 export type WorkoutStatus = 'in_progress' | 'completed' | 'partial' | 'interrupted';
@@ -289,6 +291,8 @@ export interface Workout {
   notes: string;
   entries: WorkoutEntry[];
   updatedAt: string;
+  /** "Short on time" was used (D40). */
+  short?: boolean;
 }
 
 /**
@@ -351,6 +355,8 @@ export interface Settings {
   challenge?: boolean;
   /** Load sync between plans with the same exercise (D36). Default: below, e1rm. */
   loadSync?: LoadSync;
+  /** Automatic warm-up sets on the first compound exercise of each muscle (D38). Default: off. */
+  warmup?: boolean;
 }
 
 /**
@@ -375,6 +381,16 @@ export interface CoachSettings {
   when?: CoachWhen;
   /** Also speak outside the workout: greeting on Home, comments on the summary, Analysis and History. Default: true. */
   pages?: boolean;
+  /** Reaction when a set beats the same set of last time (D45). Default: off. */
+  live?: boolean;
+  /** Week report on Sunday, on Home (D46). Default: off. */
+  report?: boolean;
+  /** Reads the messages aloud with the device voice (D47). Default: off. */
+  voice?: boolean;
+  /** A technique tip from the library when an exercise opens (D48). Default: off. */
+  tips?: boolean;
+  /** Workout summary compared with the same day about 3 months ago (D49). Default: off. */
+  rival?: boolean;
 }
 export type CoachWhen = 'start' | 'each' | 'random';
 
@@ -403,5 +419,34 @@ export interface Challenge {
   muscle?: string;
   status: 'open' | 'done' | 'missed';
   doneAt?: string;
+  createdAt: string;
+}
+
+/** A target load for an exercise (D42). Met when a done working set reaches it (total load, canonical kg). */
+export interface Goal {
+  id: string;
+  exerciseId: string;
+  exerciseName: string;
+  /** Canonical kg, total (per-side × 2). */
+  load: number;
+  /** Target date, local YYYY-MM-DD. Optional. */
+  by?: string;
+  createdAt: string;
+}
+
+/** The personal trainer's report of a week, Monday to Sunday (D46). Figures as of `createdAt`. */
+export interface CoachReport {
+  id: string;
+  /** Monday of the week, local date YYYY-MM-DD. */
+  week: string;
+  workouts: number;
+  sets: number;
+  /** Heaviest set of the week (canonical kg, total). */
+  best?: { exerciseName: string; load: number; reps?: number };
+  /** Increases in the week (load or reps). */
+  ups: number;
+  /** Primary muscle trained least in the week, among those trained in the 4 weeks before. */
+  weak?: string;
+  challenge?: Challenge['status'];
   createdAt: string;
 }

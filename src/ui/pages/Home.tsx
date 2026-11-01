@@ -12,6 +12,7 @@ import { DecisionCard, rxLine, SyncCard } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { ChallengeCard } from '../components/ChallengeCard';
+import { HomeReport } from '../components/TrainerBits';
 import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
@@ -180,6 +181,7 @@ export function Home() {
       </div>
 
       <PageCoach place="home" extra={{ day: active ? undefined : day?.name }} />
+      <HomeReport />
       <ChallengeCard />
 
       {open !== undefined && (

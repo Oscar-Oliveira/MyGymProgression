@@ -147,6 +147,31 @@ export function substitute(entry: WorkoutEntry, ex: Exercise): WorkoutEntry {
   return { ...entry, exerciseId: ex.id, exercise: snapshot(ex), substitutedFor: ex.id === original ? undefined : original };
 }
 
+/**
+ * "Short on time" (D40): removes the optional exercises not started yet, and one pending working set from each other
+ * exercise with 3 or more working sets (outside circuits). Those exercises are marked short: no increase this time.
+ */
+export function shortenWorkout(w: Workout): Workout {
+  const lastIndex = <T,>(xs: T[], f: (x: T) => boolean) => xs.map(f).lastIndexOf(true);
+  const started = (e: WorkoutEntry) => e.sets.some((s) => s.status !== 'pending');
+  const entries = w.entries
+    .filter((e) => e.role !== 'optional' || started(e))
+    .map((e) => {
+      const working = e.prescription.filter((p) => p.kind === 'working').length;
+      const last = lastIndex(e.sets, (s) => s.kind === 'working');
+      if (e.circuit || working < 3 || last < 0 || e.sets[last].status !== 'pending') return e;
+      const rx = lastIndex(e.prescription, (p) => p.kind === 'working');
+      return { ...e, short: true, sets: e.sets.filter((_, i) => i !== last), prescription: e.prescription.filter((_, i) => i !== rx) };
+    });
+  return { ...w, short: true, entries };
+}
+
+/** "Do it later" (D41): moves the entries at `indexes` (one exercise or a whole circuit) to the end of the workout. */
+export function moveToEnd(w: Workout, indexes: number[]): Workout {
+  const moved = indexes.map((i) => w.entries[i]);
+  return { ...w, entries: [...w.entries.filter((_, i) => !indexes.includes(i)), ...moved] };
+}
+
 export function addSet(entry: WorkoutEntry, kind: SetRecord['kind'] = 'working'): WorkoutEntry {
   const last = [...entry.sets].reverse().find((s) => s.kind === kind) ?? entry.sets[entry.sets.length - 1];
   const set: SetRecord = { id: uid(), kind, values: { ...(last?.values ?? {}) }, status: 'pending', notes: '' };
@@ -161,6 +186,7 @@ export function evaluateEntry(entry: WorkoutEntry, previous?: WorkoutEntry) {
     pain: entry.pain,
     technique: entry.technique,
     substituted: entry.substitutedFor !== undefined,
+    short: entry.short,
     previous: previous && previous.exerciseId === entry.exerciseId ? { prescription: previous.prescription, sets: previous.sets } : undefined,
   });
 }

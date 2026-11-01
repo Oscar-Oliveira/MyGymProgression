@@ -1,17 +1,18 @@
-# Interchange format (schema version 10)
+# Interchange format (schema version 13)
 
 JSON file produced by **Settings → Export**. The authoritative definition is the zod schema in [`src/domain/schema.ts`](../src/domain/schema.ts).
 
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 12,
+  "schemaVersion": 13,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
   "data": {
     "exercises": [], "plans": [], "planVersions": [], "progressionStates": [],
-    "workouts": [], "progressionEvents": [], "revisions": [], "gameScores": [], "challenges": [], "settings": {}
+    "workouts": [], "progressionEvents": [], "revisions": [], "gameScores": [], "challenges": [],
+    "goals": [], "coachReports": [], "settings": {}
   }
 }
 ```
@@ -37,11 +38,14 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 | `ProgressionEvent` | `outcome`, optional `suggestion` (`metric`, `from`, `to`, `kind`: increase/decrease), reasons, `decision` (`applied`, `reverted`, `pending`, `kept`, `stepped_back`, `overridden`, `none`), and targets before/after. |
 | `SetRecord.goal` | Today's goal for the set, computed at workout start. |
 | `Revision` | Full copy of a workout before a correction. |
+| `Goal` | Target load for an exercise: `load` in kg, **total** (a per-side exercise counts both sides), optional `by` date (YYYY-MM-DD). Met when a done working set reaches it. |
+| `CoachReport` | The trainer's week report (Monday `week`, YYYY-MM-DD): workouts, sets, heaviest set (`best`, kg total), increases (`ups`), least trained main muscle (`weak`), challenge status. One per week. |
 
 ## Import
 
 1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v12 → v13: additive only — `goals`, `coachReports`, `workout.short` and `entry.short` ("short on time": no increase), `warmup` in settings (boolean) and `coach.live` / `report` / `voice` / `tips` / `rival` (booleans).
    - v11 → v12: additive only — outcome `sync` (a question to update another plan with the same exercise after its load went up), `event.sourceEventId` (the event that raised the load) and `loadSync` in settings (`trigger` `off` | `order` | `below`, `method` `e1rm` | `increment`).
    - v10 → v11: additive only — `event.closedBy` (the workout that closed an open question as kept; it opens again when that workout is deleted or resumed) and `challenge.perSide` (a record of a per-side exercise is shown per side).
    - v9 → v10: additive only — `gameScores` (game, score, date), `challenges` (weekly challenge per Monday, with `kind`, `target` and `status` `open` | `done` | `missed`) and `challenge` in settings (boolean).
@@ -54,7 +58,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
    - v2 → v3: additive only — `plan.strengthMode`, `progression.onTop`, `progressionState.repsRange`, `event.repsOption` / `rangeBefore` / `rangeAfter`, outcome `ready`, decision `reps_up`.
    - v1 → v2: `rir`, `rpe` and `criteria.useRir` are removed; `recommendation` becomes `suggestion`; outcomes `completed_as_prescribed`→`keep`, `increase_recommended`→`increase`, `below_target`→`missed`; decisions `accepted`→`applied`, `deferred`/`pending`→`kept`. The browser database is migrated the same way on first start.
 3. Preview per table: new, identical, conflicting (same id, different content).
-4. **Merge** never deletes local data. On conflict: keep local, use imported, or keep both (the imported copy gets a new id and its references are rewritten). Identical records are not rewritten. Exercises with the same name and equipment but a different id can be mapped to the existing exercise.
+4. **Merge** never deletes local data. There is one weekly challenge and one trainer report per week: an imported one of a week that already has one is not imported. On conflict: keep local, use imported, or keep both (the imported copy gets a new id and its references are rewritten). Identical records are not rewritten. Exercises with the same name and equipment but a different id can be mapped to the existing exercise.
 5. **Replace** downloads a backup of the current data first, then replaces everything in one transaction.
 
 ## CSV

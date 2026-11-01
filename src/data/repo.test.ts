@@ -180,6 +180,43 @@ describe('repo (IndexedDB)', () => {
     expect(await db.gameScores.count()).toBe(0);
   });
 
+  it('warm-up setting (D38): warm-up sets at the start of a workout, only when on', async () => {
+    const { plan, day } = await setupPlan();
+    const off = (await db.workouts.get(await repo.startWorkout(plan.id, day.id)))!;
+    expect(off.entries[0].sets.some((x) => x.kind === 'warmup')).toBe(false);
+    await repo.discardWorkout(off.id);
+    await repo.saveSettings({ warmup: true });
+    const on = (await db.workouts.get(await repo.startWorkout(plan.id, day.id)))!;
+    expect(on.entries[0].sets.filter((x) => x.kind === 'warmup').map((x) => x.values.load)).toEqual([20, 27.5, 32.5]);
+  });
+
+  it('week report (D46): only on Sundays with the report on; refreshed in place; goals and reports in the backup', async () => {
+    const sunday = new Date(2026, 10, 1, 18);
+    expect(await repo.ensureReport(sunday)).toBeUndefined();
+    await repo.saveSettings({ coach: { enabled: true, style: 'support', profanity: false, report: true } });
+    expect(await repo.ensureReport(new Date(2026, 10, 2))).toBeUndefined();
+    const first = await repo.ensureReport(sunday);
+    expect(first).toMatchObject({ week: '2026-10-26', workouts: 0 });
+    const { plan, day } = await setupPlan();
+    await doSession(plan.id, day.id, [10, 10, 10]);
+    const later = await repo.ensureReport(new Date(2026, 10, 1, 23));
+    expect(later?.id).toBe(first?.id);
+    expect(await db.coachReports.count()).toBe(1);
+
+    await repo.addGoal({ exerciseId: 'x', exerciseName: 'Bench', load: 100 });
+    const parsed = parseBundle(JSON.stringify(buildBundle(await repo.readAll(), 'full', 't')));
+    expect(parsed.ok && parsed.bundle.data.goals.map((g) => g.load)).toEqual([100]);
+    expect(parsed.ok && parsed.bundle.data.coachReports.length).toBe(1);
+    await repo.deleteGoal((await db.goals.toArray())[0].id);
+    expect(await db.goals.count()).toBe(0);
+  });
+
+  it('setup note (D39) is saved in the exercise', async () => {
+    const { ex } = await setupPlan();
+    await repo.saveExerciseNote(ex.id, 'Seat 4');
+    expect((await db.exercises.get(ex.id))?.personalNotes).toBe('Seat 4');
+  });
+
   it('delete plan keeps versions used by workouts', async () => {
     const { plan, day } = await setupPlan();
     await doSession(plan.id, day.id, [10, 10, 10]);

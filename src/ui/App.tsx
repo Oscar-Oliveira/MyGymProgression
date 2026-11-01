@@ -20,6 +20,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
 import { Challenges } from './pages/Challenges';
+import { CoachPage } from './pages/CoachPage';
 import { GamePage, GamesPage } from './games/Games';
 
 // Outline icons (24×24, stroke = currentColor).
@@ -35,7 +36,7 @@ const TABS = [
   ['/history', 'history'],
   ['/more', 'more'],
 ] as const;
-const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about', '/games', '/challenges'];
+const MORE_PATHS = ['/more', '/exercises', '/plans', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
 
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
@@ -157,6 +158,7 @@ function Shell() {
           <Route path="/games" element={<GamesPage />} />
           <Route path="/games/:id" element={<GamePage />} />
           <Route path="/challenges" element={<Challenges />} />
+          <Route path="/coach" element={<CoachPage />} />
         </Routes>
       </main>
       <DialogHost />

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
+import type { CoachSettings, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { addSet } from '../../domain/workout';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
+import { CoachAvatar } from './CoachAvatar';
 import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 
@@ -95,11 +96,36 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
   );
 }
 
-export function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }: { entry: WorkoutEntry; previous?: WorkoutEntry; onChange: (e: WorkoutEntry) => void; onSubstitute: () => void; thumbOf: (id: string) => string | undefined }) {
+/**
+ * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
+ * `tip`: a technique tip from the trainer (D48).
+ */
+export function EntryFocus({
+  entry,
+  previous,
+  onChange,
+  onSubstitute,
+  thumbOf,
+  setup,
+  onSetup,
+  tip,
+  coach,
+}: {
+  entry: WorkoutEntry;
+  previous?: WorkoutEntry;
+  onChange: (e: WorkoutEntry) => void;
+  onSubstitute: () => void;
+  thumbOf: (id: string) => string | undefined;
+  setup?: string;
+  onSetup?: (text: string) => void;
+  tip?: string;
+  coach?: CoachSettings;
+}) {
   const { t } = useTranslation();
   const s = useSettings();
   const [chosen, setChosen] = useState<string>();
   const [notes, setNotes] = useState(!!entry.notes);
+  const [editSetup, setEditSetup] = useState(false);
   const firstPending = entry.sets.find((x) => x.status === 'pending')?.id;
   const chosenSet = entry.sets.find((x) => x.id === chosen);
   // The chosen set stays open until it is marked done or skipped; otherwise the first pending set is open.
@@ -118,6 +144,33 @@ export function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }:
           </div>
         </div>
       </div>
+      {setup && !editSetup && (
+        <button type="button" className="setup-note" onClick={() => setEditSetup(true)} aria-label={`${t('workout.setup')}: ${setup}`}>
+          📌 {setup}
+        </button>
+      )}
+      {editSetup && onSetup && (
+        <label className="setup-edit">
+          <span className="help">{t('workout.setupHelp')}</span>
+          <textarea
+            autoFocus
+            aria-label={t('workout.setup')}
+            defaultValue={setup}
+            placeholder={t('workout.setupPlaceholder')}
+            onBlur={(e) => {
+              setEditSetup(false);
+              if (e.target.value.trim() !== (setup ?? '').trim()) onSetup(e.target.value.trim());
+            }}
+          />
+        </label>
+      )}
+      {tip && coach && (
+        <div className="coach tip" role="note" aria-label={t('coach.title')}>
+          <CoachAvatar style={coach.style} gender={coach.gender} size={32} />
+          <p>{tip}</p>
+        </div>
+      )}
+      {entry.short && <p className="help">⏱ {t('reason.short')}</p>}
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
       <div className="hint">{progressHint(entry, t, s.language)}</div>
 
@@ -151,6 +204,12 @@ export function EntryFocus({ entry, previous, onChange, onSubstitute, thumbOf }:
         <button className={`chip ${notes ? 'on' : ''}`} onClick={() => setNotes(!notes)}>
           {t('common.notes')}
         </button>
+        {onSetup && (
+          // Opens the note; leaving the text field saves and closes it.
+          <button className={`chip ${editSetup || setup ? 'on' : ''}`} onClick={() => setEditSetup(true)}>
+            📌 {t('workout.setup')}
+          </button>
+        )}
       </div>
       {notes && <textarea style={{ marginTop: '0.6rem' }} aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />}
     </section>

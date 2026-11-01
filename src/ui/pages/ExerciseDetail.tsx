@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
+import { Goals } from '../components/Goals';
 import { repo } from '../../data/repo';
 import { dialog } from '../components/Dialog';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -293,6 +294,8 @@ export function ExerciseDetail() {
           </table>
         )}
       </section>
+
+      <Goals exerciseId={id} />
 
       <section className="card">
         <ExerciseCharts history={history} t={t} />

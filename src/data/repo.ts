@@ -9,7 +9,9 @@ import { mergeExercises } from '../domain/merge';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
 import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } from '../domain/sync';
-import type { Exercise, GameId, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
+import { reportWeek, weekReport } from '../domain/trainer';
+import { addWarmups } from '../domain/warmup';
+import type { Exercise, GameId, Goal, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
@@ -152,6 +154,11 @@ export function createRepo(db: GymDB) {
       await db.exercises.put({ ...ex, updatedAt: nowIso() });
     },
 
+    /** The setup note of an exercise (D39): its personal notes. */
+    async saveExerciseNote(id: string, personalNotes: string) {
+      await db.exercises.update(id, { personalNotes, updatedAt: nowIso() });
+    },
+
     /** Returns the names of plans that use the exercise. Deletion is allowed only when the list is empty. */
     async exerciseUsage(id: string): Promise<string[]> {
       const versions = await db.planVersions.toArray();
@@ -242,7 +249,8 @@ export function createRepo(db: GymDB) {
         const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const lastEntry = lastEntryFinder(await db.workouts.toArray());
-        const w = startWorkout(plan, version, day, { exercises, states, lastEntry });
+        const started = startWorkout(plan, version, day, { exercises, states, lastEntry });
+        const w = (await getSettings()).warmup ? addWarmups(started) : started;
         if (version && !version.locked) await db.planVersions.put({ ...version, locked: true });
         await db.workouts.add(w);
         return w.id;
@@ -394,6 +402,31 @@ export function createRepo(db: GymDB) {
     /** Marks the challenge done, or open again. */
     async setChallengeDone(id: string, done: boolean) {
       await db.challenges.update(id, done ? { status: 'done', doneAt: nowIso() } : { status: 'open', doneAt: undefined });
+    },
+
+    async addGoal(goal: Omit<Goal, 'id' | 'createdAt'>) {
+      await db.goals.add({ ...goal, id: uid(), createdAt: nowIso() });
+    },
+
+    async deleteGoal(id: string) {
+      await db.goals.delete(id);
+    },
+
+    /**
+     * On Sundays, with the trainer and its report on, makes or refreshes the report of this week (D46).
+     * It is refreshed each time, so a workout done later on Sunday is in it. Returns the report.
+     */
+    async ensureReport(now = new Date()) {
+      const coach = (await getSettings()).coach;
+      const week = reportWeek(now);
+      if (!coach?.enabled || !coach.report || !week) return undefined;
+      return db.transaction('rw', db.coachReports, db.workouts, db.progressionEvents, db.challenges, async () => {
+        const old = await db.coachReports.where('week').equals(week).first();
+        const challenge = await db.challenges.where('week').equals(week).first();
+        const r = weekReport(now, await db.workouts.toArray(), await db.progressionEvents.toArray(), challenge, old?.id ?? uid());
+        await db.coachReports.put(r);
+        return r;
+      });
     },
 
     /** Writes records from a merge plan (see planMerge). Existing records not in the plan are untouched. */
