@@ -11,9 +11,10 @@ import { db } from '../../data/db';
 import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
 import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
-import type { Exercise, MetricDef, Plan, PlanDay, SetRecord } from '../../domain/types';
+import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
+import { fmtMetric } from '../progress';
 import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
-import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, tr, useSettings } from '../util';
+import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, speedOut, tr, useSettings } from '../util';
 
 function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {
   const v = s.values;
@@ -35,7 +36,8 @@ function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction 
   if (!history.length) return null;
   const metrics = history[history.length - 1].entry.exercise.metrics;
   const has = (k: string) => metrics.some((m) => m.key === k);
-  const pts = (f: (h: HistoryPoint) => number | undefined) => history.map((h) => ({ date: h.date.slice(5, 10), value: f(h) }));
+  const day = (iso: string) => new Date(iso).toLocaleDateString(s.language === 'pt' ? 'pt-PT' : 'en-GB', { day: '2-digit', month: '2-digit' });
+  const pts = (f: (h: HistoryPoint) => number | undefined) => history.map((h) => ({ date: day(h.date), value: f(h) }));
   const nonProgressive = history[history.length - 1].entry.progression.strategy === 'none';
   return (
     <div className="grid">
@@ -46,7 +48,7 @@ function ExerciseCharts({ history, t }: { history: HistoryPoint[]; t: TFunction 
       {has('duration') && <TrendChart title={t('analysis.maxDuration')} unit="m:ss" kind="actual" format={fmtSeconds} data={pts((h) => h.metrics.maxDuration)} />}
       {has('distance') && <TrendChart title={t('analysis.distance')} unit={s.distanceUnit} kind="actual" data={pts((h) => distOut(h.metrics.totalDistance, s))} />}
       {has('distance') && has('duration') && <TrendChart title={t('analysis.pace')} unit={`m:ss/${s.distanceUnit}`} kind="derived" format={fmtSeconds} data={pts((h) => paceOut(h.metrics.pace, s))} />}
-      {has('speed') && <TrendChart title={t('analysis.avgSpeed')} unit="km/h" kind="actual" data={pts((h) => h.metrics.avgSpeed)} />}
+      {has('speed') && <TrendChart title={t('analysis.avgSpeed')} unit={s.distanceUnit === 'mi' ? 'mph' : 'km/h'} kind="actual" data={pts((h) => speedOut(h.metrics.avgSpeed, s))} />}
       {has('incline') && <TrendChart title={t('analysis.avgIncline')} unit="%" kind="actual" data={pts((h) => h.metrics.avgIncline)} />}
       {nonProgressive && <TrendChart title={t('analysis.completionRate')} unit="%" kind="derived" data={pts((h) => Math.round(h.metrics.completionRate * 100))} />}
     </div>
@@ -76,6 +78,7 @@ export function ExerciseDetail() {
   if (!ex && !history.length) return <Empty>{t('exercise.noResults')}</Empty>;
   const metrics = ex?.metrics ?? history[history.length - 1].entry.exercise.metrics;
   const pr = personalRecords(history);
+  const changes = events.filter((e) => e.decision !== 'none');
   const prRows: [string, string | undefined][] = [
     [t('analysis.topLoad'), pr.topLoad !== undefined ? fmtValue(loadOut(pr.topLoad, s), s.loadUnit, s.language) : undefined],
     [`${t('analysis.e1rm')} (${t('common.estimated')})`, pr.bestE1rm !== undefined ? fmtValue(loadOut(pr.bestE1rm, s), s.loadUnit, s.language) : undefined],
@@ -331,20 +334,18 @@ export function ExerciseDetail() {
         )}
       </section>
 
-      {events.length > 0 && (
+      {changes.length > 0 && (
         <section className="card">
           <h2>{t('analysis.loadEvents')}</h2>
           <ul className="list">
-            {events
-              .filter((e) => e.decision !== 'none')
-              .map((e) => (
-                <li key={e.id}>
-                  {fmtDate(e.createdAt, s.language)} · <strong>{t(`decision.${e.decision}`)}</strong>{' '}
-                  {Object.entries(e.before).map(([k, v]) => `${metricLabel(t, k as MetricDef['key'], metrics)} ${v}`).join(', ')}
-                  {JSON.stringify(e.after) !== JSON.stringify(e.before) && ` → ${Object.entries(e.after).map(([, v]) => v).join(', ')}`}
-                  {e.decisionReason && <small> — {e.decisionReason}</small>}
-                </li>
-              ))}
+            {changes.map((e) => (
+              <li key={e.id}>
+                {fmtDate(e.createdAt, s.language)} · <strong>{t(`decision.${e.decision}`)}</strong>{' '}
+                {Object.entries(e.before).map(([k, v]) => `${metricLabel(t, k as MetricKey, metrics)} ${fmtMetric(metrics, k as MetricKey, v, s.language)}`).join(', ')}
+                {JSON.stringify(e.after) !== JSON.stringify(e.before) && ` → ${Object.entries(e.after).map(([k, v]) => fmtMetric(metrics, k as MetricKey, v, s.language)).join(', ')}`}
+                {e.decisionReason && <small> — {e.decisionReason}</small>}
+              </li>
+            ))}
           </ul>
         </section>
       )}

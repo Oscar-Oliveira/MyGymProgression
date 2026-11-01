@@ -14,7 +14,7 @@ import { CoachAvatar } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
-import { DecisionCard, rxLine, setsLine, setText } from '../progress';
+import { DecisionCard, fmtMetric, rxLine, setsLine, setText } from '../progress';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { ExerciseItem } from '../components/ExerciseItem';
@@ -290,6 +290,19 @@ export function WorkoutPage() {
       await dialog.alert(t('workout.otherInProgress'));
     }
   };
+  /** Saves a correction; for each increase it no longer supports, asks whether to undo it. */
+  const saveCorrection = async () => {
+    const unsupported = await repo.correctWorkout(draft);
+    setEditing(false);
+    for (const ev of unsupported) {
+      const e = draft.entries.find((x) => x.id === ev.entryId);
+      if (!e) continue;
+      const range = (r?: { min: number; max: number }) => (r ? `${r.min}–${r.max}` : '');
+      const value = (v: number) => fmtMetric(e.exercise.metrics, ev.suggestion!.metric, v, s.language);
+      const [from, to] = ev.decision === 'reps_up' ? [range(ev.repsOption?.from), range(ev.repsOption?.to)] : ev.suggestion ? [value(ev.suggestion.from), value(ev.suggestion.to)] : ['', ''];
+      if (await dialog.confirm(t('workout.revertAsk', { name: e.exercise.name, from, to }), { ok: t('workout.revertOk') })) await repo.decide(ev.id, { kind: 'revert' });
+    }
+  };
   const records = workoutRecords(draft, ctx.others);
   const fmtRecord = (r: RecordHit, v: number) =>
     r.kind === 'maxDuration'
@@ -335,7 +348,7 @@ export function WorkoutPage() {
             <button className="outline" onClick={() => (setEditing(false), setDraft(stored))}>
               {t('common.cancel')}
             </button>
-            <button className="primary" onClick={() => void repo.correctWorkout(draft).then(() => setEditing(false))}>
+            <button className="primary" onClick={() => void saveCorrection()}>
               {t('workout.saveCorrection')}
             </button>
           </div>

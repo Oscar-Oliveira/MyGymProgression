@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { createHashRouter, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
@@ -120,6 +120,9 @@ function Shell() {
   );
 }
 
+// A data router, so pages can ask before leaving with unsaved changes (useBlocker). The routes stay in Shell.
+const router = createHashRouter([{ path: '*', element: <Shell /> }]);
+
 export function App() {
   const { i18n } = useTranslation();
   const settings = useSettings();
@@ -132,8 +135,6 @@ export function App() {
   }, [settings.theme]);
 
   return (
-    <HashRouter>
-      <Shell />
-    </HashRouter>
+    <RouterProvider router={router} />
   );
 }

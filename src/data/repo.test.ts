@@ -312,4 +312,76 @@ describe('joining duplicate exercises (D19)', () => {
     await expect(repo.joinExercises(t.ex.id, 'missing')).rejects.toThrow('exercise_missing');
     expect(await db.exercises.get(t.ex.id)).toBeDefined();
   });
+
+  describe('progression stays current (older answers never overwrite newer progress)', () => {
+    let day = 0;
+    /** One session with every working set at `reps`, started on its own day (so the order is clear). */
+    async function session(planId: string, dayId: string, reps: number) {
+      const id = await repo.startWorkout(planId, dayId);
+      const w = (await db.workouts.get(id))!;
+      w.startedAt = new Date(Date.UTC(2026, 0, 1 + day++, 10)).toISOString();
+      w.entries[0].sets = w.entries[0].sets.map((x) => ({ ...x, values: { ...x.values, reps }, status: 'done' }));
+      await repo.finishWorkout(w, false);
+      return id;
+    }
+    const load = async () => (await db.progressionStates.toArray())[0]?.targets.load;
+
+    it('a newer workout closes an open question; answering it later changes nothing', async () => {
+      const { plan, day: d } = await setupPlan();
+      await session(plan.id, d.id, 1); // missed reps → question
+      const question = (await db.progressionEvents.toArray()).find((e) => e.decision === 'pending')!;
+      await session(plan.id, d.id, 20); // top → 42.5
+      expect(await load()).toBe(42.5);
+      expect((await db.progressionEvents.get(question.id))!.decision).toBe('kept');
+      await repo.decide(question.id, { kind: 'stepBack' });
+      expect(await load()).toBe(42.5);
+    });
+
+    it('deleting the workout that closed a question opens it again', async () => {
+      const { plan, day: d } = await setupPlan();
+      await session(plan.id, d.id, 1);
+      const question = (await db.progressionEvents.toArray()).find((e) => e.decision === 'pending')!;
+      const later = await session(plan.id, d.id, 20);
+      await repo.deleteWorkout(later);
+      const open = (await db.progressionEvents.get(question.id))!;
+      expect(open.decision).toBe('pending');
+      expect(open.closedBy).toBeUndefined();
+      expect(await load()).toBe(40);
+      await repo.decide(question.id, { kind: 'stepBack' });
+      expect(await load()).toBe(37.5);
+    });
+
+    it('correcting an older workout does not change the current load', async () => {
+      const { plan, day: d } = await setupPlan();
+      const old = await session(plan.id, d.id, 9);
+      await session(plan.id, d.id, 20);
+      await session(plan.id, d.id, 20);
+      expect(await load()).toBe(45);
+      const w = (await db.workouts.get(old))!;
+      w.entries[0].sets = w.entries[0].sets.map((x) => ({ ...x, values: { ...x.values, reps: 20 } }));
+      expect(await repo.correctWorkout(w)).toEqual([]);
+      expect(await load()).toBe(45);
+      expect((await db.workouts.get(old))!.entries[0].evaluation?.outcome).toBe('increase'); // history is corrected
+    });
+
+    it('correcting the latest workout below the top returns the increase it no longer supports', async () => {
+      const { plan, day: d } = await setupPlan();
+      const id = await session(plan.id, d.id, 20);
+      expect(await load()).toBe(42.5);
+      const w = (await db.workouts.get(id))!;
+      w.entries[0].sets = w.entries[0].sets.map((x) => ({ ...x, values: { ...x.values, reps: 9 } }));
+      const ask = await repo.correctWorkout(w);
+      expect(ask).toHaveLength(1);
+      expect(await load()).toBe(42.5); // nothing is undone without the user
+      await repo.decide(ask[0].id, { kind: 'revert' });
+      expect(await load()).toBe(40);
+    });
+
+    it('only one workout can be in progress', async () => {
+      const { plan, day: d } = await setupPlan();
+      const a = await repo.startWorkout(plan.id, d.id);
+      expect(await repo.startWorkout()).toBe(a);
+      expect(await db.workouts.where('status').equals('in_progress').count()).toBe(1);
+    });
+  });
 });

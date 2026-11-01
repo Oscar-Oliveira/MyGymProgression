@@ -249,7 +249,9 @@ export function SettingsPage() {
   };
   const reset = async () => {
     if (!(await dialog.confirm(t('settings.resetConfirm'), { danger: true, ok: t('common.delete') }))) return;
-    if ((await dialog.prompt(t('settings.resetConfirm2')))?.trim() !== 'DELETE') return;
+    const word = await dialog.prompt(t('settings.resetConfirm2'));
+    if (word === undefined) return;
+    if (word.trim() !== 'DELETE') return void (await dialog.alert(t('settings.resetWrongWord')));
     await repo.clearAll();
   };
 

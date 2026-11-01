@@ -101,7 +101,7 @@ export const en = {
   circuit: {
     label: 'Circuit', name: 'Circuit name', rounds: 'Rounds', new: 'Circuit', addExercise: 'Exercise in circuit',
     help: 'Exercises back to back, no rest. Each round does all of them once.',
-    roundN: 'Round {{n}}', roundsCount: '{{count}} rounds', roundsCount_one: '{{count}} round', done: 'Circuit done', doneAll: 'Done', workoutHelp: 'Do {{rounds}} rounds, no rest between exercises. Change the values if needed and mark done at the end.',
+    roundN: 'Round {{n}}', undo: 'Circuit done — undo', roundsCount: '{{count}} rounds', roundsCount_one: '{{count}} round', done: 'Circuit done', workoutHelp: 'Do {{rounds}} rounds, no rest between exercises. Change the values if needed and mark done at the end.',
   },
   color: { violet: 'Violet', blue: 'Blue', cyan: 'Cyan', teal: 'Teal', green: 'Green', lime: 'Lime', amber: 'Amber', orange: 'Orange', red: 'Red', pink: 'Pink' },
   weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -131,7 +131,7 @@ export const en = {
     records: 'New records', recordWas: 'was {{value}}',
     recordKind: { topLoad: 'Heaviest set', bestE1rm: 'Estimated 1RM', maxReps: 'Most reps', maxDuration: 'Longest set', maxDistance: 'Distance' },
     nextTime: 'Next time', details: 'All sets', prescribed: 'Planned', correct: 'Correct records', correctHelp: 'Fix values recorded by mistake. The previous version is kept.',
-    allExercises: 'Workout exercises', saveCorrection: 'Save correction', revisions: 'Corrections', revisionAt: 'Edited {{date}}', deleteConfirm: 'Delete this workout from history?', setsDone: '{{done}}/{{total}} sets',
+    allExercises: 'Workout exercises', saveCorrection: 'Save correction', revertAsk: 'After the correction, {{name}} no longer reached the top of the range. Undo the increase ({{from}} → {{to}})?', revertOk: 'Undo increase', revisions: 'Corrections', revisionAt: 'Edited {{date}}', deleteConfirm: 'Delete this workout from history?', setsDone: '{{done}}/{{total}} sets',
   },
   dialog: { confirm: 'Confirm', notice: 'Notice', ok: 'OK' },
   history: { title: 'History', empty: 'No workouts yet.', count: '{{count}} workouts', count_one: '{{count}} workout', page: 'Page {{page}} of {{pages}}', pages: 'History pages', prev: 'Previous', next: 'Next' },
@@ -154,6 +154,7 @@ export const en = {
     blockOnPain: 'pain is recorded', blockOnTechnique: 'a technique issue is recorded', blockOnSubstitution: 'the exercise is substituted',
   },
   plan: {
+    leaveUnsaved: 'This plan has unsaved changes. Leave without saving?', leave: 'Leave',
     title: 'Plans', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
     color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
     removeDay: 'Remove this day', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
@@ -193,7 +194,7 @@ export const en = {
     data: 'Backup and data', export: 'Export', exportFull: 'Full backup (JSON)', exportLibrary: 'Exercises (JSON)', exportPlans: 'Plans (JSON)',
     csvSets: 'Sets (CSV)', csvWorkouts: 'Workouts (CSV)', csvEvents: 'Progression (CSV)', import: 'Import', chooseFile: 'Restore or import (JSON file)',
     seed: 'Add starter exercises', seeded: '{{count}} exercises added.', importLibrary: 'Import library file', openLibrary: 'Install open library', openLibraryHelp: 'About 870 exercises with photos and instructions (English), from free-exercise-db (public domain). Download about 3 MB, once; then it works offline.', openLibraryFailed: 'The open library could not be downloaded. Check the connection and try again.', libraryNotice: 'Imports exercises from a library file (JSON, format in docs/data-format.md). Exercises you already have get the images and instructions; plans and history do not change. Only use data you are allowed to use.', libraryResult: '{{added}} added, {{updated}} updated.', libraryInvalid: 'This file is not an exercise library.', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',
-    demoDone: 'Demo data added.', reset: 'Delete all data', resetConfirm: 'Delete ALL data in this browser? Export a backup first.', resetConfirm2: 'Type DELETE to confirm.',
+    demoDone: 'Demo data added.', reset: 'Delete all data', resetConfirm: 'Delete ALL data in this browser? Export a backup first.', resetConfirm2: 'Type DELETE to confirm.', resetWrongWord: 'Nothing was deleted: the word was not DELETE.',
     privacy: 'All data stays in this browser. Nothing is sent to a server. Backups contain personal data; store them safely.',
     backupSub: 'Share menu on a phone (Drive, email…); download elsewhere', chooseFileSub: 'A backup or a shared plan; you see a preview first',
     otherExports: 'Other exports', exportLibrarySub: 'Your exercises, to use in another app or device', exportPlansSub: 'Plans with their exercises',
@@ -257,7 +258,7 @@ export const en = {
       muscle: 'Do {{target}} sets for {{muscle}} this week.',
     },
     progress: 'Progress: {{value}} of {{target}}', progressRecord: 'Best this week: {{value}}', met: 'Your workouts say you did it!',
-    markDone: 'Mark as done', undo: 'Not done yet', history: 'History', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}',
+    markDone: 'Mark as done', undo: 'Not done yet', history: 'History', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}', pages: 'Challenge pages',
     off: 'The weekly challenge is off. Turn it on in Settings.',
     status: { open: 'In progress', done: 'Done', missed: 'Not done' },
     intro: {

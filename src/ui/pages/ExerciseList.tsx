@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { exerciseGroup } from '../../domain/library';
@@ -15,12 +15,24 @@ const PAGE = 60;
 export function ExerciseList() {
   const { t } = useTranslation();
   const all = useLiveQuery(() => db.exercises.toArray(), []);
-  const [q, setQ] = useState('');
-  const [group, setGroup] = useState<MuscleGroup | ''>('');
-  const [equip, setEquip] = useState('');
-  const [inactive, setInactive] = useState(false);
+  // The filters are kept in the URL, so "back" from an exercise returns to the same search.
+  const [params, setParams] = useSearchParams();
+  const q = params.get('q') ?? '';
+  const group = (params.get('group') ?? '') as MuscleGroup | '';
+  const equip = params.get('equip') ?? '';
+  const inactive = params.get('inactive') === '1';
+  const limit = Math.max(PAGE, Number(params.get('n')) || PAGE);
+  const set = (next: { q?: string; group?: string; equip?: string; inactive?: boolean; n?: number }) => {
+    const v = { q, group, equip, inactive, n: PAGE, ...next };
+    const out: Record<string, string> = {};
+    if (v.q) out.q = v.q;
+    if (v.group) out.group = v.group;
+    if (v.equip) out.equip = v.equip;
+    if (v.inactive) out.inactive = '1';
+    if (v.n > PAGE) out.n = String(v.n);
+    setParams(out, { replace: true });
+  };
   const [busy, setBusy] = useState(false);
-  const [limit, setLimit] = useState(PAGE);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -62,7 +74,7 @@ export function ExerciseList() {
         </Link>
       </div>
 
-      <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => (setQ(e.target.value), setLimit(PAGE))} />
+      <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => set({ q: e.target.value })} />
 
       {all.length === 0 ? (
         <div className="empty" style={{ marginTop: '1rem' }}>
@@ -74,17 +86,17 @@ export function ExerciseList() {
       ) : (
         <>
           <div className="seg" role="tablist" aria-label={t('exercise.groups')} style={{ margin: '0.75rem 0 0.5rem' }}>
-            <button role="tab" aria-selected={!group} className={!group ? 'on' : ''} onClick={() => (setGroup(''), setLimit(PAGE))}>
+            <button role="tab" aria-selected={!group} className={!group ? 'on' : ''} onClick={() => set({ group: '' })}>
               {t('common.all')}
             </button>
             {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-              <button key={g} role="tab" aria-selected={group === g} className={group === g ? 'on' : ''} onClick={() => (setGroup(g), setLimit(PAGE))}>
+              <button key={g} role="tab" aria-selected={group === g} className={group === g ? 'on' : ''} onClick={() => set({ group: g })}>
                 {t(`group.${g}`)} <small style={{ color: 'inherit', opacity: 0.7 }}>{counts[g]}</small>
               </button>
             ))}
           </div>
           <div className="row wrap" style={{ marginBottom: '0.5rem' }}>
-            <select aria-label={t('exercise.equipment')} value={equip} onChange={(e) => setEquip(e.target.value)}>
+            <select aria-label={t('exercise.equipment')} value={equip} onChange={(e) => set({ equip: e.target.value })}>
               <option value="">{t('exercise.allEquipment')}</option>
               {equipment.map((m) => (
                 <option key={m} value={m}>
@@ -93,7 +105,7 @@ export function ExerciseList() {
               ))}
             </select>
             <label className="check">
-              <input type="checkbox" checked={inactive} onChange={(e) => setInactive(e.target.checked)} /> {t('exercise.showInactive')}
+              <input type="checkbox" checked={inactive} onChange={(e) => set({ inactive: e.target.checked })} /> {t('exercise.showInactive')}
             </label>
           </div>
 
@@ -101,7 +113,7 @@ export function ExerciseList() {
             <section className="card">
               <h2>{t('exercise.groups')}</h2>
               {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-                <button key={g} className="nav-row group-row" onClick={() => (setGroup(g), setLimit(PAGE))}>
+                <button key={g} className="nav-row group-row" onClick={() => set({ group: g })}>
                   <ThumbStack items={samples[g] ?? []} />
                   <span className="main">
                     <span className="title">{t(`group.${g}`)}</span>
@@ -127,7 +139,7 @@ export function ExerciseList() {
                 />
               ))}
               {list.length > showing.length && (
-                <button className="outline xl" style={{ marginTop: '0.75rem' }} onClick={() => setLimit(limit + PAGE)}>
+                <button className="outline xl" style={{ marginTop: '0.75rem' }} onClick={() => set({ n: limit + PAGE })}>
                   {t('exercise.showMore', { n: Math.min(PAGE, list.length - showing.length), left: list.length - showing.length })}
                 </button>
               )}

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { Link } from 'react-router-dom';
-import { adherence, completionByExercise, entryMetrics, filterWorkouts, MUSCLE_SETS_GUIDE, muscleSetsPerWeek, periodSummary, previousPeriod, stalledItems, workoutsByWeek, type EntryMetrics } from '../../domain/analysis';
+import { adherence, completionByExercise, entryMetrics, filterWorkouts, localDay, mondayOf, MUSCLE_SETS_GUIDE, muscleSetsPerWeek, periodSummary, previousPeriod, stalledItems, workoutsByWeek, type EntryMetrics } from '../../domain/analysis';
 import { currentTarget } from '../../domain/progression';
 import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
@@ -13,7 +13,7 @@ import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThum
 import { toneStyle, useTones } from '../colors';
 
 const PERIODS = [28, 84, 182, 0] as const;
-const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+const DAY = 86400000;
 
 /** The main performance number of an entry, chosen by its metrics: top load, longest set, distance or reps. */
 function mainMetric(e: WorkoutEntry): { key: 'topLoad' | 'maxDuration' | 'totalDistance' | 'totalReps'; label: string } {
@@ -127,7 +127,10 @@ export function Analysis() {
 
   const computed = useMemo(() => {
     if (!data) return undefined;
-    const from = days ? isoDay(new Date(Date.now() - (days - 1) * 86400000)) : undefined;
+    // A period is whole calendar weeks (Monday first), the current week included: "4 wks" = this week and the 3 before.
+    const now = new Date();
+    const monday = mondayOf(now);
+    const from = days ? localDay(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - (days / 7 - 1) * 7)) : undefined;
     const current = filterWorkouts(data.workouts, { from, planId: planId || undefined }).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
     const stalled = new Set(stalledItems(data.workouts, s.stalledThreshold).map((x) => x.exerciseId));
     const byEx = new Map<string, { entry: WorkoutEntry; m: EntryMetrics }[]>();
@@ -149,24 +152,24 @@ export function Analysis() {
     });
     rows.sort((a, b) => Number(a.fixed) - Number(b.fixed) || b.sessions - a.sessions || a.name.localeCompare(b.name));
     // Adherence per active plan over the period (all time: from the first workout of the plan).
-    const today = isoDay(new Date());
+    const today = localDay(now);
     const adherenceRows = data.plans
       .filter((p) => p.status === 'active' && (!planId || p.id === planId))
       .map((p) => {
         const v = data.versions.find((x) => x.id === p.currentVersionId);
         const done = filterWorkouts(data.workouts, { from, planId: p.id });
-        const start = from ?? done.map((w) => w.startedAt.slice(0, 10)).sort()[0] ?? today;
+        const start = from ?? done.map((w) => localDay(w.startedAt)).sort()[0] ?? today;
         return { plan: p, done: done.length, perWeek: v?.days.length ?? 0, rate: adherence(done.length, v?.days.length ?? 0, start, today) };
       })
       .filter((r) => r.perWeek > 0);
     // Period dates shown under the selector, and the weeks of the chart ("All": from the first workout).
     const start = from ? new Date(`${from}T00:00:00`) : current[0] ? new Date(current[0].startedAt) : new Date();
-    const weeks = workoutsByWeek(current, start, new Date());
-    // The previous period of the same length, for comparison (not for "All", and only when it has workouts).
-    const prevRange = from ? previousPeriod(from, days) : undefined;
+    const weeks = workoutsByWeek(current, start, now);
+    // The previous period of the same number of days, for comparison (not for "All", and only when it has workouts).
+    const prevRange = from ? previousPeriod(from, Math.round((Date.parse(today) - Date.parse(from)) / DAY) + 1) : undefined;
     const prevWorkouts = prevRange ? filterWorkouts(data.workouts, { ...prevRange, planId: planId || undefined }) : [];
     const prev = prevRange && prevWorkouts.length ? { range: prevRange, summary: periodSummary(prevWorkouts), muscles: muscleSetsPerWeek(prevWorkouts, prevRange.from, prevRange.to) } : undefined;
-    const muscles = Object.entries(muscleSetsPerWeek(current, from ?? current[0]?.startedAt.slice(0, 10) ?? today, today)).sort((a, b) => b[1] - a[1]);
+    const muscles = Object.entries(muscleSetsPerWeek(current, from ?? (current[0] ? localDay(current[0].startedAt) : today), today)).sort((a, b) => b[1] - a[1]);
     return { current, rows, adherenceRows, start, weeks, summary: periodSummary(current), prev, muscles, completion: completionByExercise(current) };
   }, [data, days, planId, s.stalledThreshold]);
   if (!data || !computed) return null;
@@ -327,6 +330,8 @@ export function Analysis() {
           <p className="help" style={{ marginTop: '1rem' }}>
             {t('analysis.volume')}: {fmtNum(loadOut(summary.volume, s), s.language, 0)} {s.loadUnit}
             {prev && <Delta now={loadOut(summary.volume, s) ?? 0} prev={loadOut(prev.summary.volume, s)} lang={s.language} unit={` ${s.loadUnit}`} />}
+          </p>
+          <p className="help">
             {t('analysis.duration')}: {fmtSeconds(summary.duration)}
           </p>
           <h3 style={{ marginTop: '1rem' }}>{t('analysis.formulas')}</h3>

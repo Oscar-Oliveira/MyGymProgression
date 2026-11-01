@@ -181,6 +181,7 @@ export const progressionEventSchema = z.object({
   rangeAfter: repRange.optional(),
   createdAt: iso,
   decidedAt: iso.optional(),
+  closedBy: z.string().optional(),
 });
 
 export const revisionSchema = z.object({ id: z.string().min(1), workoutId: z.string(), at: iso, previous: workoutSchema });

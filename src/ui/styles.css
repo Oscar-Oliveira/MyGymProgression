@@ -426,6 +426,8 @@ a.xitem:hover .xitem-name { color: var(--accent); }
 
 /* Training day card */
 .day-card.next { border-color: var(--tone); box-shadow: 0 0 0 1px var(--tone), var(--shadow-lg); }
+.day-card button.outline { border-color: color-mix(in srgb, var(--tone) 55%, var(--border)); color: var(--tone-text); }
+.pill.tone { background: var(--tone-soft); color: var(--tone-text); vertical-align: middle; }
 /* Colour bar on the left of cards that belong to a plan or day. */
 .tone-bar { border-left: 4px solid var(--tone); }
 .tone-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--tone); flex: none; }

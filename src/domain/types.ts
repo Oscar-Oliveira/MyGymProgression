@@ -319,6 +319,8 @@ export interface ProgressionEvent {
   rangeAfter?: RepRange;
   createdAt: string;
   decidedAt?: string;
+  /** Set when a later workout closed this question as kept; it opens again if that workout is deleted or resumed. */
+  closedBy?: string;
 }
 
 export interface Revision {

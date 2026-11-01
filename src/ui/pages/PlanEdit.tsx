@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { addCircuit, addToCircuit, blocks, moveCircuit, moveItem, removeCircuit, removeFromCircuit, updateCircuit } from '../../domain/circuit';
@@ -40,6 +40,19 @@ export function PlanEdit() {
   const [picker, setPicker] = useState<{ item?: string; circuit?: string }>();
   const [openId, setOpenId] = useState<string>();
   const [msg, setMsg] = useState('');
+  const [nameError, setNameError] = useState(false);
+  // Unsaved changes: ask before leaving the page (in the app, and when the tab is closed).
+  const unsaved = useRef(false);
+  const blocker = useBlocker(() => unsaved.current);
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    void dialog.confirm(t('plan.leaveUnsaved'), { danger: true, ok: t('plan.leave') }).then((ok) => (ok ? blocker.proceed() : blocker.reset()));
+  }, [blocker, t]);
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => unsaved.current && e.preventDefault();
+    addEventListener('beforeunload', warn);
+    return () => removeEventListener('beforeunload', warn);
+  }, []);
 
   useEffect(() => {
     if (stored?.plan && stored.version && (!plan || plan.currentVersionId !== stored.plan.currentVersionId)) {
@@ -52,6 +65,7 @@ export function PlanEdit() {
   const version = stored.version;
   const meta = (p: Plan) => JSON.stringify({ ...p, updatedAt: '', currentVersionId: '' });
   const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan) || Object.keys(edits).length > 0;
+  unsaved.current = dirty;
   const day = days[Math.min(dayIdx, days.length - 1)];
 
   /** Offers to re-apply the goal's default sets to the load exercises of the changed days, keeping their loads. */
@@ -102,7 +116,7 @@ export function PlanEdit() {
   const upItem = (it: PlanItem) => upDay((d) => ({ ...d, items: d.items.map((x) => (x.id === it.id ? it : x)) }));
 
   const save = async () => {
-    if (!plan.name.trim()) return;
+    if (!plan.name.trim()) return setNameError(true);
     await repo.savePlan(plan, days);
     for (const [lineage, targets] of Object.entries(edits)) {
       const it = days.flatMap((d) => d.items).find((x) => x.lineageId === lineage);
@@ -114,7 +128,14 @@ export function PlanEdit() {
     setTimeout(() => setMsg(''), 1500);
   };
   const startDay = async () => {
+    const open = await db.workouts.where('status').equals('in_progress').first();
+    if (open) {
+      await dialog.alert(t('home.finishFirst'));
+      return nav(`/workout/${open.id}`);
+    }
     if (dirty) await save();
+    if (!plan.name.trim()) return;
+    unsaved.current = false; // just saved; the page has not reloaded the plan yet
     nav(`/workout/${await repo.startWorkout(plan.id, day.id)}`);
   };
   const pick = (ex: Exercise) => {
@@ -164,8 +185,9 @@ export function PlanEdit() {
   return (
     <div className="toned" style={toneStyle(plan.color)}>
       <div className="page-head">
-        <input aria-label={t('plan.name')} style={{ fontSize: '1.4rem', fontWeight: 800, flex: 1 }} value={plan.name} onChange={(e) => setPlan({ ...plan, name: e.target.value })} />
+        <input aria-label={t('plan.name')} aria-invalid={nameError} style={{ fontSize: '1.4rem', fontWeight: 800, flex: 1 }} value={plan.name} onChange={(e) => (setPlan({ ...plan, name: e.target.value }), setNameError(false))} />
       </div>
+      {nameError && <p className="error">{t('plan.name')}: {t('validation.required')}</p>}
       <section className="card tight">
         <p className="eyebrow">{t('plan.color')}</p>
         <ColorPicker label={t('plan.color')} value={plan.color} onChange={(color) => setPlan({ ...plan, color })} />

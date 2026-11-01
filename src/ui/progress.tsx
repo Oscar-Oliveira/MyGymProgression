@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../data/db';
 import { repo } from '../data/repo';
-import { canRevert } from '../domain/workout';
+import { canDecide, canRevert } from '../domain/workout';
 import { currentTarget } from '../domain/progression';
 import type { MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
 import { NumInput } from './components/NumInput';
@@ -174,19 +174,21 @@ export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefin
 }
 
 /** Decision card shown after a workout: applied increase (undo), missed reps (keep / step back), ready (load / reps), or keep. */
-export function DecisionCard({ entry, ev, compact }: { entry: WorkoutEntry; ev?: ProgressionEvent; compact?: boolean }) {
+export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEntry; ev?: ProgressionEvent; compact?: boolean }) {
   const { t } = useTranslation();
   const s = useSettings();
   const thumbOf = useThumbs();
   const [custom, setCustom] = useState(false);
-  const [value, setValue] = useState<number | undefined>(ev?.suggestion?.to);
-  const state = useLiveQuery(() => (ev ? db.progressionStates.get(ev.lineageId) : undefined), [ev?.lineageId]);
+  const [value, setValue] = useState<number | undefined>(stored?.suggestion?.to);
+  const state = useLiveQuery(() => (stored ? db.progressionStates.get(stored.lineageId) : undefined), [stored?.lineageId]);
+  // A question that newer progress has made out of date is shown as kept.
+  const ev = stored?.decision === 'pending' && state && !canDecide(stored, state) ? { ...stored, decision: 'kept' as const, after: stored.before } : stored;
   const undoable = !compact && !!ev && (ev.decision === 'applied' || ev.decision === 'reps_up') && canRevert(ev, state);
   const trend = trendOf(entry, ev);
   const { what, why } = decisionText(entry, ev, t, s.language);
   const metrics = entry.exercise.metrics;
   const sug = ev?.suggestion;
-  const pending = !compact && ev?.decision === 'pending';
+  const pending = !compact && !!ev && canDecide(ev, state);
   const pill = <TrendPill trend={trend} />;
   const item = (
     <ExerciseItem name={entry.exercise.name} thumb={thumbOf(entry.exerciseId, entry.exercise.thumb)} sub={what} trailing={pill} size={compact ? 'sm' : 'md'}>

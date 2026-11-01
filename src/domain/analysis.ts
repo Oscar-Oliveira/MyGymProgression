@@ -187,13 +187,16 @@ export interface WorkoutFilter {
   exerciseId?: string;
 }
 
-/** Filters finished workouts. With an exercise filter, only that exercise's entries are kept. */
+/** Local date YYYY-MM-DD of a timestamp (the day the user sees, not the UTC day). */
+export const localDay = (iso: string | Date) => new Date(iso).toLocaleDateString('sv');
+
+/** Filters finished workouts by local date. With an exercise filter, only that exercise's entries are kept. */
 export function filterWorkouts(workouts: Workout[], f: WorkoutFilter): Workout[] {
   const out = workouts.filter(
     (w) =>
       isFinished(w) &&
-      (!f.from || w.startedAt.slice(0, 10) >= f.from) &&
-      (!f.to || w.startedAt.slice(0, 10) <= f.to) &&
+      (!f.from || localDay(w.startedAt) >= f.from) &&
+      (!f.to || localDay(w.startedAt) <= f.to) &&
       (!f.planId || w.planId === f.planId) &&
       (!f.exerciseId || w.entries.some((e) => e.exerciseId === f.exerciseId)),
   );

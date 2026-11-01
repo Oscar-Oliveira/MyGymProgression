@@ -52,11 +52,10 @@ export function Train() {
                 <div key={d.id} className={`card day-card toned tone-bar ${isNext ? 'next' : ''}`} style={toneStyle(toneOf(p, d))}>
                   <div className="row between">
                     <div>
-                      <h2 style={{ margin: 0 }}>{d.name}</h2>
-                      <small>
-                        {t('train.exercises', { count: d.items.length })}
-                        {isNext && ` · ${t('train.next')}`}
-                      </small>
+                      <h2 style={{ margin: 0 }}>
+                        {d.name} {isNext && <span className="pill tone">{t('train.next')}</span>}
+                      </h2>
+                      <small>{t('train.exercises', { count: d.items.length })}</small>
                     </div>
                     <ThumbStack items={items.map((e) => ({ name: e.name, thumb: e.thumb }))} />
                   </div>

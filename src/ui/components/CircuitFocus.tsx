@@ -44,9 +44,15 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
           })}
         </div>
       ))}
-      <button className={done ? 'outline xl' : 'primary xl'} disabled={blocked || done} onClick={() => (buzz(), onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) }))))}>
-        ✓ {done ? t('circuit.doneAll') : t('circuit.done')}
-      </button>
+      {done ? (
+        <button className="outline xl" onClick={() => onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'pending' as const })) })))}>
+          ↶ {t('circuit.undo')}
+        </button>
+      ) : (
+        <button className="primary xl" disabled={blocked} onClick={() => (buzz(), onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) }))))}>
+          ✓ {t('circuit.done')}
+        </button>
+      )}
     </section>
   );
 }

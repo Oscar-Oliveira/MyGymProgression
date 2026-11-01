@@ -7,6 +7,26 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-01',
+    pt: [
+      'Progressão mais segura: uma decisão antiga ou a correção de um treino antigo já não apagam progresso mais recente; se corrigires um treino e a subida deixar de se justificar, a app pergunta se a anula.',
+      'Só pode haver um treino em curso de cada vez.',
+      'Exercícios: a pesquisa e os filtros mantêm-se quando voltas de um exercício. Desafio semanal com páginas.',
+      'Plano: aviso ao sair sem guardar. Circuito marcado como feito por engano pode ser desfeito.',
+      'Análise: períodos em semanas completas e datas locais. Velocidade em mph quando usas milhas.',
+      'Treinar: o próximo dia de cada plano tem a etiqueta "próximo"; todos os dias usam a cor do plano.',
+      'Todos os textos em português tratam-te por tu.',
+    ],
+    en: [
+      'Safer progression: an old decision or a correction of an old workout no longer overwrites newer progress; when a correction no longer supports an increase, the app asks whether to undo it.',
+      'Only one workout can be in progress at a time.',
+      'Exercises: the search and filters stay when you come back from an exercise. The weekly challenge history has pages.',
+      'Plan: a warning when you leave without saving. A circuit marked done by mistake can be undone.',
+      'Analysis: periods in whole weeks and local dates. Speed in mph when you use miles.',
+      'Train: the next day of each plan has a "next" label; every day uses the plan colour.',
+    ],
+  },
+  {
     date: '2026-10-31',
     pt: ['Atualizações mais seguras: uma página antiga da app recarrega sozinha, e um aviso pede para a fechar quando bloqueia a atualização.'],
     en: ['Safer updates: an old page of the app reloads by itself, and a notice asks to close it when it blocks the update.'],
@@ -14,8 +34,8 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-31',
     pt: [
-      'Jogos com os personal trainers (Mais → Jogos): Memória, Whack-a-PT, Adivinha o músculo, Flappy Halter, PT Runner e Starship, com recordes que pode repor.',
-      'Desafio semanal (ligue nas Definições): um objetivo novo todas as semanas no Início, feito a partir dos seus treinos, com histórico.',
+      'Jogos com os personal trainers (Mais → Jogos): Memória, Whack-a-PT, Adivinha o músculo, Flappy Halter, PT Runner e Starship, com recordes que podes repor.',
+      'Desafio semanal (liga-o nas Definições): um objetivo novo todas as semanas no Início, feito a partir dos teus treinos, com histórico.',
     ],
     en: [
       'Games with the personal trainers (More → Games): Memory, Whack-a-PT, Guess the muscle, Flappy Dumbbell, PT Runner and Starship, with records you can reset.',
@@ -26,9 +46,9 @@ export const CHANGELOG: ChangeEntry[] = [
     date: '2026-10-31',
     pt: [
       'Início: o próximo treino respeita os dias da semana definidos nos planos (o de hoje primeiro).',
-      'Deslize para a esquerda ou direita para mudar de separador.',
+      'Desliza para a esquerda ou direita para mudar de separador.',
       'Ecrã inteiro na app instalada (Android).',
-      'Personal trainer: escolha homem ou mulher, novo estilo Energético e muitas frases novas.',
+      'Personal trainer: escolhe homem ou mulher, novo estilo Energético e muitas frases novas.',
       'Os personal trainers aparecem no ecrã de arranque.',
       'Página do exercício: botão "Adicionar a plano" para o pôr num dia de um plano.',
     ],
@@ -43,7 +63,7 @@ export const CHANGELOG: ChangeEntry[] = [
   },
   {
     date: '2026-10-30',
-    pt: ['Personal trainer também fora do treino: bom dia/boa tarde no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia; pode desligar nas Definições).'],
+    pt: ['Personal trainer também fora do treino: bom dia/boa tarde no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia; podes desligar nas Definições).'],
     en: ['Personal trainer outside the workout too: a greeting on Home and comments at the end of a workout, in Analysis and in History (once a day; can be switched off in Settings).'],
   },
   {
@@ -88,7 +108,7 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-10-30',
     pt: [
-      'Botões e destaques usam a cor do dia ou, se não tiver, a do plano.',
+      'Botões e destaques usam a cor do dia ou, se o dia não tiver, a do plano.',
       'Planos de força começam em 5×5; o intervalo de reps define-se em cada exercício.',
       'Personal trainer também entre exercícios: às vezes, sempre ou só no início.',
       'Análise: período com datas e gráfico de treinos por semana.',

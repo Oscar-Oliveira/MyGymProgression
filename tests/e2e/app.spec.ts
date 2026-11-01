@@ -167,7 +167,11 @@ test('circuit: built in the plan, done once at the end of the whole circuit', as
   const circuit = page.getByRole('region', { name: 'Circuit 1' });
   await expect(circuit.getByText('Round 2')).toBeVisible();
   await circuit.getByRole('button', { name: '✓ Circuit done' }).click();
-  await expect(circuit.getByRole('button', { name: '✓ Done' })).toBeDisabled();
+  await expect(page.getByText('4/4 sets')).toBeVisible();
+  // A circuit marked done by mistake can be undone.
+  await circuit.getByRole('button', { name: '↶ Circuit done — undo' }).click();
+  await expect(page.getByText('0/4 sets')).toBeVisible();
+  await circuit.getByRole('button', { name: '✓ Circuit done' }).click();
   await expect(page.getByText('4/4 sets')).toBeVisible();
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
   await expect(page.getByRole('heading', { name: 'Next time' })).toBeVisible();
@@ -301,7 +305,7 @@ test('analysis: period dates and workouts per week; a week lists its workouts', 
   await page.getByRole('button', { name: /^Week of .*: 2 workouts$/ }).first().click();
   await expect(page.locator('.week-list a')).toHaveCount(2);
   await page.getByRole('tab', { name: '4 wks' }).click();
-  await expect(page.getByRole('button', { name: /^Week of / })).toHaveCount(5);
+  await expect(page.getByRole('button', { name: /^Week of / })).toHaveCount(4); // this week and the 3 before, any day
 });
 
 test('home: a date opens a window with the plan day set to that weekday, and starts it', async ({ page }) => {
@@ -552,6 +556,35 @@ test('correction: not-done sets stand out, and the status can be changed', async
   await page.getByLabel('Status').selectOption('completed');
   await page.getByRole('button', { name: 'Save correction' }).click();
   await expect(page.getByText(/· Completed$/)).toBeVisible();
+});
+
+test('correction: an increase the corrected sets no longer support is undone only when the user agrees', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press'], 'Strength');
+  await logChest(page, [5, 5, 5, 5, 5]);
+  await page.getByRole('button', { name: '✓ Finish workout' }).click();
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  await expect(chest.getByText(/^Up to /)).toBeVisible();
+  await page.getByRole('button', { name: 'Correct records' }).click();
+  await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('3');
+  await page.getByRole('button', { name: 'Save correction' }).click();
+  const ask = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(ask).toContainText('no longer reached the top of the range');
+  await ask.getByRole('button', { name: 'Undo increase' }).click();
+  await expect(chest.getByText(/increase undone/)).toBeVisible();
+});
+
+test('plan editor: leaving with unsaved changes asks first', async ({ page }) => {
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: '+ New plan' }).click();
+  await page.getByLabel('Plan name').fill('Unsaved');
+  await tab(page, 'Home');
+  const ask = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(ask).toContainText('unsaved changes');
+  await ask.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByLabel('Plan name')).toHaveValue('Unsaved');
+  await tab(page, 'Home');
+  await ask.getByRole('button', { name: 'Leave' }).click();
+  await expect(page.getByLabel('Plan name')).toHaveCount(0);
 });
 
 test('exercise page: add the exercise to a plan day; a day that has it is marked', async ({ page }) => {

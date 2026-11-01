@@ -6,7 +6,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
 import type { Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
-import { lastEntryFinder, nextPlanned, startWorkout } from '../../domain/workout';
+import { canDecide, lastEntryFinder, nextPlanned, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
 import { DecisionCard, rxLine } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
@@ -68,7 +68,7 @@ function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: {
               <span className="main">
                 <span className="title">{w.dayName ?? t('workout.free')}</span>
                 <span className="meta">
-                  {w.planName ?? ''} · {t('home.size', { count: w.entries.length, sets: w.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0) })}
+                  {[w.planName, t('home.size', { count: w.entries.length, sets: w.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0) })].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="chev" aria-hidden="true">
@@ -135,7 +135,8 @@ export function Home() {
       return v ? v.days.filter((d) => d.weekday === weekday).map((d) => ({ plan: p, day: d, entries: startWorkout(p, v, d, ctx).entries })) : [];
     });
 
-  const pending = events.filter((e) => e.decision === 'pending');
+  // Questions that newer progress has made out of date are not asked.
+  const pending = events.filter((e) => canDecide(e, ctx.states.get(e.lineageId)));
   const entryOf = (entryId?: string) => workouts.flatMap((w) => w.entries).find((e) => e.id === entryId);
   const start = async (planId = plan?.id, dayId = day?.id) => nav(`/workout/${await repo.startWorkout(planId, dayId)}`);
   const demo = async () => {
@@ -198,7 +199,7 @@ export function Home() {
           <p className="eyebrow">{t('home.inProgress')}</p>
           <h1>{active.dayName ?? t('workout.free')}</h1>
           <p className="muted">
-            {active.planName ?? ''} · {t('home.setsProgress', { done: doneSets, total: totalSets })}
+            {[active.planName, t('home.setsProgress', { done: doneSets, total: totalSets })].filter(Boolean).join(' · ')}
           </p>
           <Link className="btn btn-primary xl" to={`/workout/${active.id}`}>
             ▶ {t('home.continue')}

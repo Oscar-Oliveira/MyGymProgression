@@ -272,10 +272,21 @@ export function canRevert(event: ProgressionEvent, state: ProgressionState | und
   return sameTargets(state.targets, event.after) && JSON.stringify(state.repsRange ?? null) === JSON.stringify(event.rangeAfter ?? null);
 }
 
+/**
+ * A pending question can be answered only while the targets are still those it was asked about,
+ * so an old answer never overwrites newer progress.
+ */
+export function canDecide(event: ProgressionEvent, state: ProgressionState | undefined): boolean {
+  if (event.decision !== 'pending') return false;
+  if (!state) return true;
+  return Object.entries(event.before).every(([k, v]) => state.targets[k as MetricKey] === v) && JSON.stringify(state.repsRange ?? null) === JSON.stringify(event.rangeBefore ?? null);
+}
+
 /** Applies a user decision to an event and returns the updated event and progression state. */
 export function decide(event: ProgressionEvent, state: ProgressionState | undefined, input: DecisionInput): { event: ProgressionEvent; state: ProgressionState } {
   const now = nowIso();
   const base: ProgressionState = state ?? { lineageId: event.lineageId, exerciseId: event.exerciseId, targets: { ...event.before }, ...(event.rangeBefore ? { repsRange: event.rangeBefore } : {}), updatedAt: now };
+  if (input.kind !== 'revert' && !canDecide(event, state)) return { event, state: base };
   const s = event.suggestion;
   const next = (targets: ProgressionState['targets'], repsRange: ProgressionState['repsRange']): ProgressionState => {
     const { repsRange: _old, ...rest } = base;

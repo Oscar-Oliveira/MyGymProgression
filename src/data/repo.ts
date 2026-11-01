@@ -54,7 +54,7 @@ export function createRepo(db: GymDB) {
     return { added: added.length, updated: updated.length };
   }
 
-  /** Undoes the still-current progression changes of a workout and removes its events. Call inside a transaction. */
+  /** Undoes the still-current progression changes of a workout, removes its events and opens the questions it closed. Call inside a transaction. */
   async function undoEvents(workoutId: string) {
     const evs = await db.progressionEvents.where('workoutId').equals(workoutId).toArray();
     for (const ev of evs) {
@@ -62,6 +62,9 @@ export function createRepo(db: GymDB) {
       if (state && canRevert(ev, state)) await db.progressionStates.put(decide(ev, state, { kind: 'revert' }).state);
     }
     await db.progressionEvents.bulkDelete(evs.map((e) => e.id));
+    // Questions this workout closed are open again.
+    const closed = (await db.progressionEvents.where('decision').equals('kept').toArray()).filter((e) => e.closedBy === workoutId);
+    await db.progressionEvents.bulkPut(closed.map(({ closedBy: _c, decidedAt: _d, ...e }) => ({ ...e, decision: 'pending' as const })));
   }
 
   return {
@@ -167,8 +170,11 @@ export function createRepo(db: GymDB) {
       });
     },
 
+    /** Starts a workout. When one is already in progress, nothing is started and its id is returned (one at a time). */
     async startWorkout(planId?: string, dayId?: string): Promise<string> {
       return db.transaction('rw', db.tables, async () => {
+        const open = await db.workouts.where('status').equals('in_progress').first();
+        if (open) return open.id;
         const plan = planId ? await db.plans.get(planId) : undefined;
         const version = plan ? await db.planVersions.get(plan.currentVersionId) : undefined;
         const day = version?.days.find((d) => d.id === dayId);
@@ -191,6 +197,10 @@ export function createRepo(db: GymDB) {
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const res = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
+        // Older open questions of the same exercises are closed as "kept": this workout already used the targets they left unchanged.
+        const lineages = new Set(res.events.map((e) => e.lineageId));
+        const stale = (await db.progressionEvents.where('decision').equals('pending').toArray()).filter((e) => lineages.has(e.lineageId));
+        await db.progressionEvents.bulkPut(stale.map((e) => ({ ...e, decision: 'kept' as const, decidedAt: res.workout.endedAt, closedBy: w.id })));
         await db.workouts.put(res.workout);
         await db.progressionEvents.bulkAdd(res.events);
         await db.progressionStates.bulkPut(res.states);
@@ -203,10 +213,12 @@ export function createRepo(db: GymDB) {
 
     /**
      * Correction of a finished workout. The previous version is kept as a revision; entries are re-evaluated.
-     * Undecided progression events are recreated from the new evaluation; decided ones are kept.
+     * Only exercises not done in a later workout can change progression (older targets never overwrite newer progress):
+     * their undecided events are recreated from the new evaluation; decided ones are kept.
+     * Returns the applied increases that the correction no longer supports, so the user can choose to undo them.
      */
-    async correctWorkout(w: Workout) {
-      await db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
+    async correctWorkout(w: Workout): Promise<ProgressionEvent[]> {
+      return db.transaction('rw', db.workouts, db.revisions, db.progressionEvents, db.progressionStates, async () => {
         const previous = await db.workouts.get(w.id);
         if (!previous) throw new Error('workout_missing');
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
@@ -214,15 +226,21 @@ export function createRepo(db: GymDB) {
         await db.revisions.add({ id: uid(), workoutId: w.id, at: nowIso(), previous });
         await db.workouts.put(evaluated);
 
-        const events = await db.progressionEvents.where('workoutId').equals(w.id).toArray();
+        const later = new Set(others.filter((x) => x.status !== 'in_progress' && x.startedAt > w.startedAt).flatMap((x) => x.entries.map((e) => e.lineageId)));
+        const latest = new Set(evaluated.entries.filter((e) => e.lineageId && !later.has(e.lineageId)).map((e) => e.id));
+        const events = (await db.progressionEvents.where('workoutId').equals(w.id).toArray()).filter((e) => latest.has(e.entryId!));
         const undecided = events.filter((e) => e.decision === 'pending' || e.decision === 'none');
         const decidedEntries = new Set(events.filter((e) => !undecided.includes(e)).map((e) => e.entryId));
-        const redo = new Set(evaluated.entries.filter((e) => !decidedEntries.has(e.id)).map((e) => e.id));
+        const redo = new Set([...latest].filter((id) => !decidedEntries.has(id)));
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const res = eventsFor(evaluated, states, redo);
         await db.progressionEvents.bulkDelete(undecided.map((e) => e.id));
         await db.progressionEvents.bulkAdd(res.events);
         await db.progressionStates.bulkPut(res.states);
+        const outcome = new Map(evaluated.entries.map((e) => [e.id, e.evaluation?.outcome]));
+        return events.filter(
+          (e) => (e.decision === 'applied' || e.decision === 'reps_up') && !['increase', 'ready'].includes(outcome.get(e.entryId!) ?? '') && canRevert(e, states.get(e.lineageId)),
+        );
       });
     },
 

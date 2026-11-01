@@ -96,6 +96,8 @@ export const loadOut = (kg: number | undefined, s: Settings) => (kg === undefine
 /** Canonical m → km or mi. */
 export const distOut = (m: number | undefined, s: Settings) => (m === undefined ? undefined : round(convert(m, 'm', s.distanceUnit), 2));
 /** Pace s/km → s per display distance unit. */
+/** Canonical km/h → display unit (mph with miles). */
+export const speedOut = (kmh: number | undefined, s: Settings) => (kmh === undefined ? undefined : round(convert(kmh, 'km/h', s.distanceUnit === 'mi' ? 'mph' : 'km/h'), 1));
 export const paceOut = (sPerKm: number | undefined, s: Settings) => (sPerKm === undefined ? undefined : s.distanceUnit === 'mi' ? sPerKm * 1.609344 : sPerKm);
 
 export function reasonText(t: TFunction, r: Reason, defs?: MetricDef[]): string {

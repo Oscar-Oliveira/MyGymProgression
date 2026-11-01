@@ -12,7 +12,7 @@ export interface CoachContext {
   days?: number;
   /** The latest increase, already formatted. */
   increase?: { exercise: string; from: string; to: string };
-  /** Increases applied this month. */
+  /** Increases this month (load or reps), as counted on Home. */
   ups?: number;
   /** All finished workouts. */
   total?: number;
@@ -86,7 +86,8 @@ export function coachContext(workouts: Workout[], events: ProgressionEvent[], no
   const gap = last ? Math.floor((now.getTime() - new Date(last).getTime()) / 86_400_000) : undefined;
   const applied = events.filter((e) => e.decision === 'applied').sort((a, b) => (a.decidedAt ?? a.createdAt).localeCompare(b.decidedAt ?? b.createdAt));
   const latest = applied[applied.length - 1];
-  const ups = applied.filter((e) => {
+  const ups = events.filter((e) => {
+    if (e.decision !== 'applied' && e.decision !== 'reps_up') return false;
     const d = new Date(e.decidedAt ?? e.createdAt);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
