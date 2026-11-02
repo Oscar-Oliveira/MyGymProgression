@@ -283,21 +283,24 @@ export function LegDay({ gender, onEnd, onSay }: GameProps) {
     };
   }, []);
 
-  // A swipe on the canvas turns; a tap squats.
+  // Dragging on the canvas turns as soon as the finger has moved (no need to lift it); a tap squats.
   const swipe = useRef<Pt>(undefined);
-  const onDown = (e: React.PointerEvent) => {
+  const onDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
     swipe.current = { x: e.clientX, y: e.clientY };
     input.current.squat();
   };
-  const onUp = (e: React.PointerEvent) => {
+  const onMove = (e: React.PointerEvent) => {
     const s = swipe.current;
-    swipe.current = undefined;
     if (!s) return;
     const dx = e.clientX - s.x;
     const dy = e.clientY - s.y;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) return;
     input.current.dir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
+    // The next turn is measured from here, so one drag can turn several times.
+    swipe.current = { x: e.clientX, y: e.clientY };
   };
+  const onUp = () => (swipe.current = undefined);
   const pad = (d: Dir, label: string) => (
     <button className="outline" aria-label={t(`games.legday.${d}`)} onPointerDown={() => input.current.dir(d)}>
       {label}
@@ -306,7 +309,7 @@ export function LegDay({ gender, onEnd, onSay }: GameProps) {
   return (
     <div className="game-canvas">
       {node}
-      <canvas ref={ref} style={{ aspectRatio: `${W} / ${H + HUD}` }} aria-label={t('games.names.legday')} onPointerDown={onDown} onPointerUp={onUp} />
+      <canvas ref={ref} style={{ aspectRatio: `${W} / ${H + HUD}` }} aria-label={t('games.names.legday')} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
       {squatting ? (
         <div className="game-pad one">
           <button className="primary xl" onPointerDown={() => input.current.squat()}>

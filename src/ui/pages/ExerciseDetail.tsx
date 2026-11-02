@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Goals } from '../components/Goals';
 import { repo } from '../../data/repo';
 import { dialog } from '../components/Dialog';
@@ -14,7 +14,7 @@ import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
 import { fmtMetric } from '../progress';
-import { Empty, OutcomeBadge, TrendChart } from '../components/Bits';
+import { Empty, OutcomeBadge, pageOf, Pager, TrendChart } from '../components/Bits';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, speedOut, tr, useSettings } from '../util';
 
 function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {
@@ -61,6 +61,7 @@ export function ExerciseDetail() {
   const [joining, setJoining] = useState(false);
   const [adding, setAdding] = useState(false);
   const { id } = useParams();
+  const [params] = useSearchParams();
   const s = useSettings();
   const data = useLiveQuery(async () => {
     const ex = await db.exercises.get(id!);
@@ -80,6 +81,8 @@ export function ExerciseDetail() {
   const metrics = ex?.metrics ?? history[history.length - 1].entry.exercise.metrics;
   const pr = personalRecords(history);
   const changes = events.filter((e) => e.decision !== 'none');
+  const histPage = pageOf([...history].reverse(), params);
+  const changesPage = pageOf(changes, params, 'changes');
   const prRows: [string, string | undefined][] = [
     [t('analysis.topLoad'), pr.topLoad !== undefined ? fmtValue(loadOut(pr.topLoad, s), s.loadUnit, s.language) : undefined],
     [`${t('analysis.e1rm')} (${t('common.estimated')})`, pr.bestE1rm !== undefined ? fmtValue(loadOut(pr.bestE1rm, s), s.loadUnit, s.language) : undefined],
@@ -316,7 +319,7 @@ export function ExerciseDetail() {
                 </tr>
               </thead>
               <tbody>
-                {[...history].reverse().map((h) => (
+                {histPage.items.map((h) => (
                   <tr key={h.entryId}>
                     <td>
                       <Link to={`/workout/${h.workoutId}`}>{fmtDate(h.date, s.language)}</Link>
@@ -335,13 +338,14 @@ export function ExerciseDetail() {
             </table>
           </div>
         )}
+        <Pager page={histPage.page} pages={histPage.pages} label={t('exercise.history')} />
       </section>
 
       {changes.length > 0 && (
         <section className="card">
           <h2>{t('analysis.loadEvents')}</h2>
           <ul className="list">
-            {changes.map((e) => (
+            {changesPage.items.map((e) => (
               <li key={e.id}>
                 {fmtDate(e.createdAt, s.language)} · <strong>{t(`decision.${e.decision}`)}</strong>{' '}
                 {Object.entries(e.before).map(([k, v]) => `${metricLabel(t, k as MetricKey, metrics)} ${fmtMetric(metrics, k as MetricKey, v, s.language)}`).join(', ')}
@@ -350,6 +354,7 @@ export function ExerciseDetail() {
               </li>
             ))}
           </ul>
+          <Pager page={changesPage.page} pages={changesPage.pages} label={t('analysis.loadEvents')} pageKey="changes" />
         </section>
       )}
     </div>

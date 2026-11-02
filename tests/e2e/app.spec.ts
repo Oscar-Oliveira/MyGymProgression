@@ -566,6 +566,37 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
   await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
 });
 
+test('share a plan by QR: one code per day; days read in any order join into one plan', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await more(page, /^Plans/);
+  const name = (await page.locator('.nav-row .title').first().innerText()).trim();
+  await page.getByRole('button', { name: `Options for ${name}` }).click();
+  await page.getByRole('button', { name: 'Share', exact: true }).click();
+  await page.getByRole('button', { name: /QR per day/ }).click();
+  // The codes as images, as a screenshot sent to the other person.
+  await expect(page.getByText(/^Day 1 of 2 · /)).toBeVisible();
+  const day1 = await page.locator('svg.qr').screenshot();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByText(/^Day 2 of 2 · /)).toBeVisible();
+  const day2 = await page.locator('svg.qr').screenshot();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('link', { name: /Scan QR/ }).click();
+  const image = page.getByLabel('Read from an image');
+  await image.setInputFiles({ name: 'day2.png', mimeType: 'image/png', buffer: day2 });
+  await expect(page.getByText('Day 1: not read yet')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View and import (1 day)' })).toBeVisible();
+  await image.setInputFiles({ name: 'day1.png', mimeType: 'image/png', buffer: day1 });
+  await page.getByRole('button', { name: 'View and import (2 days)' }).click();
+  await expect(page.getByRole('heading', { name })).toBeVisible();
+  await expect(page.locator('section.card h3')).toHaveCount(2);
+  await expect(page.getByText(/0 new exercises for the library/)).toBeVisible();
+  await page.getByRole('button', { name: /Import plan/ }).click();
+  await expect(page).toHaveURL(/#\/plans\//);
+  await more(page, /^Plans/);
+  await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
+});
+
 test('a damaged share link shows an error', async ({ page }) => {
   await page.goto('/#/share?d=broken');
   await closeSplash(page);
@@ -934,6 +965,9 @@ test('games: one back button; sound and vibration can be turned off', async ({ p
   await expect(page.getByLabel('Vibration')).toBeChecked();
   await page.getByRole('link', { name: /^Trainer memory/ }).click();
   await expect(page.getByRole('link', { name: /Games/ })).toHaveCount(0);
+  // In a game a swipe is a move: it does not leave the game.
+  await swipe(page, 120);
+  await expect(page.getByRole('heading', { name: 'Trainer memory' })).toBeVisible();
   await page.getByRole('button', { name: '‹ Back' }).click();
   await expect(page.getByRole('heading', { name: 'Games', level: 1 })).toBeVisible();
 });

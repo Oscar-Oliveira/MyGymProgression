@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudo QR e Desempenho</title>
+<style>
+:root {
+  --bg: #f6f6fb; --surface: #fff; --text: #16161d; --muted: #61616f; --border: #dcdce6;
+  --accent: #5b4cf5; --accent-soft: #ecebfe; --up: #138a4c; --warn: #b26b00; --down: #c0392b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0b10; --surface: #15151d; --text: #ececf3; --muted: #9a9aab; --border: #2a2a36;
+    --accent: #8f84ff; --accent-soft: #23213f; --up: #3ccf7f; --warn: #f0a63a; --down: #ff6b5b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0b10; --surface: #15151d; --text: #ececf3; --muted: #9a9aab; --border: #2a2a36;
+  --accent: #8f84ff; --accent-soft: #23213f; --up: #3ccf7f; --warn: #f0a63a; --down: #ff6b5b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 1.3rem; margin: 40px 0 8px; }
+h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+p, li { max-width: 70ch; }
+.muted { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 12px 0; }
+.tldr { border-left: 4px solid var(--accent); }
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 0.8rem; font-weight: 650; background: var(--accent-soft); color: var(--accent); }
+.pill.up { color: var(--up); background: color-mix(in srgb, var(--up) 14%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.down { color: var(--down); background: color-mix(in srgb, var(--down) 14%, transparent); }
+code { font: 0.88em ui-monospace, Consolas, monospace; background: var(--accent-soft); padding: 1px 5px; border-radius: 5px; }
+/* Flow */
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 12px 0; }
+.step { flex: 1 1 140px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); transition: border-color .2s, background .2s; }
+.step b { display: block; font-size: 0.95rem; }
+.step small { color: var(--muted); }
+.step.on { border-color: var(--accent); background: var(--accent-soft); }
+.side { font-size: 0.75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 14px 0 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; min-height: 40px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* Simulator */
+.sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+label { display: block; font-size: 0.9rem; font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select { font: inherit; padding: 6px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+.stat { border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+.stat .v { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat .l { font-size: 0.8rem; color: var(--muted); }
+.stage { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 520px) { .stage { grid-template-columns: 1fr; } }
+.qr { width: 150px; height: 150px; border-radius: 10px; background: #fff; padding: 8px; display: grid; grid-template-columns: repeat(21, 1fr); }
+.qr i { display: block; }
+.qr i.k { background: #111; }
+.qr-cap { font-size: 0.82rem; color: var(--muted); text-align: center; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.frames { display: flex; flex-wrap: wrap; gap: 3px; }
+.frames span { width: 14px; height: 14px; border-radius: 3px; background: var(--border); transition: background .15s; }
+.frames span.got { background: var(--up); }
+.frames span.miss { background: var(--down); }
+.frames span.cur { outline: 2px solid var(--accent); }
+.legend { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 10px; }
+.bar { height: 10px; border-radius: 6px; background: var(--border); overflow: hidden; margin-top: 8px; }
+.bar > div { height: 100%; background: var(--up); width: 0; transition: width .15s; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.opt h3 { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="muted" style="margin:0">MyGymProgression · estudo · 2026-11-02</p>
+  <h1>Passar planos e treinos por QR · desempenho com muitos dados</h1>
+  <p class="muted">Proposta. Nada disto está implementado. Os números vêm de medições com os dados de demonstração da app.</p>
+
+  <div class="card tldr">
+    <strong>Resumo</strong>
+    <ul>
+      <li><b>Um plano</b> cabe em <b>1–2 QR</b>. É simples e vale a pena.</li>
+      <li><b>Um ano de treinos</b> precisa de <b>~60–95 QR</b>. Funciona com um <b>QR animado</b> (a app mostra os códigos em ciclo e o outro telemóvel apanha-os), mas leva ~30–80 s. Para isto, o ficheiro de backup é melhor.</li>
+      <li>Na prática, envia-se <b>só o que mudou</b> desde a última transferência: normalmente 1–8 QR.</li>
+      <li><b>Desempenho:</b> 1 ano ≈ 0,6 MB. Ainda não é lento. Não recomendo resumir (apaga detalhe). Recomendo consultas por intervalo de datas e uma tabela de resumo <i>derivada</i>, quando for preciso.</li>
+    </ul>
+  </div>
+
+  <h2>1. Quanto pesam os dados</h2>
+  <p>Medido com <code>generateDemo</code> (2 treinos por semana) e compressão <code>deflate-raw</code>, a mesma dos links de partilha (<code>src/domain/share.ts</code>).</p>
+  <div class="card table-wrap">
+    <table>
+      <thead><tr><th>Conteúdo</th><th class="n">JSON</th><th class="n">Comprimido</th><th class="n">Texto base64</th></tr></thead>
+      <tbody>
+        <tr><td>1 plano (sem textos/imagens da biblioteca)</td><td class="n">3,8 KB</td><td class="n">≈ 1,2 KB</td><td class="n">1,6 KB</td></tr>
+        <tr><td>1 treino</td><td class="n">6,0 KB</td><td class="n">≈ 1,6 KB</td><td class="n">2,1 KB</td></tr>
+        <tr><td>12 treinos (6 semanas)</td><td class="n">71 KB</td><td class="n">≈ 7 KB</td><td class="n">9,3 KB</td></tr>
+        <tr><td>104 treinos (1 ano)</td><td class="n">617 KB</td><td class="n">46 KB</td><td class="n">61 KB</td></tr>
+        <tr><td>Backup completo, 1 ano</td><td class="n">797 KB</td><td class="n">≈ 68 KB</td><td class="n">90 KB</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>Observações</b></p>
+  <ul>
+    <li>Cada treino guarda uma cópia do exercício. Depois de comprimir, estas cópias quase não pesam (≈ 1 KB num ano). Retirá-las não compensa.</li>
+    <li>Os dados de demonstração repetem-se muito. Dados reais (notas, mais variação) devem comprimir pior. Conte com <b>+30–50 %</b>.</li>
+  </ul>
+
+  <h2>2. Quanto cabe num QR</h2>
+  <p>Um QR grande (versão 40) leva até ~2,9 KB. Mas um código denso é difícil de ler de um ecrã para uma câmara. Para ler bem, uso <b>~1 000 caracteres por código</b> (versão ~22–25, correção de erros baixa). É uma estimativa: confirmar com testes em telemóveis reais.</p>
+  <ul>
+    <li><b>Base64 em modo byte</b>: 8 bits por carácter. Simples.</li>
+    <li><b>Base45 em modo alfanumérico</b>: ~23 % menos bits pelos mesmos dados. Mais denso, um pouco mais de código.</li>
+  </ul>
+
+  <h2>3. Como funciona a transferência</h2>
+  <p>Clique em <b>Passo seguinte</b> para seguir o caminho dos dados.</p>
+  <div class="card">
+    <p class="side">Telemóvel que envia</p>
+    <div class="flow" id="flowA">
+      <div class="step" data-s="0"><b>1 · Escolher</b><small>Plano(s) e/ou treinos desde a última transferência.</small></div>
+      <div class="step" data-s="1"><b>2 · Empacotar</b><small>Bundle JSON, como no backup (<code>buildBundle</code>).</small></div>
+      <div class="step" data-s="2"><b>3 · Comprimir</b><small><code>deflate-raw</code> → texto (base64url ou base45).</small></div>
+      <div class="step" data-s="3"><b>4 · Partir</b><small>Pedaços de ~1 000 car. com cabeçalho <code>MGP1|id|i/n|</code>.</small></div>
+      <div class="step" data-s="4"><b>5 · Mostrar</b><small>QR em ciclo, ~4 por segundo.</small></div>
+    </div>
+    <p class="side">Telemóvel que recebe</p>
+    <div class="flow" id="flowB">
+      <div class="step" data-s="5"><b>6 · Ler</b><small>Câmara + leitor de QR. Guarda cada pedaço pelo número <code>i</code>.</small></div>
+      <div class="step" data-s="6"><b>7 · Completar</b><small>Mostra quais faltam. Ignora repetidos e de outra sessão.</small></div>
+      <div class="step" data-s="7"><b>8 · Juntar e verificar</b><small>Junta, descomprime, valida (<code>parseBundle</code>) e confere o resumo (hash).</small></div>
+      <div class="step" data-s="8"><b>9 · Importar</b><small>Pré-visualização existente: novos, iguais, conflitos (<code>previewImport</code>).</small></div>
+    </div>
+    <p id="flowText" aria-live="polite" class="muted" style="min-height:3em"></p>
+    <div class="controls">
+      <button class="primary" id="flowNext">Passo seguinte ›</button>
+      <button id="flowReset">Recomeçar</button>
+    </div>
+  </div>
+
+  <h2>4. Simulador: quantos QR e quanto tempo</h2>
+  <p>Escolha o que enviar. O simulador mostra os códigos em ciclo. Alguns falham a leitura (vermelho) e são apanhados na volta seguinte.</p>
+  <div class="card">
+    <div class="sim-grid">
+      <div>
+        <label for="nPlans">Planos: <span id="nPlansV"></span></label>
+        <input type="range" id="nPlans" min="0" max="5" value="1">
+      </div>
+      <div>
+        <label for="nWorkouts">Treinos: <span id="nWorkoutsV"></span></label>
+        <input type="range" id="nWorkouts" min="0" max="300" value="4">
+      </div>
+      <div>
+        <label for="chunk">Caracteres por QR</label>
+        <select id="chunk"><option value="600">600 (fácil de ler)</option><option value="1000" selected>1 000 (recomendado)</option><option value="1800">1 800 (denso)</option></select>
+      </div>
+      <div>
+        <label for="enc">Codificação</label>
+        <select id="enc"><option value="b64">base64url (byte)</option><option value="b45">base45 (alfanumérico)</option></select>
+      </div>
+      <div>
+        <label for="miss">Leituras falhadas: <span id="missV"></span></label>
+        <input type="range" id="miss" min="0" max="40" value="15">
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sKB">–</div><div class="l">comprimido</div></div>
+      <div class="stat"><div class="v" id="sFrames">–</div><div class="l">códigos QR</div></div>
+      <div class="stat"><div class="v" id="sTime">–</div><div class="l">tempo estimado (4 QR/s)</div></div>
+    </div>
+    <div class="stage">
+      <div>
+        <div class="qr" id="qr" aria-hidden="true"></div>
+        <div class="qr-cap" id="qrCap">–</div>
+      </div>
+      <div>
+        <div class="frames" id="frames" role="img" aria-label="Estado de cada código"></div>
+        <div class="legend"><i style="background:var(--up)"></i>lido<i style="background:var(--down)"></i>falhou, volta no ciclo seguinte<i style="background:var(--border)"></i>por ler</div>
+        <div class="bar"><div id="bar"></div></div>
+        <p id="simMsg" aria-live="polite" class="muted" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="simPlay">▶ Simular leitura</button>
+      <button id="simReset">Recomeçar</button>
+    </div>
+    <p class="legend" style="margin-top:10px">Bytes por elemento: plano ≈ 1,2 KB, treino ≈ 0,45 KB comprimido quando há muitos (o custo baixa porque os treinos se parecem), mais +40 % para dados reais. Estimativa, não medição.</p>
+  </div>
+
+  <h2>5. Opções e recomendação</h2>
+  <div class="opts">
+    <div class="card opt">
+      <h3>A · Plano por QR <span class="pill up">recomendado primeiro</span></h3>
+      <ul>
+        <li>1–2 códigos. Pode ser estático (sem animação).</li>
+        <li>Reaproveita o link de partilha atual: o QR é o próprio link <code>#/share?d=…</code>. Lê-se com a câmara normal do telemóvel, sem leitor na app.</li>
+        <li>Só precisa de um gerador de QR (biblioteca ~20 KB).</li>
+      </ul>
+    </div>
+    <div class="card opt">
+      <h3>B · Treinos novos por QR animado <span class="pill warn">mais trabalho</span></h3>
+      <ul>
+        <li>Envia treinos desde a última transferência (data guardada por dispositivo), mais estados de progressão.</li>
+        <li>Mantém os mesmos ids: a importação junta em vez de duplicar.</li>
+        <li>Precisa de leitor de QR na app: <code>BarcodeDetector</code> (Chrome Android) e uma biblioteca de recurso para iPhone (ex.: jsQR, ~45 KB).</li>
+      </ul>
+    </div>
+    <div class="card opt">
+      <h3>C · Tudo (backup) por QR <span class="pill down">não recomendado</span></h3>
+      <ul>
+        <li>50–100+ códigos para 1 ano, mais com o tempo.</li>
+        <li>Para isto, o ficheiro de backup que já existe é mais rápido e fiável.</li>
+      </ul>
+    </div>
+  </div>
+  <p><b>Riscos e pontos a decidir</b></p>
+  <ul>
+    <li><b>Conflitos</b>: o mesmo treino corrigido nos dois telemóveis. A pré-visualização de importação já mostra conflitos; falta decidir a regra (ex.: o <code>updatedAt</code> mais recente ganha).</li>
+    <li><b>iPhone</b>: sem <code>BarcodeDetector</code> no Safari. Precisa da biblioteca de recurso.</li>
+    <li><b>Brilho e reflexos</b> do ecrã baixam a leitura. Dar controlo de tamanho do QR e de velocidade.</li>
+    <li>Variante mais robusta: <b>códigos fonte</b> (fountain codes). Qualquer conjunto de N+poucos códigos chega, sem esperar pelo que falhou. Só compensa acima de ~50 códigos.</li>
+  </ul>
+
+  <h2>6. Desempenho com muitos dados</h2>
+  <p><b>Situação atual</b> (lida no código):</p>
+  <ul>
+    <li>Várias zonas leem <b>todos os treinos</b> de cada vez: Análise, cartão do treinador, desafio da semana, objetivos, relatório semanal, página do exercício, início de treino (<code>db.workouts.toArray()</code>).</li>
+    <li>O Histórico já lê só a página pedida (10 treinos), com índice <code>startedAt</code>.</li>
+  </ul>
+  <div class="card table-wrap">
+    <table>
+      <thead><tr><th>Uso</th><th class="n">Treinos</th><th class="n">Tamanho</th><th>Estado esperado</th></tr></thead>
+      <tbody>
+        <tr><td>1 ano, 2×/semana</td><td class="n">~100</td><td class="n">~0,6 MB</td><td><span class="pill up">sem problema</span></td></tr>
+        <tr><td>3 anos, 4×/semana</td><td class="n">~600</td><td class="n">~3,6 MB</td><td><span class="pill warn">pode notar-se em telemóveis fracos</span></td></tr>
+        <tr><td>5 anos, 5×/semana</td><td class="n">~1 300</td><td class="n">~8 MB</td><td><span class="pill down">várias leituras completas por página: lento</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">Tamanhos = treinos × 6 KB (medido). O tempo de leitura não foi medido num telemóvel: é a primeira coisa a fazer antes de mudar código.</p>
+
+  <h3>Opções, da mais segura para a mais arriscada</h3>
+  <ol>
+    <li><b>Medir</b>: gerar 1 000 treinos de demonstração e medir cada página num telemóvel médio. Agir só se passar ~100 ms.</li>
+    <li><b>Ler por intervalo de datas</b> com o índice <code>startedAt</code>: a Análise de 4 semanas, o desafio e o relatório semanal só precisam de semanas, não de anos. Sem mudança de dados.</li>
+    <li><b>Tabela de resumo derivada</b> por exercício e treino (data, melhor série, 1RM estimado, volume). Usada por gráficos e recordes. Reconstrói-se a partir dos treinos; os treinos completos ficam. Sem perda.</li>
+    <li><b>Arquivar</b> anos antigos num ficheiro e manter só o resumo. <span class="pill down">não recomendado</span> Perde detalhe dentro da app e complica correções e progressão.</li>
+  </ol>
+  <p><b>Comprimir dentro da base de dados</b> (IndexedDB) não ajuda: o espaço não é o problema, e descomprimir em cada leitura gasta mais tempo do que poupa.</p>
+  <p><b>Recomendação</b>: fazer 1 e 2 agora ou quando houver ~300 treinos. Fazer 3 só se a medição o pedir. Não fazer 4.</p>
+</main>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d = 0) => n.toLocaleString('pt-PT', { maximumFractionDigits: d, minimumFractionDigits: d });
+
+  // Flow walkthrough
+  const FLOW = [
+    'Escolhe-se o que enviar. Para treinos, a app usa a data da última transferência para este dispositivo.',
+    'Os dados entram num bundle igual ao do backup, com formato e versão. Assim o recetor valida com o código que já existe.',
+    'O texto JSON é comprimido. Num ano de treinos, 617 KB passam a ~46 KB.',
+    'O texto é partido em pedaços. Cada um diz a sessão, o número e o total, por exemplo MGP1|a7f3|12/58|…',
+    'O ecrã mostra os códigos em ciclo. Com 4 por segundo, 58 códigos levam ~15 s por volta.',
+    'O recetor lê com a câmara. A ordem não importa: cada pedaço tem o seu número.',
+    'Uma grelha mostra o que falta. Os que falharam são apanhados na volta seguinte.',
+    'Com todos os pedaços, junta, descomprime e valida. Se o resumo (hash) não bater, pede para ler de novo.',
+    'A importação usa a pré-visualização que já existe: mostra novos, iguais e conflitos antes de gravar.',
+  ];
+  let fstep = -1;
+  const steps = [...document.querySelectorAll('.step')];
+  const showFlow = () => {
+    steps.forEach((s) => s.classList.toggle('on', Number(s.dataset.s) === fstep));
+    $('flowText').textContent = fstep < 0 ? 'Clique em "Passo seguinte".' : `${fstep + 1}/9 · ${FLOW[fstep]}`;
+    $('flowNext').disabled = fstep >= FLOW.length - 1;
+  };
+  $('flowNext').onclick = () => { fstep++; showFlow(); };
+  $('flowReset').onclick = () => { fstep = -1; showFlow(); };
+  showFlow();
+
+  // Simulator. Sizes: compressed bytes, from the measurements, +40 % for real data.
+  const PLAN = 1200, FIRST_WORKOUT = 1600, MORE_WORKOUT = 440, REAL = 1.4;
+  const compressed = (plans, workouts) => {
+    if (!plans && !workouts) return 0;
+    const w = workouts ? FIRST_WORKOUT + (workouts - 1) * MORE_WORKOUT : 0;
+    return Math.round((plans * PLAN + w) * REAL + 120);
+  };
+  let frames = [], timer = 0, cur = 0, round = 0;
+  const calc = () => {
+    const plans = +$('nPlans').value, workouts = +$('nWorkouts').value, chunk = +$('chunk').value, enc = $('enc').value, miss = +$('miss').value;
+    $('nPlansV').textContent = plans; $('nWorkoutsV').textContent = workouts; $('missV').textContent = `${miss} %`;
+    const bytes = compressed(plans, workouts);
+    // Characters per byte; base45 in alphanumeric mode carries ~23 % fewer bits, so it gets that much more per code.
+    const chars = enc === 'b64' ? bytes * 4 / 3 : bytes * 1.5;
+    const perCode = enc === 'b64' ? chunk : Math.round(chunk * 8 / 5.5);
+    const n = bytes ? Math.max(1, Math.ceil(chars / (perCode - 16))) : 0;
+    const expectedRounds = n ? 1 + Math.log(Math.max(1, n)) / Math.log(1 / Math.max(0.01, miss / 100)) : 0;
+    $('sKB').textContent = bytes ? `${fmt(bytes / 1024, 1)} KB` : '–';
+    $('sFrames').textContent = n || '–';
+    $('sTime').textContent = n ? (n === 1 ? 'instantâneo' : `~${fmt(Math.max(1, (n / 4) * (miss ? Math.min(expectedRounds, 4) : 1)))} s`) : '–';
+    return { n, miss };
+  };
+  const drawQr = (seed) => {
+    const q = $('qr');
+    if (!q.children.length) for (let i = 0; i < 441; i++) q.appendChild(document.createElement('i'));
+    let x = seed * 9301 + 49297;
+    [...q.children].forEach((c, i) => {
+      const r = Math.floor(i / 21), k = i % 21;
+      const finder = (a, b) => a < 7 && b < 7 && (a === 0 || a === 6 || b === 0 || b === 6 || (a > 1 && a < 5 && b > 1 && b < 5));
+      let on;
+      if (r < 8 && k < 8) on = finder(r, k);
+      else if (r < 8 && k > 12) on = finder(r, k - 14);
+      else if (r > 12 && k < 8) on = finder(r - 14, k);
+      else { x = (x * 9301 + 49297) % 233280; on = x / 233280 > 0.5; }
+      c.className = on ? 'k' : '';
+    });
+  };
+  const reset = () => {
+    clearInterval(timer); timer = 0; cur = 0; round = 0;
+    const { n } = calc();
+    frames = Array.from({ length: n }, () => 'todo');
+    $('frames').innerHTML = frames.map(() => '<span></span>').join('');
+    $('bar').style.width = '0';
+    $('qrCap').textContent = n ? `1 / ${n}` : '–';
+    $('simMsg').textContent = n ? '' : 'Nada para enviar.';
+    $('simPlay').disabled = !n;
+    $('simPlay').textContent = '▶ Simular leitura';
+    drawQr(1);
+  };
+  const paint = () => {
+    const spans = $('frames').children;
+    frames.forEach((f, i) => { spans[i].className = (f === 'got' ? 'got' : f === 'miss' ? 'miss' : '') + (i === cur ? ' cur' : ''); });
+    const got = frames.filter((f) => f === 'got').length;
+    $('bar').style.width = `${(got / frames.length) * 100}%`;
+    return got;
+  };
+  const tick = () => {
+    const { miss } = calc();
+    if (frames[cur] !== 'got') frames[cur] = Math.random() * 100 < miss ? 'miss' : 'got';
+    drawQr(cur + 2 + round * 1000);
+    $('qrCap').textContent = `${cur + 1} / ${frames.length}`;
+    const got = paint();
+    if (got === frames.length) {
+      clearInterval(timer); timer = 0;
+      $('simMsg').textContent = `Completo em ${round + 1} volta(s). Junta, verifica e abre a pré-visualização de importação.`;
+      $('simPlay').disabled = true;
+      return;
+    }
+    $('simMsg').textContent = `Volta ${round + 1} · lidos ${got} de ${frames.length}`;
+    cur++;
+    if (cur >= frames.length) { cur = 0; round++; }
+  };
+  $('simPlay').onclick = () => {
+    if (timer) { clearInterval(timer); timer = 0; $('simPlay').textContent = '▶ Continuar'; return; }
+    $('simPlay').textContent = '⏸ Pausa';
+    // 4 codes per second, as on a real screen; faster for long runs, and step by step without motion.
+    if (reduce) { tick(); $('simPlay').textContent = '▶ Código seguinte'; return; }
+    timer = setInterval(tick, frames.length > 40 ? 60 : 250);
+  };
+  $('simReset').onclick = reset;
+  ['nPlans', 'nWorkouts', 'chunk', 'enc', 'miss'].forEach((id) => $(id).addEventListener('input', reset));
+  reset();
+})();
+</script>
+</body>
+</html>

@@ -237,6 +237,14 @@ export const pt: Resources = {
     exercises: '{{added}} exercícios novos para a biblioteca · {{existing}} já existem', help: 'O plano é adicionado como um plano novo. Os teus planos, treinos e progresso não mudam.',
     menu: 'Partilhar', help2: 'Partilha uma cópia do plano com os exercícios e as cargas previstas. Os teus treinos, progresso e notas pessoais não são incluídos.',
     file: 'Enviar ficheiro', link: 'Partilhar link', copied: 'Link copiado.', fileHelp: 'A outra pessoa importa o ficheiro em Definições → Importar.',
+    qr: 'QR por dia', qrDay: 'Dia {{i}} de {{n}} · {{name}}', qrHelp: 'Na outra app: Planos → Ler QR. Para o plano todo, lê o QR de cada dia. Para um só dia, lê só esse.',
+    qrTooBig: 'Este dia tem demasiados exercícios para um QR. Usa o link ou o ficheiro.',
+  },
+  scan: {
+    open: 'Ler QR', title: 'Ler QR de plano', help: 'Aponta a câmara ao QR de um dia. Lê os QR de todos os dias para ficares com o plano completo.',
+    camera: 'Câmara', photo: 'Ler de uma imagem', noCamera: 'Não foi possível abrir a câmara. Podes ler o QR a partir de uma imagem (ex.: uma captura de ecrã).',
+    noQr: 'Não encontrei nenhum QR nesta imagem.', notPlan: 'Este QR não é de um plano.', read: 'Lido: {{name}}', other: 'QR de outro plano: recomecei com «{{name}}».',
+    missing: 'Dia {{i}}: falta ler', more: 'Ler mais dias', import: 'Ver e importar ({{count}} dias)', import_one: 'Ver e importar (1 dia)',
   },
   games: {
     sound: 'Som', haptic: 'Vibração',
@@ -252,7 +260,7 @@ export const pt: Resources = {
       flappy: 'Toca no ecrã (ou na barra de espaços) para subir. Passa entre as torres de discos.',
       runner: 'Toca no ecrã ou em Saltar para saltar. Mantém Baixar para passar debaixo das barras. Teclado: ↑ / espaço e ↓.',
       starship: 'Arrasta a nave com o dedo; ela dispara sozinha. Destrói a junk food. O shake 🥛 dá escudo e a creatina 💊 dá tiro triplo. De 5 em 5 vagas vem o Sofá.',
-      legday: 'Foge do Sargento pelo ginásio: desliza o dedo ou usa as setas (teclado: setas ou WASD). O batido 🥛 dá velocidade e 10 pontos. Apanhado? Toca depressa para fazeres os agachamentos e fugires: de cada vez são mais.',
+      legday: 'Foge do Sargento pelo ginásio: arrasta o dedo no ginásio (vira logo, sem levantar) ou usa as setas (teclado: setas ou WASD). O batido 🥛 dá velocidade e 10 pontos. Apanhado? Toca depressa para fazeres os agachamentos e fugires: de cada vez são mais.',
       rerack: 'Arrasta cada peso para o seu lugar no suporte. Com mais de 10 no chão, chega o dono do ginásio. Toca duas vezes no tipo do telemóvel para libertar o lugar, toca no gemedor para o calar e não largues pesos no suor 💦: escorregam.',
     },
     unit: { memory: 'jogadas', whack: 'pontos', muscle: 'certas', flappy: 'torres', runner: 'm', starship: 'pontos', legday: 'pontos', rerack: 'pesos' },

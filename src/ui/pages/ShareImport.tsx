@@ -9,10 +9,8 @@ import { toneStyle } from '../colors';
 /** Page opened by a shared plan link (#/share?d=…): shows the plan, then imports it as a new plan. */
 export function ShareImport() {
   const { t } = useTranslation();
-  const nav = useNavigate();
   const [params] = useSearchParams();
   const [bundle, setBundle] = useState<Bundle>();
-  const [merged, setMerged] = useState<DataSet>();
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -21,8 +19,6 @@ export function ShareImport() {
       const r = text ? parseBundle(text) : undefined;
       if (!r?.ok || r.bundle.data.plans.length !== 1) return setError(true);
       setBundle(r.bundle);
-      // The shared plan has new ids; exercises already in the library (same id, or same name and equipment) are reused.
-      setMerged(planMerge(r.bundle.data, await repo.readAll(), 'skip', 'useExisting'));
     })();
   }, [params]);
 
@@ -33,7 +29,21 @@ export function ShareImport() {
         <Link to="/">{t('nav.home')}</Link>
       </div>
     );
-  if (!bundle || !merged) return null;
+  return bundle ? <SharePreview bundle={bundle} /> : null;
+}
+
+/** A shared plan (from a link or QR codes): its days and exercises, then "import" adds it as a new plan. */
+export function SharePreview({ bundle }: { bundle: Bundle }) {
+  const { t } = useTranslation();
+  const nav = useNavigate();
+  const [merged, setMerged] = useState<DataSet>();
+
+  useEffect(() => {
+    // The shared plan has new ids; exercises already in the library (same id, or same name and equipment) are reused.
+    void (async () => setMerged(planMerge(bundle.data, await repo.readAll(), 'skip', 'useExisting')))();
+  }, [bundle]);
+
+  if (!merged) return null;
   const plan = bundle.data.plans[0];
   const days = bundle.data.planVersions[0]?.days ?? [];
   const names = new Map(bundle.data.exercises.map((e) => [e.id, e.name]));

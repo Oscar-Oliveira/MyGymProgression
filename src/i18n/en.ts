@@ -235,6 +235,14 @@ export const en = {
     exercises: '{{added}} new exercises for the library · {{existing}} already in it', help: 'The plan is added as a new plan. Your plans, workouts and progress are not changed.',
     menu: 'Share', help2: 'Shares a copy of the plan with its exercises and target loads. Your workouts, progress and personal notes are not included.',
     file: 'Send file', link: 'Share link', copied: 'Link copied.', fileHelp: 'The other person imports the file in Settings → Import.',
+    qr: 'QR per day', qrDay: 'Day {{i}} of {{n}} · {{name}}', qrHelp: 'In the other app: Plans → Scan QR. For the whole plan, scan the QR of each day. For one day, scan only that one.',
+    qrTooBig: 'This day has too many exercises for one QR. Use the link or the file.',
+  },
+  scan: {
+    open: 'Scan QR', title: 'Scan plan QR', help: 'Point the camera at the QR of a day. Scan the QR of every day to get the whole plan.',
+    camera: 'Camera', photo: 'Read from an image', noCamera: 'The camera could not be opened. You can read the QR from an image (e.g. a screenshot).',
+    noQr: 'No QR found in this image.', notPlan: 'This QR is not a plan.', read: 'Read: {{name}}', other: 'QR of another plan: started again with “{{name}}”.',
+    missing: 'Day {{i}}: not read yet', more: 'Scan more days', import: 'View and import ({{count}} days)', import_one: 'View and import (1 day)',
   },
   games: {
     sound: 'Sound', haptic: 'Vibration',
@@ -250,7 +258,7 @@ export const en = {
       flappy: 'Tap the screen (or press space) to fly up. Pass between the towers of plates.',
       runner: 'Tap the screen or Jump to jump. Hold Duck to pass under the flying bars. Keyboard: ↑ / space and ↓.',
       starship: 'Drag the ship with your finger; it fires by itself. Destroy the junk food. The shake 🥛 gives a shield and creatine 💊 a triple shot. Every 5 waves the Sofa comes.',
-      legday: 'Run from the Sergeant through the gym: swipe or use the arrows (keyboard: arrows or WASD). A shake 🥛 gives speed and 10 points. Caught? Tap fast to do the squats and escape: more squats each time.',
+      legday: 'Run from the Sergeant through the gym: drag your finger on the gym (it turns at once, no need to lift) or use the arrows (keyboard: arrows or WASD). A shake 🥛 gives speed and 10 points. Caught? Tap fast to do the squats and escape: more squats each time.',
       rerack: 'Drag each weight to its slot on the rack. More than 10 on the floor and the gym owner comes. Tap the phone guy twice to free his slot, tap the grunter to stop him, and do not drop weights on the sweat 💦: they slide.',
     },
     unit: { memory: 'moves', whack: 'points', muscle: 'right', flappy: 'towers', runner: 'm', starship: 'points', legday: 'points', rerack: 'weights' },

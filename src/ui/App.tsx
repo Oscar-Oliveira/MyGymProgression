@@ -19,6 +19,7 @@ import { Reports } from './pages/Reports';
 import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
+import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
 import { CoachPage } from './pages/CoachPage';
 import { GamePage, GamesPage } from './games/Games';
@@ -99,9 +100,11 @@ function Shell() {
   const tab = TABS.findIndex(([to]) => to === pathname);
   // Pages below a tab have "back" (a button, and a swipe to the right); not the workout being logged.
   const sub = tab < 0 && !focus;
+  // In a game a swipe is a move, not "back".
+  const game = pathname.startsWith('/games/');
   const back = () => ((window.history.state as { idx?: number } | null)?.idx ? nav(-1) : nav(parentOf(pathname), { replace: true }));
   const onTouchStart = (e: TouchEvent) => {
-    touch.current = (tab >= 0 || sub) && e.touches.length === 1 && !keepsSwipe(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : undefined;
+    touch.current = (tab >= 0 || (sub && !game)) && e.touches.length === 1 && !keepsSwipe(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : undefined;
   };
   const onTouchEnd = (e: TouchEvent) => {
     const start = touch.current;
@@ -148,6 +151,7 @@ function Shell() {
           <Route path="/exercises/:id" element={<ExerciseDetail />} />
           <Route path="/exercises/:id/edit" element={<ExerciseEdit />} />
           <Route path="/plans" element={<PlanList />} />
+          <Route path="/plans/scan" element={<PlanScan />} />
           <Route path="/plans/:id" element={<PlanEdit />} />
           <Route path="/workout/:id" element={<WorkoutPage />} />
           <Route path="/history" element={<History />} />

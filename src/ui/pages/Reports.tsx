@@ -6,6 +6,7 @@ import { repo } from '../../data/repo';
 import { weekKey } from '../../domain/challenge';
 import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
+import { Pager, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
 import { fmtDate, useSettings } from '../util';
 import { Analysis } from './Analysis';
@@ -39,6 +40,7 @@ function WeekTab({ s }: { s: Settings }) {
     const [workouts, events, challenge, stored] = await Promise.all([db.workouts.toArray(), db.progressionEvents.toArray(), db.challenges.where('week').equals(week).first(), db.coachReports.orderBy('week').reverse().toArray()]);
     return { current: weekReport(now, workouts, events, challenge, 'now'), earlier: stored.filter((r) => r.week !== week) };
   }, []);
+  const earlier = usePage(data?.earlier ?? []);
   return (
     <>
       <ReportSwitch k="report" on={reportOn(s)} />
@@ -48,10 +50,13 @@ function WeekTab({ s }: { s: Settings }) {
             <h2>{t('reports.thisWeek')}</h2>
           </div>
           <ReportCard report={data.current} coach={coach} />
-          <div className="section-head">
-            <h2>{t('reports.earlier')}</h2>
-          </div>
-          {data.earlier.length === 0 ? <p className="muted">{t('reports.noReports')}</p> : data.earlier.map((r) => <ReportCard key={r.id} report={r} coach={coach} />)}
+          <section>
+            <div className="section-head">
+              <h2>{t('reports.earlier')}</h2>
+            </div>
+            {data.earlier.length === 0 ? <p className="muted">{t('reports.noReports')}</p> : earlier.items.map((r) => <ReportCard key={r.id} report={r} coach={coach} />)}
+            <Pager page={earlier.page} pages={earlier.pages} label={t('reports.earlier')} />
+          </section>
         </>
       )}
     </>

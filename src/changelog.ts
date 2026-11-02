@@ -7,6 +7,21 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-02',
+    pt: [
+      'Partilha planos por QR: em Partilhar → QR por dia, cada dia tem o seu QR. Quem recebe usa Planos → Ler QR (câmara ou imagem). Lê um dia, ou todos para o plano completo. Os treinos feitos não são partilhados.',
+      'Paginação igual em todas as listas longas: Histórico, Desafios, relatórios semanais e histórico de cada exercício.',
+      'Nos jogos, deslizar o dedo já não sai do jogo.',
+      'Fuga ao Dia de Pernas: vira logo ao arrastar o dedo, e as setas são maiores.',
+    ],
+    en: [
+      'Share plans by QR: in Share → QR per day, each day has its own QR. The other person uses Plans → Scan QR (camera or image). Scan one day, or all of them for the whole plan. Workouts done are not shared.',
+      'The same paging in every long list: History, Challenges, week reports and each exercise history.',
+      'In games, a swipe no longer leaves the game.',
+      'Leg Day Escape: turns as soon as you drag, and the arrows are larger.',
+    ],
+  },
+  {
     date: '2026-11-01',
     pt: [
       'Relatórios (Mais → Relatórios): Análise, Semana e Tu vs 3 meses num só sítio. O relatório da semana e o "tu vs" já não precisam do personal trainer.',

@@ -7,6 +7,9 @@ import { tr } from '../util';
 import { Modal } from './Modal';
 import { ExerciseItem } from './ExerciseItem';
 
+/** Results shown at first and added by "show more", as in the exercise list. */
+const PAGE = 60;
+
 export const matches = (e: Exercise, q: string) => {
   const n = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const needle = n(q.trim());
@@ -17,6 +20,7 @@ export const matches = (e: Exercise, q: string) => {
 export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }: { onPick: (e: Exercise) => void; onClose: () => void; exclude?: string[]; preferred?: string[] }) {
   const { t } = useTranslation();
   const [q, setQ] = useState('');
+  const [limit, setLimit] = useState(PAGE);
   const all = useLiveQuery(() => db.exercises.toArray(), [], []);
   const list = useMemo(
     () =>
@@ -25,10 +29,10 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
         .sort((a, b) => Number(preferred.includes(b.id)) - Number(preferred.includes(a.id)) || a.name.localeCompare(b.name)),
     [all, q, exclude, preferred],
   );
-  const shown = list.slice(0, 150);
+  const shown = list.slice(0, limit);
   return (
     <Modal title={t('picker.title')} onClose={onClose}>
-      <input type="search" autoFocus placeholder={t('picker.placeholder')} aria-label={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} />
+      <input type="search" autoFocus placeholder={t('picker.placeholder')} aria-label={t('common.search')} value={q} onChange={(e) => (setQ(e.target.value), setLimit(PAGE))} />
       <ul className="pick-list">
         {shown.map((e) => (
           <li key={e.id}>
@@ -44,6 +48,11 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
         ))}
         {!list.length && <li className="muted">{t('exercise.noResults')}</li>}
       </ul>
+      {list.length > shown.length && (
+        <button type="button" className="outline xl" style={{ marginTop: '0.75rem' }} onClick={() => setLimit(limit + PAGE)}>
+          {t('exercise.showMore', { n: Math.min(PAGE, list.length - shown.length), left: list.length - shown.length })}
+        </button>
+      )}
     </Modal>
   );
 }

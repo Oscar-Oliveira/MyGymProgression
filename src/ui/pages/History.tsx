@@ -6,14 +6,13 @@ import { dialog } from '../components/Dialog';
 import { resumable } from '../../domain/workout';
 import { db } from '../../data/db';
 import type { Workout } from '../../domain/types';
-import { Empty } from '../components/Bits';
+import { askedPage, Empty, PAGE_SIZE, Pager } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
 
 const STATUS_TONE: Record<Workout['status'], string> = { completed: 'up', partial: 'warn', interrupted: 'warn', in_progress: '' };
-const PAGE_SIZE = 10;
 
 export function History() {
   const { t } = useTranslation();
@@ -22,8 +21,8 @@ export function History() {
   const toneFor = useTones();
   const nav = useNavigate();
   // The page is kept in the URL, so "back" from a workout returns to the same page.
-  const [params, setParams] = useSearchParams();
-  const asked = Math.max(1, Math.floor(Number(params.get('page'))) || 1);
+  const [params] = useSearchParams();
+  const asked = askedPage(params);
   const data = useLiveQuery(async () => {
     const total = await db.workouts.count();
     const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -50,10 +49,6 @@ export function History() {
   };
   const locale = s.language === 'pt' ? 'pt-PT' : 'en-GB';
   const month = (iso: string) => new Date(iso).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-  const go = (p: number) => {
-    setParams(p > 1 ? { page: String(p) } : {});
-    window.scrollTo(0, 0);
-  };
 
   return (
     <div>
@@ -105,19 +100,7 @@ export function History() {
               </div>
             );
           })}
-          {pages > 1 && (
-            <nav className="pager" aria-label={t('history.pages')}>
-              <button className="outline" disabled={page <= 1} onClick={() => go(page - 1)}>
-                ‹ {t('history.prev')}
-              </button>
-              <span className="pager-info" aria-live="polite">
-                {t('history.page', { page, pages })}
-              </span>
-              <button className="outline" disabled={page >= pages} onClick={() => go(page + 1)}>
-                {t('history.next')} ›
-              </button>
-            </nav>
-          )}
+          <Pager page={page} pages={pages} label={t('history.pages')} />
         </>
       )}
     </div>
