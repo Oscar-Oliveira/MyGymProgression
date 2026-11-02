@@ -4,10 +4,11 @@ export interface ShareCardData {
   subtitle: string;
   /** Three big numbers with their labels. */
   stats: { value: string; label: string }[];
-  /** One line per exercise: name and sets. */
+  /** One line per exercise: name and sets. The card shows as many as fit. */
   lines: { name: string; value: string }[];
-  /** "+ 3 more". */
-  more?: string;
+  linesTitle: string;
+  /** "+ 3 more", for the lines that do not fit. */
+  more: (count: number) => string;
   records: { name: string; value: string }[];
   recordsTitle: string;
   /** Message of the trainer, with its face (SVG markup). */
@@ -20,6 +21,8 @@ export interface ShareCardData {
 const W = 1080;
 const H = 1350;
 const PAD = 72;
+const ROW = 84;
+const COACH = 150;
 
 function loadSvg(svg: string): Promise<HTMLImageElement | undefined> {
   const markup = svg.includes('xmlns=') ? svg : svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -62,97 +65,159 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
   const font = (size: number, weight = 700) => `${weight} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const card = (x: number, y: number, w: number, h: number, fill: string) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 32);
+    ctx.fill();
+  };
+  const dot = (x: number, y: number, r: number, fill: string) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  const caps = (text: string, x: number, y: number) => {
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = font(24, 750);
+    ctx.letterSpacing = '3px';
+    ctx.fillText(fit(ctx, text.toUpperCase(), W - PAD - x), x, y);
+    ctx.letterSpacing = '0px';
+  };
 
-  ctx.fillStyle = '#0c0d12';
+  // Background: dark, with two soft glows of the tone colour.
+  ctx.fillStyle = '#0b0c12';
   ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createLinearGradient(0, 0, W, H * 0.6);
-  glow.addColorStop(0, d.tone);
-  glow.addColorStop(1, '#0c0d12');
-  ctx.globalAlpha = 0.55;
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H * 0.6);
+  for (const [x, y, r, a] of [
+    [W, 0, 950, 0.6],
+    [0, H, 750, 0.25],
+  ] as const) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, d.tone);
+    g.addColorStop(1, 'transparent');
+    ctx.globalAlpha = a;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
   ctx.globalAlpha = 1;
 
-  let y = PAD + 20;
-  ctx.fillStyle = 'rgba(255,255,255,0.75)';
-  ctx.font = font(34, 600);
-  ctx.fillText(fit(ctx, d.subtitle, W - 2 * PAD), PAD, y);
-  y += 84;
+  // Header: date and plan, then the day name (up to 2 lines).
+  let y = PAD + 24;
+  caps(d.subtitle, PAD, y);
   ctx.fillStyle = '#fff';
   ctx.font = font(76, 850);
-  ctx.fillText(fit(ctx, d.title, W - 2 * PAD), PAD, y);
-  y += 70;
+  ctx.letterSpacing = '-2px';
+  for (const line of wrap(ctx, d.title, W - 2 * PAD, 2)) {
+    y += 86;
+    ctx.fillText(line, PAD, y);
+  }
+  ctx.letterSpacing = '0px';
+  y += 44;
 
-  // Three stat tiles.
-  const gap = 24;
-  const tw = (W - 2 * PAD - 2 * gap) / 3;
-  d.stats.slice(0, 3).forEach((s, i) => {
-    const x = PAD + i * (tw + gap);
-    ctx.fillStyle = 'rgba(255,255,255,0.09)';
-    ctx.beginPath();
-    ctx.roundRect(x, y, tw, 170, 28);
-    ctx.fill();
+  // Stats: one panel, three columns.
+  card(PAD, y, W - 2 * PAD, 156, 'rgba(255,255,255,0.08)');
+  const cw = (W - 2 * PAD) / 3;
+  ctx.textAlign = 'center';
+  d.stats.slice(0, 3).forEach((st, i) => {
+    const x = PAD + i * cw;
+    if (i) {
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillRect(x, y + 32, 2, 92);
+    }
     ctx.fillStyle = '#fff';
     ctx.font = font(64, 850);
-    ctx.fillText(fit(ctx, s.value, tw - 48), x + 24, y + 92);
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = font(28, 600);
-    ctx.fillText(fit(ctx, s.label, tw - 48), x + 24, y + 140);
-  });
-  y += 230;
-
-  // Exercises.
-  ctx.font = font(36, 650);
-  for (const l of d.lines) {
-    ctx.fillStyle = '#fff';
-    const value = ctx.measureText(l.value).width;
-    ctx.fillText(fit(ctx, l.name, W - 2 * PAD - value - 32), PAD, y);
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText(l.value, W - PAD - value, y);
-    y += 58;
-  }
-  if (d.more) {
+    ctx.fillText(fit(ctx, st.value, cw - 40), x + cw / 2, y + 86);
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = font(30, 600);
-    ctx.fillText(d.more, PAD, y);
-    y += 50;
-  }
+    ctx.font = font(22, 700);
+    ctx.fillText(fit(ctx, st.label.toUpperCase(), cw - 40), x + cw / 2, y + 126);
+  });
+  ctx.textAlign = 'left';
+  y += 156 + 64;
 
-  // Records.
-  if (d.records.length) {
-    y += 20;
-    ctx.fillStyle = d.tone;
-    ctx.font = font(38, 800);
-    ctx.fillText(`🏆 ${d.recordsTitle}`, PAD, y);
-    y += 58;
-    ctx.font = font(34, 650);
-    for (const r of d.records) {
-      ctx.fillStyle = '#fff';
-      const value = ctx.measureText(r.value).width;
-      ctx.fillText(fit(ctx, r.name, W - 2 * PAD - value - 32), PAD, y);
-      ctx.fillText(r.value, W - PAD - value, y);
-      y += 54;
+  // From the bottom up: footer, trainer, records. The exercises take the space that stays.
+  let bottom = H - PAD - 44;
+  const coachTop = d.coach?.text ? (bottom -= COACH) : 0;
+  if (coachTop) bottom -= 24;
+  const recordsH = d.records.length ? 76 + d.records.length * 50 : 0;
+  const recordsTop = recordsH ? (bottom -= recordsH) : 0;
+  if (recordsTop) bottom -= 24;
+
+  // Exercises: a numbered badge, the name and the sets below it. Two columns when one is not enough.
+  caps(d.linesTitle, PAD, y);
+  y += 16;
+  const rows = Math.max(1, Math.floor((bottom - y) / ROW));
+  const cols = d.lines.length > rows ? 2 : 1;
+  const room = rows * cols;
+  const shown = d.lines.length > room ? d.lines.slice(0, room - 1) : d.lines;
+  const colW = (W - 2 * PAD - (cols - 1) * 32) / cols;
+  const r = cols > 1 ? 22 : 26;
+  const cell = (i: number) => ({ x: PAD + Math.floor(i / rows) * (colW + 32), top: y + (i % rows) * ROW });
+  shown.forEach((l, i) => {
+    const { x, top } = cell(i);
+    const tx = x + 2 * r + 24;
+    if (i % rows) {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(tx, top, x + colW - tx, 2);
     }
-  }
-
-  // Trainer at the bottom.
-  if (d.coach?.text) {
-    const top = H - PAD - 200;
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.beginPath();
-    ctx.roundRect(PAD, top, W - 2 * PAD, 150, 28);
-    ctx.fill();
-    const face = d.coach.svg ? await loadSvg(d.coach.svg) : undefined;
-    const tx = face ? PAD + 140 : PAD + 32;
-    if (face) ctx.drawImage(face, PAD + 24, top + 23, 104, 104);
+    dot(x + r, top + ROW / 2, r, d.tone);
     ctx.fillStyle = '#fff';
-    ctx.font = font(32, 650);
-    wrap(ctx, d.coach.text, W - PAD - tx - 32, 3).forEach((line, i) => ctx.fillText(line, tx, top + 52 + i * 40));
+    ctx.font = font(cols > 1 ? 22 : 26, 850);
+    ctx.textAlign = 'center';
+    ctx.fillText(String(i + 1), x + r, top + ROW / 2 + 8);
+    ctx.textAlign = 'left';
+    ctx.font = font(cols > 1 ? 30 : 34, 750);
+    ctx.fillText(fit(ctx, l.name, x + colW - tx), tx, top + 38);
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = font(cols > 1 ? 24 : 28, 600);
+    ctx.fillText(fit(ctx, l.value, x + colW - tx), tx, top + 70);
+  });
+  if (shown.length < d.lines.length) {
+    const { x, top } = cell(shown.length);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = font(28, 650);
+    ctx.fillText(d.more(d.lines.length - shown.length), x + 2 * r + 24, top + ROW / 2 + 10);
   }
 
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.font = font(28, 600);
-  ctx.fillText(d.footer, PAD, H - PAD + 12);
+  // Records: a card tinted with the tone.
+  if (recordsTop) {
+    ctx.globalAlpha = 0.22;
+    card(PAD, recordsTop, W - 2 * PAD, recordsH, d.tone);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff';
+    ctx.font = font(32, 850);
+    ctx.fillText(`🏆 ${d.recordsTitle}`, PAD + 36, recordsTop + 54);
+    ctx.font = font(30, 650);
+    d.records.forEach((rec, i) => {
+      const ry = recordsTop + 54 + (i + 1) * 50;
+      const value = ctx.measureText(rec.value).width;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText(fit(ctx, rec.name, W - 2 * PAD - 72 - value - 32), PAD + 36, ry);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(rec.value, W - PAD - 36 - value, ry);
+    });
+  }
+
+  // Trainer: the face in a circle and the message.
+  if (coachTop) {
+    card(PAD, coachTop, W - 2 * PAD, COACH, 'rgba(255,255,255,0.08)');
+    const mid = coachTop + COACH / 2;
+    const face = d.coach!.svg ? await loadSvg(d.coach!.svg) : undefined;
+    const cx = face ? PAD + 160 : PAD + 36;
+    if (face) {
+      dot(PAD + 86, mid, 56, 'rgba(255,255,255,0.1)');
+      ctx.drawImage(face, PAD + 40, mid - 46, 92, 92);
+    }
+    ctx.fillStyle = '#fff';
+    ctx.font = font(30, 650);
+    const lines = wrap(ctx, d.coach!.text, W - PAD - cx - 36, 3);
+    lines.forEach((line, i) => ctx.fillText(line, cx, mid + 10 + (i - (lines.length - 1) / 2) * 38));
+  }
+
+  // Footer: a tone dot and the app name.
+  dot(PAD + 9, H - PAD + 2, 9, d.tone);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = font(28, 750);
+  ctx.fillText(d.footer, PAD + 30, H - PAD + 12);
 
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 }

@@ -59,3 +59,9 @@ describe('decisionText: incomplete and restricted show the sets', () => {
     expect(why(entry('double', 'restricted', [{ code: 'top_reached' }, { code: 'pain' }]))).toBe('10 × 40 kg — Foi registada dor ou desconforto.');
   });
 });
+
+describe('decisionText: fixed exercises', () => {
+  const fixed = (role: string) => ({ ...entry('none', 'no_progression', []), role, evaluation: { strategy: 'none', outcome: 'no_progression', completion: 'below_target', reasons: [] } }) as unknown as WorkoutEntry;
+  it('below the target: short', () => expect(decisionText(fixed('main'), undefined, t, 'pt').what).toBe('Abaixo do previsto'));
+  it('an extra has no limits: one done set is enough', () => expect(decisionText(fixed('optional'), undefined, t, 'pt').what).toBe('Cumprido como previsto'));
+});

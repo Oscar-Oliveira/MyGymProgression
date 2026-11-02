@@ -59,6 +59,7 @@ export function SplashCrew() {
     return stats.length && Math.random() < 0.5 ? pick(stats) : pick(t('splash.tips', { lng, returnObjects: true }) as string[]);
   }, [lng, !!workouts]);
 
+  // The button and the bubble get keys with different prefixes: a tap gives both the same time, and equal keys duplicate the trainer.
   const poke = (i: number) => (e: MouseEvent) => {
     // A trainer reacts; the splash stays open.
     e.stopPropagation();
@@ -78,11 +79,11 @@ export function SplashCrew() {
       <div className="splash-crew">
         {crew.map(({ style, gender }, i) => (
           <span key={style} className={`crew-${style} ${i < 2 ? 'left' : i > 2 ? 'right' : ''}`} style={{ '--i': i } as React.CSSProperties}>
-            <button type="button" className={poked?.i === i ? 'poked' : ''} key={poked?.i === i ? poked.at : 0} onClick={poke(i)} aria-label={t(`coach.styles.${style}`, { lng })}>
+            <button type="button" className={poked?.i === i ? 'poked' : ''} key={`p${poked?.i === i ? poked.at : 0}`} onClick={poke(i)} aria-label={t(`coach.styles.${style}`, { lng })}>
               <CoachAvatar style={style} gender={gender} size={54} />
             </button>
             {talk?.i === i && (
-              <span key={talk.at} className="bubble">
+              <span key={`t${talk.at}`} className="bubble">
                 {talk.text}
               </span>
             )}

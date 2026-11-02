@@ -91,6 +91,7 @@ export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionS
   };
 }
 
+/** An exercise added during a workout. It is an extra (optional): it does not make the workout partial. */
 export function entryAdHoc(ex: Exercise, state?: ProgressionState, previous?: WorkoutEntry): WorkoutEntry {
   const prescription = applyTargets(ex.defaultSets, state?.targets, state?.repsRange);
   const progression = structuredClone(ex.progression);
@@ -102,7 +103,7 @@ export function entryAdHoc(ex: Exercise, state?: ProgressionState, previous?: Wo
     lineageId: adHocLineage(ex.id),
     prescription,
     progression,
-    role: ex.category === 'warmup' ? 'warmup' : 'main',
+    role: ex.category === 'warmup' ? 'warmup' : 'optional',
     sets: setsFor(prescription, progression, prev),
     pain: false,
     technique: false,

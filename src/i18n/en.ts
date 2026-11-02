@@ -142,7 +142,7 @@ export const en = {
     nextTime: 'Next time', details: 'All sets', prescribed: 'Planned', correct: 'Correct records', correctHelp: 'Fix values recorded by mistake. The previous version is kept.',
     short: 'Short on time', shortConfirm: 'Short on time? Optional exercises not started are removed, and one set from each exercise with 3 or more sets. Those exercises do not go up this time.', shortOk: 'Shorten', shortened: 'Shortened',
     tip: 'Technique tip', tipNext: 'Another tip ({{n}}/{{total}})', tipLanguage: 'From the exercise library.',
-    later: 'Do it later', setup: 'Setup', setupHelp: 'Your setup note (seat, grip…). It is saved in the exercise.', setupPlaceholder: 'E.g. seat 4, middle grip', share: 'Share image', shareMore: '+ {{count}} more',
+    later: 'Do it later', setup: 'Setup', setupHelp: 'Your setup note (seat, grip…). It is saved in the exercise.', setupPlaceholder: 'E.g. seat 4, middle grip', share: 'Share image', shareMore: '+ {{count}} more', copyText: 'Copy text', textCopied: 'Copied',
     allExercises: 'Workout exercises', saveCorrection: 'Save correction', revertAsk: 'After the correction, {{name}} no longer reached the top of the range. Undo the increase ({{from}} → {{to}})?', revertOk: 'Undo increase', revisions: 'Corrections', revisionAt: 'Edited {{date}}', deleteConfirm: 'Delete this workout from history?', setsDone: '{{done}}/{{total}} sets',
   },
   dialog: { confirm: 'Confirm', notice: 'Notice', ok: 'OK' },

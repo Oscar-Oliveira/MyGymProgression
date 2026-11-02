@@ -27,6 +27,7 @@ import { CircuitFocus } from '../components/CircuitFocus';
 import { CorrectionEditor } from '../components/CorrectionEditor';
 import { RivalCard, Speak, trainerLine } from '../components/TrainerBits';
 import { drawShareCard, shareImage } from '../shareCard';
+import { workoutText } from '../workoutText';
 
 export function WorkoutPage() {
   const { t } = useTranslation();
@@ -54,6 +55,7 @@ export function WorkoutPage() {
   const [list, setList] = useState(false);
   // Personal trainer message shown for a few seconds after an exercise or circuit is done.
   const [toast, setToast] = useState<string>();
+  const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(undefined), 6000);
@@ -380,8 +382,9 @@ export function WorkoutPage() {
         { value: `${doneWorking}/${totalWorking}`, label: t('analysis.workingSets') },
         { value: draft.endedAt ? fmtSeconds((Date.parse(draft.endedAt) - Date.parse(draft.startedAt)) / 1000) : '—', label: t('analysis.duration') },
       ],
-      lines: done.slice(0, 6).map((e) => ({ name: e.exercise.name, value: setsLine(e.sets, e.exercise.metrics, s.language) })),
-      more: done.length > 6 ? t('workout.shareMore', { count: done.length - 6 }) : undefined,
+      lines: done.map((e) => ({ name: e.exercise.name, value: setsLine(e.sets, e.exercise.metrics, s.language) })),
+      linesTitle: t('nav.exercises'),
+      more: (count) => t('workout.shareMore', { count }),
       records: records.slice(0, withCoach ? 2 : 3).map((r) => ({ name: r.name, value: fmtRecord(r, r.value) })),
       recordsTitle: t('workout.records'),
       coach: withCoach
@@ -394,6 +397,12 @@ export function WorkoutPage() {
       footer: 'MyGymProgression',
     });
     if (blob) await shareImage(blob, `mygymprogression-${draft.startedAt.slice(0, 10)}.png`);
+  };
+  /** The workout as text (every set), to paste in an email or an AI chat. */
+  const copyText = async () => {
+    await navigator.clipboard.writeText(workoutText(draft, t, s.language));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
   return (
     <div className="toned" style={tone} ref={rootRef}>
@@ -558,6 +567,9 @@ export function WorkoutPage() {
             </button>
             <button className="outline" onClick={() => void shareCard()}>
               ⤴ {t('workout.share')}
+            </button>
+            <button className="outline" onClick={() => void copyText()}>
+              {copied ? `✓ ${t('workout.textCopied')}` : `⧉ ${t('workout.copyText')}`}
             </button>
             <span className="spacer" />
             <button

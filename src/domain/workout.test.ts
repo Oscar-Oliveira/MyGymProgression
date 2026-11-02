@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute } from './workout';
+import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -60,6 +60,17 @@ describe('workout flow', () => {
       expect(r.workout.entries[0].evaluation?.outcome).toBe('no_progression');
       expect(r.events.some((e) => e.exerciseId === t.warm.id)).toBe(false);
     }
+  });
+
+  it('an extra exercise is optional: a short treadmill does not make the workout partial', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    for (const e of w.entries) for (const x of e.sets) x.status = 'done';
+    const extra = entryAdHoc(newExercise('treadmill', DEFAULT_SETTINGS, { name: 'Passadeira' }));
+    expect(extra.role).toBe('optional');
+    extra.sets[0] = { ...extra.sets[0], status: 'done', values: { ...extra.sets[0].values, duration: 1 } };
+    const r = finishWorkout({ ...w, entries: [...w.entries, extra] }, false, t.lastEntry, t.states);
+    expect(r.workout.status).toBe('completed');
   });
 
   it('pending sets become skipped and the workout is partial', () => {

@@ -96,6 +96,10 @@ export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): s
 }
 
 /** Trend for an entry and its event, for summaries and lists. */
+/** A fixed exercise is done when its targets are met. An optional one (an extra) has no limits: one done set is enough. */
+const fixedDone = (entry: WorkoutEntry) =>
+  entry.evaluation?.completion === 'complete' || (entry.role === 'optional' && entry.sets.some((s) => s.kind === 'working' && s.status === 'done'));
+
 function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
   if (ev) {
     if (ev.decision === 'applied' || ev.decision === 'reps_up') return 'up';
@@ -104,7 +108,7 @@ function trendOf(entry: WorkoutEntry, ev?: ProgressionEvent): Trend {
     if (ev.decision === 'overridden' && ev.suggestion) return ev.after[ev.suggestion.metric]! > ev.before[ev.suggestion.metric]! ? 'up' : ev.after[ev.suggestion.metric]! < ev.before[ev.suggestion.metric]! ? 'down' : 'same';
     return 'same';
   }
-  if (entry.progression.strategy === 'none') return entry.evaluation?.completion === 'complete' ? 'done' : 'short';
+  if (entry.progression.strategy === 'none') return fixedDone(entry) ? 'done' : 'short';
   return 'same';
 }
 
@@ -132,7 +136,7 @@ export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefin
   const sets = setsLine(entry.sets, metrics, lang);
   if (!evn) return { what: '', why: sets };
   if (entry.progression.strategy === 'none') {
-    return { what: evn.completion === 'complete' ? t('decide.doneFixed') : t('decide.shortFixed'), why: sets };
+    return { what: fixedDone(entry) ? t('decide.doneFixed') : t('decide.shortFixed'), why: sets };
   }
   const val = (targets?: Partial<Record<MetricKey, number>>) => {
     const m = mainValue(entry, targets);

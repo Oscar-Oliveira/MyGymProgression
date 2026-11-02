@@ -8,6 +8,21 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-02',
+    pt: [
+      'Nova imagem de partilha do treino: mais moderna, e mostra os exercícios que couberem (em duas colunas quando são muitos).',
+      'Copiar texto: no resumo do treino, copia o treino com todas as séries (para um email ou para pedir a uma IA as calorias, por exemplo).',
+      'Um exercício extra, adicionado durante o treino, é opcional: não deixa o treino parcial e não tem limites (ex.: passadeira só para cardio).',
+      'Ecrã inicial: tocar várias vezes num PT já não mostra PTs repetidos por baixo.',
+    ],
+    en: [
+      'New workout share image: more modern, and it shows as many exercises as fit (in two columns when there are many).',
+      'Copy text: on the workout summary, copies the workout with every set (for an email, or to ask an AI for the calories, for example).',
+      'An extra exercise, added during a workout, is optional: it does not make the workout partial and has no limits (e.g. a treadmill just for cardio).',
+      'Start screen: tapping a trainer many times no longer shows repeated trainers below.',
+    ],
+  },
+  {
+    date: '2026-11-02',
     pt: ['A app abre mais depressa: os gráficos e os jogos só são carregados quando os abres.', 'Duplicar um plano mantém a cor do plano.'],
     en: ['The app opens faster: charts and games load only when you open them.', 'Duplicating a plan keeps the plan colour.'],
   },

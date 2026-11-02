@@ -144,7 +144,7 @@ export const pt: Resources = {
     nextTime: 'Próxima vez', details: 'Todas as séries', prescribed: 'Previsto', correct: 'Corrigir registos', correctHelp: 'Corrige valores registados por engano. A versão anterior fica guardada.',
     short: 'Pouco tempo', shortConfirm: 'Pouco tempo? Saem os exercícios opcionais ainda não começados e uma série de cada exercício com 3 ou mais séries. Esses exercícios não sobem desta vez.', shortOk: 'Encurtar', shortened: 'Encurtado',
     tip: 'Dica de técnica', tipNext: 'Outra dica ({{n}}/{{total}})', tipLanguage: 'Da biblioteca de exercícios, em inglês.',
-    later: 'Fazer depois', setup: 'Setup', setupHelp: 'A tua nota de setup (banco, pega…). Fica guardada no exercício.', setupPlaceholder: 'Ex.: banco no 4, pega média', share: 'Partilhar imagem', shareMore: '+ {{count}} exercícios',
+    later: 'Fazer depois', setup: 'Setup', setupHelp: 'A tua nota de setup (banco, pega…). Fica guardada no exercício.', setupPlaceholder: 'Ex.: banco no 4, pega média', share: 'Partilhar imagem', shareMore: '+ {{count}} exercícios', copyText: 'Copiar texto', textCopied: 'Copiado',
     allExercises: 'Exercícios do treino', saveCorrection: 'Guardar correção', revertAsk: 'Com a correção, {{name}} já não chegou ao topo da faixa. Anular a subida ({{from}} → {{to}})?', revertOk: 'Anular subida', revisions: 'Correções', revisionAt: 'Editado {{date}}', deleteConfirm: 'Eliminar este treino do histórico?', setsDone: '{{done}}/{{total}} séries',
   },
   dialog: { confirm: 'Confirmar', notice: 'Aviso', ok: 'OK' },
