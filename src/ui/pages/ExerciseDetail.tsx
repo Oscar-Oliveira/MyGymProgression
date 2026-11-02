@@ -14,7 +14,8 @@ import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
 import { fmtMetric } from '../progress';
-import { Empty, OutcomeBadge, pageOf, Pager, TrendChart } from '../components/Bits';
+import { Empty, OutcomeBadge, pageOf, Pager } from '../components/Bits';
+import { TrendChart } from '../components/TrendChart';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, speedOut, tr, useSettings } from '../util';
 
 function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {

@@ -301,8 +301,9 @@ describe('plan goal decides the progression (D11)', () => {
     const { duplicatePlan } = await import('./factory');
     const t = run('strength');
     t.plan.strengthMode = 'range';
+    t.plan.color = 'teal';
     const copy = duplicatePlan(t.plan, t.version, 'Copy');
-    expect([copy.plan.goal, copy.plan.strengthMode]).toEqual(['strength', 'range']);
+    expect([copy.plan.goal, copy.plan.strengthMode, copy.plan.color]).toEqual(['strength', 'range', 'teal']);
   });
 });
 

@@ -26,7 +26,7 @@ export function planShare(all: DataSet, planId: string, appVersion: string, lite
   const copy = duplicatePlan(plan, version, plan.name);
   const data: DataSet = {
     ...emptyDataSet(),
-    plans: [{ ...copy.plan, color: plan.color }],
+    plans: [copy.plan],
     planVersions: [copy.version],
     exercises: all.exercises.map((e) => shareExercise(e, lite)),
   };

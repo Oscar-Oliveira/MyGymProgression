@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-02',
+    pt: ['A app abre mais depressa: os gráficos e os jogos só são carregados quando os abres.', 'Duplicar um plano mantém a cor do plano.'],
+    en: ['The app opens faster: charts and games load only when you open them.', 'Duplicating a plan keeps the plan colour.'],
+  },
+  {
+    date: '2026-11-02',
     pt: [
       'Partilha planos por QR: em Partilhar → QR por dia, cada dia tem o seu QR. Quem recebe usa Planos → Ler QR (câmara ou imagem). Lê um dia, ou todos para o plano completo. Os treinos feitos não são partilhados.',
       'Paginação igual em todas as listas longas: Histórico, Desafios, relatórios semanais e histórico de cada exercício.',

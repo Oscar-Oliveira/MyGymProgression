@@ -35,7 +35,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 | `PlanItem.lineageId` | Stable across versions; keys `ProgressionState`. |
 | `ProgressionState` | Current progressed targets per lineage, e.g. `{ "load": 42.5 }`. |
 | `Workout` → `WorkoutEntry` → `SetRecord` | Actual session data, with prescription and exercise snapshots and the evaluation result. |
-| `ProgressionEvent` | `outcome`, optional `suggestion` (`metric`, `from`, `to`, `kind`: increase/decrease), reasons, `decision` (`applied`, `reverted`, `pending`, `kept`, `stepped_back`, `overridden`, `none`), and targets before/after. |
+| `ProgressionEvent` | `outcome`, optional `suggestion` (`metric`, `from`, `to`, `kind`: increase/decrease), reasons, `decision` (`applied`, `reverted`, `pending`, `kept`, `stepped_back`, `reps_up`, `overridden`, `none`), and targets before/after. |
 | `SetRecord.goal` | Today's goal for the set, computed at workout start. |
 | `Revision` | Full copy of a workout before a correction. |
 | `Goal` | Target load for an exercise: `load` in kg, **total** (a per-side exercise counts both sides), optional `by` date (YYYY-MM-DD). Met when a done working set reaches it. |
@@ -43,8 +43,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 ## Import
 
-1. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
-2. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+1. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
    - v13 → v14: additive only — `report`, `rival`, `retro` and `secretGame` in settings (booleans; `coach.report` / `coach.rival` stay valid and are read when the new ones are not set) and the game ids `legday` and `rerack`.
    - v12 → v13: additive only — `goals`, `coachReports`, `workout.short` and `entry.short` ("short on time": no increase), `warmup` in settings (boolean) and `coach.live` / `report` / `voice` / `tips` / `rival` (booleans).
    - v11 → v12: additive only — outcome `sync` (a question to update another plan with the same exercise after its load went up), `event.sourceEventId` (the event that raised the load) and `loadSync` in settings (`trigger` `off` | `order` | `below`, `method` `e1rm` | `increment`).
@@ -58,6 +57,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
    - v3 → v4: additive only — exercise library fields (`group`, `overview`, `steps`, `tips`, `thumb`, `image`, `video`, `muscleDetail`, `source`, `related`).
    - v2 → v3: additive only — `plan.strengthMode`, `progression.onTop`, `progressionState.repsRange`, `event.repsOption` / `rangeBefore` / `rangeAfter`, outcome `ready`, decision `reps_up`.
    - v1 → v2: `rir`, `rpe` and `criteria.useRir` are removed; `recommendation` becomes `suggestion`; outcomes `completed_as_prescribed`→`keep`, `increase_recommended`→`increase`, `below_target`→`missed`; decisions `accepted`→`applied`, `deferred`/`pending`→`kept`. The browser database is migrated the same way on first start.
+2. Validation. Errors are reported with a JSON path, for example `data.exercises.0.category`.
 3. Preview per table: new, identical, conflicting (same id, different content).
 4. **Merge** never deletes local data. There is one weekly challenge and one trainer report per week: an imported one of a week that already has one is not imported. On conflict: keep local, use imported, or keep both (the imported copy gets a new id and its references are rewritten). Identical records are not rewritten. Exercises with the same name and equipment but a different id can be mapped to the existing exercise.
 5. **Replace** downloads a backup of the current data first, then replaces everything in one transaction.

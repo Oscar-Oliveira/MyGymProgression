@@ -39,6 +39,7 @@ Source requirements: [`context.md`](../context.md).
 | D28 | Analysis: sets per muscle **per week** (total ÷ days × 7), with 10–20 as a dashed guideline band (common hypertrophy guideline, not a rule). Totals and muscles compare with the previous period of the same length (not for "All", only when it has workouts). | 2026-10-30 |
 | D29 | Share a plan: as a file (import in Settings → Import) or as a link `#/share?d=<deflate+base64url>`. The share is a copy with new ids (always added as a new plan), with the exercises it uses and target loads; never workouts, progress or personal notes. The link leaves out library text and images. Existing exercises are reused (same id, or same name and equipment). | 2026-10-30 |
 | D30 | Open exercise library: free-exercise-db (The Unlicense, public domain), built by `scripts/import_free_exercise_db.py` into `public/library/free-exercise-db.json` (thumbnails embedded, ~2.8 MB), published with the app and downloaded only when the user taps "Install open library". Built-in exercises map to it (`BUILTIN_OPEN_SLUG`) for images. The Exsercise.com path stays. | 2026-10-30 |
+| D31 | Workout and plan editor components moved to their own files (`EntryFocus`, `CircuitFocus`, `CorrectionEditor`, `CoachCard`, `PlanItemCard`); no change in behaviour. | 2026-10-30 |
 | D32 | Settings page: cards with action rows (icon, title, description); backup status, full backup and restore together; other exports folded; switches for on/off; danger zone. | 2026-10-30 |
 | D33 | Pause: a labelled "Pause" button (top of the workout) and a menu item; the workout stays in progress ("Paused"). Resume: only the most recent workout, when paused or interrupted (History banner, summary). Resuming an interrupted workout undoes its still-current progression changes, keeps a revision, and turns skipped sets back to pending; finishing evaluates it again. | 2026-10-30 |
 | D34 | Correcting a workout can change its status (completed, partial, interrupted); exercises and sets not done are highlighted. | 2026-10-30 |
@@ -68,7 +69,7 @@ Source requirements: [`context.md`](../context.md).
 | D58 | **Weekly challenge** always in More; its switch is at the top of its page (no longer in Settings). The Home card has a ✕ that hides it until the next week (kept on the device). Settings: Preferences, Workout (warm-up and stalled threshold), loads across plans, data, library, danger zone. | 2026-11-01 |
 | D59 | **Easter egg "1987"**: 7 taps on the About logo (at most 1.5 s apart; a count from the 4th tap) turn on or off a retro look (neon colours, monospace font, square corners, screen lines; no animation with reduced motion) and unlock for good the secret game "Rerack!" (drag weights to the rack before more than 10 lie on the floor; the phone guy blocks a slot, the grunter shakes the screen, sweat makes weights slide). New game for everyone: "Leg Day Escape" (run from the sergeant through a gym maze; a shake gives speed and points; when caught, tap the squats in 3 s to escape, 4 more each time). | 2026-11-01 |
 | D60 | **Plans by QR, one code per day** (plans only; workouts done stay personal). Share → "QR per day" shows one code per day with ‹ ›. Each code is a normal share link (`#/share?d=…&g=…&i=…&n=…`): `g` groups the days of one plan version, `i`/`n` say which day of how many. The data is the day as a plan copy, in a short form for QR (ids become `~0`, `~1`… and get new UUIDs when read; dates become the export date). Plans → "Scan QR" reads codes with the camera (browser reader, else jsQR loaded on demand) or from an image; days read in any order join into one plan (same-name exercises kept once), then the usual share preview imports it. A code of another plan starts again. Also: one `Pager` (10 per page, page in the URL) for History, Challenges, earlier week reports and the exercise history and load changes; "show more" in the exercise picker; no swipe-back on a game page; Leg Day Escape turns while dragging and has a larger d-pad. | 2026-11-02 |
-| D31 | Workout and plan editor components moved to their own files (`EntryFocus`, `CircuitFocus`, `CorrectionEditor`, `CoachCard`, `PlanItemCard`); no change in behaviour. | 2026-10-30 |
+| D61 | **Loaded on demand**: the exercise detail page (charts, recharts) and the games are separate chunks loaded when opened (`React.lazy`); `TrendChart` has its own file so the charts are not in the start bundle. The service worker still precaches every chunk, so the app works offline. The scroll memory saves the position under the current page key (set in a layout effect), so the empty moment while a chunk loads never saves 0 for the page left behind. "Duplicate plan" keeps the plan colour. | 2026-11-02 |
 
 ## 2. Assumptions (reversible defaults — correct me if wrong)
 
@@ -256,12 +257,12 @@ Filters: date range, exercise, plan, goal, muscle group. Period-over-period comp
 ## 9. Persistence, backup, import/export
 
 - **Dexie (IndexedDB)** with versioned schema migrations. On first start the app calls `navigator.storage.persist()` to request persistent storage. The app shows a "last backup" reminder.
-- **Interchange format** (documented in `docs/data-format.md` with a JSON Schema):
-  `{ format: "mygymprogression", schemaVersion: 1, exportedAt, app: {version}, data: { exercises, plans, planVersions, progressionStates, workouts, progressionEvents, revisions, settings } }`
+- **Interchange format** (documented in `docs/data-format.md`; the zod schema in `src/domain/schema.ts` is the authoritative definition):
+  `{ format: "mygymprogression", schemaVersion: 14, exportedAt, app: {version}, scope, data: { exercises, plans, planVersions, progressionStates, workouts, progressionEvents, revisions, gameScores, challenges, goals, coachReports, settings } }`
 - **Import flow**:
   1. Parse the file.
-  2. Validate it with zod and show errors with JSON paths.
-  3. Migrate older schema versions.
+  2. Migrate older schema versions.
+  3. Validate it with zod and show errors with JSON paths.
   4. Show a preview diff: new, identical or conflicting records.
   5. Choose a mode. **Merge** resolves each conflict by skip, overwrite or keep both. **Replace** creates an automatic backup first and needs explicit confirmation.
   6. Commit in a single transaction.

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useRef, type TouchEvent } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createHashRouter, Navigate, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { db } from '../data/db';
@@ -10,7 +10,6 @@ import { Train } from './pages/Train';
 import { More } from './pages/More';
 import { ExerciseList } from './pages/ExerciseList';
 import { ExerciseEdit } from './pages/ExerciseEdit';
-import { ExerciseDetail } from './pages/ExerciseDetail';
 import { PlanList } from './pages/PlanList';
 import { PlanEdit } from './pages/PlanEdit';
 import { WorkoutPage } from './pages/WorkoutPage';
@@ -22,7 +21,10 @@ import { ShareImport } from './pages/ShareImport';
 import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
 import { CoachPage } from './pages/CoachPage';
-import { GamePage, GamesPage } from './games/Games';
+// Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
+const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail').then((m) => ({ default: m.ExerciseDetail })));
+const GamesPage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamesPage })));
+const GamePage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamePage })));
 
 // Outline icons (24×24, stroke = currentColor).
 const ICONS = {
@@ -65,12 +67,18 @@ function useScrollMemory() {
   const { key } = useLocation();
   const type = useNavigationType();
   const positions = useRef(new Map<string, number>());
+  // Set before the browser sends a scroll event: a page loaded on demand first empties the screen, and the scroll to 0
+  // that this causes must not be saved for the page left behind.
+  const current = useRef(key);
+  useLayoutEffect(() => {
+    current.current = key;
+  }, [key]);
   useEffect(() => {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    const save = () => positions.current.set(key, window.scrollY);
+    const save = () => positions.current.set(current.current, window.scrollY);
     addEventListener('scroll', save, { passive: true });
     return () => removeEventListener('scroll', save);
-  }, [key]);
+  }, []);
   useEffect(() => {
     // The same page updated its URL (filters, "show more"): stay where it is.
     if (type === 'REPLACE') return void positions.current.set(key, window.scrollY);
@@ -142,30 +150,32 @@ function Shell() {
             ‹ {t('common.back')}
           </button>
         )}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/train" element={<Train />} />
-          <Route path="/more" element={<More />} />
-          <Route path="/exercises" element={<ExerciseList />} />
-          <Route path="/exercises/new" element={<ExerciseEdit />} />
-          <Route path="/exercises/:id" element={<ExerciseDetail />} />
-          <Route path="/exercises/:id/edit" element={<ExerciseEdit />} />
-          <Route path="/plans" element={<PlanList />} />
-          <Route path="/plans/scan" element={<PlanScan />} />
-          <Route path="/plans/:id" element={<PlanEdit />} />
-          <Route path="/workout/:id" element={<WorkoutPage />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/reports" element={<Reports />} />
-          {/* Analysis is a tab of Reports (D57); old links still open it. */}
-          <Route path="/analysis" element={<Navigate to="/reports" replace />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/share" element={<ShareImport />} />
-          <Route path="/games" element={<GamesPage />} />
-          <Route path="/games/:id" element={<GamePage />} />
-          <Route path="/challenges" element={<Challenges />} />
-          <Route path="/coach" element={<CoachPage />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/train" element={<Train />} />
+            <Route path="/more" element={<More />} />
+            <Route path="/exercises" element={<ExerciseList />} />
+            <Route path="/exercises/new" element={<ExerciseEdit />} />
+            <Route path="/exercises/:id" element={<ExerciseDetail />} />
+            <Route path="/exercises/:id/edit" element={<ExerciseEdit />} />
+            <Route path="/plans" element={<PlanList />} />
+            <Route path="/plans/scan" element={<PlanScan />} />
+            <Route path="/plans/:id" element={<PlanEdit />} />
+            <Route path="/workout/:id" element={<WorkoutPage />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/reports" element={<Reports />} />
+            {/* Analysis is a tab of Reports (D57); old links still open it. */}
+            <Route path="/analysis" element={<Navigate to="/reports" replace />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/share" element={<ShareImport />} />
+            <Route path="/games" element={<GamesPage />} />
+            <Route path="/games/:id" element={<GamePage />} />
+            <Route path="/challenges" element={<Challenges />} />
+            <Route path="/coach" element={<CoachPage />} />
+          </Routes>
+        </Suspense>
       </main>
       <DialogHost />
     </>
