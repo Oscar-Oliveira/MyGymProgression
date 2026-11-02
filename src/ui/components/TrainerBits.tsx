@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { CoachReport, CoachSettings } from '../../domain/types';
 import { reportOn, type RivalRow } from '../../domain/trainer';
 import { fmtDate, fmtNum, fmtSeconds, distOut, loadOut, tr, useSettings } from '../util';
-import { CoachAvatar } from './CoachAvatar';
+import { CoachAvatar, CoachName } from './CoachAvatar';
 import { speak } from '../voice';
 import { repo } from '../../data/repo';
 
@@ -51,7 +51,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
   return (
     <section className="card report" aria-label={t('trainer.report.title')}>
       <div className="challenge-head">
-        {coach && <CoachAvatar style={coach.style} gender={coach.gender} size={40} />}
+        {coach && <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={40} />}
         <div style={{ flex: 1 }}>
           <p className="eyebrow">{t('trainer.report.title')}</p>
           <p className="help">{t('trainer.report.weekOf', { date: fmtDate(`${report.week}T12:00:00`, s.language) })}</p>
@@ -62,7 +62,12 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
           </button>
         )}
       </div>
-      {coach && <p className="report-say">{t(`trainer.reportSay.${coach.style}.${reportMood(report)}`, { workouts: report.workouts, ups: report.ups })}</p>}
+      {coach && (
+        <p className="report-say">
+          <CoachName name={coach.name} />
+          {t(`trainer.reportSay.${coach.style}.${reportMood(report)}`, { workouts: report.workouts, ups: report.ups })}
+        </p>
+      )}
       <div className="grid3">
         {rows.map(([label, value]) => (
           <div key={label} className="stat">
@@ -125,8 +130,11 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
       </p>
       {coach && (
         <div className="coach" role="note" aria-label={t('coach.title')}>
-          <CoachAvatar style={coach.style} gender={coach.gender} />
-          <p>{t(`trainer.rivalSay.${coach.style}.${mood}`)}</p>
+          <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />
+          <p>
+            <CoachName name={coach.name} />
+            {t(`trainer.rivalSay.${coach.style}.${mood}`)}
+          </p>
         </div>
       )}
       <ul className="report-list">

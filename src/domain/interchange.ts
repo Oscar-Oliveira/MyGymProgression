@@ -87,6 +87,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   12: (raw) => ({ ...raw, schemaVersion: 13 }),
   // v14 only adds settings (report, rival, retro, secretGame) and two game ids; the old coach.report / coach.rival stay valid.
   13: (raw) => ({ ...raw, schemaVersion: 14 }),
+  // v15 only adds the trainer's name and look (coach.name, coach.look).
+  14: (raw) => ({ ...raw, schemaVersion: 15 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

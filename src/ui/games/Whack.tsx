@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CoachGender, CoachStyle } from '../../domain/types';
-import { CoachAvatar } from '../components/CoachAvatar';
+import type { CoachGender, CoachLook, CoachStyle } from '../../domain/types';
+import { CoachAvatar, randomLook } from '../components/CoachAvatar';
 import { pick, rand, useEnd, type GameProps } from './canvas';
 import { fx } from './feedback';
 
@@ -16,6 +16,7 @@ const POINTS: Record<CoachStyle, number> = { support: -3, spite: 1, stoic: 1, se
 interface Mole {
   style: CoachStyle;
   gender: CoachGender;
+  look: CoachLook;
   /** Time left (s) when it hides. */
   until: number;
 }
@@ -38,7 +39,8 @@ export function Whack({ onEnd }: GameProps) {
       const free = s.holes.flatMap((m, i) => (m ? [] : [i]));
       if (s.next <= 0 && free.length) {
         s.next = 0.45 + 0.45 * pace;
-        s.holes[pick(free)] = { style: pick(STYLES), gender: pick(GENDERS), until: s.left - rand(0.65, 0.65 + 0.45 * pace) };
+        const gender = pick(GENDERS);
+        s.holes[pick(free)] = { style: pick(STYLES), gender, look: randomLook(gender), until: s.left - rand(0.65, 0.65 + 0.45 * pace) };
       }
       render();
       if (s.left <= 0) {
@@ -79,7 +81,7 @@ export function Whack({ onEnd }: GameProps) {
       <div className="whack-grid">
         {s.holes.map((m, i) => (
           <button key={i} className={`whack-hole ${m ? 'up' : ''}`} aria-label={m ? t(`coach.styles.${m.style}`) : t('games.card', { n: i + 1 })} onPointerDown={() => hit(i)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && hit(i)}>
-            {m && <CoachAvatar style={m.style} gender={m.gender} size={64} />}
+            {m && <CoachAvatar style={m.style} gender={m.gender} look={m.look} size={64} />}
             {s.hits[i] && <span className={`whack-hit ${s.hits[i]!.startsWith('+') ? 'up' : 'down'}`}>{s.hits[i]}</span>}
           </button>
         ))}

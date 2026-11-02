@@ -94,6 +94,13 @@ export const en = {
     pages: 'Also speak outside the workout', pagesSub: 'Greeting on Home and comments at the end of a workout, in Analysis and in History (once a day).',
     when: 'When', whenOptions: { random: 'Sometimes, between exercises', each: 'After every exercise', start: 'Only at the start' },
     gender: 'Gender', genders: { male: 'Man', female: 'Woman' },
+    name: 'Name', namePlaceholder: 'Your trainer’s name',
+    look: 'Look', lookHelp: 'Make the face look like your real trainer. The style still gives the colours, the expression and the headband or cap.', lookReset: 'Back to the look of the style',
+    skin: 'Skin', skins: { light: 'Very light', fair: 'Light', medium: 'Medium', tan: 'Tan', brown: 'Brown', dark: 'Dark' },
+    hair: 'Hair', hairs: { bald: 'Bald', buzz: 'Buzz cut', short: 'Short', side: 'Side part', wavy: 'Wavy', curly: 'Curly', afro: 'Afro', spiky: 'Spiky', mohawk: 'Mohawk', long: 'Long', ponytail: 'Ponytail', bun: 'Bun', braids: 'Braids', bob: 'Bob' },
+    hairColor: 'Hair colour', hairColors: { black: 'Black', darkBrown: 'Dark brown', brown: 'Brown', auburn: 'Auburn', ginger: 'Ginger', blonde: 'Blonde', grey: 'Grey', white: 'White', pink: 'Pink', blue: 'Blue' },
+    beard: 'Beard', beards: { none: 'None', stubble: 'Stubble', moustache: 'Moustache', goatee: 'Goatee', full: 'Full beard' },
+    glasses: 'Glasses', glassesOptions: { none: 'None', round: 'Round', square: 'Square', sun: 'Sunglasses' },
     styles: { support: 'Support', energy: 'Energetic', spite: 'F*ck you (challenge)', stoic: 'Discipline (stoic)', sergeant: 'Sergeant + data' },
     styleHelp: {
       support: 'Positive and warm. Good for long-term consistency.',

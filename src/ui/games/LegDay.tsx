@@ -81,12 +81,12 @@ interface Mover {
 }
 
 /** Escape leg day: run from the sergeant through the gym; when caught, squat fast to escape. Score: points (seconds + shakes). */
-export function LegDay({ gender, onEnd, onSay }: GameProps) {
+export function LegDay({ gender, look, onEnd, onSay }: GameProps) {
   const say = useRef(onSay);
   say.current = onSay;
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
-  const { img, node } = useAvatarImage('sergeant', gender);
+  const { img, node } = useAvatarImage('sergeant', gender, look);
   const end = useEnd(onEnd);
   const input = useRef({ dir: (_d: Dir) => undefined as void, squat: () => undefined as void });
   const [squatting, setSquatting] = useState(false);

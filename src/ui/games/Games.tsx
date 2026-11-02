@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import type { GameId, GameScore } from '../../domain/types';
-import { CoachAvatar } from '../components/CoachAvatar';
+import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { dialog } from '../components/Dialog';
 import { fmtDate, fmtNum, useSettings } from '../util';
 import type { GameProps } from './canvas';
@@ -41,8 +41,9 @@ function useTrainer() {
   const s = useSettings();
   const style = s.coach?.style ?? 'energy';
   const gender = s.coach?.gender;
+  const look = s.coach?.look;
   const voice = !!(s.coach?.enabled && s.coach.voice && canSpeak());
-  return { style, gender, say: voice ? (text: string) => speak(text, s.language, { style, gender }) : undefined };
+  return { style, gender, look, name: s.coach?.name, say: voice ? (text: string) => speak(text, s.language, { style, gender }) : undefined };
 }
 
 /** Sound and vibration switches (D52), kept on this device. */
@@ -157,13 +158,16 @@ function OneGame({ id }: { id?: string }) {
         {best !== undefined && <span className="pill up">{`${t('games.best')}: ${fmt(best)}`}</span>}
       </div>
       {run > 0 ? (
-        <game.Game key={run} style={trainer.style} gender={trainer.gender} onEnd={(n) => void end(n)} onSay={trainer.say} />
+        <game.Game key={run} style={trainer.style} gender={trainer.gender} look={trainer.look} onEnd={(n) => void end(n)} onSay={trainer.say} />
       ) : (
         <>
           {result && (
             <div className="coach" role="status">
-              <CoachAvatar style={trainer.style} gender={trainer.gender} />
-              <p>{t(`games.react.${trainer.style}.${result.record ? 'record' : 'score'}`, { score: fmt(result.score) })}</p>
+              <CoachAvatar style={trainer.style} gender={trainer.gender} look={trainer.look} />
+              <p>
+                <CoachName name={trainer.name} />
+                {t(`games.react.${trainer.style}.${result.record ? 'record' : 'score'}`, { score: fmt(result.score) })}
+              </p>
             </div>
           )}
           <p className="help">{t(`games.help.${game.id}`)}</p>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CoachGender, CoachStyle } from '../../domain/types';
-import { CoachAvatar } from '../components/CoachAvatar';
+import { CoachAvatar, randomLook } from '../components/CoachAvatar';
 import { useEnd, type GameProps } from './canvas';
 import { fx } from './feedback';
 
@@ -19,11 +19,11 @@ const shuffle = <T,>(xs: T[]): T[] => {
   return a;
 };
 
-/** Memory with the 10 trainer faces (5 styles × 2 genders). Score: moves (fewer is better). */
+/** Memory with 10 trainer faces (5 styles × 2 genders, a random look each game). Score: moves (fewer is better). */
 export function Memory({ onEnd }: GameProps) {
   const { t } = useTranslation();
   const end = useEnd(onEnd);
-  const [deck] = useState(() => shuffle(STYLES.flatMap((style) => GENDERS.map((gender) => ({ style, gender }))).flatMap((c) => [c, c])));
+  const [deck] = useState(() => shuffle(STYLES.flatMap((style) => GENDERS.map((gender) => ({ style, gender, look: randomLook(gender) }))).flatMap((c) => [c, c])));
   const [open, setOpen] = useState<number[]>([]);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [moves, setMoves] = useState(0);
@@ -66,7 +66,7 @@ export function Memory({ onEnd }: GameProps) {
           const up = open.includes(i) || found.has(i);
           return (
             <button key={i} className={`memory-card ${up ? 'up' : ''} ${found.has(i) ? 'found' : ''}`} aria-label={up ? `${t(`coach.styles.${c.style}`)} · ${t(`coach.genders.${c.gender}`)}` : t('games.card', { n: i + 1 })} onClick={() => turn(i)}>
-              {up ? <CoachAvatar style={c.style} gender={c.gender} size={52} /> : <span aria-hidden="true">?</span>}
+              {up ? <CoachAvatar style={c.style} gender={c.gender} look={c.look} size={52} /> : <span aria-hidden="true">?</span>}
             </button>
           );
         })}

@@ -5,7 +5,7 @@ import { validateValue } from '../../domain/units';
 import { addSet } from '../../domain/workout';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
-import { CoachAvatar } from './CoachAvatar';
+import { CoachAvatar, CoachName } from './CoachAvatar';
 import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 
@@ -182,9 +182,12 @@ export function EntryFocus({
       )}
       {tip !== undefined && coach && tips?.[tip] && (
         <div className="coach tip" role="note" aria-label={t('workout.tip')}>
-          <CoachAvatar style={coach.style} gender={coach.gender} size={32} />
+          <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={32} />
           <div className="tip-body">
-            <p>{t(`trainer.tip.${coach.style}`, { tip: tips[tip] })}</p>
+            <p>
+              <CoachName name={coach.name} />
+              {t(`trainer.tip.${coach.style}`, { tip: tips[tip] })}
+            </p>
             {s.language !== 'en' && <small>{t('workout.tipLanguage')}</small>}
             {tips.length > 1 && (
               <button type="button" className="ghost sm" onClick={() => showTip((tip + 1) % tips.length)}>

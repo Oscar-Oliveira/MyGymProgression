@@ -378,11 +378,28 @@ export interface LoadSync {
 
 export type CoachStyle = 'support' | 'spite' | 'stoic' | 'sergeant' | 'energy';
 export type CoachGender = 'male' | 'female';
+export type CoachSkin = 'light' | 'fair' | 'medium' | 'tan' | 'brown' | 'dark';
+export type CoachHair = 'bald' | 'buzz' | 'short' | 'side' | 'wavy' | 'curly' | 'afro' | 'spiky' | 'mohawk' | 'long' | 'ponytail' | 'bun' | 'braids' | 'bob';
+export type CoachHairColor = 'black' | 'darkBrown' | 'brown' | 'auburn' | 'ginger' | 'blonde' | 'grey' | 'white' | 'pink' | 'blue';
+export type CoachBeard = 'none' | 'stubble' | 'moustache' | 'goatee' | 'full';
+export type CoachGlasses = 'none' | 'round' | 'square' | 'sun';
+/** How the trainer looks (D63), so it can look like a real trainer. The style still gives the colours, the face expression and the accessory. */
+export interface CoachLook {
+  skin: CoachSkin;
+  hair: CoachHair;
+  hairColor: CoachHairColor;
+  beard: CoachBeard;
+  glasses: CoachGlasses;
+}
 export interface CoachSettings {
   enabled: boolean;
   style: CoachStyle;
-  /** Face of the trainer. Default: male. */
+  /** Face of the trainer and voice. Default: male. */
   gender?: CoachGender;
+  /** Name of the trainer (D63), shown on the trainer page, on the messages and in the games. */
+  name?: string;
+  /** Look of the trainer (D63). Default: the look of the style and gender. */
+  look?: CoachLook;
   /** Spite style only: allow swear words. */
   profanity: boolean;
   /** Messages after an exercise or circuit is done: never (start only), always, or about 4 in 10. Default: random. */

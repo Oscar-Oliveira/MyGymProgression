@@ -53,7 +53,7 @@ export function ChallengeCard() {
   return (
     <section className="card challenge" aria-label={t('challenge.title')}>
       <div className="challenge-head">
-        <CoachAvatar style={style} gender={s.coach?.gender} size={40} />
+        <CoachAvatar style={style} gender={s.coach?.gender} look={s.coach?.look} size={40} />
         <div style={{ flex: 1 }}>
           <p className="eyebrow">{t('challenge.title')}</p>
           <p className="help">{t(`challenge.intro.${style}`)}</p>

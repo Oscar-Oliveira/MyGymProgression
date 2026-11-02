@@ -9,6 +9,19 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-02',
     pt: [
+      'O teu PT pode ter nome: aparece no título da página, por cima das mensagens, nos jogos e na imagem de partilha.',
+      'Aparência do PT: escolhe a pele, o cabelo (14 cortes), a cor do cabelo, a barba e os óculos para ficar parecido com o teu PT real. O estilo continua a dar as cores, a expressão e a fita ou o boné.',
+      'Os outros PTs (ecrã inicial, Memória dos PTs e Whack-a-PT) têm agora caras variadas.',
+    ],
+    en: [
+      'Your trainer can have a name: it shows as the page title, above the messages, in the games and on the share image.',
+      'Trainer look: choose the skin, the hair (14 cuts), the hair colour, the beard and the glasses to look like your real trainer. The style still gives the colours, the expression and the headband or cap.',
+      'The other trainers (start screen, Memory and Whack-a-PT) now have varied faces.',
+    ],
+  },
+  {
+    date: '2026-11-02',
+    pt: [
       'Nova imagem de partilha do treino: mais moderna, e mostra os exercícios que couberem (em duas colunas quando são muitos).',
       'Copiar texto: no resumo do treino, copia o treino com todas as séries (para um email ou para pedir a uma IA as calorias, por exemplo).',
       'Um exercício extra, adicionado durante o treino, é opcional: não deixa o treino parcial e não tem limites (ex.: passadeira só para cardio).',

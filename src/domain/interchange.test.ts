@@ -230,3 +230,17 @@ describe('schema v14 (D57–D59)', () => {
     expect(r14.ok && r14.bundle.data).toMatchObject({ settings: d.settings, gameScores: d.gameScores });
   });
 });
+
+describe('schema v15 (D63)', () => {
+  it('a v14 file is migrated; the trainer name and look round-trip', () => {
+    const old = JSON.parse(JSON.stringify(buildBundle(emptyDataSet(), 'full', 'x')));
+    old.schemaVersion = 14;
+    const r = parseBundle(JSON.stringify(old));
+    expect(r.ok && r.migratedFrom).toBe(14);
+
+    const d = emptyDataSet();
+    d.settings = { ...DEFAULT_SETTINGS, coach: { enabled: true, style: 'stoic', profanity: false, name: 'João', look: { skin: 'dark', hair: 'braids', hairColor: 'black', beard: 'goatee', glasses: 'round' } } };
+    const r15 = parseBundle(JSON.stringify(buildBundle(d, 'full', 'x')));
+    expect(r15.ok && r15.bundle.data.settings).toEqual(d.settings);
+  });
+});

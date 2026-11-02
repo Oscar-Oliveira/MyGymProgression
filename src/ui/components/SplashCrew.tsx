@@ -7,7 +7,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { weekStreak } from '../../domain/analysis';
 import type { CoachGender, CoachStyle } from '../../domain/types';
-import { CoachAvatar } from './CoachAvatar';
+import { CoachAvatar, randomLook } from './CoachAvatar';
 
 const STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'sergeant', 'stoic'];
 const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
@@ -21,8 +21,13 @@ export function SplashCrew() {
   const settings = useLiveQuery(() => repo.getSettings(), []);
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').toArray(), []);
   const lng = settings?.language;
-  // A new crew on every start: random order and faces.
-  const [crew] = useState(() => shuffle(STYLES).map((style) => ({ style, gender: (Math.random() < 0.5 ? 'male' : 'female') as CoachGender })));
+  // A new crew on every start: random order and faces (D63: a random look too).
+  const [crew] = useState(() =>
+    shuffle(STYLES).map((style) => {
+      const gender: CoachGender = Math.random() < 0.5 ? 'male' : 'female';
+      return { style, gender, look: randomLook(gender) };
+    }),
+  );
   const [talk, setTalk] = useState<{ i: number; text: string; at: number }>();
   const [poked, setPoked] = useState<{ i: number; at: number }>();
   const pokedAt = useRef(0);
@@ -77,10 +82,10 @@ export function SplashCrew() {
         </div>
       )}
       <div className="splash-crew">
-        {crew.map(({ style, gender }, i) => (
+        {crew.map(({ style, gender, look }, i) => (
           <span key={style} className={`crew-${style} ${i < 2 ? 'left' : i > 2 ? 'right' : ''}`} style={{ '--i': i } as React.CSSProperties}>
             <button type="button" className={poked?.i === i ? 'poked' : ''} key={`p${poked?.i === i ? poked.at : 0}`} onClick={poke(i)} aria-label={t(`coach.styles.${style}`, { lng })}>
-              <CoachAvatar style={style} gender={gender} size={54} />
+              <CoachAvatar style={style} gender={gender} look={look} size={54} />
             </button>
             {talk?.i === i && (
               <span key={`t${talk.at}`} className="bubble">

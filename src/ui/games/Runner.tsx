@@ -22,13 +22,13 @@ const SIZE: Record<Kind, { w: number; h: number }> = { dumbbell: { w: 36, h: 16 
 const BAR_BOTTOM = GROUND - 38;
 
 /** PT Runner, like the offline dinosaur game: the trainer runs through the gym. Score: metres. */
-export function Runner({ style, gender, onEnd, onSay }: GameProps) {
+export function Runner({ style, gender, look, onEnd, onSay }: GameProps) {
   // The trainer's voice reads the cheers (when it is on); the loop uses the latest function.
   const say = useRef(onSay);
   say.current = onSay;
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
-  const { img, node } = useAvatarImage(style, gender);
+  const { img, node } = useAvatarImage(style, gender, look);
   const end = useEnd(onEnd);
   const input = useRef({ jump: () => undefined as void, duck: (_on: boolean) => undefined as void });
   const cheers = t(`games.cheer.${style}`, { returnObjects: true }) as string[];

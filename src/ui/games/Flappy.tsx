@@ -16,10 +16,10 @@ const EVERY = 1.55;
 const R = 17;
 
 /** Flappy Dumbbell: the trainer holds a dumbbell and flies between towers of plates. Score: towers passed. */
-export function Flappy({ style, gender, onEnd }: GameProps) {
+export function Flappy({ style, gender, look, onEnd }: GameProps) {
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
-  const { img, node } = useAvatarImage(style, gender);
+  const { img, node } = useAvatarImage(style, gender, look);
   const end = useEnd(onEnd);
   const flap = useRef<() => void>(() => undefined);
 

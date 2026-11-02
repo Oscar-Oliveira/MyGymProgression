@@ -3,16 +3,16 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { coachContext, coachKey, coachMessage, coachOnPages, dayPart, type CoachContext, type CoachPlace } from '../../domain/coach';
-import type { CoachGender, CoachStyle, Exercise, MetricKey, ProgressionEvent } from '../../domain/types';
+import type { CoachGender, CoachLook, CoachStyle, Exercise, MetricKey, ProgressionEvent } from '../../domain/types';
 import { COACH_BANKS } from '../../i18n/coach';
 import { fmtValue, useSettings } from '../util';
-import { CoachAvatar } from './CoachAvatar';
+import { CoachAvatar, CoachName } from './CoachAvatar';
 
 /**
  * Personal trainer message; can be closed. Hidden while localStorage `storageKey` holds `storageValue`.
  * `once`: that value is stored as soon as the message shows, so it shows one time only.
  */
-export function CoachCard({ storageKey, storageValue = '1', once = false, message, style, gender }: { storageKey: string; storageValue?: string; once?: boolean; message: string; style: CoachStyle; gender?: CoachGender }) {
+export function CoachCard({ storageKey, storageValue = '1', once = false, message, style, gender, look, name }: { storageKey: string; storageValue?: string; once?: boolean; message: string; style: CoachStyle; gender?: CoachGender; look?: CoachLook; name?: string }) {
   const { t } = useTranslation();
   const [hidden, setHidden] = useState(() => {
     try {
@@ -38,8 +38,11 @@ export function CoachCard({ storageKey, storageValue = '1', once = false, messag
   };
   return (
     <div className="coach" role="note" aria-label={t('coach.title')}>
-      <CoachAvatar style={style} gender={gender} />
-      <p>{message}</p>
+      <CoachAvatar style={style} gender={gender} look={look} />
+      <p>
+        <CoachName name={name} />
+        {message}
+      </p>
       <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
         ✕
       </button>
@@ -75,5 +78,5 @@ export function PageCoach({ place, id, extra }: { place: CoachPlace; id?: string
   const ctx = { ...coachContext(data.workouts, data.events, now, coachIncrease(new Map(data.exercises.map((e) => [e.id, e])), s.language)), ...extra };
   const text = coachMessage(bank[place], coach, ctx, `${place}:${seen}`);
   const message = text && place === 'home' ? `${bank.greet[coachKey(coach)][dayPart(now)]} ${text}` : text;
-  return <CoachCard storageKey={`coach:${place}`} storageValue={seen} once message={message} style={coach.style} gender={coach.gender} />;
+  return <CoachCard storageKey={`coach:${place}`} storageValue={seen} once message={message} style={coach.style} gender={coach.gender} look={coach.look} name={coach.name} />;
 }

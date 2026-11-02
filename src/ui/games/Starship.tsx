@@ -32,10 +32,10 @@ interface Power extends Thing {
 const near = (a: Thing, b: Thing, d: number) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2 < d * d;
 
 /** Starship, a vertical shooter: the trainer's ship against junk food. The shake gives a shield, creatine a triple shot. Score: points. */
-export function Starship({ style, gender, onEnd }: GameProps) {
+export function Starship({ style, gender, look, onEnd }: GameProps) {
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
-  const { img, node } = useAvatarImage(style, gender);
+  const { img, node } = useAvatarImage(style, gender, look);
   const end = useEnd(onEnd);
   const target = useRef<Thing | undefined>(undefined);
 

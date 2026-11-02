@@ -12,7 +12,7 @@ import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from 
 import { beatsLastTime, rivalOn, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
-import { CoachAvatar } from '../components/CoachAvatar';
+import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
@@ -219,7 +219,7 @@ export function WorkoutPage() {
           </div>
         </div>
 
-        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} />}
+        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} look={coach.look} name={coach.name} />}
         {coach?.voice && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} lang={s.language} coach={coach} />}
         {!draft.short && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
           <button className="chip short-chip" onClick={() => void shorten()}>
@@ -251,8 +251,11 @@ export function WorkoutPage() {
 
         {toast && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
-            <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} />
-            <p>{toast}</p>
+            <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} look={coach?.look} />
+            <p>
+              <CoachName name={coach?.name} />
+              {toast}
+            </p>
             {coach?.voice && <Speak text={toast} lang={s.language} coach={coach} />}
             <button className="ghost sm" aria-label={t('common.close')} onClick={() => setToast(undefined)}>
               ✕
@@ -391,6 +394,7 @@ export function WorkoutPage() {
         ? {
             text: coachMessage(COACH_BANKS[s.language].done, s.coach!, { ...coachContext(ctx.others, ctx.allEvents, new Date(draft.startedAt), coachIncrease(ctx.exercises, s.language)), sets: doneWorking, records: records.length }, draft.id),
             svg: avatarRef.current?.innerHTML,
+            name: s.coach!.name,
           }
         : undefined,
       tone: (rootRef.current && getComputedStyle(rootRef.current).getPropertyValue('--tone').trim()) || '#5b4cf5',
@@ -408,7 +412,7 @@ export function WorkoutPage() {
     <div className="toned" style={tone} ref={rootRef}>
       {s.coach?.enabled && (
         <span ref={avatarRef} hidden>
-          <CoachAvatar style={s.coach.style} gender={s.coach.gender} size={104} />
+          <CoachAvatar style={s.coach.style} gender={s.coach.gender} look={s.coach.look} size={104} />
         </span>
       )}
       <div className="page-head">

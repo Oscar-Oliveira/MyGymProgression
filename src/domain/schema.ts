@@ -203,6 +203,16 @@ export const settingsSchema = z.object({
       enabled: z.boolean(),
       style: z.enum(['support', 'spite', 'stoic', 'sergeant', 'energy']),
       gender: z.enum(['male', 'female']).optional(),
+      name: z.string().max(40).optional(),
+      look: z
+        .object({
+          skin: z.enum(['light', 'fair', 'medium', 'tan', 'brown', 'dark']),
+          hair: z.enum(['bald', 'buzz', 'short', 'side', 'wavy', 'curly', 'afro', 'spiky', 'mohawk', 'long', 'ponytail', 'bun', 'braids', 'bob']),
+          hairColor: z.enum(['black', 'darkBrown', 'brown', 'auburn', 'ginger', 'blonde', 'grey', 'white', 'pink', 'blue']),
+          beard: z.enum(['none', 'stubble', 'moustache', 'goatee', 'full']),
+          glasses: z.enum(['none', 'round', 'square', 'sun']),
+        })
+        .optional(),
       profanity: z.boolean(),
       when: z.enum(['start', 'each', 'random']).optional(),
       pages: z.boolean().optional(),
@@ -251,7 +261,7 @@ export const coachReportSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

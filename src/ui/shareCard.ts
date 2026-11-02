@@ -11,8 +11,8 @@ export interface ShareCardData {
   more: (count: number) => string;
   records: { name: string; value: string }[];
   recordsTitle: string;
-  /** Message of the trainer, with its face (SVG markup). */
-  coach?: { text: string; svg?: string };
+  /** Message of the trainer, with its face (SVG markup) and its name (D63). */
+  coach?: { text: string; svg?: string; name?: string };
   /** Tone colour (CSS colour). */
   tone: string;
   footer: string;
@@ -207,10 +207,19 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
       dot(PAD + 86, mid, 56, 'rgba(255,255,255,0.1)');
       ctx.drawImage(face, PAD + 40, mid - 46, 92, 92);
     }
-    ctx.fillStyle = '#fff';
+    // The name, when there is one, takes the first of the 3 lines.
+    const name = d.coach!.name?.trim();
     ctx.font = font(30, 650);
-    const lines = wrap(ctx, d.coach!.text, W - PAD - cx - 36, 3);
-    lines.forEach((line, i) => ctx.fillText(line, cx, mid + 10 + (i - (lines.length - 1) / 2) * 38));
+    const lines = wrap(ctx, d.coach!.text, W - PAD - cx - 36, name ? 2 : 3);
+    const top = mid + 10 - ((lines.length + (name ? 1 : 0) - 1) / 2) * 38;
+    if (name) {
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.font = font(24, 800);
+      ctx.fillText(name.toUpperCase(), cx, top);
+      ctx.font = font(30, 650);
+    }
+    ctx.fillStyle = '#fff';
+    lines.forEach((line, i) => ctx.fillText(line, cx, top + (i + (name ? 1 : 0)) * 38));
   }
 
   // Footer: a tone dot and the app name.

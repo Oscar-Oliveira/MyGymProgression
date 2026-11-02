@@ -1,11 +1,12 @@
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
-import type { CoachGender, CoachStyle } from '../../domain/types';
+import type { CoachGender, CoachLook, CoachStyle } from '../../domain/types';
 import { CoachAvatar } from '../components/CoachAvatar';
 
 /** Props of every game. `onEnd` is called once, with the final score. */
 export interface GameProps {
   style: CoachStyle;
   gender?: CoachGender;
+  look?: CoachLook;
   onEnd: (score: number) => void;
   /** Reads a trainer line aloud, when the trainer's voice is on (D52). */
   onSay?: (text: string) => void;
@@ -67,7 +68,7 @@ export function useEnd(onEnd: (score: number) => void) {
  * The trainer's face as an image for a canvas. The SVG is rendered hidden in `node` and copied into an image.
  * `img.current` is undefined until the image has loaded.
  */
-export function useAvatarImage(style: CoachStyle, gender?: CoachGender) {
+export function useAvatarImage(style: CoachStyle, gender?: CoachGender, look?: CoachLook) {
   const holder = useRef<HTMLSpanElement>(null);
   const img = useRef<HTMLImageElement>(undefined);
   useEffect(() => {
@@ -76,10 +77,10 @@ export function useAvatarImage(style: CoachStyle, gender?: CoachGender) {
     const i = new Image();
     i.onload = () => (img.current = i);
     i.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
-  }, [style, gender]);
+  }, [style, gender, look]);
   const node = (
     <span ref={holder} hidden>
-      <CoachAvatar style={style} gender={gender} size={128} />
+      <CoachAvatar style={style} gender={gender} look={look} size={128} />
     </span>
   );
   return { img, node };

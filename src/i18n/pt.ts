@@ -96,6 +96,13 @@ export const pt: Resources = {
     pages: 'Falar também fora do treino', pagesSub: 'Saudação no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia).',
     when: 'Quando', whenOptions: { random: 'Às vezes, entre exercícios', each: 'Depois de cada exercício', start: 'Só no início' },
     gender: 'Género', genders: { male: 'Homem', female: 'Mulher' },
+    name: 'Nome', namePlaceholder: 'O nome do teu PT',
+    look: 'Aparência', lookHelp: 'Põe a cara parecida com o teu PT real. O estilo continua a dar as cores, a expressão e a fita ou o boné.', lookReset: 'Voltar à aparência do estilo',
+    skin: 'Pele', skins: { light: 'Muito clara', fair: 'Clara', medium: 'Média', tan: 'Morena', brown: 'Castanha', dark: 'Escura' },
+    hair: 'Cabelo', hairs: { bald: 'Careca', buzz: 'Rapado', short: 'Curto', side: 'Risca ao lado', wavy: 'Ondulado', curly: 'Encaracolado', afro: 'Afro', spiky: 'Espetado', mohawk: 'Moicano', long: 'Comprido', ponytail: 'Rabo de cavalo', bun: 'Carrapito', braids: 'Tranças', bob: 'Pelo queixo' },
+    hairColor: 'Cor do cabelo', hairColors: { black: 'Preto', darkBrown: 'Castanho-escuro', brown: 'Castanho', auburn: 'Acaju', ginger: 'Ruivo', blonde: 'Loiro', grey: 'Grisalho', white: 'Branco', pink: 'Rosa', blue: 'Azul' },
+    beard: 'Barba', beards: { none: 'Sem barba', stubble: 'Barba de 3 dias', moustache: 'Bigode', goatee: 'Pera', full: 'Barba cheia' },
+    glasses: 'Óculos', glassesOptions: { none: 'Sem óculos', round: 'Redondos', square: 'Retangulares', sun: 'De sol' },
     styles: { support: 'Apoio', energy: 'Energético', spite: 'F*ck you (desafio)', stoic: 'Disciplina (estoico)', sergeant: 'Sargento + dados' },
     styleHelp: {
       support: 'Positivo e próximo. Bom para a consistência a longo prazo.',
