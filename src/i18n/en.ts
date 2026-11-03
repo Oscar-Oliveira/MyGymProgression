@@ -195,6 +195,13 @@ export const en = {
     title: 'Body map', front: 'Front', back: 'Back', tap: 'Tap a muscle to see its sets.', sets: '{{n}} sets/week', week: 'Muscles this week', weekHelp: 'Sets done since Monday.',
     level: { none: 'No sets', low: 'Under {{min}}', ok: '{{min}}–{{max}}', high: 'Over {{max}}' },
   },
+  audit: {
+    title: 'Plan balance', count: '{{count}} warnings', count_one: '{{count}} warning', help: 'Planned sets per week, with each plan day done once a week.', ok: 'No warnings: the plan is balanced.',
+    none: 'No sets: {{list}}.', low: 'Under {{min}} sets: {{list}}.', high: 'Over {{max}} sets: {{list}}.',
+    pushPull: 'Push (chest, shoulders, triceps) {{a}} sets vs pull (back, biceps) {{b}}. Difference over {{ratio}} to 1.',
+    quadHip: 'Quads {{a}} sets vs hamstrings and glutes {{b}}. Difference over {{ratio}} to 1.',
+    formula: 'A set counts 1 for the primary muscles and 0.5 for the secondary ones. The ratios count the sets of exercises with a primary muscle on each side. 10–20 sets is a common reference for hypertrophy, not a rule.',
+  },
   analysis: {
     consistency: 'Consistency', streak: 'Weeks in a row', bestStreak: 'Best run', weeksN: '{{count}} weeks', weeksN_one: '{{count}} week', dayCell: '{{date}}: {{count}} workouts', dayCell_one: '{{date}}: {{count}} workout', consistencyHelp: 'Last 12 months. Each square is a day, in the colour of the plan.', less: 'Less', more: 'More',
     goals: 'Goals', newGoal: 'New goal', goalExercise: 'Exercise', goalLoad: 'Load ({{unit}})', goalBy: 'By (optional)', goalMet: 'Reached on {{date}}', goalBest: 'best {{load}}', goalProjected: 'At this pace: {{date}}', goalLate: 'after your date ({{date}})', goalOnTime: 'before your date ({{date}})',

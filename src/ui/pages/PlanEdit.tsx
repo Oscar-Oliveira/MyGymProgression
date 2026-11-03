@@ -19,6 +19,7 @@ import { toneStyle } from '../colors';
 import { dialog } from '../components/Dialog';
 import { ItemCard, working, type Targets } from '../components/PlanItemCard';
 import { Icon } from '../components/Icon';
+import { PlanAuditCard } from '../components/PlanAuditCard';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
 /** Day goals of a mixed plan; 'free' = each exercise uses its own rule. */
@@ -337,6 +338,8 @@ export function PlanEdit() {
           )}
         </>
       )}
+
+      {days.some((d) => d.items.length > 0) && <PlanAuditCard days={days} exercises={exercises} />}
 
       <div className="wk-nav">
         <button className="outline" onClick={() => nav(-1)}>

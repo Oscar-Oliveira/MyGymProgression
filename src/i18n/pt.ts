@@ -197,6 +197,13 @@ export const pt: Resources = {
     title: 'Mapa do corpo', front: 'Frente', back: 'Costas', tap: 'Toca num músculo para ver as séries.', sets: '{{n}} séries/semana', week: 'Músculos desta semana', weekHelp: 'Séries feitas desde segunda.',
     level: { none: 'Sem séries', low: 'Menos de {{min}}', ok: '{{min}}–{{max}}', high: 'Mais de {{max}}' },
   },
+  audit: {
+    title: 'Equilíbrio do plano', count: '{{count}} avisos', count_one: '{{count}} aviso', help: 'Séries planeadas por semana, com cada dia do plano feito uma vez por semana.', ok: 'Sem avisos: o plano está equilibrado.',
+    none: 'Sem séries: {{list}}.', low: 'Menos de {{min}} séries: {{list}}.', high: 'Mais de {{max}} séries: {{list}}.',
+    pushPull: 'Empurrar (peito, ombros, tríceps) {{a}} séries vs puxar (costas, bíceps) {{b}}. Diferença maior do que {{ratio}} para 1.',
+    quadHip: 'Quadríceps {{a}} séries vs isquiotibiais e glúteos {{b}}. Diferença maior do que {{ratio}} para 1.',
+    formula: 'Uma série conta 1 para os músculos principais e 0,5 para os secundários. Os rácios contam as séries dos exercícios cujo músculo principal está em cada lado. 10–20 séries é uma referência comum para hipertrofia, não é regra.',
+  },
   analysis: {
     period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
     consistency: 'Consistência', streak: 'Semanas seguidas', bestStreak: 'Melhor sequência', weeksN: '{{count}} semanas', weeksN_one: '{{count}} semana', dayCell: '{{date}}: {{count}} treinos', dayCell_one: '{{date}}: {{count}} treino', consistencyHelp: 'Últimos 12 meses. Cada quadrado é um dia, na cor do plano.', less: 'Menos', more: 'Mais',

@@ -1038,3 +1038,24 @@ test('body map (D71): this week on Home and the period in Analysis; tapping a mu
   await expect(page.getByText(/^Chest: [\d.]+ sets\/week$/)).toBeVisible();
   await expect(map.getByRole('button')).toHaveCount(25);
 });
+
+test('plan balance (D72): closed by default; shows the planned sets and updates while the plan is edited', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Plans/);
+  await page.getByRole('button', { name: 'New plan' }).click();
+  await page.getByLabel('Plan name').fill('Push');
+  await page.getByRole('button', { name: 'Day' }).click();
+  const add = async (name: string) => {
+    await page.getByRole('button', { name: 'Add exercise' }).click();
+    await page.getByPlaceholder('Search by name, other name or tag').fill(name);
+    await page.getByRole('dialog').getByRole('button', { name: new RegExp(`^${name}`) }).click();
+  };
+  await add('Barbell Bench Press');
+  const balance = page.getByRole('button', { name: /^Plan balance/ });
+  await expect(balance).toHaveAttribute('aria-expanded', 'false');
+  await balance.click();
+  await expect(page.getByText(/^Push \(chest, shoulders, triceps\) 3 sets vs pull \(back, biceps\) 0\./)).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Body map' }).getByRole('button', { name: 'Chest: 3 sets/week' }).first()).toBeVisible();
+  await add('Barbell Row');
+  await expect(page.getByText(/^Push \(chest/)).toHaveCount(0);
+});
