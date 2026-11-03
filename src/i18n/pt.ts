@@ -1,8 +1,8 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', coach: 'PT' },
-  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', coach: 'Estilo, mensagens, voz e dicas' },
+  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
+  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', achievements: 'Medalhas pelo teu histórico', coach: 'Estilo, mensagens, voz e dicas' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
     whatsNew: 'Novidades', privacy: 'Dados e privacidade', privacyText: 'Todos os dados ficam neste dispositivo, no navegador. Nada é enviado para servidores. Faz cópias de segurança em Definições.',
@@ -192,6 +192,16 @@ export const pt: Resources = {
     },
     applyDefaults: 'Aplicar {{sets}} aos exercícios com carga deste plano? As cargas mantêm-se.',
     rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
+  },
+  achievements: {
+    count: '{{done}} de {{total}}', off: 'As conquistas estão desligadas.', settingSub: 'Medalhas pelo teu histórico, e as novas no resumo do treino.', earned: 'Ganhas', locked: 'Por ganhar', earnedOn: 'Ganha a {{date}}', newOnes: 'Conquistas novas', progress: '{{now}} de {{target}}', none: 'Ainda não ganhaste medalhas. O primeiro treino dá a primeira.',
+    name: {
+      workouts: '{{count}} treinos', workouts_one: 'Primeiro treino', streak: '{{count}} semanas seguidas', session: '{{value}} num treino', total: '{{value}} no total', records: '{{count}} recordes', muscles: 'Os {{count}} músculos numa semana', early: 'Madrugador', late: 'Noctívago',
+    },
+    desc: {
+      workouts: 'Treinos terminados.', streak: 'Semanas seguidas com pelo menos um treino.', session: 'Volume (carga × repetições) de um só treino.', total: 'Volume (carga × repetições) de todos os treinos.', records: 'Recordes pessoais batidos.',
+      muscles: 'Músculos principais treinados na mesma semana (segunda a domingo).', early: 'Um treino começado antes das 7h.', late: 'Um treino começado às 22h ou mais tarde.',
+    },
   },
   bodyMap: {
     title: 'Mapa do corpo', front: 'Frente', back: 'Costas', tap: 'Toca num músculo para ver as séries.', sets: '{{n}} séries/semana', week: 'Músculos desta semana', weekHelp: 'Séries feitas desde segunda.',

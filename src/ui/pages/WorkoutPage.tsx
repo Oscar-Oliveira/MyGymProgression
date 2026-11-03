@@ -22,6 +22,8 @@ import { Thumb } from '../components/Thumb';
 import { DecisionCard, fmtMetric, rxLine, setsLine, setText, SyncCard } from '../progress';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
+import { achievements, achievementsOn } from '../../domain/achievements';
+import { Medals } from '../components/Medals';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
@@ -378,6 +380,8 @@ export function WorkoutPage() {
     notify(t('workout.planNowDone', { count: res.changed }));
   };
   const records = workoutRecords(draft, ctx.others);
+  // Medals earned by this workout (D73): the history up to it, with this workout counted as finished.
+  const medals = achievementsOn(s) ? achievements([...ctx.others, { ...draft, status: 'completed' }]).filter((a) => a.workoutId === draft.id) : [];
   // "You vs 3 months ago" (D49, D57): only for the latest workout, when the rival is on.
   const rival = rivalOn(s) && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
   const rivalList = rival ? rivalRows(draft, rival) : [];
@@ -541,6 +545,12 @@ export function WorkoutPage() {
                   trailing={<strong className="num">{fmtRecord(r, r.value)}</strong>}
                 />
               ))}
+            </section>
+          )}
+          {medals.length > 0 && (
+            <section className="card up">
+              <h2><Icon name="trophy" /> {t('achievements.newOnes')}</h2>
+              <Medals items={medals} s={s} />
             </section>
           )}
           {rival && rivalList.length > 0 && <RivalCard rows={rivalList} date={rival.startedAt} coach={coach} />}

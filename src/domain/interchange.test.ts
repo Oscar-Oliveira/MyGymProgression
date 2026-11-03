@@ -244,3 +244,17 @@ describe('schema v15 (D63)', () => {
     expect(r15.ok && r15.bundle.data.settings).toEqual(d.settings);
   });
 });
+
+describe('schema v16 (D73)', () => {
+  it('a v15 file is migrated; the achievements setting round-trips', () => {
+    const old = JSON.parse(JSON.stringify(buildBundle(emptyDataSet(), 'full', 'x')));
+    old.schemaVersion = 15;
+    const r = parseBundle(JSON.stringify(old));
+    expect(r.ok && r.migratedFrom).toBe(15);
+
+    const d = emptyDataSet();
+    d.settings = { ...DEFAULT_SETTINGS, achievements: false };
+    const r16 = parseBundle(JSON.stringify(buildBundle(d, 'full', 'x')));
+    expect(r16.ok && r16.bundle.data.settings).toEqual(d.settings);
+  });
+});

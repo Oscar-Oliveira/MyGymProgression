@@ -365,6 +365,8 @@ export interface Settings {
   retro?: boolean;
   /** The secret game, unlocked by the first "1987" (D59). It stays unlocked. */
   secretGame?: boolean;
+  /** Achievements page and new medals on the workout summary (D73). Default: on. */
+  achievements?: boolean;
 }
 
 /**

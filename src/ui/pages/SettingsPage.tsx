@@ -13,6 +13,7 @@ import { download, fmtDate, saveBackup, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
 import { toast } from '../components/Toast';
 import { reportOn, rivalOn } from '../../domain/trainer';
+import { achievementsOn } from '../../domain/achievements';
 import { fx, fxOn, setFx, type FxSetting } from '../games/feedback';
 import { NO_COACH } from './CoachPage';
 import { parseLibraryFile } from '../../domain/library';
@@ -346,6 +347,7 @@ export function SettingsPage() {
       </div>
       <section className="card">
         <Toggle label={t('nav.challenges')} sub={t('challenge.settingSub')} on={!!s.challenge} set={(v) => void repo.saveSettings({ challenge: v })} />
+        <Toggle label={t('nav.achievements')} sub={t('achievements.settingSub')} on={achievementsOn(s)} set={(v) => void repo.saveSettings({ achievements: v })} />
         <Toggle label={t('settings.reportOn')} sub={t('reports.reportOnSub')} on={reportOn(s)} set={(v) => void repo.saveSettings({ report: v })} />
         <Toggle label={t('settings.rivalOn')} sub={t('reports.rivalOnSub')} on={rivalOn(s)} set={(v) => void repo.saveSettings({ rival: v })} />
         <Toggle label={t('nav.coach')} sub={t('settings.coachSub')} on={!!s.coach?.enabled} set={(v) => void repo.saveSettings({ coach: { ...(s.coach ?? NO_COACH), enabled: v } })} />

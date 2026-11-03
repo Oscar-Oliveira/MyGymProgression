@@ -21,6 +21,7 @@ import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
 import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
+import { Achievements } from './pages/Achievements';
 import { CoachPage } from './pages/CoachPage';
 import { Icon } from './components/Icon';
 // Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
@@ -175,6 +176,7 @@ function Shell() {
             <Route path="/games" element={<GamesPage />} />
             <Route path="/games/:id" element={<GamePage />} />
             <Route path="/challenges" element={<Challenges />} />
+            <Route path="/achievements" element={<Achievements />} />
             <Route path="/coach" element={<CoachPage />} />
           </Routes>
         </Suspense>

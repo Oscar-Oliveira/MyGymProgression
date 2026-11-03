@@ -71,7 +71,8 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 5. **Plans**: give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
 6. **More → Personal trainer**: optional motivating messages, and extras (live reactions, technique tips, voice).
 7. **More → Reports**: Analysis (progress per exercise, sets per muscle per week with a body map, comparison with the previous period), Week (Sunday week report) and You vs 3 months ago. **More → Settings**: JSON/CSV export and import.
-8. **Plans → ⋯ → Share**: send the plan as a file, a link or one QR code per day; the link opens a preview and imports a copy. **Plans → Scan QR** reads the codes.
+8. **More → Achievements**: medals for workouts, weeks in a row, volume, records and more; new ones show on the workout summary.
+9. **Plans → ⋯ → Share**: send the plan as a file, a link or one QR code per day; the link opens a preview and imports a copy. **Plans → Scan QR** reads the codes.
 
 ## Structure
 

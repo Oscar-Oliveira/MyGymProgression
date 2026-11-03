@@ -1059,3 +1059,24 @@ test('plan balance (D72): closed by default; shows the planned sets and updates 
   await add('Barbell Row');
   await expect(page.getByText(/^Push \(chest/)).toHaveCount(0);
 });
+
+test('achievements (D73): the first workout earns a medal on its summary; the page lists earned and not yet; off in Settings', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10, 10, 10]);
+  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await expect(page.getByRole('heading', { name: 'New achievements' })).toBeVisible();
+  await expect(page.getByText('First workout')).toBeVisible();
+
+  await more(page, /^Achievements/);
+  // 18 medals; early bird or night owl may also be earned, by the time of the test run.
+  await expect(page.getByText(/^[12] of 18$/)).toBeVisible();
+  await expect(page.getByText('First workout')).toBeVisible();
+  await expect(page.getByText('10 workouts')).toBeVisible();
+  await expect(page.getByText('1 of 10', { exact: true })).toBeVisible();
+
+  await more(page, /^Settings/);
+  await page.getByLabel(/^Achievements/).click();
+  await more(page, /^Achievements/);
+  await expect(page.getByText('Achievements are off.')).toBeVisible();
+  await expect(page.getByText('First workout')).toHaveCount(0);
+});

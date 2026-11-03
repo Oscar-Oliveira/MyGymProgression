@@ -157,12 +157,17 @@ export interface RecordHit {
  */
 export function workoutRecords(workout: Workout, earlier: Workout[]): RecordHit[] {
   const before = earlier.filter((w) => w.id !== workout.id && w.startedAt < workout.startedAt);
+  return recordsAgainst(workout, (id) => personalRecords(exerciseHistory(before, id)));
+}
+
+/** New personal records of a workout against the records before it (`prevOf`), as in `workoutRecords`. */
+export function recordsAgainst(workout: Workout, prevOf: (exerciseId: string) => PersonalRecords): RecordHit[] {
   const out: RecordHit[] = [];
   const seen = new Set<string>();
   for (const e of workout.entries) {
     if (seen.has(e.exerciseId)) continue;
     seen.add(e.exerciseId);
-    const prev = personalRecords(exerciseHistory(before, e.exerciseId));
+    const prev = prevOf(e.exerciseId);
     // The workout counts as finished here, so a summary can be computed before the status is saved.
     const now = personalRecords(exerciseHistory([{ ...workout, status: 'completed' }], e.exerciseId));
     const hit = (kind: RecordKind, a?: number, b?: number) => {

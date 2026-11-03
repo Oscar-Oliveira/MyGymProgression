@@ -230,6 +230,7 @@ export const settingsSchema = z.object({
   rival: z.boolean().optional(),
   retro: z.boolean().optional(),
   secretGame: z.boolean().optional(),
+  achievements: z.boolean().optional(),
 });
 
 export const gameScoreSchema = z.object({ id: z.string().min(1), game: z.enum(['memory', 'whack', 'muscle', 'flappy', 'runner', 'starship', 'legday', 'rerack']), score: num, at: iso });
@@ -261,7 +262,7 @@ export const coachReportSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 16;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({

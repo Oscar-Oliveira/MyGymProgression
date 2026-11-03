@@ -1,6 +1,6 @@
 export const en = {
-  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', coach: 'Personal trainer' },
-  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', coach: 'Style, messages, voice and tips' },
+  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
+  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', achievements: 'Medals for your history', coach: 'Style, messages, voice and tips' },
   about: {
     version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
     whatsNew: "What's new", privacy: 'Data and privacy', privacyText: 'All data stays on this device, in the browser. Nothing is sent to servers. Make backups in Settings.',
@@ -190,6 +190,16 @@ export const en = {
     },
     applyDefaults: 'Apply {{sets}} to the load exercises of this plan? Loads are kept.',
     rule: { ask: 'Load or reps (you choose)', load: 'Load goes up automatically' },
+  },
+  achievements: {
+    count: '{{done}} of {{total}}', off: 'Achievements are off.', settingSub: 'Medals for your history, and the new ones on the workout summary.', earned: 'Earned', locked: 'Not yet', earnedOn: 'Earned on {{date}}', newOnes: 'New achievements', progress: '{{now}} of {{target}}', none: 'No medals yet. Your first workout earns the first one.',
+    name: {
+      workouts: '{{count}} workouts', workouts_one: 'First workout', streak: '{{count}} weeks in a row', session: '{{value}} in one workout', total: '{{value}} in total', records: '{{count}} records', muscles: 'All {{count}} muscles in a week', early: 'Early bird', late: 'Night owl',
+    },
+    desc: {
+      workouts: 'Finished workouts.', streak: 'Weeks in a row with at least one workout.', session: 'Volume (load × reps) of one workout.', total: 'Volume (load × reps) of all workouts.', records: 'Personal records beaten.',
+      muscles: 'Primary muscles worked in the same week (Monday to Sunday).', early: 'A workout started before 07:00.', late: 'A workout started at 22:00 or later.',
+    },
   },
   bodyMap: {
     title: 'Body map', front: 'Front', back: 'Back', tap: 'Tap a muscle to see its sets.', sets: '{{n}} sets/week', week: 'Muscles this week', weekHelp: 'Sets done since Monday.',
