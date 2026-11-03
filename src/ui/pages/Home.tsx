@@ -17,6 +17,8 @@ import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
 import { backupDue } from '../../domain/backup';
+import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
+import { BodyMap } from '../components/BodyMap';
 import { Icon } from '../components/Icon';
 
 const PREVIEW = 4;
@@ -157,6 +159,7 @@ export function Home() {
   const monthUps = events.filter((e) => (e.decision === 'applied' || e.decision === 'reps_up') && inMonth(e.decidedAt ?? e.createdAt)).length;
   const days = week(finished);
   const weekdays = t('weekday', { returnObjects: true }) as string[];
+  const weekMuscles = muscleSetsPerWeek(finished.filter((w) => w.startedAt >= days[0].date.toISOString()), localDay(days[0].date), localDay(now));
   const previewSets = preview?.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0) ?? 0;
 
   return (
@@ -285,6 +288,13 @@ export function Home() {
             .map((e) => (
               <DecisionCard key={e.id} entry={e} ev={events.find((x) => x.entryId === e.id)} compact />
             ))}
+        </Section>
+      )}
+
+      {finished.length > 0 && (
+        <Section id="home-muscles" title={t('bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
+          <p className="help">{t('bodyMap.weekHelp')}</p>
+          <BodyMap sets={weekMuscles} lang={s.language} small />
         </Section>
       )}
 

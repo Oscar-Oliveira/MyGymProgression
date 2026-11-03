@@ -10,6 +10,7 @@ import { fmtMetric, TrendPill, type Trend } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { Empty } from '../components/Bits';
 import { PageCoach } from '../components/CoachCard';
+import { BodyMap } from '../components/BodyMap';
 import { Consistency } from '../components/Consistency';
 import { Goals } from '../components/Goals';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
@@ -242,6 +243,7 @@ export function Analysis() {
       {muscles.length > 0 && (
         <section className="card">
           <h2>{t('analysis.muscles')}</h2>
+          <BodyMap sets={Object.fromEntries(muscles)} lang={s.language} />
           <table>
             <tbody>
               {muscles.map(([m, v]) => (

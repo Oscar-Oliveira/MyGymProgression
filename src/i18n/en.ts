@@ -191,6 +191,10 @@ export const en = {
     applyDefaults: 'Apply {{sets}} to the load exercises of this plan? Loads are kept.',
     rule: { ask: 'Load or reps (you choose)', load: 'Load goes up automatically' },
   },
+  bodyMap: {
+    title: 'Body map', front: 'Front', back: 'Back', tap: 'Tap a muscle to see its sets.', sets: '{{n}} sets/week', week: 'Muscles this week', weekHelp: 'Sets done since Monday.',
+    level: { none: 'No sets', low: 'Under {{min}}', ok: '{{min}}–{{max}}', high: 'Over {{max}}' },
+  },
   analysis: {
     consistency: 'Consistency', streak: 'Weeks in a row', bestStreak: 'Best run', weeksN: '{{count}} weeks', weeksN_one: '{{count}} week', dayCell: '{{date}}: {{count}} workouts', dayCell_one: '{{date}}: {{count}} workout', consistencyHelp: 'Last 12 months. Each square is a day, in the colour of the plan.', less: 'Less', more: 'More',
     goals: 'Goals', newGoal: 'New goal', goalExercise: 'Exercise', goalLoad: 'Load ({{unit}})', goalBy: 'By (optional)', goalMet: 'Reached on {{date}}', goalBest: 'best {{load}}', goalProjected: 'At this pace: {{date}}', goalLate: 'after your date ({{date}})', goalOnTime: 'before your date ({{date}})',

@@ -193,6 +193,10 @@ export const pt: Resources = {
     applyDefaults: 'Aplicar {{sets}} aos exercícios com carga deste plano? As cargas mantêm-se.',
     rule: { ask: 'Carga ou reps (escolhe)', load: 'Carga sobe automaticamente' },
   },
+  bodyMap: {
+    title: 'Mapa do corpo', front: 'Frente', back: 'Costas', tap: 'Toca num músculo para ver as séries.', sets: '{{n}} séries/semana', week: 'Músculos desta semana', weekHelp: 'Séries feitas desde segunda.',
+    level: { none: 'Sem séries', low: 'Menos de {{min}}', ok: '{{min}}–{{max}}', high: 'Mais de {{max}}' },
+  },
   analysis: {
     period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
     consistency: 'Consistência', streak: 'Semanas seguidas', bestStreak: 'Melhor sequência', weeksN: '{{count}} semanas', weeksN_one: '{{count}} semana', dayCell: '{{date}}: {{count}} treinos', dayCell_one: '{{date}}: {{count}} treino', consistencyHelp: 'Últimos 12 meses. Cada quadrado é um dia, na cor do plano.', less: 'Menos', more: 'Mais',

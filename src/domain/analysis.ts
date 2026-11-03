@@ -358,6 +358,14 @@ export function muscleSetsPerWeek(workouts: Workout[], from: string, to: string)
 
 export const MUSCLE_SETS_GUIDE = { min: 10, max: 20 };
 
+/** Colour level of a muscle on the body map (D71): no sets, below the guideline, in it, above it. */
+export type MuscleLevel = 'none' | 'low' | 'ok' | 'high';
+export function muscleLevel(setsPerWeek: number | undefined): MuscleLevel {
+  if (!setsPerWeek) return 'none';
+  if (setsPerWeek < MUSCLE_SETS_GUIDE.min) return 'low';
+  return setsPerWeek > MUSCLE_SETS_GUIDE.max ? 'high' : 'ok';
+}
+
 /** One day of the consistency map (D43). */
 export interface DayCell {
   /** Local date YYYY-MM-DD. */

@@ -1025,3 +1025,16 @@ test('easter egg: 7 taps on the About logo turn the 1987 look on and unlock the 
   await more(page, /^Games/);
   await expect(page.getByRole('link', { name: /^Rerack!/ })).toBeVisible();
 });
+
+test('body map (D71): this week on Home and the period in Analysis; tapping a muscle shows its sets', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await expect(page.getByRole('heading', { name: 'Muscles this week' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Body map' })).toBeVisible();
+
+  await more(page, /^Reports/);
+  const map = page.getByRole('group', { name: 'Body map' });
+  const chest = map.getByRole('button', { name: /^Chest: \d/ }).first();
+  await chest.click();
+  await expect(page.getByText(/^Chest: [\d.]+ sets\/week$/)).toBeVisible();
+  await expect(map.getByRole('button')).toHaveCount(25);
+});

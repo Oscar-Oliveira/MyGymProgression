@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, muscleSetsPerWeek, personalRecords, previousPeriod, weeksIn, stalledItems, workoutRecords, workoutsByWeek } from './analysis';
+import { adherence, completionByExercise, e1rm, entryMetrics, exerciseHistory, mondayOf, muscleDistribution, muscleLevel, muscleSetsPerWeek, personalRecords, previousPeriod, weeksIn, stalledItems, workoutRecords, workoutsByWeek } from './analysis';
 import type { Evaluation, MetricDef, Outcome, ProgressionStrategy, SetRecord, Workout, WorkoutEntry } from './types';
 import { DEFAULT_CRITERIA } from './units';
 
@@ -178,5 +178,8 @@ describe('periods', () => {
   it('averages muscle sets per week', () => {
     const ws = [workout('2026-10-05', [entry({ sets: [set({ reps: 10, load: 40 }), set({ reps: 10, load: 40 })] })])];
     expect(muscleSetsPerWeek(ws, '2026-10-03', '2026-10-16')).toEqual({ chest: 1, triceps: 0.5 });
+  });
+  it('gives the body map level against the 10–20 guideline', () => {
+    expect([undefined, 0, 0.5, 9.9, 10, 20, 20.5].map(muscleLevel)).toEqual(['none', 'none', 'low', 'low', 'ok', 'ok', 'high']);
   });
 });
