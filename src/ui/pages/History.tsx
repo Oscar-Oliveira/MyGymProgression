@@ -11,6 +11,7 @@ import { ThumbStack } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
+import { Icon } from '../components/Icon';
 
 const STATUS_TONE: Record<Workout['status'], string> = { completed: 'up', partial: 'warn', interrupted: 'warn', in_progress: '' };
 
@@ -72,7 +73,7 @@ export function History() {
               <h3 style={{ marginTop: 0 }}>{latest.dayName ?? t('workout.free')}</h3>
               {latest.status === 'interrupted' && <p className="help">{t('workout.resumeHelp')}</p>}
               <button className="primary xl" onClick={() => void resume(latest)}>
-                ▶ {t('workout.resume')}
+                <Icon name="play" /> {t('workout.resume')}
               </button>
             </section>
           )}
@@ -99,7 +100,7 @@ export function History() {
                   </span>
                   <span className="col" style={{ alignItems: 'flex-end', gap: '0.3rem' }}>
                     <span className={`pill ${STATUS_TONE[w.status]}`}>{t(`workout.status.${w.status}`)}</span>
-                    {ups > 0 && <span className="pill up">⬆ {ups}</span>}
+                    {ups > 0 && <span className="pill up"><Icon name="arrowUp" /> {ups}</span>}
                   </span>
                 </Link>
               </div>

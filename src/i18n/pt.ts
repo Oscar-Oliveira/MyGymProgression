@@ -1,7 +1,7 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', coach: 'Personal trainer' },
+  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', coach: 'PT' },
   more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', coach: 'Estilo, mensagens, voz e dicas' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
@@ -92,7 +92,7 @@ export const pt: Resources = {
   loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter', short: { total: 'total', perSide: 'por lado' } },
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
   coach: {
-    title: 'Personal trainer', enabled: 'Ativar personal trainer', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
+    title: 'PT', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',
     pages: 'Falar também fora do treino', pagesSub: 'Saudação no Início e comentários no fim do treino, na Análise e no Histórico (uma vez por dia).',
     when: 'Quando', whenOptions: { random: 'Às vezes, entre exercícios', each: 'Depois de cada exercício', start: 'Só no início' },
     gender: 'Género', genders: { male: 'Homem', female: 'Mulher' },
@@ -111,10 +111,10 @@ export const pt: Resources = {
       stoic: 'Calmo e firme: foco no que controlas, no esforço e na constância.',
       sergeant: 'Duro e direto, com os teus números reais (treinos, subidas, dias parado).',
     },
-    messages: 'Mensagens', extras: 'Extras', off: 'O personal trainer está desligado. Liga-o em Definições para escolheres o estilo e os extras.',
+    messages: 'Mensagens', extras: 'Extras', off: 'O PT está desligado. Liga-o em Definições para escolheres o estilo e os extras.',
     live: 'Reação quando bates a última vez', liveSub: 'Uma mensagem curta quando uma série bate a mesma série da última vez.',
     voice: 'Voz', voiceSub: 'Lê as mensagens em voz alta durante o treino, na língua da app (português de Portugal ou inglês britânico), com uma voz deste dispositivo do género do PT quando existe; senão, com o tom mais grave ou mais agudo.',
-    tips: 'Dicas de técnica', tipsSub: 'Um 💡 ao lado do nome do exercício quando a biblioteca tem dicas para ele; toca para veres uma.',
+    tips: 'Dicas de técnica', tipsSub: 'Um ícone de lâmpada ao lado do nome do exercício quando a biblioteca tem dicas para ele; toca para veres uma.',
   },
   circuit: {
     label: 'Circuito', name: 'Nome do circuito', rounds: 'Voltas', new: 'Circuito', addExercise: 'Exercício no circuito',
@@ -166,7 +166,7 @@ export const pt: Resources = {
     usedIn: 'Usado nos planos: {{plans}}. Remove-o desses planos primeiro, ou marca-o como inativo.', history: 'Histórico', prs: 'Melhores', noHistory: 'Ainda sem sessões.',
     applyPreset: 'Aplicar tipo', groups: 'Grupos musculares', allEquipment: 'Todo o equipamento', showMore: 'Mostrar mais {{n}} ({{left}} restantes)',
     addToPlan: 'Adicionar a plano', inDay: 'já está', addedToPlan: 'Adicionado a {{day}} ({{plan}}).',
-    join: 'Juntar duplicado', joinOk: 'Juntar', joinConfirm: 'Juntar «{{dup}}» em «{{keep}}»? Passam para «{{keep}}»: {{plans}} planos, {{workouts}} treinos e {{progression}} registos de progressão. «{{dup}}» fica como outro nome e é apagado.', joinDone: '«{{dup}}» foi junto em «{{keep}}».',
+    join: 'Juntar duplicado', joinOk: 'Juntar', joinConfirm: 'Juntar «{{dup}}» em «{{keep}}»? Passam para «{{keep}}»: {{plans}} planos, {{workouts}} treinos e {{progression}} registos de progressão. «{{dup}}» fica como outro nome e é eliminado.', joinDone: '«{{dup}}» foi junto em «{{keep}}».',
     video: 'Ver vídeo', muscles: 'Músculos', description: 'Descrição', howTo: 'Como fazer', tips: 'Dicas', related: 'Exercícios relacionados', presetWarn: 'Isto substitui métricas, séries predefinidas e progressão.', unitChangeWarn: 'Mudar a unidade não converte registos anteriores.',
   },
   prescription: { sets: 'Séries', addSet: 'Adicionar série', kind: 'Tipo', min: 'mín', max: 'máx', target: 'alvo', setN: 'Série {{n}}' },
@@ -197,11 +197,11 @@ export const pt: Resources = {
     period: 'Período', p28: '4 sem.', p84: '12 sem.', p182: '6 meses', p0: 'Tudo', plan: 'Plano',
     consistency: 'Consistência', streak: 'Semanas seguidas', bestStreak: 'Melhor sequência', weeksN: '{{count}} semanas', weeksN_one: '{{count}} semana', dayCell: '{{date}}: {{count}} treinos', dayCell_one: '{{date}}: {{count}} treino', consistencyHelp: 'Últimos 12 meses. Cada quadrado é um dia, na cor do plano.', less: 'Menos', more: 'Mais',
     goals: 'Metas', newGoal: 'Nova meta', goalExercise: 'Exercício', goalLoad: 'Carga ({{unit}})', goalBy: 'Até (opcional)', goalMet: 'Atingida em {{date}}', goalBest: 'melhor {{load}}', goalProjected: 'A este ritmo: {{date}}', goalLate: 'depois da tua data ({{date}})', goalOnTime: 'antes da tua data ({{date}})',
-    goalNoTrend: 'Sem tendência de subida nas últimas 8 semanas.', goalFew: 'Uma projeção precisa de 3 sessões nas últimas 8 semanas.', goalDelete: 'Apagar meta', goalDeleteConfirm: 'Apagar a meta {{load}} em {{name}}?', noGoals: 'Ainda não há metas.',
+    goalNoTrend: 'Sem tendência de subida nas últimas 8 semanas.', goalFew: 'Uma projeção precisa de 3 sessões nas últimas 8 semanas.', goalDelete: 'Eliminar meta', goalDeleteConfirm: 'Eliminar a meta {{load}} em {{name}}?', noGoals: 'Ainda não há metas.',
     perWeek: 'Treinos por semana', avgPerWeek: 'média {{n}}/semana', tapWeek: 'Toca numa semana para ver os treinos.', weekOf: 'Semana de {{date}}: {{count}} treinos', weekOf_one: 'Semana de {{date}}: {{count}} treino',
     workouts: 'Treinos', workingSets: 'Séries', completionRate: 'Cumprido', byExercise: 'Por exercício', now: 'agora', fixed: 'Fixo', completionShort: '{{pct}}% cumprido',
     sessionsN: '{{count}} sessões', sessionsN_one: '{{count}} sessão', sessionsN_other: '{{count}} sessões', stalledShort: 'estagnado', noData: 'Sem treinos neste período.',
-    moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo por semana', musclesGuide: 'Linhas tracejadas: {{min}}–{{max}} séries por semana, uma referência comum para hipertrofia (não é regra).', vsPrevious: '▲▼ comparado com {{from}} – {{to}}', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
+    moreDetails: 'Mais detalhes', adherence: 'Adesão', adherenceDetail: '{{done}} treinos · {{n}} dias/semana', muscles: 'Séries por músculo por semana', musclesGuide: 'Linhas tracejadas: {{min}}–{{max}} séries por semana, uma referência comum para hipertrofia (não é regra).', vsPrevious: 'Comparado com {{from}} – {{to}}', completion: 'Cumprimento por exercício', volume: 'Volume', duration: 'Duração', formulas: 'Como é calculado',
     topLoad: 'Série mais pesada', e1rm: '1RM estimado (Epley)', totalReps: 'Total de reps', maxDuration: 'Série mais longa', distance: 'Distância', pace: 'Ritmo', avgSpeed: 'Velocidade média', avgIncline: 'Inclinação média', loadEvents: 'Histórico de progressão',
     formula: {
       trend: 'Seta: primeira vs última sessão do período, com o número principal (carga da série mais pesada, série mais longa, distância ou reps).',
@@ -215,7 +215,7 @@ export const pt: Resources = {
     },
   },
   settings: {
-    title: 'Definições', preferences: 'Preferências', features: 'Funcionalidades', reportOn: 'Relatório da semana', rivalOn: 'Tu vs há 3 meses', coachSub: 'Mensagens no treino e fora dele. O estilo e o aspeto escolhem-se em Mais › Personal trainer.', gameSound: 'Som nos jogos', gameHaptic: 'Vibração nos jogos', theme: 'Tema', themes: { dark: 'Escuro', light: 'Claro', system: 'Igual ao sistema' }, library: 'Biblioteca de exercícios', danger: 'Zona de perigo', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após',
+    title: 'Definições', preferences: 'Preferências', features: 'Funcionalidades', reportOn: 'Relatório da semana', rivalOn: 'Tu vs há 3 meses', coachSub: 'Mensagens no treino e fora dele. O estilo e o aspeto escolhem-se em Mais › PT.', gameSound: 'Som nos jogos', gameHaptic: 'Vibração nos jogos', theme: 'Tema', themes: { dark: 'Escuro', light: 'Claro', system: 'Igual ao sistema' }, library: 'Biblioteca de exercícios', danger: 'Zona de perigo', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após',
     data: 'Cópia de segurança e dados', export: 'Exportar', exportFull: 'Cópia completa (JSON)', exportLibrary: 'Exercícios (JSON)', exportPlans: 'Planos (JSON)',
     csvSets: 'Séries (CSV)', csvWorkouts: 'Treinos (CSV)', csvEvents: 'Progressão (CSV)', import: 'Importar', chooseFile: 'Restaurar ou importar (ficheiro JSON)',
     seed: 'Adicionar exercícios iniciais', seeded: '{{count}} exercícios adicionados.', importLibrary: 'Importar ficheiro da biblioteca', openLibrary: 'Instalar biblioteca aberta', openLibraryHelp: 'Cerca de 870 exercícios com fotos e instruções (em inglês), da free-exercise-db (domínio público). Descarrega cerca de 3 MB, uma vez; depois funciona offline.', openLibraryFailed: 'Não foi possível descarregar a biblioteca aberta. Verifica a ligação e tenta outra vez.', libraryNotice: 'Importa exercícios de um ficheiro de biblioteca (JSON, formato em docs/data-format.md). Os exercícios que já tens ficam com as imagens e as instruções; planos e histórico não mudam. Usa apenas dados que tens autorização para usar.', libraryResult: '{{added}} adicionados, {{updated}} atualizados.', libraryInvalid: 'Este ficheiro não é uma biblioteca de exercícios.', demo: 'Carregar dados de exemplo', demoConfirm: 'Adicionar um plano de exemplo e 6 semanas de treinos?',
@@ -227,7 +227,7 @@ export const pt: Resources = {
     seedSub: 'Cerca de 40 exercícios comuns', demoSub: 'Um plano e 6 semanas de treinos de exemplo', resetSub: 'Todos os planos, treinos e exercícios deste navegador',
     workout: 'Treino', warmup: 'Aquecimento automático', warmupSub: 'Séries de aquecimento (50 % × 8, 70 % × 5, 85 % × 3 da carga de trabalho) no 1.º exercício composto de cada músculo. Não contam para a progressão.',
     stalledSub: 'Sessões sem progresso até um exercício ficar estagnado', about: 'Como os teus dados são guardados',
-    persisted: 'Armazenamento persistente concedido.', notPersisted: 'O navegador pode apagar dados se faltar espaço. Exporta cópias regularmente.', formatDoc: 'Formato JSON com versão (docs/data-format.md).',
+    persisted: 'Armazenamento persistente concedido.', notPersisted: 'O navegador pode eliminar dados se faltar espaço. Exporta cópias regularmente.', formatDoc: 'Formato JSON com versão (docs/data-format.md).',
   },
   import: {
     preview: 'Pré-visualização', exportedAt: 'Exportado', scope: 'Âmbito', migrated: 'Migrado da versão de esquema {{v}}.', table: 'Registos',
@@ -235,7 +235,7 @@ export const pt: Resources = {
     conflictPolicy: 'Em conflito (mesmo id, conteúdo diferente)', skip: 'Manter os meus', overwrite: 'Usar os importados', keepBoth: 'Manter ambos (a cópia importada recebe novo id)',
     duplicates: '{{count}} exercícios importados coincidem com existentes (nome e equipamento).', dupImport: 'Importá-los como exercícios separados', dupUseExisting: 'Usar os meus exercícios',
     missingRefs: 'Faltam {{count}} exercícios referenciados. O histórico continua legível.', commit: 'Importar', done: 'Importação concluída.',
-    replaceWarn: 'Substituir apaga todos os dados atuais. Primeiro é descarregada uma cópia.', errors: 'Não é possível importar o ficheiro:',
+    replaceWarn: 'Substituir elimina todos os dados atuais. Primeiro é descarregada uma cópia.', errors: 'Não é possível importar o ficheiro:',
     error: { invalid_json: 'O ficheiro não é JSON válido.', not_a_backup: 'O ficheiro não é uma exportação do MyGymProgression.', schema_version_missing: 'Falta a versão do esquema.', schema_version_newer: 'O ficheiro foi criado por uma versão mais recente (esquema {{v}}).', file_too_large: 'O ficheiro é demasiado grande.' },
     tables: { exercises: 'Exercícios', plans: 'Planos', planVersions: 'Versões de planos', progressionStates: 'Progressão', workouts: 'Treinos', progressionEvents: 'Eventos de progressão', revisions: 'Correções', goals: 'Metas', coachReports: 'Relatórios do PT' },
   },
@@ -256,7 +256,7 @@ export const pt: Resources = {
   games: {
     sound: 'Som', haptic: 'Vibração',
     title: 'Jogos', play: 'Jogar', again: 'Jogar outra vez', best: 'Recorde', noScore: 'Ainda não jogado', last: 'Últimas pontuações', newRecord: 'Novo recorde!',
-    reset: 'Repor pontuações', resetAll: 'Repor todas as pontuações', resetConfirm: 'Apagar as pontuações de "{{name}}"?', resetAllConfirm: 'Apagar as pontuações de todos os jogos?',
+    reset: 'Eliminar pontuações', resetAll: 'Eliminar todas as pontuações', resetConfirm: 'Eliminar as pontuações de "{{name}}"?', resetAllConfirm: 'Eliminar as pontuações de todos os jogos?',
     jump: 'Saltar', duck: 'Baixar', time: 'Tempo', lives: 'Vidas', moves: 'Jogadas', wave: 'Vaga', card: 'Carta {{n}}', mainMuscle: 'Músculo principal de',
     noExercises: 'Ainda não há exercícios com músculos. Adiciona exercícios em Exercícios.', tapToStart: 'Toca para começar', ouch: 'Ai!',
     names: { memory: 'Memória dos PTs', whack: 'Whack-a-PT', muscle: 'Adivinha o músculo', flappy: 'Flappy Halter', runner: 'PT Runner', starship: 'Starship', legday: 'Fuga ao Dia de Pernas', rerack: 'Arruma os Pesos!' },
@@ -294,8 +294,8 @@ export const pt: Resources = {
   },
   reports: {
     title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Semana', rival: 'Tu vs 3 meses' },
-    reportOn: 'Mostrar no Início ao domingo', reportOnSub: 'Todos os domingos, no Início: a tua semana. Os relatórios de domingo ficam guardados aqui. Com o personal trainer ligado, tem um comentário dele.',
-    rivalOn: 'Mostrar no fim do treino', rivalOnSub: 'No resumo do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
+    reportOnSub: 'Todos os domingos, no Início: a tua semana. Os relatórios de domingo ficam guardados aqui. Com o PT ligado, tem um comentário dele.',
+    rivalOnSub: 'No resumo do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
     thisWeek: 'Esta semana, até agora', earlier: 'Semanas anteriores', noReports: 'Ainda não há relatórios anteriores. Com "Relatório da semana" ligado nas Definições, cada relatório de domingo fica guardado aqui.',
     latest: 'Último treino', noRival: 'Ainda não há com que comparar: o último treino precisa do mesmo dia do plano feito há pelo menos 4 semanas.',
   },
@@ -329,7 +329,6 @@ export const pt: Resources = {
     },
     progress: 'Progresso: {{value}} de {{target}}', progressRecord: 'Melhor desta semana: {{value}}', met: 'Os teus treinos dizem que conseguiste!',
     markDone: 'Marcar como cumprido', undo: 'Ainda não cumpri', history: 'Histórico', empty: 'Ainda não há desafios.', rate: '{{done}} de {{total}} cumpridos', weekOf: 'Semana de {{date}}', pages: 'Páginas dos desafios',
-    enabled: 'Ativar desafio semanal',
     status: { open: 'Em curso', done: 'Cumprido', missed: 'Não cumprido' },
     intro: {
       support: 'O teu desafio desta semana. Vais conseguir!',
@@ -382,7 +381,7 @@ export const pt: Resources = {
     },
     tips: [
       'Dica: controla a descida; também conta.',
-      'Dica: escreve o banco e a pega na nota de setup (📌).',
+      'Dica: escreve o banco e a pega na nota de setup.',
       'Dica: pouco tempo? Usa "Pouco tempo" no treino.',
       'Dica: cria uma meta de carga na Análise para veres a data prevista.',
       'Dica: dormir e beber água também te deixam mais forte.',

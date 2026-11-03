@@ -20,6 +20,7 @@ import { fmtMetric } from '../progress';
 import { Empty, OutcomeBadge, PageHead, pageOf, Pager } from '../components/Bits';
 import { TrendChart } from '../components/TrendChart';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, speedOut, tr, useSettings } from '../util';
+import { Icon } from '../components/Icon';
 
 function formatSet(s: SetRecord, metrics: MetricDef[], lang: string): string {
   const v = s.values;
@@ -187,7 +188,15 @@ export function ExerciseDetail() {
                       {day.name}
                       {day.weekday !== undefined && ` · ${weekdays[day.weekday]}`}
                     </span>
-                    <small>{has ? `✓ ${t('exercise.inDay')}` : t('train.exercises', { count: day.items.length })}</small>
+                    <small>
+                      {has ? (
+                        <>
+                          <Icon name="check" /> {t('exercise.inDay')}
+                        </>
+                      ) : (
+                        t('train.exercises', { count: day.items.length })
+                      )}
+                    </small>
                   </button>
                 );
               })}
@@ -202,12 +211,12 @@ export function ExerciseDetail() {
           <div className="row wrap">
             {ex.video && (
               <a className="btn primary" href={ex.video} target="_blank" rel="noopener noreferrer">
-                ▶ {t('exercise.video')}
+                <Icon name="play" /> {t('exercise.video')}
               </a>
             )}
             {ex.source?.url && (
               <a className="btn outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
-                {ex.source.name} ↗
+                {ex.source.name} <Icon name="external" />
               </a>
             )}
           </div>
@@ -278,7 +287,7 @@ export function ExerciseDetail() {
             <p>
               <strong>{t(`strategy.${ex.progression.strategy}`)}</strong> — <span className="help">{t(`strategy.help.${ex.progression.strategy}`)}</span>
             </p>
-            {ex.safetyNotes && <p className="error" style={{ whiteSpace: 'pre-wrap' }}>⚠ {ex.safetyNotes}</p>}
+            {ex.safetyNotes && <p className="error" style={{ whiteSpace: 'pre-wrap' }}><Icon name="warning" /> {ex.safetyNotes}</p>}
             {ex.personalNotes && <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>{ex.personalNotes}</p>}
             {ex.links.length > 0 && (
               <ul>

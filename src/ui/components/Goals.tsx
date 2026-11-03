@@ -10,6 +10,7 @@ import { convert, hasMetric } from '../../domain/units';
 import { dialog } from './Dialog';
 import { NumInput } from './NumInput';
 import { fmtDate, fmtNum, loadOut, useSettings } from '../util';
+import { Icon } from './Icon';
 
 /** Goals are stored as the total load; a per-side exercise shows and takes the load per side, as it is logged. */
 const sideOf = (ex?: Pick<Exercise, 'loadMode'>) => (ex?.loadMode === 'perSide' ? 2 : 1);
@@ -46,10 +47,10 @@ export function Goals({ exerciseId }: { exerciseId?: string }) {
   return (
     <section className="card" aria-label={t('analysis.goals')}>
       <div className="section-head" style={{ marginTop: 0 }}>
-        <h2>🎯 {t('analysis.goals')}</h2>
+        <h2><Icon name="target" /> {t('analysis.goals')}</h2>
         {!adding && (
           <button className="ghost sm" onClick={() => setAdding(true)}>
-            + {t('analysis.newGoal')}
+            <Icon name="plus" /> {t('analysis.newGoal')}
           </button>
         )}
       </div>
@@ -59,7 +60,7 @@ export function Goals({ exerciseId }: { exerciseId?: string }) {
           const ex = exercises.get(g.exerciseId);
           const st = goalStatus(g, data.workouts);
           const text = st.metAt
-            ? `✓ ${t('analysis.goalMet', { date: fmtDate(st.metAt, s.language) })}`
+            ? t('analysis.goalMet', { date: fmtDate(st.metAt, s.language) })
             : st.projected
               ? `${t('analysis.goalProjected', { date: fmtDate(`${st.projected}T12:00:00`, s.language) })}${g.by ? ` · ${t(st.projected > g.by ? 'analysis.goalLate' : 'analysis.goalOnTime', { date: fmtDate(`${g.by}T12:00:00`, s.language) })}` : ''}`
               : t(st.noTrend ? 'analysis.goalNoTrend' : 'analysis.goalFew');
@@ -71,14 +72,16 @@ export function Goals({ exerciseId }: { exerciseId?: string }) {
                   {!exerciseId && `${ex?.name ?? g.exerciseName} · `}
                   {fmtLoad(g.load, ex)}
                 </strong>
-                <small className={st.metAt ? 'up-text' : st.projected && g.by && st.projected > g.by ? 'warn-text' : 'muted'}>{text}</small>
+                <small className={st.metAt ? 'up-text' : st.projected && g.by && st.projected > g.by ? 'warn-text' : 'muted'}>
+                  {st.metAt && <Icon name="check" />} {text}
+                </small>
                 <span className="challenge-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share * 100)}>
                   <span style={{ width: `${share * 100}%` }} />
                 </span>
                 {st.best !== undefined && !st.metAt && <small className="muted">{t('analysis.goalBest', { load: fmtLoad(st.best, ex) })}</small>}
               </span>
               <button className="ghost sm" aria-label={t('analysis.goalDelete')} onClick={() => void remove(g)}>
-                ✕
+                <Icon name="close" />
               </button>
             </li>
           );

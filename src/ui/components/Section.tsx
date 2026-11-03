@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { Icon } from './Icon';
 
 const read = (key: string, fallback: boolean) => {
   try {
@@ -27,7 +28,7 @@ export function Section({ id, title, extra, defaultOpen = true, children }: { id
         <button type="button" className="fold-toggle" aria-expanded={open} onClick={toggle}>
           <h2>{title}</h2>
           <span className="fold-chev" aria-hidden="true">
-            ⌄
+            <Icon name="chevronDown" />
           </span>
         </button>
         {extra}

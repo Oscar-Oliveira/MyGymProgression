@@ -6,6 +6,7 @@ import type { Exercise } from '../../domain/types';
 import { tr } from '../util';
 import { Modal } from './Modal';
 import { ExerciseItem } from './ExerciseItem';
+import { Icon } from './Icon';
 
 /** Results shown at first and added by "show more", as in the exercise list. */
 const PAGE = 60;
@@ -38,7 +39,8 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
           <li key={e.id}>
             <button type="button" className="pick" onClick={() => onPick(e)}>
               <ExerciseItem
-                name={`${preferred.includes(e.id) ? '★ ' : ''}${e.name}`}
+                name={e.name}
+                trailing={preferred.includes(e.id) ? <Icon name="star" /> : undefined}
                 thumb={e.thumb}
                 size="sm"
                 sub={[tr(t, 'equipment', e.equipment), e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')].filter(Boolean).join(' · ')}

@@ -5,6 +5,7 @@ import { METRIC_KEYS } from '../../domain/types';
 import { DEFAULT_CRITERIA, isBuiltin, METRIC_UNITS } from '../../domain/units';
 import { metricLabel, metricShort } from '../util';
 import { NumInput } from './NumInput';
+import { Icon } from './Icon';
 
 export function MetricsEditor({ metrics, onChange }: { metrics: MetricDef[]; onChange: (m: MetricDef[]) => void }) {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ export function MetricsEditor({ metrics, onChange }: { metrics: MetricDef[]; onC
               )}
               <input type="checkbox" className="big-check" aria-label={`${t('exercise.required')} ${metricLabel(t, m.key, metrics)}`} checked={m.required} onChange={(e) => set(i, { required: e.target.checked })} />
               <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${metricLabel(t, m.key, metrics)}`} onClick={() => onChange(metrics.filter((_, j) => j !== i))}>
-                ✕
+                <Icon name="close" />
               </button>
             </div>
           ))}
@@ -122,7 +123,7 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
                 <span />
               ) : (
                 <button type="button" className="ghost sm" aria-label={`${t('common.remove')} ${i + 1}`} onClick={() => onChange(sets.filter((_, j) => j !== i))}>
-                  ✕
+                  <Icon name="close" />
                 </button>
               )}
             </div>
@@ -136,7 +137,7 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
           style={{ marginTop: '0.6rem' }}
           onClick={() => onChange([...sets, sets.length ? structuredClone(sets[sets.length - 1]) : { kind: 'working', targets: {} }])}
         >
-          + {t('prescription.addSet')}
+          <Icon name="plus" /> {t('prescription.addSet')}
         </button>
       )}
     </div>
@@ -216,14 +217,14 @@ export function ProgressionEditor({ config, metrics, onChange }: { config: Progr
             </span>
             {config.strategy === 'multi' && (
               <button type="button" className="ghost" onClick={() => onChange({ ...config, steps: config.steps.filter((_, j) => j !== i) })}>
-                ✕
+                <Icon name="close" />
               </button>
             )}
           </div>
         ))}
       {config.strategy === 'multi' && choosable.length > 0 && (
         <button type="button" className="outline" onClick={() => onChange({ ...config, steps: [...config.steps, { metric: choosable[0].key, increment: 1 }] })}>
-          + {t('progression.addStep')}
+          <Icon name="plus" /> {t('progression.addStep')}
         </button>
       )}
       {showSteps && (

@@ -10,6 +10,7 @@ import { matches } from '../components/ExercisePicker';
 import { ExerciseItem, ThumbStack } from '../components/ExerciseItem';
 import { Empty, PageHead } from '../components/Bits';
 import { tr } from '../util';
+import { Icon } from '../components/Icon';
 
 const PAGE = 60;
 
@@ -78,7 +79,7 @@ export function ExerciseList() {
         count={t('exercise.count', { count: all.filter((e) => e.active).length })}
         aside={
           <Link className="btn primary" to="/exercises/new">
-            + {t('exercise.new')}
+            <Icon name="plus" /> {t('exercise.new')}
           </Link>
         }
       />
@@ -134,7 +135,7 @@ export function ExerciseList() {
                     <span className="meta">{t('exercise.count', { count: counts[g] })}</span>
                   </span>
                   <span className="chev" aria-hidden="true">
-                    ›
+                    <Icon name="chevronRight" />
                   </span>
                 </button>
               ))}

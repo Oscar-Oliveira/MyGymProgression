@@ -10,6 +10,7 @@ import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../compone
 import { splitList, useSettings, useUnsavedGuard } from '../util';
 import { Empty, PageHead } from '../components/Bits';
 import { dialog } from '../components/Dialog';
+import { Icon } from '../components/Icon';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
 const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'adductors', 'neck', 'cardio', 'full_body'];
@@ -206,12 +207,12 @@ export function ExerciseEdit() {
             <input aria-label={t('exercise.linkLabel')} placeholder={t('exercise.linkLabel')} value={l.label} onChange={(e) => up({ links: ex.links.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
             <input aria-label={t('exercise.linkUrl')} placeholder="https://" type="url" value={l.url} onChange={(e) => up({ links: ex.links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)) })} />
             <button type="button" className="ghost" onClick={() => up({ links: ex.links.filter((_, j) => j !== i) })}>
-              ✕
+              <Icon name="close" />
             </button>
           </div>
         ))}
         <button type="button" className="outline" onClick={() => up({ links: [...ex.links, { label: '', url: '' }] })}>
-          + {t('common.add')}
+          <Icon name="plus" /> {t('common.add')}
         </button>
       </section>
 

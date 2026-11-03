@@ -17,6 +17,7 @@ import { ColorPicker } from '../components/ColorPicker';
 import { toneStyle } from '../colors';
 import { dialog } from '../components/Dialog';
 import { ItemCard, working, type Targets } from '../components/PlanItemCard';
+import { Icon } from '../components/Icon';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
 /** Day goals of a mixed plan; 'free' = each exercise uses its own rule. */
@@ -225,7 +226,7 @@ export function PlanEdit() {
             {d.name || '—'}
           </button>
         ))}
-        <button onClick={addDay}>+ {t('plan.addDay')}</button>
+        <button onClick={addDay}><Icon name="plus" /> {t('plan.addDay')}</button>
       </div>
 
       {!day ? (
@@ -282,16 +283,16 @@ export function PlanEdit() {
             b.circuit ? (
               <section key={b.circuit.id} className="circuit-block" aria-label={b.circuit.name}>
                 <div className="circuit-head">
-                  <span className="badge">⟳ {t('circuit.label')}</span>
+                  <span className="badge"><Icon name="circuit" /> {t('circuit.label')}</span>
                   <input aria-label={t('circuit.name')} value={b.circuit.name} onChange={(e) => upDay((d) => updateCircuit(d, b.circuit!.id, { name: e.target.value }))} />
                   <button className="ghost sm" aria-label={`${t('common.moveUp')} ${b.circuit.name}`} onClick={() => upDay((d) => moveCircuit(d, b.circuit!.id, -1))}>
-                    ↑
+                    <Icon name="arrowUp" />
                   </button>
                   <button className="ghost sm" aria-label={`${t('common.moveDown')} ${b.circuit.name}`} onClick={() => upDay((d) => moveCircuit(d, b.circuit!.id, 1))}>
-                    ↓
+                    <Icon name="arrowDown" />
                   </button>
                   <button className="ghost sm" aria-label={`${t('common.remove')} ${b.circuit.name}`} onClick={() => upDay((d) => removeCircuit(d, b.circuit!.id))}>
-                    ✕
+                    <Icon name="close" />
                   </button>
                 </div>
                 <div className="circuit-rounds">
@@ -301,7 +302,7 @@ export function PlanEdit() {
                 </div>
                 {b.items.map(itemCard)}
                 <button className="outline" onClick={() => setPicker({ circuit: b.circuit!.id })}>
-                  + {t('circuit.addExercise')}
+                  <Icon name="plus" /> {t('circuit.addExercise')}
                 </button>
               </section>
             ) : (
@@ -310,15 +311,15 @@ export function PlanEdit() {
           )}
           <div className="add-row">
             <button className="outline xl" onClick={() => setPicker({})}>
-              + {t('plan.addExercise')}
+              <Icon name="plus" /> {t('plan.addExercise')}
             </button>
             <button className="outline xl" onClick={newCircuit}>
-              ⟳ {t('circuit.new')}
+              <Icon name="circuit" /> {t('circuit.new')}
             </button>
           </div>
           {day.items.length > 0 && (
             <button className="primary xl" style={{ marginTop: '0.75rem' }} onClick={() => void startDay()}>
-              ▶ {t('plan.startDay')}
+              <Icon name="play" /> {t('plan.startDay')}
             </button>
           )}
           <div className="row wrap" style={{ marginTop: '0.75rem' }}>

@@ -17,6 +17,7 @@ import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
 import { backupDue } from '../../domain/backup';
+import { Icon } from '../components/Icon';
 
 const PREVIEW = 4;
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -53,7 +54,7 @@ function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: {
         <p className="help">{t('home.finishFirst')}</p>
       ) : (
         <button className="primary xl" onClick={() => onStart(p)}>
-          ▶ {t('home.start')}
+          <Icon name="play" /> {t('home.start')}
         </button>
       )}
     </section>
@@ -73,7 +74,7 @@ function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: {
                 </span>
               </span>
               <span className="chev" aria-hidden="true">
-                ›
+                <Icon name="chevronRight" />
               </span>
             </Link>
           ))}
@@ -204,7 +205,7 @@ export function Home() {
             {[active.planName, t('home.setsProgress', { done: doneSets, total: totalSets })].filter(Boolean).join(' · ')}
           </p>
           <Link className="btn primary xl" to={`/workout/${active.id}`}>
-            ▶ {t('home.continue')}
+            <Icon name="play" /> {t('home.continue')}
           </Link>
         </section>
       ) : preview && plan && day ? (
@@ -221,7 +222,7 @@ export function Home() {
             {preview.entries.length > PREVIEW && <p className="muted">{t('home.andMore', { count: preview.entries.length - PREVIEW })}</p>}
           </div>
           <button className="primary xl" onClick={() => void start()}>
-            ▶ {t('home.start')}
+            <Icon name="play" /> {t('home.start')}
           </button>
           <Link to="/train" className="btn ghost xl" style={{ marginTop: '0.25rem' }}>
             {t('home.otherDay')}
@@ -277,7 +278,7 @@ export function Home() {
       )}
 
       {last && (
-        <Section id="home-last" title={t('home.last')} extra={<Link to={`/workout/${last.id}`}>{fmtDate(last.startedAt, s.language)} ›</Link>}>
+        <Section id="home-last" title={t('home.last')} extra={<Link to={`/workout/${last.id}`}>{fmtDate(last.startedAt, s.language)} <Icon name="chevronRight" /></Link>}>
           {/* Pending decisions are shown above, once. */}
           {last.entries
             .filter((e) => !pending.some((p) => p.entryId === e.id))
@@ -291,7 +292,7 @@ export function Home() {
         <section className="card warn" role="status">
           <p style={{ marginTop: 0 }}>{due === Infinity ? t('home.noBackup') : t('home.backupDue', { count: due })}</p>
           <button className="primary" onClick={() => void saveBackup()}>
-            ⤓ {t('home.saveBackup')}
+            <Icon name="download" /> {t('home.saveBackup')}
           </button>
         </section>
       ) : (

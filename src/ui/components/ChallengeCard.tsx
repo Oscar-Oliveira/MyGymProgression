@@ -9,6 +9,7 @@ import { challengeProgress, weekKey } from '../../domain/challenge';
 import type { Challenge, Settings } from '../../domain/types';
 import { fmtNum, fmtValue, loadOut, tr, useSettings } from '../util';
 import { CoachAvatar } from './CoachAvatar';
+import { Icon } from './Icon';
 
 const fmtLoad = (kg: number, s: Settings) => fmtValue(loadOut(kg, s), s.loadUnit, s.language);
 /** A record load as the user logs it: per side for a per-side exercise (the stored value is the total). */
@@ -59,7 +60,7 @@ export function ChallengeCard() {
           <p className="help">{t(`challenge.intro.${style}`)}</p>
         </div>
         <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
-          ✕
+          <Icon name="close" />
         </button>
       </div>
       <h2>{challengeText(t, ch, s)}</h2>
@@ -75,18 +76,18 @@ export function ChallengeCard() {
             {t('challenge.undo')}
           </button>
           {/* The status on the right, as in the week report and the challenge history. */}
-          <span className="pill up">✓ {t('challenge.status.done')}</span>
+          <span className="pill up"><Icon name="check" /> {t('challenge.status.done')}</span>
         </div>
       ) : (
         <>
           {met && <p className="hint">{t('challenge.met')}</p>}
           <button className={met ? 'primary' : 'outline'} style={{ width: '100%' }} onClick={() => void repo.setChallengeDone(ch.id, true)}>
-            ✓ {t('challenge.markDone')}
+            <Icon name="check" /> {t('challenge.markDone')}
           </button>
         </>
       )}
       <Link to="/challenges" className="challenge-link">
-        {t('challenge.history')} ›
+        {t('challenge.history')} <Icon name="chevronRight" />
       </Link>
     </section>
   );

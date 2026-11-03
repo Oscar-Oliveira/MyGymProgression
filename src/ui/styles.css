@@ -588,7 +588,6 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 @media (prefers-reduced-motion: reduce) { .splash-crew > span, .splash-crew .crew-stoic { transform: none; animation: none; } }
 
 /* Games */
-.menu a .ico.game-ico { font-size: 1.35rem; }
 .game-hud { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0 0 0.6rem; font-size: 1.05rem; }
 .game-canvas canvas { display: block; width: 100%; max-width: 480px; margin: 0 auto; border-radius: var(--radius); border: 1px solid var(--border); touch-action: none; user-select: none; -webkit-user-select: none; }
 .game-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; max-width: 480px; margin: 0.75rem auto 0; }
@@ -731,3 +730,7 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .toast { margin: 0; max-width: 32rem; padding: 0.7rem 1.1rem; border-radius: 14px; background: var(--text); color: var(--bg); font-weight: 650; box-shadow: var(--shadow-lg); animation: toast-in 0.2s ease-out; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+
+/* Icons next to a text (D67): outline, the size of the text. */
+svg.glyph { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
+svg.glyph-more, svg.glyph-alert { stroke-width: 3; }

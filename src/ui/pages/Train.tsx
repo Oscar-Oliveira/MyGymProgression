@@ -7,6 +7,7 @@ import { nextDay } from '../../domain/workout';
 import { ThumbStack } from '../components/ExerciseItem';
 import { Empty, PageHead } from '../components/Bits';
 import { toneOf, toneStyle } from '../colors';
+import { Icon } from '../components/Icon';
 
 /** Choose what to train: an active workout opens directly; otherwise every day of every active plan. */
 export function Train() {
@@ -65,7 +66,7 @@ export function Train() {
                     {items.map((e) => e.name).join(' · ')}
                   </p>
                   <button className={isNext ? 'primary xl' : 'outline xl'} disabled={!d.items.length} onClick={() => void start(p.id, d.id)}>
-                    ▶ {t('home.start')}
+                    <Icon name="play" /> {t('home.start')}
                   </button>
                 </div>
               );
@@ -74,7 +75,7 @@ export function Train() {
         );
       })}
       <button className="ghost xl" onClick={() => void start()}>
-        + {t('workout.free')}
+        <Icon name="plus" /> {t('workout.free')}
       </button>
     </div>
   );

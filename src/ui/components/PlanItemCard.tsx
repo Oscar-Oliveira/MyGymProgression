@@ -5,6 +5,7 @@ import { PrescriptionEditor, ProgressionEditor } from './Editors';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { fmtValue, metricLabel, useSettings } from '../util';
+import { Icon } from './Icon';
 
 
 type Goal = Pick<Plan, 'goal'>;
@@ -87,7 +88,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
             <span className="xitem-sub">{summary}</span>
           </span>
           <span className="fold-chev" aria-hidden="true">
-            ⌄
+            <Icon name="chevronDown" />
           </span>
         </button>
       </section>
@@ -101,17 +102,17 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
           <Thumb src={ex.thumb} name={ex.name} size={44} />
           <span className="name">{ex.name}</span>
           <span className="fold-chev" aria-hidden="true">
-            ⌄
+            <Icon name="chevronDown" />
           </span>
         </button>
         <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>
-          ↑
+          <Icon name="arrowUp" />
         </button>
         <button className="ghost sm" aria-label={t('common.moveDown')} onClick={() => onMove(1)}>
-          ↓
+          <Icon name="arrowDown" />
         </button>
         <button className="ghost sm" aria-label={`${t('common.remove')} ${ex.name}`} onClick={onRemove}>
-          ✕
+          <Icon name="close" />
         </button>
       </div>
       <small className="muted">
@@ -196,11 +197,11 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
             <div className="row wrap">
               {item.substitutes.map((sid) => (
                 <button key={sid} className="chip" onClick={() => onChange({ ...item, substitutes: item.substitutes.filter((x) => x !== sid) })}>
-                  {exercises.get(sid)?.name ?? '?'} ✕
+                  {exercises.get(sid)?.name ?? '?'} <Icon name="close" />
                 </button>
               ))}
               <button className="chip" onClick={onAddSubstitute}>
-                + {t('common.add')}
+                <Icon name="plus" /> {t('common.add')}
               </button>
             </div>
           </div>

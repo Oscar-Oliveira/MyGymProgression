@@ -18,21 +18,22 @@ import { NO_COACH } from './CoachPage';
 import { parseLibraryFile } from '../../domain/library';
 import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
+import { Icon, type IconName } from '../components/Icon';
 
 
 /** One action in a settings list: icon, title and a short description. */
-function ActionRow({ icon, title, sub, onClick, tone = '' }: { icon: string; title: string; sub?: string; onClick: () => void; tone?: 'accent' | 'danger' | '' }) {
+function ActionRow({ icon, title, sub, onClick, tone = '' }: { icon: IconName; title: string; sub?: string; onClick: () => void; tone?: 'accent' | 'danger' | '' }) {
   return (
     <button type="button" className={`act-row ${tone}`} onClick={onClick}>
       <span className="act-ico" aria-hidden="true">
-        {icon}
+        <Icon name={icon} />
       </span>
       <span className="main">
         <span className="title">{title}</span>
         {sub && <span className="meta">{sub}</span>}
       </span>
       <span className="chev" aria-hidden="true">
-        ›
+        <Icon name="chevronRight" />
       </span>
     </button>
   );
@@ -69,18 +70,18 @@ function GameFx() {
 }
 
 /** The same row for choosing a file; the native file control is hidden behind it. */
-function FileRow({ icon, title, sub, onFile }: { icon: string; title: string; sub?: string; onFile: (f: File | undefined) => void }) {
+function FileRow({ icon, title, sub, onFile }: { icon: IconName; title: string; sub?: string; onFile: (f: File | undefined) => void }) {
   return (
     <label className="act-row file-btn">
       <span className="act-ico" aria-hidden="true">
-        {icon}
+        <Icon name={icon} />
       </span>
       <span className="main">
         <span className="title">{title}</span>
         {sub && <span className="meta">{sub}</span>}
       </span>
       <span className="chev" aria-hidden="true">
-        ›
+        <Icon name="chevronRight" />
       </span>
       <input type="file" accept="application/json,.json" onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ''))} />
     </label>
@@ -139,7 +140,7 @@ function ImportPanel() {
 
   return (
     <div className="stack-sm">
-      <FileRow icon="⤒" title={t('settings.chooseFile')} sub={t('settings.chooseFileSub')} onFile={(f) => void onFile(f)} />
+      <FileRow icon="upload" title={t('settings.chooseFile')} sub={t('settings.chooseFileSub')} onFile={(f) => void onFile(f)} />
       {errors.length > 0 && (
         <div className="error" role="alert">
           <p>{t('import.errors')}</p>
@@ -391,20 +392,20 @@ export function SettingsPage() {
       </div>
       <section className="card">
         <div className={`backup-status ${s.lastBackupAt && due === undefined ? 'ok' : 'due'}`} role="status">
-          <span aria-hidden="true">{s.lastBackupAt && due === undefined ? '✓' : '⚠'}</span>
+          <Icon name={s.lastBackupAt && due === undefined ? 'check' : 'warning'} />
           <span>{s.lastBackupAt ? t('dashboard.backupReminder', { date: fmtDate(s.lastBackupAt, s.language) }) : t('home.noBackup')}</span>
         </div>
         <div className="act-list">
-          <ActionRow icon="⤓" tone="accent" title={t('settings.exportFull')} sub={t('settings.backupSub')} onClick={() => void exportJson('full')} />
+          <ActionRow icon="download" tone="accent" title={t('settings.exportFull')} sub={t('settings.backupSub')} onClick={() => void exportJson('full')} />
           <ImportPanel />
           <details>
             <summary>{t('settings.otherExports')}</summary>
             <div className="act-list">
-              <ActionRow icon="≡" title={t('settings.exportLibrary')} sub={t('settings.exportLibrarySub')} onClick={() => void exportJson('library')} />
-              <ActionRow icon="▦" title={t('settings.exportPlans')} sub={t('settings.exportPlansSub')} onClick={() => void exportJson('plans')} />
-              <ActionRow icon="⊞" title={t('settings.csvSets')} sub={t('settings.csvSub')} onClick={() => void csv('sets')} />
-              <ActionRow icon="⊞" title={t('settings.csvWorkouts')} sub={t('settings.csvSub')} onClick={() => void csv('workouts')} />
-              <ActionRow icon="⊞" title={t('settings.csvEvents')} sub={t('settings.csvSub')} onClick={() => void csv('events')} />
+              <ActionRow icon="list" title={t('settings.exportLibrary')} sub={t('settings.exportLibrarySub')} onClick={() => void exportJson('library')} />
+              <ActionRow icon="qr" title={t('settings.exportPlans')} sub={t('settings.exportPlansSub')} onClick={() => void exportJson('plans')} />
+              <ActionRow icon="table" title={t('settings.csvSets')} sub={t('settings.csvSub')} onClick={() => void csv('sets')} />
+              <ActionRow icon="table" title={t('settings.csvWorkouts')} sub={t('settings.csvSub')} onClick={() => void csv('workouts')} />
+              <ActionRow icon="table" title={t('settings.csvEvents')} sub={t('settings.csvSub')} onClick={() => void csv('events')} />
             </div>
             <p className="privacy-note">{t('settings.formatDoc')}</p>
           </details>
@@ -419,10 +420,10 @@ export function SettingsPage() {
       </div>
       <section className="card">
         <div className="act-list">
-          <ActionRow icon="⤓" tone="accent" title={t('settings.openLibrary')} sub={t('settings.openLibrarySub')} onClick={() => void openLibrary()} />
-          <FileRow icon="⤒" title={t('settings.importLibrary')} sub={t('settings.importLibrarySub')} onFile={(f) => void importLibrary(f)} />
-          <ActionRow icon="＋" title={t('settings.seed')} sub={t('settings.seedSub')} onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))} />
-          <ActionRow icon="▶" title={t('settings.demo')} sub={t('settings.demoSub')} onClick={() => void demo()} />
+          <ActionRow icon="download" tone="accent" title={t('settings.openLibrary')} sub={t('settings.openLibrarySub')} onClick={() => void openLibrary()} />
+          <FileRow icon="upload" title={t('settings.importLibrary')} sub={t('settings.importLibrarySub')} onFile={(f) => void importLibrary(f)} />
+          <ActionRow icon="plus" title={t('settings.seed')} sub={t('settings.seedSub')} onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))} />
+          <ActionRow icon="play" title={t('settings.demo')} sub={t('settings.demoSub')} onClick={() => void demo()} />
         </div>
         <p className="privacy-note">{t('settings.libraryNotice')}</p>
       </section>
@@ -432,7 +433,7 @@ export function SettingsPage() {
       </div>
       <section className="card danger-zone">
         <div className="act-list">
-          <ActionRow icon="✕" tone="danger" title={t('settings.reset')} sub={t('settings.resetSub')} onClick={() => void reset()} />
+          <ActionRow icon="close" tone="danger" title={t('settings.reset')} sub={t('settings.resetSub')} onClick={() => void reset()} />
         </div>
       </section>
     </div>

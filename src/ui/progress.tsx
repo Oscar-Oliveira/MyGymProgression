@@ -11,17 +11,18 @@ import type { Exercise, MetricDef, MetricKey, ProgressionEvent, Reason, SetRecor
 import { NumInput } from './components/NumInput';
 import { fmtNum, fmtValue, metricLabel, reasonText, useSettings, useThumbs } from './util';
 import { ExerciseItem } from './components/ExerciseItem';
+import { Icon, type IconName } from './components/Icon';
 
 export type Trend = 'up' | 'same' | 'down' | 'ask' | 'done' | 'short';
-const TREND_ICON: Record<Trend, string> = { up: '⬆', same: '＝', down: '⬇', ask: '!', done: '✓', short: '!' };
+const TREND_ICON: Record<Trend, IconName> = { up: 'arrowUp', same: 'equal', down: 'arrowDown', ask: 'alert', done: 'check', short: 'alert' };
 const TREND_CLASS: Record<Trend, string> = { up: 'up', same: '', down: 'down', ask: 'warn', done: 'up', short: 'warn' };
 
-/** The status label used everywhere: ⬆ Up, ＝ Keep, ⬇ Down, ! Decide, ✓ Done. */
+/** The status label used everywhere: Up, Keep, Down, Decide, Done, each with its icon. */
 export function TrendPill({ trend }: { trend: Trend }) {
   const { t } = useTranslation();
   return (
     <span className={`pill ${TREND_CLASS[trend]}`}>
-      {TREND_ICON[trend]} {t(`trend.${trend}`)}
+      <Icon name={TREND_ICON[trend]} /> {t(`trend.${trend}`)}
     </span>
   );
 }
@@ -209,12 +210,12 @@ export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEnt
         <div className="actions">
           {sug && (
             <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
-              ⬆ {t('decide.loadBtn', { value: fmt(sug.to) })}
+              <Icon name="arrowUp" /> {t('decide.loadBtn', { value: fmt(sug.to) })}
             </button>
           )}
           {ev.repsOption && (
             <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'repsUp' })}>
-              ⬆ {t('decide.repsBtn', { range: `${ev.repsOption.to.min}–${ev.repsOption.to.max}` })}
+              <Icon name="arrowUp" /> {t('decide.repsBtn', { range: `${ev.repsOption.to.min}–${ev.repsOption.to.max}` })}
             </button>
           )}
           <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
@@ -227,7 +228,7 @@ export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEnt
           <div className="actions">
             {sug && (
               <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'stepBack' })}>
-                ⬇ {t('decide.downBtn', { value: fmt(sug.to) })}
+                <Icon name="arrowDown" /> {t('decide.downBtn', { value: fmt(sug.to) })}
               </button>
             )}
             <button className="outline" onClick={() => void repo.decide(ev.id, { kind: 'keep' })}>
@@ -253,7 +254,7 @@ export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEnt
       {undoable && (
         <div className="actions">
           <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
-            ↶ {t('decide.undo')}
+            <Icon name="undo" /> {t('decide.undo')}
           </button>
         </div>
       )}
@@ -299,7 +300,7 @@ export function SyncCard({ ev: stored, exercise }: { ev: ProgressionEvent; exerc
         <>
           <div className="actions">
             <button className="primary" onClick={() => void repo.decide(ev.id, { kind: 'apply' })}>
-              ⬆ {t('sync.applyBtn', { value: fmt(sug.to) })}
+              <Icon name="arrowUp" /> {t('sync.applyBtn', { value: fmt(sug.to) })}
             </button>
             <button className="ghost" aria-expanded={custom} onClick={() => setCustom(!custom)}>
               {t('decide.other')}
@@ -322,7 +323,7 @@ export function SyncCard({ ev: stored, exercise }: { ev: ProgressionEvent; exerc
       {undoable && (
         <div className="actions">
           <button className="ghost" onClick={() => void repo.decide(ev.id, { kind: 'revert' })}>
-            ↶ {t('decide.undo')}
+            <Icon name="undo" /> {t('decide.undo')}
           </button>
         </div>
       )}

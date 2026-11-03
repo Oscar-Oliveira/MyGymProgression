@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon } from './Icon';
 
 interface Props {
   value: number | undefined;
@@ -56,11 +57,11 @@ export function NumInput({ value, onChange, label, step = 1, stepper, placeholde
   return (
     <span className="stepper">
       <button type="button" className="step" aria-label={`${label ?? ''} −${step}`} onClick={() => bump(-step)}>
-        −
+        <Icon name="minus" />
       </button>
       {input}
       <button type="button" className="step" aria-label={`${label ?? ''} +${step}`} onClick={() => bump(step)}>
-        +
+        <Icon name="plus" />
       </button>
     </span>
   );

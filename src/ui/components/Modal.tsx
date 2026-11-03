@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Icon } from './Icon';
 
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
       <header className="modal-head">
         <h2>{title}</h2>
         <button type="button" className="ghost" onClick={onClose} aria-label={t('common.close')}>
-          ✕
+          <Icon name="close" />
         </button>
       </header>
       {children}

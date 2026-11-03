@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../components/Bits';
+import { Icon } from '../components/Icon';
 
 // Outline icons (24×24, stroke = currentColor).
 const ITEMS = [
@@ -33,7 +34,7 @@ export function More() {
                 <small>{t(`more.${key}`)}</small>
               </span>
               <span className="chev" aria-hidden="true">
-                ›
+                <Icon name="chevronRight" />
               </span>
             </Link>
           </li>

@@ -2,6 +2,7 @@
 import qrcode from 'qrcode-generator';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Icon } from './Icon';
 
 /**
  * QR code of `text`, or undefined when the text is too long for one code.
@@ -135,7 +136,7 @@ export function QrScanner({ onText }: { onText: (text: string) => void }) {
       {camera !== 'off' && <video ref={video} className="scan-video" playsInline muted aria-label={t('scan.camera')} />}
       {camera === 'off' && <p className="help">{t('scan.noCamera')}</p>}
       <label className="btn outline file-btn">
-        🖼 {t('scan.photo')}
+        <Icon name="image" /> {t('scan.photo')}
         <input type="file" accept="image/*" onChange={(e) => (e.target.files?.[0] && void fromImage(e.target.files[0]), (e.target.value = ''))} />
       </label>
       {msg && <p role="status">{msg}</p>}

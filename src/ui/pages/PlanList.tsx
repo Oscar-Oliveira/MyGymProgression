@@ -16,6 +16,7 @@ import { toneStyle } from '../colors';
 import { dayShare, encodeCompact, planShare, encodeShare, qrLink } from '../../domain/share';
 import { QrCode } from '../components/Qr';
 import { shareFile } from '../util';
+import { Icon } from '../components/Icon';
 
 /** QR codes of a plan, one per day (D60): the other person reads one day, or all of them for the whole plan. */
 function QrSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
@@ -42,13 +43,13 @@ function QrSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
         <>
           <div className="pager" style={{ marginTop: 0 }}>
             <button className="outline" disabled={i <= 0} aria-label={t('history.prev')} onClick={() => setI(i - 1)}>
-              ‹
+              <Icon name="chevronLeft" />
             </button>
             <span className="pager-info" aria-live="polite">
               {t('share.qrDay', { i: i + 1, n: codes.length, name: day.name })}
             </span>
             <button className="outline" disabled={i >= codes.length - 1} aria-label={t('history.next')} onClick={() => setI(i + 1)}>
-              ›
+              <Icon name="chevronRight" />
             </button>
           </div>
           <QrCode text={day.link} label={day.name} fallback={<p className="help">{t('share.qrTooBig')}</p>} />
@@ -86,9 +87,9 @@ function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
     <Modal title={`${t('share.menu')}: ${plan.name}`} onClose={onClose}>
       <p className="help" style={{ marginTop: 0 }}>{t('share.help2')}</p>
       <div className="sheet">
-        <button onClick={() => setQr(true)}>▦ {t('share.qr')}</button>
-        <button onClick={() => void link()}>🔗 {t('share.link')}</button>
-        <button onClick={() => void file()}>⤓ {t('share.file')}</button>
+        <button onClick={() => setQr(true)}><Icon name="qr" /> {t('share.qr')}</button>
+        <button onClick={() => void link()}><Icon name="link" /> {t('share.link')}</button>
+        <button onClick={() => void file()}><Icon name="download" /> {t('share.file')}</button>
       </div>
       <p className="help">{t('share.fileHelp')}</p>
     </Modal>
@@ -131,10 +132,10 @@ export function PlanList() {
         aside={
           <>
             <Link className="btn outline" to="/plans/scan">
-              ▦ {t('scan.open')}
+              <Icon name="qr" /> {t('scan.open')}
             </Link>
             <button className="primary" onClick={() => void create()}>
-              + {t('plan.new')}
+              <Icon name="plus" /> {t('plan.new')}
             </button>
           </>
         }

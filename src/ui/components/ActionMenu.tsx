@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from './Modal';
+import { Icon } from './Icon';
 
 export interface MenuAction {
   label: string;
@@ -15,7 +16,7 @@ export function ActionMenu({ title, actions }: { title: string; actions: (MenuAc
   return (
     <>
       <button type="button" className="ghost icon" aria-label={`${t('plan.actions')} ${title}`} onClick={() => setOpen(true)}>
-        ⋯
+        <Icon name="more" />
       </button>
       {open && (
         <Modal title={title} onClose={() => setOpen(false)}>

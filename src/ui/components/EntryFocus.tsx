@@ -8,6 +8,7 @@ import { Thumb } from './Thumb';
 import { CoachAvatar, CoachName } from './CoachAvatar';
 import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
+import { Icon } from './Icon';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -29,11 +30,11 @@ function BigStepper({ def, metrics, loadMode, value, goal, onChange }: { def: Me
       </span>
       <div className="ctl">
         <button type="button" aria-label={`${label} −${step}`} onClick={() => bump(-step)}>
-          −
+          <Icon name="minus" />
         </button>
         <NumInput label={label} value={value} onChange={onChange} />
         <button type="button" aria-label={`${label} +${step}`} onClick={() => bump(step)}>
-          +
+          <Icon name="plus" />
         </button>
       </div>
       {goal !== undefined && <span className="goal">{t('workout.goal', { value: fmtNum(goal, s.language) })}</span>}
@@ -68,7 +69,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
               </div>
               <div className="row">
                 <button className="primary xl" disabled={blocked} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
-                  ✓ {t('workout.setDone')}
+                  <Icon name="check" /> {t('workout.setDone')}
                 </button>
               </div>
               <div className="row between">
@@ -86,7 +87,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
         }
         return (
           <button key={set.id} className={`set ${set.status} ${miss ? 'miss' : ''}`} onClick={() => onActivate(set.id)} aria-label={`${t('workout.setN', { n: label })}: ${set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language)}`}>
-            <span className="n">{set.status === 'done' ? '✓' : label}</span>
+            <span className="n">{set.status === 'done' ? <Icon name="check" /> : label}</span>
             <span className="v">{set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—'}</span>
             {set.status === 'pending' && set.goal?.reps !== undefined && <span className="g">{t('workout.goal', { value: set.goal.reps })}</span>}
           </button>
@@ -98,7 +99,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
 
 /**
  * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
- * `tips`: technique tips of the exercise (D48, D54): a 💡 button opens one in a bubble of the trainer; "another tip" goes to the next.
+ * `tips`: technique tips of the exercise (D48, D54): a bulb button opens one in a bubble of the trainer; "another tip" goes to the next.
  * `onTip`: called with the tip shown (the voice reads it).
  */
 export function EntryFocus({
@@ -150,7 +151,7 @@ export function EntryFocus({
             {entry.exercise.name}
             {coach && tips && tips.length > 0 && (
               <button type="button" className={`tip-btn ${tip !== undefined ? 'on' : ''}`} aria-expanded={tip !== undefined} aria-label={t('workout.tip')} onClick={() => showTip(tip === undefined ? 0 : undefined)}>
-                💡
+                <Icon name="bulb" />
               </button>
             )}
           </h1>
@@ -162,7 +163,7 @@ export function EntryFocus({
       </div>
       {setup && !editSetup && (
         <button type="button" className="setup-note" onClick={() => setEditSetup(true)} aria-label={`${t('workout.setup')}: ${setup}`}>
-          📌 {setup}
+          <Icon name="pin" /> {setup}
         </button>
       )}
       {editSetup && onSetup && (
@@ -196,11 +197,11 @@ export function EntryFocus({
             )}
           </div>
           <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => showTip(undefined)}>
-            ✕
+            <Icon name="close" />
           </button>
         </div>
       )}
-      {entry.short && <p className="help">⏱ {t('reason.short')}</p>}
+      {entry.short && <p className="help"><Icon name="timer" /> {t('reason.short')}</p>}
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
       <div className="hint">{progressHint(entry, t, s.language)}</div>
 
@@ -220,10 +221,10 @@ export function EntryFocus({
 
       <div className="wk-actions">
         <button className="chip" onClick={() => onChange(addSet(entry, 'working'))}>
-          + {t('workout.addSet')}
+          <Icon name="plus" /> {t('workout.addSet')}
         </button>
         <button className="chip" onClick={onSubstitute}>
-          ⇄ {t('workout.substitute')}
+          <Icon name="swap" /> {t('workout.substitute')}
         </button>
         <button className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
           {t('workout.pain')}
@@ -237,7 +238,7 @@ export function EntryFocus({
         {onSetup && (
           // Opens the note; leaving the text field saves and closes it.
           <button className={`chip ${editSetup || setup ? 'on' : ''}`} onClick={() => setEditSetup(true)}>
-            📌 {t('workout.setup')}
+            <Icon name="pin" /> {t('workout.setup')}
           </button>
         )}
       </div>

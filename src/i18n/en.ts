@@ -90,7 +90,7 @@ export const en = {
   loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell', short: { total: 'total', perSide: 'per side' } },
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
   coach: {
-    title: 'Personal trainer', enabled: 'Turn on personal trainer', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
+    title: 'Personal trainer', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
     pages: 'Also speak outside the workout', pagesSub: 'Greeting on Home and comments at the end of a workout, in Analysis and in History (once a day).',
     when: 'When', whenOptions: { random: 'Sometimes, between exercises', each: 'After every exercise', start: 'Only at the start' },
     gender: 'Gender', genders: { male: 'Man', female: 'Woman' },
@@ -112,7 +112,7 @@ export const en = {
     messages: 'Messages', extras: 'Extras', off: 'The trainer is off. Turn it on in Settings to choose the style and the extras.',
     live: 'Reaction when you beat last time', liveSub: 'A short message when a set beats the same set of last time.',
     voice: 'Voice', voiceSub: 'Reads the messages aloud during the workout, in the app language (British English or Portuguese of Portugal), with a voice of this device of the same gender as the trainer when there is one; otherwise with a lower or higher pitch.',
-    tips: 'Technique tips', tipsSub: 'A 💡 next to the exercise name when the library has tips for it; tap it to see one.',
+    tips: 'Technique tips', tipsSub: 'A bulb icon next to the exercise name when the library has tips for it; tap it to see one.',
   },
   circuit: {
     label: 'Circuit', name: 'Circuit name', rounds: 'Rounds', new: 'Circuit', addExercise: 'Exercise in circuit',
@@ -199,7 +199,7 @@ export const en = {
     period: 'Period', p28: '4 wks', p84: '12 wks', p182: '6 months', p0: 'All', plan: 'Plan',
     workouts: 'Workouts', workingSets: 'Sets', completionRate: 'Completed', byExercise: 'By exercise', now: 'now', fixed: 'Fixed', completionShort: '{{pct}}% completed',
     sessionsN: '{{count}} sessions', sessionsN_one: '{{count}} session', sessionsN_other: '{{count}} sessions', stalledShort: 'stalled', noData: 'No workouts in this period.',
-    moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle per week', musclesGuide: 'Dashed lines: {{min}}–{{max}} sets per week, a common guideline for hypertrophy (not a rule).', vsPrevious: '▲▼ compared with {{from}} – {{to}}', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
+    moreDetails: 'More details', adherence: 'Adherence', adherenceDetail: '{{done}} workouts · {{n}} days/week', muscles: 'Sets per muscle per week', musclesGuide: 'Dashed lines: {{min}}–{{max}} sets per week, a common guideline for hypertrophy (not a rule).', vsPrevious: 'Compared with {{from}} – {{to}}', completion: 'Completion by exercise', volume: 'Volume', duration: 'Duration', formulas: 'How it is calculated',
     topLoad: 'Top set', e1rm: 'Estimated 1RM (Epley)', totalReps: 'Total reps', maxDuration: 'Longest set', distance: 'Distance', pace: 'Pace', avgSpeed: 'Average speed', avgIncline: 'Average incline', loadEvents: 'Progression history',
     formula: {
       trend: 'Arrow: first vs last session in the period, using the main number (top set load, longest set, distance or reps).',
@@ -254,7 +254,7 @@ export const en = {
   games: {
     sound: 'Sound', haptic: 'Vibration',
     title: 'Games', play: 'Play', again: 'Play again', best: 'Best', noScore: 'Not played yet', last: 'Last scores', newRecord: 'New record!',
-    reset: 'Reset scores', resetAll: 'Reset all scores', resetConfirm: 'Delete the scores of "{{name}}"?', resetAllConfirm: 'Delete the scores of all games?',
+    reset: 'Delete scores', resetAll: 'Delete all scores', resetConfirm: 'Delete the scores of "{{name}}"?', resetAllConfirm: 'Delete the scores of all games?',
     jump: 'Jump', duck: 'Duck', time: 'Time', lives: 'Lives', moves: 'Moves', wave: 'Wave', card: 'Card {{n}}', mainMuscle: 'Main muscle of',
     noExercises: 'There are no exercises with muscles yet. Add exercises in Exercises.', tapToStart: 'Tap to start', ouch: 'Ouch!',
     names: { memory: 'Trainer memory', whack: 'Whack-a-PT', muscle: 'Guess the muscle', flappy: 'Flappy Dumbbell', runner: 'PT Runner', starship: 'Starship', legday: 'Leg Day Escape', rerack: 'Rerack!' },
@@ -292,8 +292,8 @@ export const en = {
   },
   reports: {
     title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months' },
-    reportOn: 'Show on Home on Sundays', reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
-    rivalOn: 'Show at the end of a workout', rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
+    reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
+    rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
     thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Week report" on in Settings, each Sunday report is kept here.',
     latest: 'Latest workout', noRival: 'Nothing to compare yet: the latest workout needs the same plan day done at least 4 weeks before.',
   },
@@ -327,7 +327,6 @@ export const en = {
     },
     progress: 'Progress: {{value}} of {{target}}', progressRecord: 'Best this week: {{value}}', met: 'Your workouts say you did it!',
     markDone: 'Mark as done', undo: 'Not done yet', history: 'History', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}', pages: 'Challenge pages',
-    enabled: 'Turn on weekly challenge',
     status: { open: 'In progress', done: 'Done', missed: 'Not done' },
     intro: {
       support: 'Your challenge this week. You can do it!',
@@ -380,7 +379,7 @@ export const en = {
     },
     tips: [
       'Tip: control the way down; it counts too.',
-      'Tip: write the seat and grip in the setup note (📌).',
+      'Tip: write the seat and grip in the setup note.',
       'Tip: short on time? Use "Short on time" in the workout.',
       'Tip: set a load goal in Analysis to see the projected date.',
       'Tip: sleep and water also make you stronger.',

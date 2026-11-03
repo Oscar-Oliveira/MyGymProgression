@@ -8,8 +8,13 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: ['Ícones novos e iguais em toda a app (o mesmo estilo da barra de baixo), também na lista de jogos. Palavras coerentes: "Eliminar" para dados guardados, "Remover" para tirar de uma lista, e "PT" em todo o lado.'],
+    en: ['New icons, the same across the app (the style of the bottom bar), also in the games list. Consistent words: "Delete" for stored data, "Remove" for taking something out of a list.'],
+  },
+  {
+    date: '2026-11-03',
     pt: [
-      'Todos os interruptores das funcionalidades estão agora em Definições → Funcionalidades: desafio semanal, relatório da semana, tu vs há 3 meses, personal trainer, som e vibração dos jogos.',
+      'Todos os interruptores das funcionalidades estão agora em Definições → Funcionalidades: desafio semanal, relatório da semana, tu vs há 3 meses, PT, som e vibração dos jogos.',
       'Cada página mostra a ação principal; as outras (duplicar, partilhar, corrigir, eliminar…) estão no menu ⋯.',
       'Editar um plano termina sempre com "Cancelar" e "Guardar", como os outros formulários. As confirmações curtas ("Copiado", "Guardado", "Adicionado") aparecem numa mensagem rápida no fundo do ecrã.',
     ],

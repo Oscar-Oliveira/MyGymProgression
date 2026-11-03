@@ -22,6 +22,7 @@ import { ShareImport } from './pages/ShareImport';
 import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
 import { CoachPage } from './pages/CoachPage';
+import { Icon } from './components/Icon';
 // Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail').then((m) => ({ default: m.ExerciseDetail })));
 const GamesPage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamesPage })));
@@ -148,7 +149,7 @@ function Shell() {
       <main className={`shell ${focus ? 'focus' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {sub && (
           <button type="button" className="ghost back-btn" onClick={back}>
-            ‹ {t('common.back')}
+            <Icon name="chevronLeft" /> {t('common.back')}
           </button>
         )}
         <Suspense fallback={null}>

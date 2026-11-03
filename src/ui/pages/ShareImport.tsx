@@ -6,6 +6,7 @@ import { parseBundle, planMerge, type Bundle, type DataSet } from '../../domain/
 import { decodeShare } from '../../domain/share';
 import { toneStyle } from '../colors';
 import { Empty, PageHead } from '../components/Bits';
+import { Icon } from '../components/Icon';
 
 /** Page opened by a shared plan link (#/share?d=…): shows the plan, then imports it as a new plan. */
 export function ShareImport() {
@@ -70,7 +71,7 @@ export function SharePreview({ bundle }: { bundle: Bundle }) {
       <p className="help">{t('share.exercises', { added: merged.exercises.length, existing: bundle.data.exercises.length - merged.exercises.length })}</p>
       <p className="help">{t('share.help')}</p>
       <button className="primary xl" onClick={() => void commit()}>
-        ⤒ {t('share.import')}
+        <Icon name="upload" /> {t('share.import')}
       </button>
     </div>
   );

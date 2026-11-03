@@ -14,6 +14,7 @@ import { Consistency } from '../components/Consistency';
 import { Goals } from '../components/Goals';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
 import { toneStyle, useTones } from '../colors';
+import { Icon } from '../components/Icon';
 
 const PERIODS = [28, 84, 182, 0] as const;
 const DAY = 86400000;
@@ -78,7 +79,7 @@ function WeekBars({ weeks, lang }: { weeks: { start: Date; workouts: Workout[] }
                 <span className="meta">{fmtDate(x.startedAt, lang)}</span>
               </span>
               <span className="chev" aria-hidden="true">
-                ›
+                <Icon name="chevronRight" />
               </span>
             </Link>
           ))}
@@ -92,14 +93,14 @@ function WeekBars({ weeks, lang }: { weeks: { start: Date; workouts: Workout[] }
   );
 }
 
-/** Change against the previous period: ▲ more, ▼ less, ＝ same. Nothing without a previous value. */
+/** Change against the previous period: up arrow more, down arrow less, equal sign same. Nothing without a previous value. */
 function Delta({ now, prev, digits = 0, lang, unit = '' }: { now: number; prev?: number; digits?: number; lang: string; unit?: string }) {
   if (prev === undefined) return null;
   const d = Number((now - prev).toFixed(digits));
-  if (d === 0) return <span className="delta">＝</span>;
+  if (d === 0) return <span className="delta"><Icon name="equal" /></span>;
   return (
     <span className={`delta ${d > 0 ? 'up' : 'down'}`}>
-      {d > 0 ? '▲' : '▼'} {fmtNum(Math.abs(d), lang, digits)}
+      <Icon name={d > 0 ? 'arrowUp' : 'arrowDown'} /> {fmtNum(Math.abs(d), lang, digits)}
       {unit}
     </span>
   );

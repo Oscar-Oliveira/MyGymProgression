@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Thumb } from './Thumb';
+import { Icon } from './Icon';
 
 interface Props {
   name: string;
@@ -25,7 +26,7 @@ export function ExerciseItem({ name, thumb, sub, trailing, size = 'md', to, chil
         {children}
       </span>
       {trailing && <span className="xitem-trail">{trailing}</span>}
-      {to && !trailing && <span className="chev" aria-hidden="true">›</span>}
+      {to && !trailing && <span className="chev" aria-hidden="true"><Icon name="chevronRight" /></span>}
     </>
   );
   return to ? (

@@ -7,6 +7,7 @@ import type { CoachGender, CoachLook, CoachStyle, Exercise, MetricKey, Progressi
 import { COACH_BANKS } from '../../i18n/coach';
 import { fmtValue, useSettings } from '../util';
 import { CoachAvatar, CoachName } from './CoachAvatar';
+import { Icon } from './Icon';
 
 /**
  * Personal trainer message; can be closed. Hidden while localStorage `storageKey` holds `storageValue`.
@@ -44,7 +45,7 @@ export function CoachCard({ storageKey, storageValue = '1', once = false, messag
         {message}
       </p>
       <button className="ghost sm" aria-label={t('common.close')} onClick={close}>
-        ✕
+        <Icon name="close" />
       </button>
     </div>
   );

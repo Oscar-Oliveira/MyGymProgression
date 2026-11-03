@@ -5,6 +5,7 @@ import { repo } from '../../data/repo';
 import { fx } from '../games/feedback';
 import { canSpeak, speak } from '../voice';
 import { fmtDate, useSettings } from '../util';
+import { Icon } from '../components/Icon';
 
 const REPO = 'https://github.com/Oscar-Oliveira/MyGymProgression';
 /** Easter egg (D59): 7 taps on the logo, at most 1.5 s apart, turn the "1987" look on or off. */
@@ -71,7 +72,7 @@ export function About() {
       <section className="card tight">
         <p>{t('about.creditsText')}</p>
         <a className="btn outline" href={REPO} target="_blank" rel="noopener noreferrer">
-          {t('about.source')} ↗
+          {t('about.source')} <Icon name="external" />
         </a>
       </section>
     </div>

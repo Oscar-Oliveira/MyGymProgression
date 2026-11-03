@@ -21,17 +21,18 @@ import { LegDay } from './LegDay';
 import { Rerack } from './Rerack';
 import { fx } from './feedback';
 import { canSpeak, speak } from '../voice';
+import { Icon, type IconName } from '../components/Icon';
 
 /** `lower`: a lower score is better (memory counts moves). `secret`: listed only once unlocked by the "1987" easter egg (D59). */
-const GAMES: { id: GameId; icon: string; lower?: boolean; secret?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
-  { id: 'memory', icon: '🃏', lower: true, Game: Memory },
-  { id: 'whack', icon: '🔨', Game: Whack },
-  { id: 'muscle', icon: '💪', Game: Muscle },
-  { id: 'flappy', icon: '🏋️', Game: Flappy },
-  { id: 'runner', icon: '🏃', Game: Runner },
-  { id: 'starship', icon: '🚀', Game: Starship },
-  { id: 'legday', icon: '🦵', Game: LegDay },
-  { id: 'rerack', icon: '🕹️', secret: true, Game: Rerack },
+const GAMES: { id: GameId; icon: IconName; lower?: boolean; secret?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
+  { id: 'memory', icon: 'cards', lower: true, Game: Memory },
+  { id: 'whack', icon: 'hammer', Game: Whack },
+  { id: 'muscle', icon: 'muscle', Game: Muscle },
+  { id: 'flappy', icon: 'dumbbell', Game: Flappy },
+  { id: 'runner', icon: 'runner', Game: Runner },
+  { id: 'starship', icon: 'rocket', Game: Starship },
+  { id: 'legday', icon: 'stairs', Game: LegDay },
+  { id: 'rerack', icon: 'joystick', secret: true, Game: Rerack },
 ];
 const visible = (s: { secretGame?: boolean }) => GAMES.filter((g) => !g.secret || s.secretGame);
 const LAST = 10;
@@ -64,15 +65,15 @@ export function GamesPage() {
           return (
             <li key={g.id}>
               <Link to={`/games/${g.id}`}>
-                <span className="ico game-ico" aria-hidden="true">
-                  {g.icon}
+                <span className="ico" aria-hidden="true">
+                  <Icon name={g.icon} />
                 </span>
                 <span>
                   {t(`games.names.${g.id}`)}
                   <small>{best === undefined ? t('games.noScore') : `${t('games.best')}: ${fmtNum(best, s.language)} ${t(`games.unit.${g.id}`)}`}</small>
                 </span>
                 <span className="chev" aria-hidden="true">
-                  ›
+                  <Icon name="chevronRight" />
                 </span>
               </Link>
             </li>
@@ -144,7 +145,7 @@ function OneGame({ id }: { id?: string }) {
           )}
           <p className="help">{t(`games.help.${game.id}`)}</p>
           <button className="primary xl" style={{ width: '100%' }} onClick={play}>
-            ▶ {result ? t('games.again') : t('games.play')}
+            <Icon name="play" /> {result ? t('games.again') : t('games.play')}
           </button>
           {last.length > 0 && (
             <section className="card" style={{ marginTop: '1rem' }}>

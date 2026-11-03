@@ -5,6 +5,7 @@ import { decodeShare, joinDays, parseQrLink } from '../../domain/share';
 import { QrScanner } from '../components/Qr';
 import { PageHead } from '../components/Bits';
 import { SharePreview } from './ShareImport';
+import { Icon } from '../components/Icon';
 
 interface Group {
   id: string;
@@ -43,7 +44,7 @@ export function PlanScan() {
     return (
       <>
         <button type="button" className="outline" style={{ marginBottom: '0.75rem' }} onClick={() => setPreview(undefined)}>
-          ‹ {t('scan.more')}
+          <Icon name="chevronLeft" /> {t('scan.more')}
         </button>
         <SharePreview bundle={preview} />
       </>
@@ -67,7 +68,7 @@ export function PlanScan() {
               const b = group.days.get(i);
               return b ? (
                 <li key={i} className="ok">
-                  ✓ {b.data.planVersions[0]?.days[0]?.name}
+                  <Icon name="check" /> {b.data.planVersions[0]?.days[0]?.name}
                 </li>
               ) : (
                 <li key={i} className="muted">

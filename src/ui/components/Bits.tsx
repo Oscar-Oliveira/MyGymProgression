@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import type { Outcome, ProgressionStrategy } from '../../domain/types';
+import { Icon } from './Icon';
 
 const TONE: Record<Outcome, string> = {
   increase: 'up',
@@ -96,13 +97,13 @@ export function Pager({ page, pages, label, pageKey = 'page' }: { page: number; 
   return (
     <nav ref={ref} className="pager" aria-label={label}>
       <button className="outline" disabled={page <= 1} onClick={() => go(page - 1)}>
-        ‹ {t('history.prev')}
+        <Icon name="chevronLeft" /> {t('history.prev')}
       </button>
       <span className="pager-info" aria-live="polite">
         {t('history.page', { page, pages })}
       </span>
       <button className="outline" disabled={page >= pages} onClick={() => go(page + 1)}>
-        {t('history.next')} ›
+        {t('history.next')} <Icon name="chevronRight" />
       </button>
     </nav>
   );

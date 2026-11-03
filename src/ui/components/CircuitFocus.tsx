@@ -4,6 +4,7 @@ import { validateValue } from '../../domain/units';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { buzz, metricLabel, metricShort } from '../util';
+import { Icon } from './Icon';
 
 /** A whole circuit on one screen: every round with its exercises, pre-filled; one "done" at the end marks all sets. */
 export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit: Circuit; entries: WorkoutEntry[]; onChange: (es: WorkoutEntry[]) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
@@ -15,7 +16,7 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
     onChange(entries.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((x, j) => (j !== si ? x : { ...x, values: { ...x.values, [key]: v } })) })));
   return (
     <section aria-label={circuit.name} className="circuit-focus">
-      <span className="badge">⟳ {t('circuit.label')}</span>
+      <span className="badge"><Icon name="circuit" /> {t('circuit.label')}</span>
       <h1 className="ex-title">{circuit.name}</h1>
       <div className="ex-meta">
         {t('circuit.roundsCount', { count: rounds })} · {entries.map((e) => e.exercise.name).join(' → ')}
@@ -46,11 +47,11 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
       ))}
       {done ? (
         <button className="outline xl" onClick={() => onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'pending' as const })) })))}>
-          ↶ {t('circuit.undo')}
+          <Icon name="undo" /> {t('circuit.undo')}
         </button>
       ) : (
         <button className="primary xl" disabled={blocked} onClick={() => (buzz(), onChange(entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ ...x, status: 'done' as const })) }))))}>
-          ✓ {t('circuit.done')}
+          <Icon name="check" /> {t('circuit.done')}
         </button>
       )}
     </section>

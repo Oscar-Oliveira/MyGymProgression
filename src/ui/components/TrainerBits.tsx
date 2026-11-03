@@ -8,6 +8,7 @@ import { fmtDate, fmtNum, fmtSeconds, distOut, loadOut, tr, useSettings } from '
 import { CoachAvatar, CoachName } from './CoachAvatar';
 import { speak } from '../voice';
 import { repo } from '../../data/repo';
+import { Icon } from './Icon';
 
 /**
  * Reads `text` aloud once when it shows, and again when it changes (D47). Renders nothing. The voice comes from the
@@ -58,7 +59,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
         </div>
         {onClose && (
           <button className="ghost sm" aria-label={t('common.close')} onClick={onClose}>
-            ✕
+            <Icon name="close" />
           </button>
         )}
       </div>
@@ -96,7 +97,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
           <li>
             <span>{t('trainer.report.challenge')}</span>
             <span className={`pill ${report.challenge === 'done' ? 'up' : report.challenge === 'missed' ? 'down' : ''}`}>
-              {report.challenge === 'done' ? '✓ ' : ''}
+              {report.challenge === 'done' && <Icon name="check" />}
               {t(`trainer.report.challengeStatus.${report.challenge}`)}
             </span>
           </li>
@@ -121,10 +122,10 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
         : r.metric === 'totalDistance'
           ? `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}`
           : fmtNum(v, s.language);
-  const icon = { won: '⬆', lost: '⬇', tie: '＝' } as const;
+  const icon = { won: 'arrowUp', lost: 'arrowDown', tie: 'equal' } as const;
   return (
     <section className="card" aria-label={t('trainer.rival.title')}>
-      <h2 style={{ marginTop: 0 }}>⚔ {t('trainer.rival.title')}</h2>
+      <h2 style={{ marginTop: 0 }}><Icon name="swords" /> {t('trainer.rival.title')}</h2>
       <p className="help">
         {t('trainer.rival.vs', { date: fmtDate(date, s.language) })} · {t('trainer.rival.score', { won, lost, tie })}
       </p>
@@ -145,7 +146,7 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
               <small> · {t(`trainer.rival.metric.${r.metric}`)}</small>
             </span>
             <strong className={`num rival-${r.result}`} title={t(`trainer.rival.result.${r.result}`)}>
-              {value(r, r.then)} → {value(r, r.now)} {icon[r.result]}
+              {value(r, r.then)} → {value(r, r.now)} <Icon name={icon[r.result]} />
             </strong>
           </li>
         ))}
