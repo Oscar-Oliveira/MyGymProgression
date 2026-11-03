@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: ['Ao editar um exercício, um plano ou uma correção, a barra de baixo esconde-se para dar mais espaço; sai-se com "Voltar" ou "Cancelar". Se o navegador bloquear uma cópia, a app avisa. O cartão do desafio no Início ficou mais simples.'],
+    en: ['When you edit an exercise, a plan or a correction, the bottom bar hides to give more room; leave with "Back" or "Cancel". If the browser blocks a copy, the app says so. The challenge card on Home is simpler.'],
+  },
+  {
+    date: '2026-11-03',
     pt: ['Ícones novos e iguais em toda a app (o mesmo estilo da barra de baixo), também na lista de jogos. Palavras coerentes: "Eliminar" para dados guardados, "Remover" para tirar de uma lista, e "PT" em todo o lado.'],
     en: ['New icons, the same across the app (the style of the bottom bar), also in the games list. Consistent words: "Delete" for stored data, "Remove" for taking something out of a list.'],
   },

@@ -413,8 +413,12 @@ export function WorkoutPage() {
   };
   /** The workout as text (every set), to paste in an email or an AI chat. */
   const copyText = async () => {
-    await navigator.clipboard.writeText(workoutText(draft, t, s.language));
-    notify(t('workout.textCopied'));
+    try {
+      await navigator.clipboard.writeText(workoutText(draft, t, s.language));
+      notify(t('workout.textCopied'));
+    } catch {
+      notify(t('common.copyFailed'));
+    }
   };
   return (
     <div className="toned" style={tone} ref={rootRef}>

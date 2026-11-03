@@ -79,8 +79,12 @@ function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
         if ((e as Error).name === 'AbortError') return;
       }
     }
-    await navigator.clipboard.writeText(url);
-    toast(t('share.copied'));
+    try {
+      await navigator.clipboard.writeText(url);
+      toast(t('share.copied'));
+    } catch {
+      toast(t('common.copyFailed'));
+    }
   };
   if (qr) return <QrSheet plan={plan} onClose={onClose} />;
   return (

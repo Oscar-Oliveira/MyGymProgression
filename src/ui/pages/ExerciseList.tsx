@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { exerciseGroup } from '../../domain/library';
@@ -14,19 +14,30 @@ import { Icon } from '../components/Icon';
 
 const PAGE = 60;
 
+/** The filters kept in the URL. */
+const fromUrl = (params: URLSearchParams) => ({
+  q: params.get('q') ?? '',
+  group: (params.get('group') ?? '') as MuscleGroup | '',
+  equip: params.get('equip') ?? '',
+  inactive: params.get('inactive') === '1',
+  n: Math.max(PAGE, Number(params.get('n')) || PAGE),
+});
+
 export function ExerciseList() {
   const { t } = useTranslation();
   const all = useLiveQuery(() => db.exercises.toArray(), []);
   // The filters are copied to the URL, so "back" from an exercise returns to the same search.
-  // They are read from it once: the URL changes after a short delay, and typing must not wait for it.
+  // Typing writes the URL (replace) and does not read it back: the URL changes after a short delay, and typing must not wait for it.
+  // A new URL from elsewhere (a link, back or forward) sets the filters again.
   const [params, setParams] = useSearchParams();
-  const [filters, setFilters] = useState(() => ({
-    q: params.get('q') ?? '',
-    group: (params.get('group') ?? '') as MuscleGroup | '',
-    equip: params.get('equip') ?? '',
-    inactive: params.get('inactive') === '1',
-    n: Math.max(PAGE, Number(params.get('n')) || PAGE),
-  }));
+  const [filters, setFilters] = useState(() => fromUrl(params));
+  const { key } = useLocation();
+  const navType = useNavigationType();
+  useEffect(() => {
+    if (navType !== 'REPLACE') setFilters(fromUrl(params));
+    // Only a new page of history counts, not each update of the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
   const { q, group, equip, inactive, n: limit } = filters;
   const set = (next: Partial<typeof filters>) => {
     const v = { ...filters, n: PAGE, ...next };

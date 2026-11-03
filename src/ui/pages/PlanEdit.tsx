@@ -12,6 +12,7 @@ import type { DayGoal, Exercise, Plan, PlanDay, PlanGoal, PlanItem } from '../..
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Empty } from '../components/Bits';
 import { toast } from '../components/Toast';
+import { ActionMenu } from '../components/ActionMenu';
 import { NumInput } from '../components/NumInput';
 import { ColorPicker } from '../components/ColorPicker';
 import { toneStyle } from '../colors';
@@ -250,6 +251,18 @@ export function PlanEdit() {
                 ))}
               </select>
             </label>
+            <span style={{ alignSelf: 'flex-end' }}>
+              <ActionMenu
+                title={day.name || t('plan.day')}
+                actions={[
+                  {
+                    label: t('plan.removeDay'),
+                    danger: true,
+                    onClick: async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0)),
+                  },
+                ]}
+              />
+            </span>
           </div>
           <div style={{ marginBottom: '0.9rem' }}>
             <p className="field-label">{t('plan.dayColor')}</p>
@@ -322,11 +335,6 @@ export function PlanEdit() {
               <Icon name="play" /> {t('plan.startDay')}
             </button>
           )}
-          <div className="row wrap" style={{ marginTop: '0.75rem' }}>
-            <button className="danger sm" onClick={async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
-              {t('plan.removeDay')}
-            </button>
-          </div>
         </>
       )}
 

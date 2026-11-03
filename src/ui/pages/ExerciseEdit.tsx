@@ -20,8 +20,8 @@ function Chips({ value, onChange, label }: { value: string[]; onChange: (v: stri
   const { t } = useTranslation();
   const options = [...new Set([...MUSCLES, ...value])];
   return (
-    <fieldset>
-      <legend>{label}</legend>
+    <div role="group" aria-label={label}>
+      <p className="field-label">{label}</p>
       <div className="row wrap">
         {options.map((m) => (
           <button
@@ -35,7 +35,7 @@ function Chips({ value, onChange, label }: { value: string[]; onChange: (v: stri
           </button>
         ))}
       </div>
-    </fieldset>
+    </div>
   );
 }
 

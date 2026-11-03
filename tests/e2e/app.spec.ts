@@ -160,7 +160,10 @@ test('library file: muscle groups, detail with how-to, video and related exercis
 });
 
 async function tab(page: Page, name: 'Home' | 'Train' | 'History' | 'More') {
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name }).click();
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  // A form with Cancel + Save hides the tab bar (D69): leave it with Back first.
+  if ((await page.locator('.shell .wk-nav').isVisible()) && (await page.locator('.back-btn').isVisible())) await page.locator('.back-btn').click();
+  await nav.getByRole('link', { name }).click();
 }
 async function more(page: Page, name: RegExp) {
   await tab(page, 'More');
@@ -571,6 +574,7 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
   await expect(page.getByText(/0 new exercises for the library/)).toBeVisible();
   await page.getByRole('button', { name: /Import plan/ }).click();
   await expect(page).toHaveURL(/#\/plans\//);
+  await expect(page.getByLabel('Plan name')).toBeVisible();
   await more(page, /^Plans/);
   await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
 });
@@ -602,6 +606,7 @@ test('share a plan by QR: one code per day; days read in any order join into one
   await expect(page.getByText(/0 new exercises for the library/)).toBeVisible();
   await page.getByRole('button', { name: /Import plan/ }).click();
   await expect(page).toHaveURL(/#\/plans\//);
+  await expect(page.getByLabel('Plan name')).toBeVisible();
   await more(page, /^Plans/);
   await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
 });
@@ -691,7 +696,8 @@ test('exercise editor: leaving with unsaved changes asks first; saving does not 
   await more(page, /^Exercises/);
   await page.getByRole('link', { name: 'New exercise' }).click();
   await page.getByLabel('Name', { exact: true }).fill('Cable fly');
-  await tab(page, 'Home');
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeHidden();
+  await page.locator('.back-btn').click();
   const ask = page.getByRole('dialog', { name: 'Confirm' });
   await expect(ask).toContainText('unsaved changes');
   await ask.getByRole('button', { name: 'Cancel' }).click();
@@ -706,23 +712,23 @@ test('correction: leaving with unsaved changes asks first', async ({ page }) => 
   await page.getByRole('button', { name: 'Finish workout' }).click();
   await menu(page, 'Correct records');
   await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('8');
-  await tab(page, 'History');
+  await page.locator('.back-btn').click();
   const ask = page.getByRole('dialog', { name: 'Confirm' });
   await expect(ask).toContainText('unsaved changes');
   await ask.getByRole('button', { name: 'Leave' }).click();
-  await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true })).toHaveCount(0);
 });
 
 test('plan editor: leaving with unsaved changes asks first', async ({ page }) => {
   await more(page, /^Plans/);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Unsaved');
-  await tab(page, 'Home');
+  await page.locator('.back-btn').click();
   const ask = page.getByRole('dialog', { name: 'Confirm' });
   await expect(ask).toContainText('unsaved changes');
   await ask.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByLabel('Plan name')).toHaveValue('Unsaved');
-  await tab(page, 'Home');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await ask.getByRole('button', { name: 'Leave' }).click();
   await expect(page.getByLabel('Plan name')).toHaveCount(0);
 });
@@ -826,7 +832,8 @@ test('weekly challenge: off by default; turned on in Settings, shows on Home, ca
   await expect(card.getByRole('heading', { level: 2 })).toHaveText(/this week|record/);
   await card.getByRole('button', { name: /Mark as done/ }).click();
   await expect(card).toContainText('Done');
-  await card.getByRole('link', { name: /History/ }).click();
+  await expect(card.getByRole('link')).toHaveCount(0);
+  await more(page, /^Weekly challenge/);
   await expect(page.getByRole('heading', { name: 'Weekly challenge', level: 1 })).toBeVisible();
   await expect(page.locator('.challenge-list li')).toHaveCount(1);
   await expect(page.locator('.challenge-list li')).toContainText('Done');

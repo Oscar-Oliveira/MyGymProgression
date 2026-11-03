@@ -2,7 +2,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { challengeProgress, weekKey } from '../../domain/challenge';
@@ -86,9 +85,6 @@ export function ChallengeCard() {
           </button>
         </>
       )}
-      <Link to="/challenges" className="challenge-link">
-        {t('challenge.history')} <Icon name="chevronRight" />
-      </Link>
     </section>
   );
 }

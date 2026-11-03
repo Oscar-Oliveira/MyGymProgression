@@ -10,7 +10,7 @@ export const pt: Resources = {
     egg: { left: 'faltam {{count}}…', left_one: 'falta 1…', on: 'MODO 1987 LIGADO!', unlocked: 'MODO 1987 LIGADO! Há um jogo secreto em Jogos.', off: 'De volta ao presente.' },
   },
   common: {
-    back: 'Voltar',
+    back: 'Voltar', copyFailed: 'Não foi possível copiar: o navegador bloqueou o acesso.',
     leaveUnsaved: 'Há alterações por guardar. Sair sem guardar?', leave: 'Sair',
     save: 'Guardar', saved: 'Guardado', cancel: 'Cancelar', delete: 'Eliminar', edit: 'Editar', add: 'Adicionar', remove: 'Remover', duplicate: 'Duplicar', archive: 'Arquivar', unarchive: 'Restaurar',
     close: 'Fechar', search: 'Pesquisar', all: 'Todos', name: 'Nome', notes: 'Notas', description: 'Descrição', moveUp: 'Subir', moveDown: 'Descer', from: 'Data',
@@ -328,7 +328,7 @@ export const pt: Resources = {
       muscle: 'Faz {{target}} séries de {{muscle}} esta semana.',
     },
     progress: 'Progresso: {{value}} de {{target}}', progressRecord: 'Melhor desta semana: {{value}}', met: 'Os teus treinos dizem que conseguiste!',
-    markDone: 'Marcar como cumprido', undo: 'Ainda não cumpri', history: 'Histórico', empty: 'Ainda não há desafios.', rate: '{{done}} de {{total}} cumpridos', weekOf: 'Semana de {{date}}', pages: 'Páginas dos desafios',
+    markDone: 'Marcar como cumprido', undo: 'Ainda não cumpri', empty: 'Ainda não há desafios.', rate: '{{done}} de {{total}} cumpridos', weekOf: 'Semana de {{date}}', pages: 'Páginas dos desafios',
     status: { open: 'Em curso', done: 'Cumprido', missed: 'Não cumprido' },
     intro: {
       support: 'O teu desafio desta semana. Vais conseguir!',

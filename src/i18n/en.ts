@@ -8,7 +8,7 @@ export const en = {
     egg: { left: '{{count}} more…', left_one: '1 more…', on: 'MODE 1987 ON!', unlocked: 'MODE 1987 ON! There is a secret game in Games.', off: 'Back to the present.' },
   },
   common: {
-    back: 'Back',
+    back: 'Back', copyFailed: 'Could not copy: the browser blocked it.',
     leaveUnsaved: 'There are unsaved changes. Leave without saving?', leave: 'Leave',
     save: 'Save', saved: 'Saved', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', add: 'Add', remove: 'Remove', duplicate: 'Duplicate', archive: 'Archive', unarchive: 'Restore',
     close: 'Close', search: 'Search', all: 'All', name: 'Name', notes: 'Notes', description: 'Description', moveUp: 'Move up', moveDown: 'Move down', from: 'Date',
@@ -326,7 +326,7 @@ export const en = {
       muscle: 'Do {{target}} sets for {{muscle}} this week.',
     },
     progress: 'Progress: {{value}} of {{target}}', progressRecord: 'Best this week: {{value}}', met: 'Your workouts say you did it!',
-    markDone: 'Mark as done', undo: 'Not done yet', history: 'History', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}', pages: 'Challenge pages',
+    markDone: 'Mark as done', undo: 'Not done yet', empty: 'No challenges yet.', rate: '{{done}} of {{total}} done', weekOf: 'Week of {{date}}', pages: 'Challenge pages',
     status: { open: 'In progress', done: 'Done', missed: 'Not done' },
     intro: {
       support: 'Your challenge this week. You can do it!',
