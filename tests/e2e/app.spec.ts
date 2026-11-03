@@ -692,6 +692,17 @@ test('correction: an increase the corrected sets no longer support is undone onl
   await expect(chest.getByText(/increase undone/)).toBeVisible();
 });
 
+test('correction: "Use the current plan" updates the exercises from the plan, then saving works', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10, 10, 10]);
+  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await menu(page, 'Correct records');
+  await page.getByRole('button', { name: 'Use the current plan' }).click();
+  await expect(page.getByText('1 exercise updated from the current plan.')).toBeVisible();
+  await page.getByRole('button', { name: 'Save correction' }).click();
+  await expect(page.getByRole('button', { name: 'Use the current plan' })).toHaveCount(0);
+});
+
 test('exercise editor: leaving with unsaved changes asks first; saving does not ask', async ({ page }) => {
   await more(page, /^Exercises/);
   await page.getByRole('link', { name: 'New exercise' }).click();

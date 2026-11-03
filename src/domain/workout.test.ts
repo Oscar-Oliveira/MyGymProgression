@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute } from './workout';
+import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute, withCurrentPlan } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -401,5 +401,34 @@ describe('resume an interrupted workout', () => {
     expect(resumable(old, [old, last])).toBe(false);
     expect(resumable({ ...last, status: 'partial' }, [old, last])).toBe(false);
     expect(resumable({ ...last, status: 'in_progress' }, [old, last])).toBe(true);
+  });
+});
+
+describe('use the current plan in a correction (D70)', () => {
+  it('takes the prescription of the plan item now and keeps the done sets', () => {
+    const t = setup();
+    const w = t.session([5, 5, 5]).workout;
+    t.day.items[1].sets.forEach((s) => (s.targets.load = { value: 80 }));
+    const res = withCurrentPlan(w, t.plan, t.version, t.exercises, t.states, []);
+    expect(res.changed).toBe(2);
+    expect(res.workout.entries[1].prescription.map((p) => p.targets.load?.value)).toEqual([80, 80, 80]);
+    expect(res.workout.entries[1].sets).toEqual(w.entries[1].sets);
+  });
+
+  it("uses the targets from before the workout's own increase while it is current", () => {
+    const t = setup();
+    const r = t.session([12, 12, 12]);
+    expect(t.states.get(t.day.items[1].lineageId)?.targets.load).toBe(42.5);
+    const res = withCurrentPlan(r.workout, t.plan, t.version, t.exercises, t.states, r.events);
+    expect(res.workout.entries[1].prescription[0].targets.load?.value).toBe(40);
+  });
+
+  it('keeps entries that are no longer in the plan', () => {
+    const t = setup();
+    const w = t.session([5, 5, 5]).workout;
+    t.day.items.splice(0, 1);
+    const res = withCurrentPlan(w, t.plan, t.version, t.exercises, t.states, []);
+    expect(res.changed).toBe(1);
+    expect(res.workout.entries[0]).toBe(w.entries[0]);
   });
 });

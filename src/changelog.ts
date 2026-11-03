@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: ['Corrigir registos tem "Usar o plano atual": alteras o plano, corriges as séries de um treino feito e o treino passa a ser avaliado com os objetivos do plano como está agora.'],
+    en: ['Correct records has "Use the current plan": change the plan, fix the sets of a done workout, and the workout is evaluated with the targets of the plan as it is now.'],
+  },
+  {
+    date: '2026-11-03',
     pt: ['Ao editar um exercício, um plano ou uma correção, a barra de baixo esconde-se para dar mais espaço; sai-se com "Voltar" ou "Cancelar". Se o navegador bloquear uma cópia, a app avisa. O cartão do desafio no Início ficou mais simples.'],
     en: ['When you edit an exercise, a plan or a correction, the bottom bar hides to give more room; leave with "Back" or "Cancel". If the browser blocks a copy, the app says so. The challenge card on Home is simpler.'],
   },

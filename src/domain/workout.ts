@@ -141,6 +141,35 @@ export function startWorkout(plan: Plan | undefined, version: PlanVersion | unde
   };
 }
 
+/**
+ * "Use the current plan" in a correction (D70): each entry whose plan item is still in `version` gets the prescription and
+ * progression rule of that item now. Done sets are kept. When this workout's own change (increase or reps up) is still the
+ * current state, the targets from before it are used, so the workout is not compared with its own result.
+ * Returns the workout and how many entries changed.
+ */
+export function withCurrentPlan(
+  w: Workout,
+  plan: Pick<Plan, 'goal'> | undefined,
+  version: PlanVersion,
+  exercises: Map<string, Exercise>,
+  states: Map<string, ProgressionState>,
+  events: ProgressionEvent[],
+): { workout: Workout; changed: number } {
+  let changed = 0;
+  const entries = w.entries.map((e) => {
+    const day = version.days.find((d) => d.items.some((i) => i.lineageId === e.lineageId));
+    const item = day?.items.find((i) => i.lineageId === e.lineageId);
+    const ex = item && exercises.get(item.exerciseId);
+    if (!day || !item || !ex) return e;
+    const state = states.get(item.lineageId);
+    const own = events.find((x) => x.entryId === e.id && (x.decision === 'applied' || x.decision === 'reps_up') && canRevert(x, state));
+    const prescription = own ? applyTargets(item.sets, own.before, own.rangeBefore) : applyTargets(item.sets, state?.targets, state?.repsRange);
+    changed++;
+    return { ...e, prescription, progression: itemProgression(dayGoal(plan, day), item, ex) };
+  });
+  return { workout: { ...w, entries }, changed };
+}
+
 /** Replaces the exercise of an entry for this session only. Progression is blocked by default for substitutions. */
 export function substitute(entry: WorkoutEntry, ex: Exercise): WorkoutEntry {
   if (ex.id === entry.exerciseId) return entry;

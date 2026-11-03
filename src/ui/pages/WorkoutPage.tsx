@@ -370,6 +370,13 @@ export function WorkoutPage() {
       if (await dialog.confirm(t('workout.revertAsk', { name: e.exercise.name, from, to }), { ok: t('workout.revertOk') })) await repo.decide(ev.id, { kind: 'revert' });
     }
   };
+  /** Puts the prescriptions of the plan as it is now in the correction draft (D70); saving re-evaluates. */
+  const applyCurrentPlan = async () => {
+    const res = await repo.withCurrentPlan(draft);
+    if (!res) return void (await dialog.alert(t('workout.planNowMissing')));
+    setDraft(res.workout);
+    notify(t('workout.planNowDone', { count: res.changed }));
+  };
   const records = workoutRecords(draft, ctx.others);
   // "You vs 3 months ago" (D49, D57): only for the latest workout, when the rival is on.
   const rival = rivalOn(s) && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
@@ -471,6 +478,14 @@ export function WorkoutPage() {
       {editing ? (
         <>
           <p className="help">{t('workout.correctHelp')}</p>
+          {draft.planId && (
+            <section className="card">
+              <button className="outline" onClick={() => void applyCurrentPlan()}>
+                {t('workout.planNow')}
+              </button>
+              <p className="help">{t('workout.planNowHelp')}</p>
+            </section>
+          )}
           <section className="card">
             <label className="setting-row">
               <span>{t('workout.statusLabel')}</span>

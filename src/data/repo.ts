@@ -12,7 +12,7 @@ import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } f
 import { reportOn, reportWeek, weekReport } from '../domain/trainer';
 import { addWarmups } from '../domain/warmup';
 import type { Exercise, GameId, Goal, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, type DecisionInput } from '../domain/workout';
+import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, withCurrentPlan, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   // Library imports run one at a time (app start and a button click may overlap); otherwise both would add the same exercises.
@@ -313,6 +313,17 @@ export function createRepo(db: GymDB) {
           (e) => (e.decision === 'applied' || e.decision === 'reps_up') && !['increase', 'ready'].includes(outcome.get(e.entryId!) ?? '') && canRevert(e, states.get(e.lineageId)),
         );
       });
+    },
+
+    /** A correction draft with the prescriptions of its plan as it is now (D70). Undefined when the plan no longer exists. */
+    async withCurrentPlan(w: Workout) {
+      const plan = w.planId ? await db.plans.get(w.planId) : undefined;
+      const version = plan && (await db.planVersions.get(plan.currentVersionId));
+      if (!version) return undefined;
+      const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
+      const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
+      const events = await db.progressionEvents.where('workoutId').equals(w.id).toArray();
+      return withCurrentPlan(w, plan, version, exercises, states, events);
     },
 
     /** Deletes a workout. Progression changes it caused are undone when they are still current; its events are removed. */
