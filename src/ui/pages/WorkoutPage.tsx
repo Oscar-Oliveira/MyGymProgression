@@ -510,7 +510,7 @@ export function WorkoutPage() {
           </div>
           {records.length > 0 && (
             <section className="card up">
-              <h2 style={{ marginTop: 0 }}><Icon name="trophy" /> {t('workout.records')}</h2>
+              <h2><Icon name="trophy" /> {t('workout.records')}</h2>
               {records.map((r) => (
                 <ExerciseItem
                   key={`${r.exerciseId}:${r.kind}`}

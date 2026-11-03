@@ -44,10 +44,12 @@ export function Train() {
         const next = nextDay(v, data.workouts);
         return (
           <section key={p.id}>
-            <p className="month toned row" style={toneStyle(p.color)}>
-              <span className="tone-dot" />
-              {p.name}
-            </p>
+            <div className="section-head toned" style={toneStyle(p.color)}>
+              <h2 className="row">
+                <span className="tone-dot" />
+                {p.name}
+              </h2>
+            </div>
             {v.days.map((d) => {
               const items = d.items.map((i) => data.exercises.get(i.exerciseId)).filter((e) => !!e);
               const isNext = d.id === next?.id;

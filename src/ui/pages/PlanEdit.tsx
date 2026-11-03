@@ -189,9 +189,9 @@ export function PlanEdit() {
       </div>
       {nameError && <p className="error">{t('plan.name')}: {t('validation.required')}</p>}
       <section className="card tight">
-        <p className="eyebrow">{t('plan.color')}</p>
+        <p className="field-label">{t('plan.color')}</p>
         <ColorPicker label={t('plan.color')} value={plan.color} onChange={(color) => setPlan({ ...plan, color })} />
-        <p className="eyebrow" style={{ marginTop: '0.9rem' }}>
+        <p className="field-label" style={{ marginTop: '0.9rem' }}>
           {t('goal.label')}
         </p>
         <div className="seg" role="radiogroup" aria-label={t('goal.label')}>
@@ -252,13 +252,13 @@ export function PlanEdit() {
             </label>
           </div>
           <div style={{ marginBottom: '0.9rem' }}>
-            <p className="eyebrow">{t('plan.dayColor')}</p>
+            <p className="field-label">{t('plan.dayColor')}</p>
             <ColorPicker label={t('plan.dayColor')} value={day.color} noneLabel={t('plan.samePlanColor')} onChange={(color) => upDay((d) => ({ ...d, color }))} />
           </div>
 
           {plan.goal === 'mixed' && (
             <section className="card tight">
-              <p className="eyebrow">{t('plan.dayGoal')}</p>
+              <p className="field-label">{t('plan.dayGoal')}</p>
               <div className="seg" role="radiogroup" aria-label={t('plan.dayGoal')}>
                 {DAY_GOALS.map((g) => (
                   <button

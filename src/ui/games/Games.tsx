@@ -27,7 +27,7 @@ import { Icon, type IconName } from '../components/Icon';
 const GAMES: { id: GameId; icon: IconName; lower?: boolean; secret?: boolean; Game: (p: GameProps) => React.ReactNode }[] = [
   { id: 'memory', icon: 'cards', lower: true, Game: Memory },
   { id: 'whack', icon: 'hammer', Game: Whack },
-  { id: 'muscle', icon: 'muscle', Game: Muscle },
+  { id: 'muscle', icon: 'body', Game: Muscle },
   { id: 'flappy', icon: 'dumbbell', Game: Flappy },
   { id: 'runner', icon: 'runner', Game: Runner },
   { id: 'starship', icon: 'rocket', Game: Starship },

@@ -734,3 +734,6 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 /* Icons next to a text (D67): outline, the size of the text. */
 svg.glyph { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
 svg.glyph-more, svg.glyph-alert { stroke-width: 3; }
+
+/* A field label that is not a <label> (colour, goal) looks like one (D68). */
+.field-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; margin: 0 0 0.35rem; }

@@ -64,7 +64,7 @@ export function SharePreview({ bundle }: { bundle: Bundle }) {
       <PageHead eyebrow={t('share.title')} title={plan.name} sub={t(`goal.${plan.goal}`)} />
       {days.map((d) => (
         <section key={d.id} className="card">
-          <h3 style={{ marginTop: 0 }}>{d.name}</h3>
+          <h3>{d.name}</h3>
           <p className="muted">{d.items.map((i) => names.get(i.exerciseId) ?? '?').join(' · ')}</p>
         </section>
       ))}

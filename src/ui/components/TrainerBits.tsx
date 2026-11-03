@@ -125,7 +125,7 @@ export function RivalCard({ rows, date, coach }: { rows: RivalRow[]; date: strin
   const icon = { won: 'arrowUp', lost: 'arrowDown', tie: 'equal' } as const;
   return (
     <section className="card" aria-label={t('trainer.rival.title')}>
-      <h2 style={{ marginTop: 0 }}><Icon name="swords" /> {t('trainer.rival.title')}</h2>
+      <h2><Icon name="swords" /> {t('trainer.rival.title')}</h2>
       <p className="help">
         {t('trainer.rival.vs', { date: fmtDate(date, s.language) })} · {t('trainer.rival.score', { won, lost, tie })}
       </p>

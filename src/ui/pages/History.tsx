@@ -70,7 +70,7 @@ export function History() {
           {latest && resumable(latest, [latest]) && (
             <section className="card warn toned" style={toneStyle(toneFor(latest.planId, latest.dayId))}>
               <p className="eyebrow">{t(`workout.status.${latest.status}`)}</p>
-              <h3 style={{ marginTop: 0 }}>{latest.dayName ?? t('workout.free')}</h3>
+              <h3>{latest.dayName ?? t('workout.free')}</h3>
               {latest.status === 'interrupted' && <p className="help">{t('workout.resumeHelp')}</p>}
               <button className="primary xl" onClick={() => void resume(latest)}>
                 <Icon name="play" /> {t('workout.resume')}
