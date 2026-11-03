@@ -35,7 +35,7 @@ function loadSvg(svg: string): Promise<HTMLImageElement | undefined> {
 }
 
 /** Shortens a text with "…" to fit `max` pixels. */
-function fit(ctx: CanvasRenderingContext2D, text: string, max: number): string {
+export function fit(ctx: CanvasRenderingContext2D, text: string, max: number): string {
   if (ctx.measureText(text).width <= max) return text;
   let s = text;
   while (s.length > 1 && ctx.measureText(`${s}…`).width > max) s = s.slice(0, -1);

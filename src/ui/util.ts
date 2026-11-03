@@ -116,6 +116,8 @@ export function fmtDate(iso: string | undefined, lang: string, withTime = false)
 
 /** Canonical kg → display unit. */
 export const loadOut = (kg: number | undefined, s: Settings) => (kg === undefined ? undefined : round(convert(kg, 'kg', s.loadUnit), 1));
+/** A large volume (kg) in tonnes, or in pounds. */
+export const fmtVolume = (kg: number, s: Settings) => (s.loadUnit === 'kg' ? `${fmtNum(kg / 1000, s.language, 1)} t` : `${fmtNum(loadOut(kg, s), s.language, 0)} ${s.loadUnit}`);
 /** Canonical m → km or mi. */
 export const distOut = (m: number | undefined, s: Settings) => (m === undefined ? undefined : round(convert(m, 'm', s.distanceUnit), 2));
 /** Pace s/km → s per display distance unit. */

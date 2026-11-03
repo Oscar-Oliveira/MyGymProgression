@@ -201,6 +201,16 @@ export const en = {
       muscles: 'Primary muscles worked in the same week (Monday to Sunday).', early: 'A workout started before 07:00.', late: 'A workout started at 22:00 or later.',
     },
   },
+  year: {
+    pick: 'Year', open: 'See your year', soFar: 'So far', empty: 'No finished workouts yet.', title: 'Your {{year}} in the gym', tap: 'Tap on the right to go on and on the left to go back.',
+    workouts: 'workouts', hours: 'hours of training', sets: 'sets done', lifted: 'You lifted', elephants: '≈ {{count}} elephants of 6 t.', elephants_one: '≈ {{count}} elephant of 6 t.',
+    habits: 'Your habits', streak: 'weeks in a row, your best run', day: 'Your day: {{day}}', hour: 'Your hour: {{hour}}:00',
+    favourite: 'Your exercise', sessions: '{{count}} workouts with it', sessions_one: '{{count}} workout with it',
+    gain: 'Your biggest rise', gainLine: 'Estimated 1RM: {{from}} → {{to}}', records: 'personal records', medals: 'Achievements earned this year',
+    muscles: 'Your muscles', topMuscle: 'Trained the most: {{muscle}}', musclesSub: 'Sets per week over the year.',
+    end: 'Well done!', endSub: 'Share your year or go back to the reports.', share: 'Share image', shareTitle: 'My {{year}} in the gym',
+    prev: 'Previous', next: 'Next', close: 'Close', slide: 'Screen {{n}} of {{total}}', weeks: 'weeks in a row', tonnes: 'lifted',
+  },
   bodyMap: {
     title: 'Body map', front: 'Front', back: 'Back', tap: 'Tap a muscle to see its sets.', sets: '{{n}} sets/week', week: 'Muscles this week', weekHelp: 'Sets done since Monday.',
     level: { none: 'No sets', low: 'Under {{min}}', ok: '{{min}}–{{max}}', high: 'Over {{max}}' },
@@ -312,7 +322,7 @@ export const en = {
     },
   },
   reports: {
-    title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months' },
+    title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months', year: 'Year' },
     reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
     rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
     thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Week report" on in Settings, each Sunday report is kept here.',

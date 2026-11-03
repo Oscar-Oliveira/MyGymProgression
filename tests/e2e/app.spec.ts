@@ -1080,3 +1080,29 @@ test('achievements (D73): the first workout earns a medal on its summary; the pa
   await expect(page.getByText('Achievements are off.')).toBeVisible();
   await expect(page.getByText('First workout')).toHaveCount(0);
 });
+
+test('year in review (D74): the Year tab opens screens one by one; the last one shares an image; Escape closes', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await expect(page.getByText('Next workout')).toBeVisible();
+  await more(page, /^Reports/);
+  await page.getByRole('tab', { name: 'Year' }).click();
+  const year = new Date().getFullYear();
+  await expect(page.getByRole('heading', { name: `Your ${year} in the gym` })).toBeVisible();
+  await page.getByRole('button', { name: 'See your year' }).click();
+
+  const story = page.getByRole('dialog', { name: `Your ${year} in the gym` });
+  await expect(story.getByRole('group', { name: /^Screen 1 of \d+$/ })).toBeVisible();
+  await expect(story.getByRole('button', { name: 'Previous' })).toBeDisabled();
+  await story.getByRole('button', { name: 'Next' }).click();
+  await expect(story.getByText('workouts', { exact: true })).toBeVisible();
+  await page.keyboard.press('ArrowLeft');
+  await expect(story.getByRole('group', { name: /^Screen 1 of/ })).toBeVisible();
+  while (await story.getByRole('button', { name: 'Next' }).isVisible()) await story.getByRole('button', { name: 'Next' }).click();
+
+  const download = page.waitForEvent('download');
+  await story.getByRole('button', { name: 'Share image' }).click();
+  expect((await download).suggestedFilename()).toBe(`mygymprogression-${year}.png`);
+  await page.keyboard.press('Escape');
+  await expect(story).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'See your year' })).toBeVisible();
+});

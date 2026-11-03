@@ -49,6 +49,20 @@ function merge(a: PersonalRecords, b: PersonalRecords): PersonalRecords {
 }
 const DAY_MS = 86400000;
 
+/**
+ * Number of new personal records of each finished workout, against the workouts before it (as on its summary).
+ * The best values of each exercise are kept as the workouts go by; a full recount per workout is too slow.
+ */
+export function recordsByWorkout(workouts: Workout[]): Map<string, number> {
+  const out = new Map<string, number>();
+  const records = new Map<string, PersonalRecords>();
+  for (const w of workouts.filter(isFinished).sort((a, b) => a.startedAt.localeCompare(b.startedAt))) {
+    out.set(w.id, recordsAgainst(w, (id) => records.get(id) ?? {}).length);
+    for (const e of w.entries) records.set(e.exerciseId, merge(records.get(e.exerciseId) ?? {}, personalRecords([{ workoutId: w.id, entryId: e.id, date: w.startedAt, entry: e, metrics: entryMetrics(e) }])));
+  }
+  return out;
+}
+
 /** Every achievement with its progress and, when earned, the workout that earned it. */
 export function achievements(workouts: Workout[]): Achievement[] {
   const done = workouts.filter(isFinished).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
@@ -56,8 +70,7 @@ export function achievements(workouts: Workout[]): Achievement[] {
   const list = ACHIEVEMENTS.map((a): Achievement => ({ id: `${a.kind}-${a.target}`, ...a, progress: 0 }));
   const weeks = new Set<number>();
   const muscles = new Map<number, Set<string>>();
-  // Records of each exercise so far, kept as the workouts go by (a full recount per workout is too slow).
-  const records = new Map<string, PersonalRecords>();
+  const records = recordsByWorkout(done);
   done.forEach((w, i) => {
     const start = new Date(w.startedAt);
     const week = mondayOf(start).getTime();
@@ -67,13 +80,12 @@ export function achievements(workouts: Workout[]): Achievement[] {
     for (let k = week; weeks.has(k); k = mondayOf(new Date(k - DAY_MS)).getTime()) run++;
     const worked = muscles.get(week) ?? new Set<string>();
     muscles.set(week, worked);
-    best.records += recordsAgainst(w, (id) => records.get(id) ?? {}).length;
+    best.records += records.get(w.id) ?? 0;
     let volume = 0;
     for (const e of w.entries) {
       const m = entryMetrics(e);
       volume += m.volume ?? 0;
       if (m.doneWorkingSets > 0) e.exercise.primaryMuscles.filter((x) => MUSCLES.includes(x)).forEach((x) => worked.add(x));
-      records.set(e.exerciseId, merge(records.get(e.exerciseId) ?? {}, personalRecords([{ workoutId: w.id, entryId: e.id, date: w.startedAt, entry: e, metrics: m }])));
     }
     best.workouts = i + 1;
     best.streak = Math.max(best.streak, run);

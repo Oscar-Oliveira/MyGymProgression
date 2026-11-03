@@ -203,6 +203,16 @@ export const pt: Resources = {
       muscles: 'Músculos principais treinados na mesma semana (segunda a domingo).', early: 'Um treino começado antes das 7h.', late: 'Um treino começado às 22h ou mais tarde.',
     },
   },
+  year: {
+    pick: 'Ano', open: 'Ver o teu ano', soFar: 'Até hoje', empty: 'Ainda não há treinos terminados.', title: 'O teu {{year}} no ginásio', tap: 'Toca à direita para avançar e à esquerda para voltar.',
+    workouts: 'treinos', hours: 'horas a treinar', sets: 'séries feitas', lifted: 'Levantaste', elephants: '≈ {{count}} elefantes de 6 t.', elephants_one: '≈ {{count}} elefante de 6 t.',
+    habits: 'Os teus hábitos', streak: 'semanas seguidas, a melhor sequência', day: 'O teu dia: {{day}}', hour: 'A tua hora: {{hour}}h',
+    favourite: 'O teu exercício', sessions: '{{count}} treinos com ele', sessions_one: '{{count}} treino com ele',
+    gain: 'A maior subida', gainLine: '1RM estimado: {{from}} → {{to}}', records: 'recordes pessoais', medals: 'Conquistas ganhas este ano',
+    muscles: 'Os teus músculos', topMuscle: 'O mais treinado: {{muscle}}', musclesSub: 'Séries por semana ao longo do ano.',
+    end: 'Bom trabalho!', endSub: 'Partilha o teu ano ou volta aos relatórios.', share: 'Partilhar imagem', shareTitle: 'O meu {{year}} no ginásio',
+    prev: 'Anterior', next: 'Seguinte', close: 'Fechar', slide: 'Ecrã {{n}} de {{total}}', weeks: 'semanas seguidas', tonnes: 'levantados',
+  },
   bodyMap: {
     title: 'Mapa do corpo', front: 'Frente', back: 'Costas', tap: 'Toca num músculo para ver as séries.', sets: '{{n}} séries/semana', week: 'Músculos desta semana', weekHelp: 'Séries feitas desde segunda.',
     level: { none: 'Sem séries', low: 'Menos de {{min}}', ok: '{{min}}–{{max}}', high: 'Mais de {{max}}' },
@@ -314,7 +324,7 @@ export const pt: Resources = {
     },
   },
   reports: {
-    title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Semana', rival: 'Tu vs 3 meses' },
+    title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Semana', rival: 'Tu vs 3 meses', year: 'Ano' },
     reportOnSub: 'Todos os domingos, no Início: a tua semana. Os relatórios de domingo ficam guardados aqui. Com o PT ligado, tem um comentário dele.',
     rivalOnSub: 'No resumo do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
     thisWeek: 'Esta semana, até agora', earlier: 'Semanas anteriores', noReports: 'Ainda não há relatórios anteriores. Com "Relatório da semana" ligado nas Definições, cada relatório de domingo fica guardado aqui.',

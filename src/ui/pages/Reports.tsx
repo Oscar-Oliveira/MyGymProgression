@@ -9,8 +9,9 @@ import { Empty, PageHead, Pager, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
 import { fmtDate, useSettings } from '../util';
 import { Analysis } from './Analysis';
+import { YearTab } from './YearReview';
 
-const TABS = ['analysis', 'week', 'rival'] as const;
+const TABS = ['analysis', 'week', 'rival', 'year'] as const;
 type Tab = (typeof TABS)[number];
 
 /** This week so far (made here, not stored), then the stored Sunday reports of earlier weeks. */
@@ -72,7 +73,7 @@ function RivalTab({ s }: { s: Settings }) {
   );
 }
 
-/** Reports (D57): Analysis, the week report and "you vs 3 months ago", one tab each. The tab is kept in the URL. */
+/** Reports (D57, D74): Analysis, the week report, "you vs 3 months ago" and the year in review, one tab each. The tab is kept in the URL. */
 export function Reports() {
   const { t } = useTranslation();
   const s = useSettings();
@@ -91,6 +92,7 @@ export function Reports() {
       {tab === 'analysis' && <Analysis />}
       {tab === 'week' && <WeekTab s={s} />}
       {tab === 'rival' && <RivalTab s={s} />}
+      {tab === 'year' && <YearTab />}
     </div>
   );
 }

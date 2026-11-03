@@ -577,6 +577,30 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .medal:not(.on) strong { color: var(--muted); }
 .medal .mbar { display: block; margin-top: 0.2rem; }
 .medal .mbar .bar { display: block; }
+/* Year in review (D74): full-screen screens over the app, one idea each. */
+.year-hero .stats { margin: 0.8rem 0 1rem; }
+dialog.story { position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom)); border: 0; color: #fff; display: flex; flex-direction: column;
+  background: radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--brand) 75%, transparent), transparent 70%), radial-gradient(90% 60% at 0% 100%, color-mix(in srgb, var(--brand) 35%, transparent), transparent 70%), #0b0c12; }
+dialog.story::backdrop { background: #0b0c12; }
+.story-bars { display: flex; gap: 4px; padding-right: 3rem; }
+.story-bars span { flex: 1; height: 4px; border-radius: 2px; background: rgb(255 255 255 / 0.25); }
+.story-bars span.done, .story-bars span.on { background: #fff; }
+.story-close { position: absolute; top: max(4px, env(safe-area-inset-top)); right: 8px; color: #fff; }
+.story-slide { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 0.6rem; max-width: 520px; width: 100%; margin: 0 auto; animation: story-in 0.45s ease-out; cursor: pointer; overflow-y: auto; }
+.story-slide h2 { margin: 0; font-size: 1.6rem; }
+.story-big { margin: 0; font-size: clamp(3.5rem, 20vw, 7rem); font-weight: 900; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.story-mid { margin: 0; font-size: 1.2rem; font-weight: 700; }
+.story-name { margin: 0; font-size: clamp(1.8rem, 9vw, 2.8rem); font-weight: 850; line-height: 1.1; }
+.story-sub, .story-kicker { margin: 0; color: rgb(255 255 255 / 0.7); }
+.story-kicker { text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; font-weight: 750; }
+.story-medals { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
+.story-medals li { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.story .body-map { width: 100%; --surface-2: rgb(255 255 255 / 0.12); --surface: #0b0c12; --muted: rgb(255 255 255 / 0.7); --text: #fff; }
+.story-slide .btn, .story-slide button { margin-top: 1rem; }
+.story-nav { display: flex; align-items: center; justify-content: space-between; color: rgb(255 255 255 / 0.7); }
+.story-nav button { color: #fff; }
+@keyframes story-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .story-slide { animation: none; } }
 
 /* Correction: exercises and sets that were not done stand out. */
 .card.not-done { border-color: var(--warn); }
