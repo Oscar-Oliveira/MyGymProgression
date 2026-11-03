@@ -12,6 +12,8 @@ import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from 
 import { beatsLastTime, rivalOn, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
+import { ActionMenu } from '../components/ActionMenu';
+import { toast as notify } from '../components/Toast';
 import { Empty, PageHead } from '../components/Bits';
 import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -56,7 +58,6 @@ export function WorkoutPage() {
   const [list, setList] = useState(false);
   // Personal trainer message shown for a few seconds after an exercise or circuit is done.
   const [toast, setToast] = useState<string>();
-  const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(undefined), 6000);
@@ -404,8 +405,7 @@ export function WorkoutPage() {
   /** The workout as text (every set), to paste in an email or an AI chat. */
   const copyText = async () => {
     await navigator.clipboard.writeText(workoutText(draft, t, s.language));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    notify(t('workout.textCopied'));
   };
   return (
     <div className="toned" style={tone} ref={rootRef}>
@@ -415,6 +415,26 @@ export function WorkoutPage() {
         </span>
       )}
       <PageHead
+        aside={
+          !editing && (
+            <ActionMenu
+              title={draft.dayName ?? t('workout.free')}
+              actions={[
+                { label: t('workout.correct'), onClick: () => setEditing(true) },
+                { label: t('workout.copyText'), onClick: () => void copyText() },
+                {
+                  label: t('common.delete'),
+                  danger: true,
+                  onClick: async () => {
+                    if (!(await dialog.confirm(t('workout.deleteConfirm'), { danger: true, ok: t('common.delete') }))) return;
+                    await repo.deleteWorkout(draft.id);
+                    nav('/history');
+                  },
+                },
+              ]}
+            />
+          )
+        }
         eyebrow={fmtDate(draft.startedAt, s.language, true)}
         title={`${draft.status === 'completed' ? '✓ ' : ''}${draft.dayName ?? t('workout.free')}`}
         sub={
@@ -561,28 +581,9 @@ export function WorkoutPage() {
               </button>
             </section>
           )}
-          <div className="row wrap" style={{ marginTop: '1rem' }}>
-            <button className="outline" onClick={() => setEditing(true)}>
-              {t('workout.correct')}
-            </button>
-            <button className="outline" onClick={() => void shareCard()}>
-              ⤴ {t('workout.share')}
-            </button>
-            <button className="outline" onClick={() => void copyText()}>
-              {copied ? `✓ ${t('workout.textCopied')}` : `⧉ ${t('workout.copyText')}`}
-            </button>
-            <span className="spacer" />
-            <button
-              className="danger"
-              onClick={async () => {
-                if (!(await dialog.confirm(t('workout.deleteConfirm'), { danger: true, ok: t('common.delete') }))) return;
-                await repo.deleteWorkout(draft.id);
-                nav('/history');
-              }}
-            >
-              {t('common.delete')}
-            </button>
-          </div>
+          <button className="primary xl" style={{ marginTop: '1rem' }} onClick={() => void shareCard()}>
+            ⤴ {t('workout.share')}
+          </button>
         </>
       )}
     </div>

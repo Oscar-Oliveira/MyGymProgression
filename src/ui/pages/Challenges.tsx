@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
-import { repo } from '../../data/repo';
+import { Link } from 'react-router-dom';
 import { Empty, PageHead, Pager, usePage } from '../components/Bits';
 import { challengeText } from '../components/ChallengeCard';
 import { fmtDate, useSettings } from '../util';
@@ -18,17 +18,19 @@ export function Challenges() {
   return (
     <div>
       <PageHead title={t('challenge.title')} count={closed.length > 0 ? t('challenge.rate', { done: closed.filter((c) => c.status === 'done').length, total: closed.length }) : undefined} />
-      <section className="card">
-        <label className="setting-row">
-          <span className="lbl">
-            {t('challenge.enabled')}
-            <small>{t('challenge.settingSub')}</small>
-          </span>
-          <input type="checkbox" role="switch" className="switch" checked={!!s.challenge} onChange={(e) => void repo.saveSettings({ challenge: e.target.checked })} />
-        </label>
-      </section>
+      {!s.challenge && (
+        <Empty
+          action={
+            <Link className="btn outline" to="/settings">
+              {t('nav.settings')}
+            </Link>
+          }
+        >
+          {t('challenge.off')}
+        </Empty>
+      )}
       {list.length === 0 ? (
-        <Empty>{t('challenge.empty')}</Empty>
+        s.challenge && <Empty>{t('challenge.empty')}</Empty>
       ) : (
         <>
           <ul className="card challenge-list">

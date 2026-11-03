@@ -1,12 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { duplicateAsVariation } from '../../domain/factory';
 import { Goals } from '../components/Goals';
 import { repo } from '../../data/repo';
 import { dialog } from '../components/Dialog';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
+import { ActionMenu } from '../components/ActionMenu';
+import { toast } from '../components/Toast';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
 import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
@@ -62,6 +65,7 @@ export function ExerciseDetail() {
   const [joining, setJoining] = useState(false);
   const [adding, setAdding] = useState(false);
   const { id } = useParams();
+  const nav = useNavigate();
   const [params] = useSearchParams();
   const s = useSettings();
   const data = useLiveQuery(async () => {
@@ -103,14 +107,29 @@ export function ExerciseDetail() {
     if (!counts) return;
     if (!(await dialog.confirm(t('exercise.joinConfirm', { dup: dup.name, keep: ex.name, ...counts }), { ok: t('exercise.joinOk') }))) return;
     await repo.joinExercises(ex.id, dup.id);
-    await dialog.alert(t('exercise.joinDone', { dup: dup.name, keep: ex.name }));
+    toast(t('exercise.joinDone', { dup: dup.name, keep: ex.name }));
+  };
+  /** A copy of this exercise as a variation, opened in the editor. */
+  const variation = async () => {
+    if (!ex) return;
+    const v = duplicateAsVariation(ex, t('exercise.variationName', { name: ex.name }));
+    await repo.saveExercise(v);
+    nav(`/exercises/${v.id}/edit`);
+  };
+  const remove = async () => {
+    if (!ex) return;
+    const used = await repo.exerciseUsage(ex.id);
+    if (used.length) return dialog.alert(t('exercise.usedIn', { plans: used.join(', ') }));
+    if (!(await dialog.confirm(t('common.confirmDelete', { name: ex.name }), { danger: true, ok: t('common.delete') }))) return;
+    await repo.deleteExercise(ex.id);
+    nav('/exercises', { replace: true });
   };
   /** Adds the exercise at the end of a plan day. */
   const addTo = async (plan: Plan, day: PlanDay) => {
     if (!ex) return;
     setAdding(false);
     await repo.addToPlanDay(plan.id, day.id, ex.id);
-    await dialog.alert(t('exercise.addedToPlan', { day: day.name, plan: plan.name }));
+    toast(t('exercise.addedToPlan', { day: day.name, plan: plan.name }));
   };
   const weekdays = t('weekday', { returnObjects: true }) as string[];
   const muscle = (n: string) => (s.language === 'pt' ? (MUSCLE_DETAIL_PT[n] ?? n) : n);
@@ -131,12 +150,15 @@ export function ExerciseDetail() {
               <Link className="btn outline" to={`/exercises/${ex.id}/edit`}>
                 {t('common.edit')}
               </Link>
-              <button className="outline" onClick={() => setJoining(true)}>
-                ⇆ {t('exercise.join')}
-              </button>
-              <button className="outline" onClick={() => setAdding(true)}>
-                ＋ {t('exercise.addToPlan')}
-              </button>
+              <ActionMenu
+                title={name}
+                actions={[
+                  { label: t('exercise.addToPlan'), onClick: () => setAdding(true) },
+                  { label: t('exercise.join'), onClick: () => setJoining(true) },
+                  { label: t('exercise.variation'), onClick: () => void variation() },
+                  { label: t('common.delete'), danger: true, onClick: () => void remove() },
+                ]}
+              />
             </>
           )
         }

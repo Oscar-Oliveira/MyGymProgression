@@ -5,6 +5,7 @@ import { createHashRouter, Navigate, NavLink, Route, RouterProvider, Routes, use
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
+import { ToastHost } from './components/Toast';
 import { Home } from './pages/Home';
 import { Train } from './pages/Train';
 import { More } from './pages/More';
@@ -178,6 +179,7 @@ function Shell() {
         </Suspense>
       </main>
       <DialogHost />
+      <ToastHost />
     </>
   );
 }

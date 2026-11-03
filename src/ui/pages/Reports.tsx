@@ -2,9 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { db } from '../../data/db';
-import { repo } from '../../data/repo';
 import { weekKey } from '../../domain/challenge';
-import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
+import { rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
 import { Empty, PageHead, Pager, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
@@ -13,22 +12,6 @@ import { Analysis } from './Analysis';
 
 const TABS = ['analysis', 'week', 'rival'] as const;
 type Tab = (typeof TABS)[number];
-
-/** A switch of a report, at the top of its tab (D57). */
-function ReportSwitch({ k, on }: { k: 'report' | 'rival'; on: boolean }) {
-  const { t } = useTranslation();
-  return (
-    <section className="card">
-      <label className="setting-row">
-        <span className="lbl">
-          {t(`reports.${k}On`)}
-          <small>{t(`reports.${k}OnSub`)}</small>
-        </span>
-        <input type="checkbox" role="switch" className="switch" checked={on} onChange={(e) => void repo.saveSettings({ [k]: e.target.checked })} />
-      </label>
-    </section>
-  );
-}
 
 /** This week so far (made here, not stored), then the stored Sunday reports of earlier weeks. */
 function WeekTab({ s }: { s: Settings }) {
@@ -43,7 +26,6 @@ function WeekTab({ s }: { s: Settings }) {
   const earlier = usePage(data?.earlier ?? []);
   return (
     <>
-      <ReportSwitch k="report" on={reportOn(s)} />
       {data && (
         <>
           <div className="section-head">
@@ -74,7 +56,6 @@ function RivalTab({ s }: { s: Settings }) {
   }, []);
   return (
     <>
-      <ReportSwitch k="rival" on={rivalOn(s)} />
       {data &&
         (data.latest && data.rival && data.rows.length > 0 ? (
           <>
@@ -100,7 +81,7 @@ export function Reports() {
   return (
     <div>
       <PageHead title={t('reports.title')} />
-      <div className="report-tabs" role="tablist" aria-label={t('reports.title')}>
+      <div className="seg" role="tablist" style={{ marginBottom: '1rem' }} aria-label={t('reports.title')}>
         {TABS.map((x) => (
           <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? 'on' : ''} onClick={() => setParams(x === 'analysis' ? {} : { tab: x }, { replace: true })}>
             {t(`reports.tabs.${x}`)}

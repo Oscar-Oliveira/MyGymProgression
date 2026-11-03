@@ -11,6 +11,7 @@ import { dayGoal, followsGoal, goalSets } from '../../domain/goals';
 import type { DayGoal, Exercise, Plan, PlanDay, PlanGoal, PlanItem } from '../../domain/types';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Empty } from '../components/Bits';
+import { toast } from '../components/Toast';
 import { NumInput } from '../components/NumInput';
 import { ColorPicker } from '../components/ColorPicker';
 import { toneStyle } from '../colors';
@@ -41,7 +42,6 @@ export function PlanEdit() {
   // Picker target: substitutes of an item, a circuit, or the day.
   const [picker, setPicker] = useState<{ item?: string; circuit?: string }>();
   const [openId, setOpenId] = useState<string>();
-  const [msg, setMsg] = useState('');
   const [nameError, setNameError] = useState(false);
   const unsaved = useUnsavedGuard();
 
@@ -123,8 +123,7 @@ export function PlanEdit() {
       if (it && ex) await repo.manualAdjust(lineage, ex.id, targets, t('plan.editReason'), (it.progression ?? ex.progression).strategy);
     }
     setEdits({});
-    setMsg(t('common.saved'));
-    setTimeout(() => setMsg(''), 1500);
+    toast(t('common.saved'));
   };
   const startDay = async () => {
     const open = await db.workouts.where('status').equals('in_progress').first();
@@ -317,6 +316,11 @@ export function PlanEdit() {
               ⟳ {t('circuit.new')}
             </button>
           </div>
+          {day.items.length > 0 && (
+            <button className="primary xl" style={{ marginTop: '0.75rem' }} onClick={() => void startDay()}>
+              ▶ {t('plan.startDay')}
+            </button>
+          )}
           <div className="row wrap" style={{ marginTop: '0.75rem' }}>
             <button className="danger sm" onClick={async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0))}>
               {t('plan.removeDay')}
@@ -326,14 +330,12 @@ export function PlanEdit() {
       )}
 
       <div className="wk-nav">
-        <button className={dirty ? 'primary' : 'outline'} disabled={!dirty} onClick={() => void save()}>
-          {msg || (dirty ? t('common.save') : t('common.saved'))}
+        <button className="outline" onClick={() => nav(-1)}>
+          {t('common.cancel')}
         </button>
-        {day && day.items.length > 0 && (
-          <button className="outline" onClick={() => void startDay()}>
-            ▶ {t('plan.startDay')}
-          </button>
-        )}
+        <button className="primary" disabled={!dirty} onClick={() => void save()}>
+          {t('common.save')}
+        </button>
       </div>
 
       {picker && <ExercisePicker onPick={pick} onClose={() => setPicker(undefined)} />}

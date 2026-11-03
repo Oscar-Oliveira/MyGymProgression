@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import { duplicateAsVariation, newExercise } from '../../domain/factory';
+import { newExercise } from '../../domain/factory';
 import type { Exercise, ExerciseCategory, LoadMode } from '../../domain/types';
 import { MEASUREMENT_PRESETS, presetDefaults, presetMetrics, type MeasurementPreset } from '../../domain/units';
 import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../components/Editors';
@@ -94,22 +94,6 @@ export function ExerciseEdit() {
     nav(`/exercises/${ex.id}`);
   };
 
-  const remove = async () => {
-    const used = await repo.exerciseUsage(ex.id);
-    if (used.length) return dialog.alert(t('exercise.usedIn', { plans: used.join(', ') }));
-    if (!(await dialog.confirm(t('common.confirmDelete', { name: ex.name }), { danger: true, ok: t('common.delete') }))) return;
-    await repo.deleteExercise(ex.id);
-    unsaved.current = false;
-    nav('/exercises');
-  };
-
-  const variation = async () => {
-    const v = duplicateAsVariation(ex, t('exercise.variationName', { name: ex.name }));
-    await repo.saveExercise(v);
-    unsaved.current = false; // the copy takes the changes made here
-    nav(`/exercises/${v.id}/edit`);
-  };
-
   return (
     <div className="stack">
       <PageHead title={id ? t('exercise.edit') : t('exercise.new')} />
@@ -147,8 +131,9 @@ export function ExerciseEdit() {
           {t('exercise.tags')}
           <input value={ex.tags.join(', ')} onChange={(e) => up({ tags: splitList(e.target.value) })} />
         </label>
-        <label className="check">
-          <input type="checkbox" checked={ex.active} onChange={(e) => up({ active: e.target.checked })} /> {t('exercise.active')}
+        <label className="setting-row">
+          <span>{t('exercise.active')}</span>
+          <input type="checkbox" role="switch" className="switch" checked={ex.active} onChange={(e) => up({ active: e.target.checked })} />
         </label>
       </section>
 
@@ -236,19 +221,6 @@ export function ExerciseEdit() {
             <li key={e}>{e}</li>
           ))}
         </ul>
-      )}
-      {id && (
-        <section className="card">
-          <div className="actions" style={{ marginTop: 0 }}>
-            <button className="outline" onClick={() => void variation()}>
-              {t('exercise.variation')}
-            </button>
-            <span className="spacer" />
-            <button className="danger" onClick={() => void remove()}>
-              {t('common.delete')}
-            </button>
-          </div>
-        </section>
       )}
       <div className="wk-nav">
         <button className="outline" onClick={() => nav(-1)}>

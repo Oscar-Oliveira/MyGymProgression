@@ -5,7 +5,8 @@ import { coachMessage } from '../../domain/coach';
 import type { CoachGender, CoachHairColor, CoachLook, CoachSettings, CoachSkin, CoachStyle, CoachWhen } from '../../domain/types';
 import { COACH_BANKS } from '../../i18n/coach';
 import { BEARDS, CoachAvatar, CoachName, defaultLook, GLASSES, HAIR_COLORS, HAIRS, SKINS } from '../components/CoachAvatar';
-import { PageHead } from '../components/Bits';
+import { Empty, PageHead } from '../components/Bits';
+import { Link } from 'react-router-dom';
 import { useSettings } from '../util';
 import { canSpeak, speak } from '../voice';
 
@@ -50,53 +51,57 @@ export function CoachPage() {
   return (
     <div>
       <PageHead eyebrow={name && t('coach.title')} title={name || t('coach.title')} aside={<CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />} />
-      <section className="card">
-        <label className="setting-row">
-          <span>{t('coach.enabled')}</span>
-          <input type="checkbox" role="switch" className="switch" checked={coach.enabled} onChange={(e) => void save({ enabled: e.target.checked })} />
-        </label>
-        {!coach.enabled && <p className="help">{t('coach.off')}</p>}
-        {coach.enabled && (
-          <>
+      {!coach.enabled && (
+        <Empty
+          action={
+            <Link className="btn outline" to="/settings">
+              {t('nav.settings')}
+            </Link>
+          }
+        >
+          {t('coach.off')}
+        </Empty>
+      )}
+      {coach.enabled && (
+        <section className="card">
+          <label className="setting-row">
+            <span>{t('coach.name')}</span>
+            <input type="text" defaultValue={coach.name ?? ''} maxLength={40} placeholder={t('coach.namePlaceholder')} onChange={(e) => void save({ name: e.target.value })} />
+          </label>
+          <label className="setting-row">
+            <span>{t('coach.style')}</span>
+            <select value={coach.style} onChange={(e) => (setSample(undefined), void save({ style: e.target.value as CoachStyle }))}>
+              {COACH_STYLES.map((st) => (
+                <option key={st} value={st}>
+                  {t(`coach.styles.${st}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="coach-style">
+            <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />
+            <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+          </div>
+          {coach.style === 'spite' && (
             <label className="setting-row">
-              <span>{t('coach.name')}</span>
-              <input type="text" defaultValue={coach.name ?? ''} maxLength={40} placeholder={t('coach.namePlaceholder')} onChange={(e) => void save({ name: e.target.value })} />
+              <span>{t('coach.profanity')}</span>
+              <input type="checkbox" role="switch" className="switch" checked={coach.profanity} onChange={(e) => void save({ profanity: e.target.checked })} />
             </label>
-            <label className="setting-row">
-              <span>{t('coach.style')}</span>
-              <select value={coach.style} onChange={(e) => (setSample(undefined), void save({ style: e.target.value as CoachStyle }))}>
-                {COACH_STYLES.map((st) => (
-                  <option key={st} value={st}>
-                    {t(`coach.styles.${st}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="coach-style">
+          )}
+          {sample && (
+            <div key={sample} className="coach" role="status" aria-label={t('coach.title')}>
               <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />
-              <p className="help">{t(`coach.styleHelp.${coach.style}`)}</p>
+              <p>
+                <CoachName name={coach.name} />
+                {sample}
+              </p>
             </div>
-            {coach.style === 'spite' && (
-              <label className="setting-row">
-                <span>{t('coach.profanity')}</span>
-                <input type="checkbox" role="switch" className="switch" checked={coach.profanity} onChange={(e) => void save({ profanity: e.target.checked })} />
-              </label>
-            )}
-            {sample && (
-              <div key={sample} className="coach" role="status" aria-label={t('coach.title')}>
-                <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />
-                <p>
-                  <CoachName name={coach.name} />
-                  {sample}
-                </p>
-              </div>
-            )}
-            <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={showSample}>
-              {t('coach.preview')}
-            </button>
-          </>
-        )}
-      </section>
+          )}
+          <button className="outline" style={{ width: '100%', marginTop: '0.5rem' }} onClick={showSample}>
+            {t('coach.preview')}
+          </button>
+        </section>
+      )}
 
       {coach.enabled && (
         <>

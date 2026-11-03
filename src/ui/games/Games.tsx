@@ -7,6 +7,7 @@ import { repo } from '../../data/repo';
 import type { GameId, GameScore } from '../../domain/types';
 import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { dialog } from '../components/Dialog';
+import { ActionMenu } from '../components/ActionMenu';
 import { PageHead } from '../components/Bits';
 import { fmtDate, fmtNum, useSettings } from '../util';
 import type { GameProps } from './canvas';
@@ -18,7 +19,7 @@ import { Starship } from './Starship';
 import { Whack } from './Whack';
 import { LegDay } from './LegDay';
 import { Rerack } from './Rerack';
-import { fx, fxOn, setFx, type FxSetting } from './feedback';
+import { fx } from './feedback';
 import { canSpeak, speak } from '../voice';
 
 /** `lower`: a lower score is better (memory counts moves). `secret`: listed only once unlocked by the "1987" easter egg (D59). */
@@ -47,27 +48,6 @@ function useTrainer() {
   return { style, gender, look, name: s.coach?.name, say: voice ? (text: string) => speak(text, s.language, { style, gender }) : undefined };
 }
 
-/** Sound and vibration switches (D52), kept on this device. */
-function FxSwitches() {
-  const { t } = useTranslation();
-  const [on, setOn] = useState({ sound: fxOn('sound'), haptic: fxOn('haptic') });
-  const toggle = (k: FxSetting, v: boolean) => {
-    setFx(k, v);
-    setOn({ ...on, [k]: v });
-    if (v) fx('good');
-  };
-  return (
-    <section className="card">
-      {(['sound', 'haptic'] as const).map((k) => (
-        <label key={k} className="setting-row">
-          <span>{t(`games.${k}`)}</span>
-          <input type="checkbox" role="switch" className="switch" checked={on[k]} onChange={(e) => toggle(k, e.target.checked)} />
-        </label>
-      ))}
-    </section>
-  );
-}
-
 export function GamesPage() {
   const { t } = useTranslation();
   const s = useSettings();
@@ -77,7 +57,7 @@ export function GamesPage() {
   };
   return (
     <div>
-      <PageHead title={t('games.title')} />
+      <PageHead title={t('games.title')} aside={scores.length > 0 && <ActionMenu title={t('games.title')} actions={[{ label: t('games.resetAll'), danger: true, onClick: () => void resetAll() }]} />} />
       <ul className="menu card" style={{ padding: 0 }}>
         {visible(s).map((g) => {
           const best = bestOf(g.lower, scores.filter((x) => x.game === g.id));
@@ -99,12 +79,6 @@ export function GamesPage() {
           );
         })}
       </ul>
-      <FxSwitches />
-      {scores.length > 0 && (
-        <button className="danger" style={{ width: '100%' }} onClick={() => void resetAll()}>
-          {t('games.resetAll')}
-        </button>
-      )}
     </div>
   );
 }
@@ -150,7 +124,11 @@ function OneGame({ id }: { id?: string }) {
 
   return (
     <div className="game-page">
-      <PageHead title={name} count={best !== undefined ? `${t('games.best')}: ${fmt(best)}` : undefined} />
+      <PageHead
+        title={name}
+        count={best !== undefined ? `${t('games.best')}: ${fmt(best)}` : undefined}
+        aside={last.length > 0 && <ActionMenu title={name} actions={[{ label: t('games.reset'), danger: true, onClick: () => void reset() }]} />}
+      />
       {run > 0 ? (
         <game.Game key={run} style={trainer.style} gender={trainer.gender} look={trainer.look} onEnd={(n) => void end(n)} onSay={trainer.say} />
       ) : (
@@ -179,9 +157,6 @@ function OneGame({ id }: { id?: string }) {
                   </li>
                 ))}
               </ul>
-              <button className="danger" onClick={() => void reset()}>
-                {t('games.reset')}
-              </button>
             </section>
           )}
         </>

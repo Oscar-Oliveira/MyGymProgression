@@ -8,6 +8,19 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: [
+      'Todos os interruptores das funcionalidades estão agora em Definições → Funcionalidades: desafio semanal, relatório da semana, tu vs há 3 meses, personal trainer, som e vibração dos jogos.',
+      'Cada página mostra a ação principal; as outras (duplicar, partilhar, corrigir, eliminar…) estão no menu ⋯.',
+      'Editar um plano termina sempre com "Cancelar" e "Guardar", como os outros formulários. As confirmações curtas ("Copiado", "Guardado", "Adicionado") aparecem numa mensagem rápida no fundo do ecrã.',
+    ],
+    en: [
+      'Every feature switch is now in Settings → Features: weekly challenge, week report, you vs 3 months ago, personal trainer, game sound and vibration.',
+      'Each page shows its main action; the others (duplicate, share, correct, delete…) are in the ⋯ menu.',
+      'Editing a plan always ends with "Cancel" and "Save", like the other forms. Short confirmations ("Copied", "Saved", "Added") show as a quick message at the bottom of the screen.',
+    ],
+  },
+  {
+    date: '2026-11-03',
     pt: ['Páginas mais coerentes: o mesmo cabeçalho em todas, contadores em Planos e Exercícios, e as listas vazias mostram sempre o próximo passo (ex.: Histórico vazio → Treinar).'],
     en: ['More consistent pages: the same header on every page, counts on Plans and Exercises, and empty lists always show the next step (e.g. empty History → Train).'],
   },

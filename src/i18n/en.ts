@@ -109,7 +109,7 @@ export const en = {
       stoic: 'Calm and firm: focus on what you control, on effort and on consistency.',
       sergeant: 'Hard and direct, with your real numbers (workouts, increases, days off).',
     },
-    messages: 'Messages', extras: 'Extras', off: 'The trainer is off. Turn it on to choose the style and the extras.',
+    messages: 'Messages', extras: 'Extras', off: 'The trainer is off. Turn it on in Settings to choose the style and the extras.',
     live: 'Reaction when you beat last time', liveSub: 'A short message when a set beats the same set of last time.',
     voice: 'Voice', voiceSub: 'Reads the messages aloud during the workout, in the app language (British English or Portuguese of Portugal), with a voice of this device of the same gender as the trainer when there is one; otherwise with a lower or higher pitch.',
     tips: 'Technique tips', tipsSub: 'A 💡 next to the exercise name when the library has tips for it; tap it to see one.',
@@ -213,7 +213,7 @@ export const en = {
     },
   },
   settings: {
-    title: 'Settings', preferences: 'Preferences', theme: 'Theme', themes: { dark: 'Dark', light: 'Light', system: 'Same as system' }, library: 'Exercise library', danger: 'Danger zone', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after',
+    title: 'Settings', preferences: 'Preferences', features: 'Features', reportOn: 'Week report', rivalOn: 'You vs 3 months ago', coachSub: 'Messages in and out of the workout. Choose the style and the look in More › Personal trainer.', gameSound: 'Game sound', gameHaptic: 'Game vibration', theme: 'Theme', themes: { dark: 'Dark', light: 'Light', system: 'Same as system' }, library: 'Exercise library', danger: 'Danger zone', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after',
     data: 'Backup and data', export: 'Export', exportFull: 'Full backup (JSON)', exportLibrary: 'Exercises (JSON)', exportPlans: 'Plans (JSON)',
     csvSets: 'Sets (CSV)', csvWorkouts: 'Workouts (CSV)', csvEvents: 'Progression (CSV)', import: 'Import', chooseFile: 'Restore or import (JSON file)',
     seed: 'Add starter exercises', seeded: '{{count}} exercises added.', importLibrary: 'Import library file', openLibrary: 'Install open library', openLibraryHelp: 'About 870 exercises with photos and instructions (English), from free-exercise-db (public domain). Download about 3 MB, once; then it works offline.', openLibraryFailed: 'The open library could not be downloaded. Check the connection and try again.', libraryNotice: 'Imports exercises from a library file (JSON, format in docs/data-format.md). Exercises you already have get the images and instructions; plans and history do not change. Only use data you are allowed to use.', libraryResult: '{{added}} added, {{updated}} updated.', libraryInvalid: 'This file is not an exercise library.', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',
@@ -294,7 +294,7 @@ export const en = {
     title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months' },
     reportOn: 'Show on Home on Sundays', reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
     rivalOn: 'Show at the end of a workout', rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
-    thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Show on Home on Sundays" on, each Sunday report is kept here.',
+    thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Week report" on in Settings, each Sunday report is kept here.',
     latest: 'Latest workout', noRival: 'Nothing to compare yet: the latest workout needs the same plan day done at least 4 weeks before.',
   },
   sync: {
@@ -316,6 +316,7 @@ export const en = {
     },
   },
   challenge: {
+    off: 'The weekly challenge is off. Turn it on in Settings.',
     perSide: '{{load}} per side',
     title: 'Weekly challenge', settingSub: 'A new goal every Monday on Home, made from your recent workouts.',
     kinds: {

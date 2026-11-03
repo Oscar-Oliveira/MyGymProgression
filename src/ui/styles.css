@@ -496,9 +496,6 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .segmented button { min-height: 40px; padding: 0 0.3rem; border-radius: 11px; background: transparent; color: var(--muted); font-size: 0.9rem; }
 .segmented button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 /* Reports tabs (D57): underlined, so they differ from the period selector of Analysis below. */
-.report-tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 1rem; border-bottom: 1px solid var(--border); }
-.report-tabs button { min-height: 44px; padding: 0 0.3rem; background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: var(--muted); font-weight: 700; font-size: 0.92rem; }
-.report-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 .period-range { text-align: center; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin: 0.45rem 0 0.2rem; }
 .weeks { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 0.2rem; scrollbar-width: none; }
 .weeks::-webkit-scrollbar { display: none; }
@@ -728,3 +725,9 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 :root[data-retro] h1, :root[data-retro] h2 { text-transform: uppercase; letter-spacing: 0.04em; text-shadow: 2px 2px 0 #ff2bd6; }
 :root[data-retro] body::after { content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px); animation: crt-flicker 5s steps(2) infinite; }
 @keyframes crt-flicker { 0%, 96% { opacity: 1; } 98% { opacity: 0.6; } }
+
+/* Toast (D66): one short "done" message above the tab bar, gone after 2.5 s. */
+.toast-host { position: fixed; z-index: 30; left: 0; right: 0; bottom: calc(var(--tabs-h) + 1.4rem + env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+.toast { margin: 0; max-width: 32rem; padding: 0.7rem 1.1rem; border-radius: 14px; background: var(--text); color: var(--bg); font-weight: 650; box-shadow: var(--shadow-lg); animation: toast-in 0.2s ease-out; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

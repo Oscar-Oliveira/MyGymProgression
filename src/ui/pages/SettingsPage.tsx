@@ -11,6 +11,10 @@ import { NumInput } from '../components/NumInput';
 import { PageHead } from '../components/Bits';
 import { download, fmtDate, saveBackup, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
+import { toast } from '../components/Toast';
+import { reportOn, rivalOn } from '../../domain/trainer';
+import { fx, fxOn, setFx, type FxSetting } from '../games/feedback';
+import { NO_COACH } from './CoachPage';
 import { parseLibraryFile } from '../../domain/library';
 import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
@@ -31,6 +35,36 @@ function ActionRow({ icon, title, sub, onClick, tone = '' }: { icon: string; tit
         ›
       </span>
     </button>
+  );
+}
+
+/** A feature switch: its name, a short description and the switch. */
+function Toggle({ label, sub, on, set }: { label: string; sub?: string; on: boolean; set: (on: boolean) => void }) {
+  return (
+    <label className="setting-row">
+      <span className="lbl">
+        {label}
+        {sub && <small>{sub}</small>}
+      </span>
+      <input type="checkbox" role="switch" className="switch" checked={on} onChange={(e) => set(e.target.checked)} />
+    </label>
+  );
+}
+
+/** Sound and vibration of the games (D52), kept on this device. */
+function GameFx() {
+  const { t } = useTranslation();
+  const [on, setOn] = useState({ sound: fxOn('sound'), haptic: fxOn('haptic') });
+  const toggle = (k: FxSetting, v: boolean) => {
+    setFx(k, v);
+    setOn({ ...on, [k]: v });
+    if (v) fx('good');
+  };
+  return (
+    <>
+      <Toggle label={t('settings.gameSound')} on={on.sound} set={(v) => toggle('sound', v)} />
+      <Toggle label={t('settings.gameHaptic')} on={on.haptic} set={(v) => toggle('haptic', v)} />
+    </>
   );
 }
 
@@ -191,17 +225,13 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const s = useSettings();
   const [persisted, setPersisted] = useState<boolean>();
-  const [msg, setMsg] = useState('');
   const loadSync = s.loadSync ?? DEFAULT_LOAD_SYNC;
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
   const due = backupDue(s.lastBackupAt, workouts);
   useEffect(() => {
     void navigator.storage?.persisted?.().then(setPersisted);
   }, []);
-  const flash = (m: string) => {
-    setMsg(m);
-    setTimeout(() => setMsg(''), 2500);
-  };
+  const flash = toast;
 
   const csv = async (kind: 'sets' | 'workouts' | 'events') => {
     const d = await repo.readAll();
@@ -311,6 +341,17 @@ export function SettingsPage() {
       </section>
 
       <div className="section-head">
+        <h2>{t('settings.features')}</h2>
+      </div>
+      <section className="card">
+        <Toggle label={t('nav.challenges')} sub={t('challenge.settingSub')} on={!!s.challenge} set={(v) => void repo.saveSettings({ challenge: v })} />
+        <Toggle label={t('settings.reportOn')} sub={t('reports.reportOnSub')} on={reportOn(s)} set={(v) => void repo.saveSettings({ report: v })} />
+        <Toggle label={t('settings.rivalOn')} sub={t('reports.rivalOnSub')} on={rivalOn(s)} set={(v) => void repo.saveSettings({ rival: v })} />
+        <Toggle label={t('nav.coach')} sub={t('settings.coachSub')} on={!!s.coach?.enabled} set={(v) => void repo.saveSettings({ coach: { ...(s.coach ?? NO_COACH), enabled: v } })} />
+        <GameFx />
+      </section>
+
+      <div className="section-head">
         <h2>{t('sync.title')}</h2>
       </div>
       <section className="card">
@@ -383,11 +424,6 @@ export function SettingsPage() {
           <ActionRow icon="＋" title={t('settings.seed')} sub={t('settings.seedSub')} onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))} />
           <ActionRow icon="▶" title={t('settings.demo')} sub={t('settings.demoSub')} onClick={() => void demo()} />
         </div>
-        {msg && (
-          <p role="status" className="backup-status ok" style={{ margin: '0.6rem 0 0' }}>
-            {msg}
-          </p>
-        )}
         <p className="privacy-note">{t('settings.libraryNotice')}</p>
       </section>
 

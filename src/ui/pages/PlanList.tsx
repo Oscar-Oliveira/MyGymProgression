@@ -9,6 +9,8 @@ import type { Plan } from '../../domain/types';
 import { Empty, PageHead } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
+import { ActionMenu } from '../components/ActionMenu';
+import { toast } from '../components/Toast';
 import { dialog } from '../components/Dialog';
 import { toneStyle } from '../colors';
 import { dayShare, encodeCompact, planShare, encodeShare, qrLink } from '../../domain/share';
@@ -60,7 +62,6 @@ function QrSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
 /** Share window of one plan: QR codes, a link (without library text and images, to stay short) or a file (complete). */
 function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
   const { t } = useTranslation();
-  const [msg, setMsg] = useState('');
   const [qr, setQr] = useState(false);
   const file = async () => {
     const b = planShare(await repo.readAll(), plan.id, __APP_VERSION__);
@@ -78,7 +79,7 @@ function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
       }
     }
     await navigator.clipboard.writeText(url);
-    setMsg(t('share.copied'));
+    toast(t('share.copied'));
   };
   if (qr) return <QrSheet plan={plan} onClose={onClose} />;
   return (
@@ -90,7 +91,6 @@ function ShareSheet({ plan, onClose }: { plan: Plan; onClose: () => void }) {
         <button onClick={() => void file()}>⤓ {t('share.file')}</button>
       </div>
       <p className="help">{t('share.fileHelp')}</p>
-      {msg && <p role="status">{msg}</p>}
     </Modal>
   );
 }
@@ -99,7 +99,6 @@ export function PlanList() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const [archived, setArchived] = useState(false);
-  const [menu, setMenu] = useState<Plan>();
   const [sharing, setSharing] = useState<Plan>();
   const data = useLiveQuery(async () => ({
     plans: await db.plans.toArray(),
@@ -115,9 +114,13 @@ export function PlanList() {
     await repo.createPlan(plan, version);
     nav(`/plans/${plan.id}`);
   };
-  const act = async (f: () => Promise<unknown>) => {
-    setMenu(undefined);
-    await f();
+  const duplicate = async (p: Plan) => {
+    const v = versions.find((x) => x.id === p.currentVersionId)!;
+    const d = duplicatePlan(p, v, t('plan.duplicateName', { name: p.name }));
+    await repo.createPlan(d.plan, d.version);
+  };
+  const remove = async (p: Plan) => {
+    if (await dialog.confirm(t('common.confirmDelete', { name: p.name }), { danger: true, ok: t('common.delete') })) await repo.deletePlan(p.id);
   };
 
   return (
@@ -156,9 +159,15 @@ export function PlanList() {
                   <ThumbStack items={items.map((e) => ({ name: e.name, thumb: e.thumb }))} />
                 </span>
               </Link>
-              <button className="ghost" aria-label={`${t('plan.actions')} ${p.name}`} onClick={() => setMenu(p)}>
-                ⋯
-              </button>
+              <ActionMenu
+                title={p.name}
+                actions={[
+                  { label: t('common.duplicate'), onClick: () => void duplicate(p) },
+                  { label: t('share.menu'), onClick: () => setSharing(p) },
+                  { label: p.status === 'active' ? t('common.archive') : t('common.unarchive'), onClick: () => void db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' }) },
+                  { label: t('common.delete'), danger: true, onClick: () => void remove(p) },
+                ]}
+              />
             </div>
           );
         })
@@ -167,30 +176,6 @@ export function PlanList() {
         <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} /> {t('plan.showArchived')}
       </label>
 
-      {menu && (
-        <Modal title={menu.name} onClose={() => setMenu(undefined)}>
-          <div className="sheet">
-            <button
-              onClick={() =>
-                void act(async () => {
-                  const v = versions.find((x) => x.id === menu.currentVersionId)!;
-                  const d = duplicatePlan(menu, v, t('plan.duplicateName', { name: menu.name }));
-                  await repo.createPlan(d.plan, d.version);
-                })
-              }
-            >
-              {t('common.duplicate')}
-            </button>
-            <button onClick={() => (setSharing(menu), setMenu(undefined))}>{t('share.menu')}</button>
-            <button onClick={() => void act(() => db.plans.put({ ...menu, status: menu.status === 'active' ? 'archived' : 'active' }))}>
-              {menu.status === 'active' ? t('common.archive') : t('common.unarchive')}
-            </button>
-            <button className="danger" onClick={() => void act(async () => (await dialog.confirm(t('common.confirmDelete', { name: menu.name }), { danger: true, ok: t('common.delete') })) && repo.deletePlan(menu.id))}>
-              {t('common.delete')}
-            </button>
-          </div>
-        </Modal>
-      )}
       {sharing && <ShareSheet plan={sharing} onClose={() => setSharing(undefined)} />}
     </div>
   );

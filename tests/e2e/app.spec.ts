@@ -166,6 +166,11 @@ async function more(page: Page, name: RegExp) {
   await tab(page, 'More');
   await page.getByRole('link', { name }).click();
 }
+/** Opens the ⋯ menu of the page (secondary actions) and picks one. */
+async function menu(page: Page, action: string) {
+  await page.getByRole('button', { name: /^Options for/ }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: action, exact: true }).click();
+}
 
 /** Creates a one-day plan with the given exercises and starts it. New plans default to Hypertrophy. */
 async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') {
@@ -202,7 +207,8 @@ test('plan goal is saved; a mixed plan sets the type of each day', async ({ page
   await expect(page.getByLabel('Machine Chest Press Sets')).toHaveValue('5');
   await expect(page.getByText('Load goes up automatically').first()).toBeVisible();
   await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Saved', exact: true })).toBeVisible();
+  await expect(page.locator('.toast')).toHaveText('Saved');
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled();
 
   await page.reload();
   await closeSplash(page);
@@ -262,13 +268,13 @@ test('join a duplicate exercise: the plan uses the kept one and the old name sti
   await more(page, /^Exercises/);
   await page.getByRole('searchbox').fill('Barbell Bench Press');
   await page.getByRole('link', { name: /^Barbell Bench Press/ }).first().click();
-  await page.getByRole('button', { name: '⇆ Join a duplicate' }).click();
+  await menu(page, 'Join a duplicate');
   await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
   await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).click();
   const confirm = page.getByRole('dialog', { name: 'Confirm' });
   await expect(confirm).toContainText('1 plans, 0 workouts');
   await confirm.getByRole('button', { name: 'Join', exact: true }).click();
-  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await expect(page.locator('.toast')).toContainText('was joined into');
   await expect(page.locator('.page-head small')).toContainText('Machine Chest Press'); // now another name
 
   await more(page, /^Plans/);
@@ -287,10 +293,11 @@ test('personal trainer: off by default; when on, a message shows at the start of
   await page.getByRole('button', { name: 'Discard workout' }).click();
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Discard workout' }).click();
 
-  await more(page, /^Personal trainer/);
-  const enable = page.getByLabel('Turn on personal trainer');
+  await more(page, /^Settings/);
+  const enable = page.getByLabel(/^Personal trainer/);
   await enable.click();
   await expect(enable).toBeChecked();
+  await more(page, /^Personal trainer/);
   await page.getByLabel('Style').selectOption({ label: 'Sergeant + data' });
   await page.getByRole('button', { name: 'Show an example' }).click();
   await expect(page.getByRole('status', { name: 'Personal trainer' }).locator('.coach-avatar.sergeant')).toBeVisible();
@@ -306,8 +313,9 @@ test('personal trainer outside the workout: greeting on Home and a comment in Hi
   await page.clock.setFixedTime(new Date('2026-11-02T10:00:00'));
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
+  await more(page, /^Settings/);
+  await page.getByLabel(/^Personal trainer/).click();
   await more(page, /^Personal trainer/);
-  await page.getByLabel('Turn on personal trainer').click();
   const pages = page.getByLabel(/Also speak outside the workout/);
   await expect(pages).toBeChecked();
   await tab(page, 'Home');
@@ -355,10 +363,11 @@ test('plan colour without a day colour: the workout buttons use the plan colour;
 test('personal trainer "after every exercise": a message appears when an exercise is done', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Personal trainer/);
-  const enable = page.getByLabel('Turn on personal trainer');
+  await more(page, /^Settings/);
+  const enable = page.getByLabel(/^Personal trainer/);
   await enable.click();
   await expect(enable).toBeChecked();
+  await more(page, /^Personal trainer/);
   await page.getByRole('combobox', { name: 'When' }).selectOption({ label: 'After every exercise' });
   await tab(page, 'Home');
   await page.getByRole('button', { name: /Start workout/ }).click();
@@ -656,7 +665,7 @@ test('correction: not-done sets stand out, and the status can be changed', async
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'OK' }).click();
   await expect(page.getByText('Partially completed')).toBeVisible();
-  await page.getByRole('button', { name: 'Correct records' }).click();
+  await menu(page, 'Correct records');
   await expect(page.getByText('2 sets not done')).toBeVisible();
   await page.getByLabel('Status').selectOption('completed');
   await page.getByRole('button', { name: 'Save correction' }).click();
@@ -669,7 +678,7 @@ test('correction: an increase the corrected sets no longer support is undone onl
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   await expect(chest.getByText(/^Up to /)).toBeVisible();
-  await page.getByRole('button', { name: 'Correct records' }).click();
+  await menu(page, 'Correct records');
   await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('3');
   await page.getByRole('button', { name: 'Save correction' }).click();
   const ask = page.getByRole('dialog', { name: 'Confirm' });
@@ -695,7 +704,7 @@ test('correction: leaving with unsaved changes asks first', async ({ page }) => 
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 10, 10]);
   await page.getByRole('button', { name: '✓ Finish workout' }).click();
-  await page.getByRole('button', { name: 'Correct records' }).click();
+  await menu(page, 'Correct records');
   await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('8');
   await tab(page, 'History');
   const ask = page.getByRole('dialog', { name: 'Confirm' });
@@ -731,16 +740,15 @@ test('exercise page: add the exercise to a plan day; a day that has it is marked
   await more(page, /^Exercises/);
   await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
   await page.getByRole('link', { name: /Machine Chest Press/ }).first().click();
-  await page.getByRole('button', { name: '＋ Add to plan' }).click();
+  await menu(page, 'Add to plan');
   const sheet = page.getByRole('dialog', { name: 'Add to plan' });
   await expect(sheet.getByRole('button', { name: /already there/ })).toBeDisabled();
   await page.goBack();
   await page.getByPlaceholder('Search by name, other name or tag').fill('Lat Pulldown');
   await page.getByRole('link', { name: /Lat Pulldown/ }).first().click();
-  await page.getByRole('button', { name: '＋ Add to plan' }).click();
+  await menu(page, 'Add to plan');
   await sheet.getByRole('button', { name: /1 exercise/ }).click();
-  await expect(page.getByRole('dialog', { name: 'Notice' })).toContainText('Added to');
-  await page.getByRole('dialog', { name: 'Notice' }).getByRole('button', { name: 'OK' }).click();
+  await expect(page.locator('.toast')).toContainText('Added to');
   await more(page, /^Plans/);
   await page.getByText('Push').first().click();
   await expect(page.getByText('Lat Pulldown').first()).toBeVisible();
@@ -783,7 +791,7 @@ test('games: each game opens and plays; scores are saved and can be reset', asyn
   await page.getByRole('button', { name: /Play/ }).click();
   await expect(page.getByLabel('PT Runner')).toBeVisible();
   await expect(page.getByRole('button', { name: /Play again/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole('status')).toContainText(' m');
+  await expect(page.locator('.game-page').getByRole('status')).toContainText(' m');
   await expect(page.getByText(/^Best: \d+ m$/)).toBeVisible();
 
   await page.getByRole('button', { name: '‹ Back' }).click();
@@ -799,18 +807,20 @@ test('games: each game opens and plays; scores are saved and can be reset', asyn
 
   await page.getByRole('button', { name: '‹ Back' }).click();
   await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Best:');
-  await page.getByRole('button', { name: 'Reset all scores' }).click();
+  await menu(page, 'Reset all scores');
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Reset all scores' }).click();
   await expect(page.getByRole('link', { name: /^PT Runner/ })).toContainText('Not played yet');
 });
 
-test('weekly challenge: off by default; turned on on its own page, shows on Home, can be marked done, is in the history and can be closed', async ({ page }) => {
+test('weekly challenge: off by default; turned on in Settings, shows on Home, can be marked done, is in the history and can be closed', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
   await expect(page.getByRole('region', { name: 'Weekly challenge' })).toHaveCount(0);
 
   await more(page, /^Weekly challenge/);
-  await page.getByLabel(/^Turn on weekly challenge/).click();
+  await expect(page.getByText('The weekly challenge is off.')).toBeVisible();
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByLabel(/^Weekly challenge/).click();
   await tab(page, 'Home');
   const card = page.getByRole('region', { name: 'Weekly challenge' });
   await expect(card.getByRole('heading', { level: 2 })).toHaveText(/this week|record/);
@@ -862,7 +872,9 @@ test('personal trainer page: own menu entry; extras off by default; reports are 
   await more(page, /^Personal trainer/);
   await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
   await expect(page.getByText('The trainer is off.')).toBeVisible();
-  await page.getByLabel('Turn on personal trainer').click();
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByLabel(/^Personal trainer/).click();
+  await more(page, /^Personal trainer/);
   for (const name of [/Reaction when you beat last time/, /Technique tips/]) await expect(page.getByLabel(name)).not.toBeChecked();
   await expect(page.getByLabel(/You vs 3 months ago|Week report/)).toHaveCount(0);
 });
@@ -921,10 +933,11 @@ test('reports without the trainer: tabs, the Sunday report on Home, the rival on
   await expect(page.getByRole('heading', { name: 'Reports', level: 1 })).toBeVisible();
   await page.getByRole('tab', { name: 'Week' }).click();
   await expect(page.getByRole('region', { name: 'Week report' })).toBeVisible();
-  await page.getByLabel(/Show on Home on Sundays/).click();
   await page.getByRole('tab', { name: 'You vs 3 months' }).click();
   await expect(page.getByRole('region', { name: 'You vs your past self' })).toBeVisible();
-  await page.getByLabel(/Show at the end of a workout/).click();
+  await more(page, /^Settings/);
+  await page.getByLabel(/^Week report/).click();
+  await page.getByLabel(/^You vs 3 months ago/).click();
   await tab(page, 'Home');
   const report = page.getByRole('region', { name: 'Week report' });
   await expect(report).toBeVisible();
@@ -953,16 +966,17 @@ test('splash: stays until a tap; a tapped trainer talks and the splash stays; a 
   await expect(splash).toHaveCount(0);
 });
 
-test('games: one back button; sound and vibration can be turned off', async ({ page }) => {
-  await more(page, /^Games/);
-  const sound = page.getByLabel('Sound');
+test('games: one back button; sound and vibration can be turned off in Settings', async ({ page }) => {
+  await more(page, /^Settings/);
+  const sound = page.getByLabel('Game sound');
   await expect(sound).toBeChecked();
   await sound.click();
   await expect(sound).not.toBeChecked();
   await page.reload();
   await closeSplash(page);
-  await expect(page.getByLabel('Sound')).not.toBeChecked();
-  await expect(page.getByLabel('Vibration')).toBeChecked();
+  await expect(page.getByLabel('Game sound')).not.toBeChecked();
+  await expect(page.getByLabel('Game vibration')).toBeChecked();
+  await more(page, /^Games/);
   await page.getByRole('link', { name: /^Trainer memory/ }).click();
   await expect(page.getByRole('link', { name: /Games/ })).toHaveCount(0);
   // In a game a swipe is a move: it does not leave the game.
