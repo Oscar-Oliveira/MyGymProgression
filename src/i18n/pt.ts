@@ -89,7 +89,7 @@ export const pt: Resources = {
   setKind: { warmup: 'Aquecimento', working: 'Trabalho', backoff: 'Back-off' },
   setStatus: { done: 'Feita', skipped: 'Saltada' },
   role: { warmup: 'Aquecimento', main: 'Principal', optional: 'Opcional' },
-  loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter' },
+  loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter', short: { total: 'total', perSide: 'por lado' } },
   goal: { label: 'Objetivo', hypertrophy: 'Hipertrofia', strength: 'Força', mixed: 'Misto', other: 'Outro' },
   coach: {
     title: 'Personal trainer', enabled: 'Ativar personal trainer', style: 'Estilo', profanity: 'Permitir palavrões', preview: 'Ver exemplo', sampleExercise: 'Supino',

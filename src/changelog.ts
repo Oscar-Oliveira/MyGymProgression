@@ -7,6 +7,11 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-03',
+    pt: ['No treino, o campo da carga mostra se o peso é total (ex.: barra com discos) ou por lado (ex.: um halter). Muda-se em Editar exercício → "Carga registada como".'],
+    en: ['In a workout, the load field shows whether the weight is total (e.g. bar with plates) or per side (e.g. one dumbbell). Change it in Edit exercise → "Load recorded as".'],
+  },
+  {
     date: '2026-11-02',
     pt: [
       'O teu PT pode ter nome: aparece no título da página, por cima das mensagens, nos jogos e na imagem de partilha.',

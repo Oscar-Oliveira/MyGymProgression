@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CoachSettings, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
+import type { CoachSettings, LoadMode, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { addSet } from '../../domain/workout';
 import { NumInput } from './NumInput';
@@ -16,7 +16,7 @@ function stepFor(m: MetricDef): number {
   return 1;
 }
 
-function BigStepper({ def, metrics, value, goal, onChange }: { def: MetricDef; metrics: MetricDef[]; value?: number; goal?: number; onChange: (v: number | undefined) => void }) {
+function BigStepper({ def, metrics, loadMode, value, goal, onChange }: { def: MetricDef; metrics: MetricDef[]; loadMode: LoadMode; value?: number; goal?: number; onChange: (v: number | undefined) => void }) {
   const { t } = useTranslation();
   const s = useSettings();
   const step = stepFor(def);
@@ -25,7 +25,7 @@ function BigStepper({ def, metrics, value, goal, onChange }: { def: MetricDef; m
   return (
     <div className="bigstep">
       <span className="lbl">
-        {label} {def.unit !== 'reps' && <span>({def.unit})</span>}
+        {label} {def.unit !== 'reps' && <span>({def.key === 'load' ? `${def.unit} · ${t(`loadMode.short.${loadMode}`)}` : def.unit})</span>}
       </span>
       <div className="ctl">
         <button type="button" aria-label={`${label} −${step}`} onClick={() => bump(-step)}>
@@ -63,7 +63,7 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
               </div>
               <div className="steppers">
                 {metrics.map((m) => (
-                  <BigStepper key={m.key} def={m} metrics={metrics} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
+                  <BigStepper key={m.key} def={m} metrics={metrics} loadMode={entry.exercise.loadMode} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
                 ))}
               </div>
               <div className="row">

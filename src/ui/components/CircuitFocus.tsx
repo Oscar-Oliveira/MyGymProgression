@@ -35,7 +35,7 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
                   {e.exercise.metrics.map((m) => (
                     <span key={m.key} className="mini">
                       <NumInput label={`${e.exercise.name} ${metricLabel(t, m.key, e.exercise.metrics)} ${r + 1}`} value={x.values[m.key]} onChange={(v) => setValue(ei, r, m.key, v)} />
-                      <small>{m.unit === 'reps' ? metricShort(t, m.key, e.exercise.metrics).toLowerCase() : m.unit}</small>
+                      <small>{m.unit === 'reps' ? metricShort(t, m.key, e.exercise.metrics).toLowerCase() : m.key === 'load' ? `${m.unit} · ${t(`loadMode.short.${e.exercise.loadMode}`)}` : m.unit}</small>
                     </span>
                   ))}
                 </span>

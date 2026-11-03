@@ -87,7 +87,7 @@ export const en = {
   setKind: { warmup: 'Warm-up', working: 'Working', backoff: 'Back-off' },
   setStatus: { done: 'Done', skipped: 'Skipped' },
   role: { warmup: 'Warm-up', main: 'Main', optional: 'Optional' },
-  loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell' },
+  loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell', short: { total: 'total', perSide: 'per side' } },
   goal: { label: 'Goal', hypertrophy: 'Hypertrophy', strength: 'Strength', mixed: 'Mixed', other: 'Other' },
   coach: {
     title: 'Personal trainer', enabled: 'Turn on personal trainer', style: 'Style', profanity: 'Allow swear words', preview: 'Show an example', sampleExercise: 'Bench press',
