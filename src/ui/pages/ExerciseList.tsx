@@ -8,6 +8,7 @@ import { exerciseGroup } from '../../domain/library';
 import { MUSCLE_GROUPS, type MuscleGroup } from '../../domain/types';
 import { matches } from '../components/ExercisePicker';
 import { ExerciseItem, ThumbStack } from '../components/ExerciseItem';
+import { Empty, PageHead } from '../components/Bits';
 import { tr } from '../util';
 
 const PAGE = 60;
@@ -72,21 +73,29 @@ export function ExerciseList() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('exercise.title')}</h1>
-        <Link className="btn btn-primary" to="/exercises/new">
-          + {t('exercise.new')}
-        </Link>
-      </div>
+      <PageHead
+        title={t('exercise.title')}
+        count={t('exercise.count', { count: all.filter((e) => e.active).length })}
+        aside={
+          <Link className="btn primary" to="/exercises/new">
+            + {t('exercise.new')}
+          </Link>
+        }
+      />
 
       <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => set({ q: e.target.value })} />
 
       {all.length === 0 ? (
-        <div className="empty" style={{ marginTop: '1rem' }}>
-          <p>{t('dashboard.emptyLibrary')}</p>
-          <button className="primary" disabled={busy} onClick={() => void importLib()}>
-            {busy ? '…' : t('settings.seed')}
-          </button>
+        <div style={{ marginTop: '1rem' }}>
+          <Empty
+            action={
+              <button className="primary" disabled={busy} onClick={() => void importLib()}>
+                {busy ? '…' : t('settings.seed')}
+              </button>
+            }
+          >
+            {t('dashboard.emptyLibrary')}
+          </Empty>
         </div>
       ) : (
         <>
@@ -130,6 +139,8 @@ export function ExerciseList() {
                 </button>
               ))}
             </section>
+          ) : !list.length ? (
+            <Empty>{t('exercise.noResults')}</Empty>
           ) : (
             <section className="card">
               <p className="muted">{t('exercise.count', { count: list.length })}</p>
@@ -148,7 +159,6 @@ export function ExerciseList() {
                   {t('exercise.showMore', { n: Math.min(PAGE, list.length - showing.length), left: list.length - showing.length })}
                 </button>
               )}
-              {!list.length && <p className="muted">{t('exercise.noResults')}</p>}
             </section>
           )}
         </>

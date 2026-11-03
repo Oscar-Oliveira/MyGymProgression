@@ -14,7 +14,7 @@ import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
 import { fmtMetric } from '../progress';
-import { Empty, OutcomeBadge, pageOf, Pager } from '../components/Bits';
+import { Empty, OutcomeBadge, PageHead, pageOf, Pager } from '../components/Bits';
 import { TrendChart } from '../components/TrendChart';
 import { distOut, fmtDate, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, paceOut, speedOut, tr, useSettings } from '../util';
 
@@ -121,32 +121,38 @@ export function ExerciseDetail() {
       {ex?.image || ex?.thumb ? (
         <img className="ex-hero" src={assetUrl(ex.image ?? ex.thumb!)} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />
       ) : null}
-      <div className="page-head">
-        <div>
-          {ex && <p className="eyebrow">{t(`group.${exerciseGroup(ex)}`)} · {tr(t, 'equipment', ex.equipment)}</p>}
-          <h1>{name}</h1>
-          {ex && ex.aliases.length > 0 && <small>{ex.aliases.join(', ')}</small>}
-        </div>
-        {ex && (
-          <div className="row">
-            <Link className="btn btn-outline" to={`/exercises/${ex.id}/edit`}>
-              {t('common.edit')}
-            </Link>
-            <button className="outline" onClick={() => setJoining(true)}>
-              ⇆ {t('exercise.join')}
-            </button>
-            <button className="outline" onClick={() => setAdding(true)}>
-              ＋ {t('exercise.addToPlan')}
-            </button>
-          </div>
-        )}
-      </div>
+      <PageHead
+        eyebrow={ex && `${t(`group.${exerciseGroup(ex)}`)} · ${tr(t, 'equipment', ex.equipment)}`}
+        title={name}
+        sub={ex && ex.aliases.length > 0 && ex.aliases.join(', ')}
+        aside={
+          ex && (
+            <>
+              <Link className="btn outline" to={`/exercises/${ex.id}/edit`}>
+                {t('common.edit')}
+              </Link>
+              <button className="outline" onClick={() => setJoining(true)}>
+                ⇆ {t('exercise.join')}
+              </button>
+              <button className="outline" onClick={() => setAdding(true)}>
+                ＋ {t('exercise.addToPlan')}
+              </button>
+            </>
+          )
+        }
+      />
       {adding && ex && (
         <Modal title={t('exercise.addToPlan')} onClose={() => setAdding(false)}>
           {data.planDays.length === 0 && (
-            <p className="muted">
-              {t('train.noPlans')} <Link to="/plans">{t('home.createPlan')}</Link>
-            </p>
+            <Empty
+              action={
+                <Link className="btn primary" to="/plans">
+                  {t('home.createPlan')}
+                </Link>
+              }
+            >
+              {t('train.noPlans')}
+            </Empty>
           )}
           {data.planDays.map(({ plan, days }) => (
             <div key={plan.id}>
@@ -173,12 +179,12 @@ export function ExerciseDetail() {
         <>
           <div className="row wrap">
             {ex.video && (
-              <a className="btn btn-primary" href={ex.video} target="_blank" rel="noopener noreferrer">
+              <a className="btn primary" href={ex.video} target="_blank" rel="noopener noreferrer">
                 ▶ {t('exercise.video')}
               </a>
             )}
             {ex.source?.url && (
-              <a className="btn btn-outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
+              <a className="btn outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
                 {ex.source.name} ↗
               </a>
             )}

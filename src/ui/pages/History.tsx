@@ -6,7 +6,7 @@ import { dialog } from '../components/Dialog';
 import { resumable } from '../../domain/workout';
 import { db } from '../../data/db';
 import type { Workout } from '../../domain/types';
-import { askedPage, Empty, PAGE_SIZE, Pager } from '../components/Bits';
+import { askedPage, Empty, PAGE_SIZE, PageHead, Pager } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { useSettings, useThumbs } from '../util';
@@ -52,13 +52,18 @@ export function History() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('history.title')}</h1>
-        {total > 0 && <span className="pill">{t('history.count', { count: total })}</span>}
-      </div>
+      <PageHead title={t('history.title')} count={total > 0 ? t('history.count', { count: total }) : undefined} />
       {total > 0 && <PageCoach place="history" />}
       {total === 0 ? (
-        <Empty>{t('history.empty')}</Empty>
+        <Empty
+          action={
+            <Link className="btn primary" to="/train">
+              {t('nav.train')}
+            </Link>
+          }
+        >
+          {t('history.empty')}
+        </Empty>
       ) : (
         <>
           {latest && resumable(latest, [latest]) && (

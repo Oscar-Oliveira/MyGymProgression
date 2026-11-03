@@ -10,6 +10,7 @@ import { newDay, newPlanItem } from '../../domain/factory';
 import { dayGoal, followsGoal, goalSets } from '../../domain/goals';
 import type { DayGoal, Exercise, Plan, PlanDay, PlanGoal, PlanItem } from '../../domain/types';
 import { ExercisePicker } from '../components/ExercisePicker';
+import { Empty } from '../components/Bits';
 import { NumInput } from '../components/NumInput';
 import { ColorPicker } from '../components/ColorPicker';
 import { toneStyle } from '../colors';
@@ -51,7 +52,7 @@ export function PlanEdit() {
     }
   }, [stored, plan]);
   if (!stored || !exercises || !states) return null;
-  if (!stored.plan || !plan || !stored.version) return <p className="empty">{t('plan.empty')}</p>;
+  if (!stored.plan || !plan || !stored.version) return <Empty>{t('plan.empty')}</Empty>;
   const version = stored.version;
   const meta = (p: Plan) => JSON.stringify({ ...p, updatedAt: '', currentVersionId: '' });
   const dirty = JSON.stringify(days) !== JSON.stringify(version.days) || meta(plan) !== meta(stored.plan) || Object.keys(edits).length > 0;
@@ -229,7 +230,7 @@ export function PlanEdit() {
       </div>
 
       {!day ? (
-        <div className="empty">{t('plan.noDays')}</div>
+        <Empty>{t('plan.noDays')}</Empty>
       ) : (
         <>
           <p className="help day-summary">{t('plan.daySummary', { count: day.items.length, sets: workingSets })}</p>
@@ -277,7 +278,7 @@ export function PlanEdit() {
             </section>
           )}
 
-          {day.items.length === 0 && !day.circuits?.length && <p className="empty">{t('plan.noItems')}</p>}
+          {day.items.length === 0 && !day.circuits?.length && <Empty>{t('plan.noItems')}</Empty>}
           {blocks(day).map((b) =>
             b.circuit ? (
               <section key={b.circuit.id} className="circuit-block" aria-label={b.circuit.name}>

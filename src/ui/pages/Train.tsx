@@ -5,6 +5,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { nextDay } from '../../domain/workout';
 import { ThumbStack } from '../components/ExerciseItem';
+import { Empty, PageHead } from '../components/Bits';
 import { toneOf, toneStyle } from '../colors';
 
 /** Choose what to train: an active workout opens directly; otherwise every day of every active plan. */
@@ -24,16 +25,17 @@ export function Train() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('train.title')}</h1>
-      </div>
+      <PageHead title={t('train.title')} />
       {data.plans.length === 0 && (
-        <div className="empty">
-          <p>{t('train.noPlans')}</p>
-          <Link className="btn btn-primary" to="/plans">
-            {t('home.createPlan')}
-          </Link>
-        </div>
+        <Empty
+          action={
+            <Link className="btn primary" to="/plans">
+              {t('home.createPlan')}
+            </Link>
+          }
+        >
+          {t('train.noPlans')}
+        </Empty>
       )}
       {data.plans.map((p) => {
         const v = data.versions.find((x) => x.id === p.currentVersionId);

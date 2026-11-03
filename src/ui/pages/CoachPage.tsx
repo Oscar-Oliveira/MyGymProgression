@@ -5,6 +5,7 @@ import { coachMessage } from '../../domain/coach';
 import type { CoachGender, CoachHairColor, CoachLook, CoachSettings, CoachSkin, CoachStyle, CoachWhen } from '../../domain/types';
 import { COACH_BANKS } from '../../i18n/coach';
 import { BEARDS, CoachAvatar, CoachName, defaultLook, GLASSES, HAIR_COLORS, HAIRS, SKINS } from '../components/CoachAvatar';
+import { PageHead } from '../components/Bits';
 import { useSettings } from '../util';
 import { canSpeak, speak } from '../voice';
 
@@ -48,13 +49,7 @@ export function CoachPage() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          {name && <p className="eyebrow">{t('coach.title')}</p>}
-          <h1>{name || t('coach.title')}</h1>
-        </div>
-        <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />
-      </div>
+      <PageHead eyebrow={name && t('coach.title')} title={name || t('coach.title')} aside={<CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} />} />
       <section className="card">
         <label className="setting-row">
           <span>{t('coach.enabled')}</span>

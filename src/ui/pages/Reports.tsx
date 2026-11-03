@@ -6,7 +6,7 @@ import { repo } from '../../data/repo';
 import { weekKey } from '../../domain/challenge';
 import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
-import { Pager, usePage } from '../components/Bits';
+import { Empty, PageHead, Pager, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
 import { fmtDate, useSettings } from '../util';
 import { Analysis } from './Analysis';
@@ -54,7 +54,7 @@ function WeekTab({ s }: { s: Settings }) {
             <div className="section-head">
               <h2>{t('reports.earlier')}</h2>
             </div>
-            {data.earlier.length === 0 ? <p className="muted">{t('reports.noReports')}</p> : earlier.items.map((r) => <ReportCard key={r.id} report={r} coach={coach} />)}
+            {data.earlier.length === 0 ? <Empty>{t('reports.noReports')}</Empty> : earlier.items.map((r) => <ReportCard key={r.id} report={r} coach={coach} />)}
             <Pager page={earlier.page} pages={earlier.pages} label={t('reports.earlier')} />
           </section>
         </>
@@ -85,7 +85,7 @@ function RivalTab({ s }: { s: Settings }) {
             <RivalCard rows={data.rows} date={data.rival.startedAt} coach={s.coach?.enabled ? s.coach : undefined} />
           </>
         ) : (
-          <p className="muted">{t('reports.noRival')}</p>
+          <Empty>{t('reports.noRival')}</Empty>
         ))}
     </>
   );
@@ -99,9 +99,7 @@ export function Reports() {
   const tab: Tab = TABS.find((x) => x === params.get('tab')) ?? 'analysis';
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('reports.title')}</h1>
-      </div>
+      <PageHead title={t('reports.title')} />
       <div className="report-tabs" role="tablist" aria-label={t('reports.title')}>
         {TABS.map((x) => (
           <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? 'on' : ''} onClick={() => setParams(x === 'analysis' ? {} : { tab: x }, { replace: true })}>

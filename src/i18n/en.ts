@@ -174,7 +174,7 @@ export const en = {
   },
   plan: {
     rangeReason: 'Rep range changed in the plan', rangeHelp: 'The workouts use {{range}} (after “reps up”). Changing the reps here makes the plan range apply again.',
-    title: 'Plans', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
+    title: 'Plans', count: '{{count}} active plans', count_one: '{{count}} active plan', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
     color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
     removeDay: 'Remove this day', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
     advanced: 'Advanced', setBySet: 'Set by set', group: 'Superset', role: 'Role', substitutes: 'Substitutes',

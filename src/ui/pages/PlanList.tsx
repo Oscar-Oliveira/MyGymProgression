@@ -6,7 +6,7 @@ import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { duplicatePlan, newPlan } from '../../domain/factory';
 import type { Plan } from '../../domain/types';
-import { Empty } from '../components/Bits';
+import { Empty, PageHead } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { Modal } from '../components/Modal';
 import { dialog } from '../components/Dialog';
@@ -122,17 +122,20 @@ export function PlanList() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('plan.title')}</h1>
-        <div className="row">
-          <Link className="btn btn-outline" to="/plans/scan">
-            ▦ {t('scan.open')}
-          </Link>
-          <button className="primary" onClick={() => void create()}>
-            + {t('plan.new')}
-          </button>
-        </div>
-      </div>
+      <PageHead
+        title={t('plan.title')}
+        count={t('plan.count', { count: plans.filter((p) => p.status === 'active').length })}
+        aside={
+          <>
+            <Link className="btn outline" to="/plans/scan">
+              ▦ {t('scan.open')}
+            </Link>
+            <button className="primary" onClick={() => void create()}>
+              + {t('plan.new')}
+            </button>
+          </>
+        }
+      />
       {list.length === 0 ? (
         <Empty>{t('plan.empty')}</Empty>
       ) : (

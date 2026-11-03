@@ -134,13 +134,13 @@ small, .muted { color: var(--muted); }
 /* Buttons */
 button, .btn { font: inherit; font-weight: 650; cursor: pointer; border-radius: 14px; border: 1px solid transparent; min-height: var(--tap); padding: 0 1.05rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; text-decoration: none; background: var(--surface-2); color: var(--text); transition: transform 0.12s ease, box-shadow 0.2s, background 0.2s, opacity 0.2s; }
 button:not(:disabled):active, .btn:active { transform: scale(0.97); }
-.btn-primary, button.primary { background: var(--tone); color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--tone) 35%, transparent); }
-.hero .btn-primary, .hero button.primary { background: #fff; color: var(--tone); box-shadow: 0 6px 18px rgb(0 0 0 / 0.18); }
-.btn-outline, button.outline { background: transparent; border-color: var(--border); }
+button.primary, .btn.primary { background: var(--tone); color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--tone) 35%, transparent); }
+.hero button.primary, .hero .btn.primary { background: #fff; color: var(--tone); box-shadow: 0 6px 18px rgb(0 0 0 / 0.18); }
+button.outline, .btn.outline { background: transparent; border-color: var(--border); }
 button.ghost, .btn.ghost { background: transparent; color: var(--muted); padding: 0 0.6rem; }
-button.danger { background: transparent; color: var(--down); border-color: color-mix(in srgb, var(--down) 40%, transparent); }
+button.danger, .btn.danger { background: transparent; color: var(--down); border-color: color-mix(in srgb, var(--down) 40%, transparent); }
 button.xl, .btn.xl { min-height: 58px; font-size: 1.08rem; font-weight: 750; border-radius: 18px; width: 100%; }
-button.sm { min-height: 36px; padding: 0 0.7rem; font-size: 0.88rem; border-radius: 10px; }
+button.sm, .btn.sm { min-height: 36px; padding: 0 0.7rem; font-size: 0.88rem; border-radius: 10px; }
 button:disabled { opacity: 0.45; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--tone-text); outline-offset: 2px; }
 .chip { min-height: 36px; padding: 0 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); font-weight: 600; font-size: 0.88rem; }
@@ -204,6 +204,8 @@ td.num, th.num { text-align: right; }
 .steps { padding-left: 1.3rem; margin: 0.3rem 0; }
 .steps li { margin-bottom: 0.45rem; }
 .empty:not(.thumb) { padding: 2rem 1.5rem; text-align: center; color: var(--muted); border: 1.5px dashed var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 50%, transparent); }
+.empty:not(.thumb) > p { margin: 0 0 0.9rem; }
+.empty:not(.thumb) > p:last-child { margin: 0; }
 
 /* Stat tiles */
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem; box-shadow: var(--shadow); }

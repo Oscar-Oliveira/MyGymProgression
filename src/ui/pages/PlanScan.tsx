@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { parseBundle, type Bundle } from '../../domain/interchange';
 import { decodeShare, joinDays, parseQrLink } from '../../domain/share';
 import { QrScanner } from '../components/Qr';
+import { PageHead } from '../components/Bits';
 import { SharePreview } from './ShareImport';
 
 interface Group {
@@ -50,9 +51,7 @@ export function PlanScan() {
   const read = group ? [...group.days].sort(([a], [b]) => a - b).map(([, b]) => b) : [];
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('scan.title')}</h1>
-      </div>
+      <PageHead title={t('scan.title')} />
       <p className="help">{t('scan.help')}</p>
       <QrScanner onText={(x) => void onText(x)} />
       {msg && (

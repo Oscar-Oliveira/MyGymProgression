@@ -8,6 +8,7 @@ import { currentTarget } from '../../domain/progression';
 import type { MetricKey, Workout, WorkoutEntry } from '../../domain/types';
 import { fmtMetric, TrendPill, type Trend } from '../progress';
 import { ExerciseItem } from '../components/ExerciseItem';
+import { Empty } from '../components/Bits';
 import { PageCoach } from '../components/CoachCard';
 import { Consistency } from '../components/Consistency';
 import { Goals } from '../components/Goals';
@@ -264,7 +265,7 @@ export function Analysis() {
       )}
 
       {rows.length === 0 ? (
-        <div className="empty">{t('analysis.noData')}</div>
+        <Empty>{t('analysis.noData')}</Empty>
       ) : (
         <section className="card">
           <h2>{t('analysis.byExercise')}</h2>

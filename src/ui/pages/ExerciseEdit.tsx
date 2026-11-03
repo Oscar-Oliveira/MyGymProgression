@@ -8,7 +8,7 @@ import type { Exercise, ExerciseCategory, LoadMode } from '../../domain/types';
 import { MEASUREMENT_PRESETS, presetDefaults, presetMetrics, type MeasurementPreset } from '../../domain/units';
 import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../components/Editors';
 import { splitList, useSettings, useUnsavedGuard } from '../util';
-import { Empty } from '../components/Bits';
+import { Empty, PageHead } from '../components/Bits';
 import { dialog } from '../components/Dialog';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
@@ -112,7 +112,7 @@ export function ExerciseEdit() {
 
   return (
     <div className="stack">
-      <h1>{id ? t('exercise.edit') : t('exercise.new')}</h1>
+      <PageHead title={id ? t('exercise.edit') : t('exercise.new')} />
       <section className="card form-grid">
         <label>
           {t('common.name')}

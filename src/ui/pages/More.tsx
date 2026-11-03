@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { PageHead } from '../components/Bits';
 
 // Outline icons (24×24, stroke = currentColor).
 const ITEMS = [
@@ -17,9 +18,7 @@ export function More() {
   const { t } = useTranslation();
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('nav.more')}</h1>
-      </div>
+      <PageHead title={t('nav.more')} />
       <ul className="menu card" style={{ padding: 0 }}>
         {ITEMS.map(([to, key, icon]) => (
           <li key={to}>

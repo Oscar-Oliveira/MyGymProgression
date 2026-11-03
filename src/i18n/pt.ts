@@ -176,7 +176,7 @@ export const pt: Resources = {
   },
   plan: {
     rangeReason: 'Faixa de reps alterada no plano', rangeHelp: 'Os treinos usam {{range}} (depois de “subir reps”). Se mudares as reps aqui, volta a valer a faixa do plano.',
-    title: 'Planos', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
+    title: 'Planos', count: '{{count}} planos ativos', count_one: '{{count}} plano ativo', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
     color: 'Cor do plano', dayColor: 'Cor do dia', samePlanColor: 'Igual ao plano', daySummary: '{{count}} exercícios · {{sets}} séries', daySummary_one: '{{count}} exercício · {{sets}} séries',
     removeDay: 'Remover este dia', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
     advanced: 'Avançado', setBySet: 'Série a série', group: 'Superset', role: 'Função', substitutes: 'Substitutos',

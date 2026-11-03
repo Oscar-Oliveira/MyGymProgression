@@ -5,6 +5,7 @@ import { repo } from '../../data/repo';
 import { parseBundle, planMerge, type Bundle, type DataSet } from '../../domain/interchange';
 import { decodeShare } from '../../domain/share';
 import { toneStyle } from '../colors';
+import { Empty, PageHead } from '../components/Bits';
 
 /** Page opened by a shared plan link (#/share?d=…): shows the plan, then imports it as a new plan. */
 export function ShareImport() {
@@ -24,10 +25,15 @@ export function ShareImport() {
 
   if (error)
     return (
-      <div className="empty">
-        <p>{t('share.invalid')}</p>
-        <Link to="/">{t('nav.home')}</Link>
-      </div>
+      <Empty
+        action={
+          <Link className="btn outline" to="/">
+            {t('nav.home')}
+          </Link>
+        }
+      >
+        {t('share.invalid')}
+      </Empty>
     );
   return bundle ? <SharePreview bundle={bundle} /> : null;
 }
@@ -54,13 +60,7 @@ export function SharePreview({ bundle }: { bundle: Bundle }) {
 
   return (
     <div className="toned" style={toneStyle(plan.color)}>
-      <div className="page-head">
-        <div>
-          <p className="eyebrow">{t('share.title')}</p>
-          <h1>{plan.name}</h1>
-          <small>{t(`goal.${plan.goal}`)}</small>
-        </div>
-      </div>
+      <PageHead eyebrow={t('share.title')} title={plan.name} sub={t(`goal.${plan.goal}`)} />
       {days.map((d) => (
         <section key={d.id} className="card">
           <h3 style={{ marginTop: 0 }}>{d.name}</h3>

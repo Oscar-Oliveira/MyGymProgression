@@ -8,6 +8,7 @@ import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
 import { generateDemo } from '../../domain/demo';
 import { buildBundle, parseBundle, planMerge, previewImport, TABLES, type Bundle, type ConflictPolicy, type DuplicatePolicy, type Preview, type Scope } from '../../domain/interchange';
 import { NumInput } from '../components/NumInput';
+import { PageHead } from '../components/Bits';
 import { download, fmtDate, saveBackup, stamp, useSettings } from '../util';
 import { dialog } from '../components/Dialog';
 import { parseLibraryFile } from '../../domain/library';
@@ -250,9 +251,7 @@ export function SettingsPage() {
 
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('settings.title')}</h1>
-      </div>
+      <PageHead title={t('settings.title')} />
 
       <div className="section-head">
         <h2>{t('settings.preferences')}</h2>

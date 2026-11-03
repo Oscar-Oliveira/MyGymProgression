@@ -7,6 +7,7 @@ import { repo } from '../../data/repo';
 import type { GameId, GameScore } from '../../domain/types';
 import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { dialog } from '../components/Dialog';
+import { PageHead } from '../components/Bits';
 import { fmtDate, fmtNum, useSettings } from '../util';
 import type { GameProps } from './canvas';
 import { Flappy } from './Flappy';
@@ -76,9 +77,7 @@ export function GamesPage() {
   };
   return (
     <div>
-      <div className="page-head">
-        <h1>{t('games.title')}</h1>
-      </div>
+      <PageHead title={t('games.title')} />
       <ul className="menu card" style={{ padding: 0 }}>
         {visible(s).map((g) => {
           const best = bestOf(g.lower, scores.filter((x) => x.game === g.id));
@@ -151,12 +150,7 @@ function OneGame({ id }: { id?: string }) {
 
   return (
     <div className="game-page">
-      <div className="page-head">
-        <div>
-          <h1>{name}</h1>
-        </div>
-        {best !== undefined && <span className="pill up">{`${t('games.best')}: ${fmt(best)}`}</span>}
-      </div>
+      <PageHead title={name} count={best !== undefined ? `${t('games.best')}: ${fmt(best)}` : undefined} />
       {run > 0 ? (
         <game.Game key={run} style={trainer.style} gender={trainer.gender} look={trainer.look} onEnd={(n) => void end(n)} onSay={trainer.say} />
       ) : (

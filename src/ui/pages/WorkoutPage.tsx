@@ -12,6 +12,7 @@ import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from 
 import { beatsLastTime, rivalOn, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
+import { Empty, PageHead } from '../components/Bits';
 import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
@@ -91,7 +92,7 @@ export function WorkoutPage() {
   const unsaved = useUnsavedGuard();
   unsaved.current = editing && JSON.stringify(draft) !== JSON.stringify(stored);
 
-  if (stored === undefined && ctx) return <p className="empty">{t('history.empty')}</p>;
+  if (stored === undefined && ctx) return <Empty>{t('history.empty')}</Empty>;
   if (!draft || !ctx) return null;
   const active = draft.status === 'in_progress';
   const tone = toneStyle(toneFor(draft.planId, draft.dayId));
@@ -244,9 +245,7 @@ export function WorkoutPage() {
             coach={coach}
           />
         ) : (
-          <div className="empty">
-            <p>{t('workout.noEntries')}</p>
-          </div>
+          <Empty>{t('workout.noEntries')}</Empty>
         )}
 
         {toast && (
@@ -415,20 +414,17 @@ export function WorkoutPage() {
           <CoachAvatar style={s.coach.style} gender={s.coach.gender} look={s.coach.look} size={104} />
         </span>
       )}
-      <div className="page-head">
-        <div>
-          <p className="eyebrow">{fmtDate(draft.startedAt, s.language, true)}</p>
-          <h1>
-            {draft.status === 'completed' ? '✓ ' : ''}
-            {draft.dayName ?? t('workout.free')}
-          </h1>
-          <small>
+      <PageHead
+        eyebrow={fmtDate(draft.startedAt, s.language, true)}
+        title={`${draft.status === 'completed' ? '✓ ' : ''}${draft.dayName ?? t('workout.free')}`}
+        sub={
+          <>
             {draft.planName && `${draft.planName} · `}
             {t(`workout.status.${draft.status}`)}
             {draft.short && ` · ⏱ ${t('workout.shortened')}`}
-          </small>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {editing ? (
         <>

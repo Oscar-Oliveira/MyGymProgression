@@ -8,6 +8,11 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: ['Páginas mais coerentes: o mesmo cabeçalho em todas, contadores em Planos e Exercícios, e as listas vazias mostram sempre o próximo passo (ex.: Histórico vazio → Treinar).'],
+    en: ['More consistent pages: the same header on every page, counts on Plans and Exercises, and empty lists always show the next step (e.g. empty History → Train).'],
+  },
+  {
+    date: '2026-11-03',
     pt: ['No treino, o campo da carga mostra se o peso é total (ex.: barra com discos) ou por lado (ex.: um halter). Muda-se em Editar exercício → "Carga registada como".'],
     en: ['In a workout, the load field shows whether the weight is total (e.g. bar with plates) or per side (e.g. one dumbbell). Change it in Edit exercise → "Load recorded as".'],
   },

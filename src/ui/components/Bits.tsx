@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import type { Outcome, ProgressionStrategy } from '../../domain/types';
@@ -23,8 +23,33 @@ export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy
   return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${key}`)}</span>;
 }
 
-export function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="empty">{children}</div>;
+/** Title of every page: an optional line above, a subtitle below, a count and other content on the right. */
+export function PageHead({ eyebrow, title, sub, count, aside }: { eyebrow?: ReactNode; title: ReactNode; sub?: ReactNode; count?: ReactNode; aside?: ReactNode }) {
+  return (
+    <div className="page-head">
+      <div>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+        <h1>{title}</h1>
+        {sub && <small>{sub}</small>}
+      </div>
+      {(count !== undefined || aside) && (
+        <div className="row wrap">
+          {count !== undefined && <span className="pill">{count}</span>}
+          {aside}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A list or page with nothing to show, with the next step when there is one. */
+export function Empty({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="empty">
+      <p>{children}</p>
+      {action}
+    </div>
+  );
 }
 
 /** Items per page of every list that grows over time (history, challenges, reports, exercise history). */

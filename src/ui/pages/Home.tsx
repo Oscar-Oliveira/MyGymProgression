@@ -203,7 +203,7 @@ export function Home() {
           <p className="muted">
             {[active.planName, t('home.setsProgress', { done: doneSets, total: totalSets })].filter(Boolean).join(' · ')}
           </p>
-          <Link className="btn btn-primary xl" to={`/workout/${active.id}`}>
+          <Link className="btn primary xl" to={`/workout/${active.id}`}>
             ▶ {t('home.continue')}
           </Link>
         </section>
@@ -237,7 +237,7 @@ export function Home() {
               {t('home.seed')}
             </button>
           )}
-          <Link className="btn btn-primary xl" to="/plans">
+          <Link className="btn primary xl" to="/plans">
             {t('home.createPlan')}
           </Link>
           <button className="ghost" onClick={() => void demo()}>

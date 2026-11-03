@@ -134,7 +134,7 @@ export function QrScanner({ onText }: { onText: (text: string) => void }) {
     <div className="scanner">
       {camera !== 'off' && <video ref={video} className="scan-video" playsInline muted aria-label={t('scan.camera')} />}
       {camera === 'off' && <p className="help">{t('scan.noCamera')}</p>}
-      <label className="btn btn-outline file-btn">
+      <label className="btn outline file-btn">
         🖼 {t('scan.photo')}
         <input type="file" accept="image/*" onChange={(e) => (e.target.files?.[0] && void fromImage(e.target.files[0]), (e.target.value = ''))} />
       </label>

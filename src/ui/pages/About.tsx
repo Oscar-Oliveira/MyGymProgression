@@ -70,7 +70,7 @@ export function About() {
       </div>
       <section className="card tight">
         <p>{t('about.creditsText')}</p>
-        <a className="btn btn-outline" href={REPO} target="_blank" rel="noopener noreferrer">
+        <a className="btn outline" href={REPO} target="_blank" rel="noopener noreferrer">
           {t('about.source')} ↗
         </a>
       </section>
