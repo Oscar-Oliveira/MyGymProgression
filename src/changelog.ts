@@ -8,6 +8,21 @@ export interface ChangeEntry {
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-03',
+    pt: [
+      'Mapa do corpo: os músculos com cores pelas séries por semana (menos de 10, 10–20, mais de 20). Está na Análise e, com a semana atual, no Início. Toca num músculo para ver as séries.',
+      'Equilíbrio do plano: no editor do plano, as séries planeadas por músculo e avisos de músculos sem séries, de empurrar vs puxar e de quadríceps vs posteriores.',
+      'Conquistas: 18 medalhas pelo teu histórico, em Mais → Conquistas. As novas aparecem no resumo do treino. Podes desligá-las em Definições → Funcionalidades.',
+      'O teu ano no ginásio: em Relatórios → Ano, o teu ano em ecrãs inteiros (treinos, volume, hábitos, exercício favorito, maior subida, recordes, músculos) e uma imagem para partilhar.',
+    ],
+    en: [
+      'Body map: muscles coloured by sets per week (under 10, 10–20, over 20). It is in Analysis and, for this week, on Home. Tap a muscle to see its sets.',
+      'Plan balance: in the plan editor, the planned sets per muscle and warnings for muscles with no sets, push vs pull and quads vs hamstrings.',
+      'Achievements: 18 medals for your history, in More → Achievements. New ones show on the workout summary. Turn them off in Settings → Features.',
+      'Your year in the gym: in Reports → Year, your year as full-screen screens (workouts, volume, habits, favourite exercise, biggest rise, records, muscles) and an image to share.',
+    ],
+  },
+  {
+    date: '2026-11-03',
     pt: ['Corrigir registos tem "Usar o plano atual": alteras o plano, corriges as séries de um treino feito e o treino passa a ser avaliado com os objetivos do plano como está agora.'],
     en: ['Correct records has "Use the current plan": change the plan, fix the sets of a done workout, and the workout is evaluated with the targets of the plan as it is now.'],
   },
