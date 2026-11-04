@@ -172,6 +172,14 @@ export function WorkoutPage() {
     update(next);
     setCur((c) => Math.min(c, workoutSteps(next.entries).length - 1));
   };
+  /** Takes the exercise out of the workout; with sets already logged, asks first (D78). */
+  const removeEntry = async (e: WorkoutEntry) => {
+    setMenu(false);
+    const logged = e.sets.filter((x) => x.status !== 'pending').length;
+    if (logged && !(await dialog.confirm(t('workout.removeEntryConfirm', { name: e.exercise.name, count: logged }), { danger: true, ok: t('common.remove') }))) return;
+    update({ ...draft, entries: draft.entries.filter((x) => x.id !== e.id) });
+    setCur(Math.max(0, cur - 1));
+  };
   const finish = async (interrupted = false) => {
     if (!interrupted && pendingSets > 0 && !(await dialog.confirm(t('workout.finishPending', { count: pendingSets })))) return;
     setMenu(false);
@@ -179,8 +187,8 @@ export function WorkoutPage() {
     window.scrollTo(0, 0);
   };
 
-  // Technique tips of the open exercise (D48, D54). They come from the library in English: read aloud only in English.
-  const tips = coach?.tips && entry ? ctx.exercises.get(entry.exerciseId)?.tips?.map((x) => x.trim()).filter(Boolean) : undefined;
+  // Technique tips of the open exercise (D48, D54), with or without the trainer (D75). They come from the library in English: read aloud only in English.
+  const tips = entry ? ctx.exercises.get(entry.exerciseId)?.tips?.map((x) => x.trim()).filter(Boolean) : undefined;
   const readTip = coach?.voice && s.language === 'en' ? (tip: string) => speak(tip, s.language, coach) : undefined;
 
   if (active) {
@@ -247,6 +255,7 @@ export function WorkoutPage() {
             tips={tips}
             onTip={readTip}
             coach={coach}
+            info={ctx.exercises.has(entry.exerciseId)}
           />
         ) : (
           <Empty>{t('workout.noEntries')}</Empty>
@@ -291,7 +300,7 @@ export function WorkoutPage() {
               {step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}><Icon name="download" /> {t('workout.later')}</button>}
               {!draft.short && <button onClick={() => void shorten()}><Icon name="timer" /> {t('workout.short')}</button>}
               {entry && (
-                <button onClick={() => (setMenu(false), update({ ...draft, entries: draft.entries.filter((x) => x.id !== entry.id) }), setCur(Math.max(0, cur - 1)))}>
+                <button onClick={() => void removeEntry(entry)}>
                   {t('workout.removeEntry')}
                 </button>
               )}
@@ -514,6 +523,15 @@ export function WorkoutPage() {
         </>
       ) : (
         <>
+          {/* The one action that cannot wait comes first (D79). */}
+          {draft.status === 'interrupted' && ctx.latest === draft.id && (
+            <section className="card warn">
+              <p className="flush-top">{t('workout.resumeHelp')}</p>
+              <button className="primary xl" onClick={() => void resume()}>
+                <Icon name="play" /> {t('workout.resume')}
+              </button>
+            </section>
+          )}
           {ctx.latest === draft.id && <PageCoach place="done" id={draft.id} extra={{ sets: doneWorking, records: records.length }} />}
           <div className="grid3" style={{ margin: '0.25rem 0 0.5rem' }}>
             <div className="stat">
@@ -619,14 +637,6 @@ export function WorkoutPage() {
                 ))}
               </ul>
             </details>
-          )}
-          {draft.status === 'interrupted' && ctx.latest === draft.id && (
-            <section className="card warn">
-              <p style={{ marginTop: 0 }}>{t('workout.resumeHelp')}</p>
-              <button className="primary xl" onClick={() => void resume()}>
-                <Icon name="play" /> {t('workout.resume')}
-              </button>
-            </section>
           )}
           <button className="primary xl" style={{ marginTop: '1rem' }} onClick={() => void shareCard()}>
             <Icon name="share" /> {t('workout.share')}

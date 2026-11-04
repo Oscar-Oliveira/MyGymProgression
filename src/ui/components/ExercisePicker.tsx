@@ -7,6 +7,7 @@ import { tr } from '../util';
 import { Modal } from './Modal';
 import { ExerciseItem } from './ExerciseItem';
 import { Icon } from './Icon';
+import { InfoButton } from './ExerciseSheet';
 
 /** Results shown at first and added by "show more", as in the exercise list. */
 const PAGE = 60;
@@ -36,7 +37,7 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
       <input type="search" autoFocus placeholder={t('picker.placeholder')} aria-label={t('common.search')} value={q} onChange={(e) => (setQ(e.target.value), setLimit(PAGE))} />
       <ul className="pick-list">
         {shown.map((e) => (
-          <li key={e.id}>
+          <li key={e.id} className="pick-row">
             <button type="button" className="pick" onClick={() => onPick(e)}>
               <ExerciseItem
                 name={e.name}
@@ -46,6 +47,7 @@ export function ExercisePicker({ onPick, onClose, exclude = [], preferred = [] }
                 sub={[tr(t, 'equipment', e.equipment), e.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')].filter(Boolean).join(' · ')}
               />
             </button>
+            <InfoButton id={e.id} name={e.name} />
           </li>
         ))}
         {!list.length && <li className="muted">{t('exercise.noResults')}</li>}

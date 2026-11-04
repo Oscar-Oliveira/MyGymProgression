@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { weekKey } from '../../domain/challenge';
-import { rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
+import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
 import { Empty, PageHead, Pager, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
@@ -78,12 +78,14 @@ export function Reports() {
   const { t } = useTranslation();
   const s = useSettings();
   const [params, setParams] = useSearchParams();
-  const tab: Tab = TABS.find((x) => x === params.get('tab')) ?? 'analysis';
+  // A tab whose feature is off is not shown (D78).
+  const tabs = TABS.filter((x) => (x === 'week' ? reportOn(s) : x === 'rival' ? rivalOn(s) : true));
+  const tab: Tab = tabs.find((x) => x === params.get('tab')) ?? 'analysis';
   return (
     <div>
       <PageHead title={t('reports.title')} />
       <div className="seg" role="tablist" style={{ marginBottom: '1rem' }} aria-label={t('reports.title')}>
-        {TABS.map((x) => (
+        {tabs.map((x) => (
           <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? 'on' : ''} onClick={() => setParams(x === 'analysis' ? {} : { tab: x }, { replace: true })}>
             {t(`reports.tabs.${x}`)}
           </button>

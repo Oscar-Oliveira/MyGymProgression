@@ -1,17 +1,17 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createHashRouter, Navigate, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { createHashRouter, Link, Navigate, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { db } from '../data/db';
 import { useSettings } from './util';
 import { DialogHost } from './components/Dialog';
 import { ToastHost } from './components/Toast';
+import { ExerciseSheetHost } from './components/ExerciseSheet';
 import { Home } from './pages/Home';
 import { Train } from './pages/Train';
 import { More } from './pages/More';
 import { ExerciseList } from './pages/ExerciseList';
 import { ExerciseEdit } from './pages/ExerciseEdit';
-import { PlanList } from './pages/PlanList';
 import { PlanEdit } from './pages/PlanEdit';
 import { WorkoutPage } from './pages/WorkoutPage';
 import { History } from './pages/History';
@@ -24,6 +24,7 @@ import { Challenges } from './pages/Challenges';
 import { Achievements } from './pages/Achievements';
 import { CoachPage } from './pages/CoachPage';
 import { Icon } from './components/Icon';
+import { toneStyle, useTones } from './colors';
 // Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail').then((m) => ({ default: m.ExerciseDetail })));
 const GamesPage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamesPage })));
@@ -42,12 +43,15 @@ const TABS = [
   ['/history', 'history'],
   ['/more', 'more'],
 ] as const;
-const MORE_PATHS = ['/more', '/exercises', '/plans', '/reports', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
+// The plan pages belong to Train (D77).
+const TRAIN_PATHS = ['/train', '/plans'];
+const MORE_PATHS = ['/more', '/exercises', '/reports', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
 
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
   if (pathname.startsWith('/workout/')) return '/history';
   if (pathname === '/share') return '/';
+  if (pathname.startsWith('/plans')) return '/train';
   const up = pathname.replace(/\/[^/]+$/, '');
   return up && up !== pathname ? up : '/more';
 }
@@ -102,6 +106,7 @@ function Shell() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   useScrollMemory();
+  const toneFor = useTones();
   const active = useLiveQuery(() => db.workouts.where('status').equals('in_progress').first(), []);
   // The active workout screen hides the tab bar to keep the focus on logging.
   const focus = !!active && pathname === `/workout/${active.id}`;
@@ -137,7 +142,9 @@ function Shell() {
               key={to}
               to={to}
               end={to === '/'}
-              className={({ isActive }) => (isActive || (key === 'more' && MORE_PATHS.some((p) => pathname.startsWith(p))) ? 'active' : '')}
+              className={({ isActive }) =>
+                isActive || (key === 'more' && MORE_PATHS.some((p) => pathname.startsWith(p))) || (key === 'train' && TRAIN_PATHS.some((p) => pathname.startsWith(p))) ? 'active' : ''
+              }
             >
               <svg className="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <path d={ICONS[key]} />
@@ -147,7 +154,20 @@ function Shell() {
           ))}
         </nav>
       )}
-      <main className={`shell ${focus ? 'focus' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* A workout in progress is one tap away on every page (D78); Home shows it in its own card. */}
+      {active && !focus && pathname !== '/' && (
+        <Link to={`/workout/${active.id}`} className="active-bar toned" style={toneStyle(toneFor(active.planId, active.dayId))}>
+          <Icon name="play" />
+          <span className="main">
+            <small>{t('start.bar')}</small>
+            {active.dayName ?? t('workout.free')}
+          </span>
+          <span className="go">
+            {t('home.continue')} <Icon name="chevronRight" />
+          </span>
+        </Link>
+      )}
+      <main className={`shell ${focus ? 'focus' : ''} ${active && !focus && pathname !== '/' ? 'has-bar' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {sub && (
           <button type="button" className="ghost back-btn" onClick={back}>
             <Icon name="chevronLeft" /> {t('common.back')}
@@ -162,7 +182,8 @@ function Shell() {
             <Route path="/exercises/new" element={<ExerciseEdit />} />
             <Route path="/exercises/:id" element={<ExerciseDetail />} />
             <Route path="/exercises/:id/edit" element={<ExerciseEdit />} />
-            <Route path="/plans" element={<PlanList />} />
+            {/* Plans are listed in Train (D77); old links still open it. */}
+            <Route path="/plans" element={<Navigate to="/train" replace />} />
             <Route path="/plans/scan" element={<PlanScan />} />
             <Route path="/plans/:id" element={<PlanEdit />} />
             <Route path="/workout/:id" element={<WorkoutPage />} />
@@ -181,6 +202,7 @@ function Shell() {
           </Routes>
         </Suspense>
       </main>
+      <ExerciseSheetHost />
       <DialogHost />
       <ToastHost />
     </>

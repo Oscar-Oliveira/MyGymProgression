@@ -20,6 +20,7 @@ export function CorrectionEditor({ draft, onChange, thumbOf }: { draft: Workout;
               name={e.exercise.name}
               thumb={thumbOf(e.exerciseId, e.exercise.thumb)}
               size="sm"
+              info={e.exerciseId}
               trailing={notDone > 0 && <span className="pill warn">{t('workout.notDone', { count: notDone })}</span>}
             />
             <div className="gtable" role="table">

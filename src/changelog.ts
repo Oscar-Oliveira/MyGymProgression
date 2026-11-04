@@ -7,6 +7,23 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-04',
+    pt: [
+      'Ficha do exercício: o botão ⓘ ao lado do nome abre os músculos, como fazer, dicas e vídeo sem sair da página, também durante o treino, no plano e ao escolher um exercício.',
+      'Treinar mostra os teus planos: os dias, os músculos de cada dia, o equilíbrio do plano, Editar e ⋯. Os Planos saíram de Mais.',
+      'Músculos de um dia ou de um exercício: principais e secundários no mapa do corpo, em cada dia, na página do exercício e na ficha.',
+      'Com um treino em curso, uma barra em todas as páginas leva-te de volta. "Começar" noutro dia pergunta se queres continuar esse treino.',
+      'As dicas de técnica (lâmpada) já não precisam do PT. O que está desligado em Definições → Funcionalidades deixa de aparecer em Mais e em Relatórios. Remover um exercício com séries feitas pede confirmação.',
+    ],
+    en: [
+      'Exercise sheet: the ⓘ button next to the name shows the muscles, how to do it, tips and video without leaving the page, also during a workout, in the plan and when you choose an exercise.',
+      'Train shows your plans: the days, the muscles of each day, the plan balance, Edit and ⋯. Plans left More.',
+      'Muscles of a day or an exercise: primary and secondary on the body map, on each day, on the exercise page and in the sheet.',
+      'With a workout in progress, a bar on every page takes you back. "Start" on another day asks whether to continue that workout.',
+      'Technique tips (bulb) no longer need the personal trainer. What is off in Settings → Features no longer shows in More and Reports. Removing an exercise with logged sets asks first.',
+    ],
+  },
+  {
     date: '2026-11-03',
     pt: [
       'Mapa do corpo: os músculos com cores pelas séries por semana (menos de 10, 10–20, mais de 20). Está na Análise e, com a semana atual, no Início. Toca num músculo para ver as séries.',

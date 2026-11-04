@@ -6,6 +6,7 @@ import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { fmtValue, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
+import { InfoButton } from './ExerciseSheet';
 
 
 type Goal = Pick<Plan, 'goal'>;
@@ -77,7 +78,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
 
   if (!open) {
     return (
-      <section className="card item" aria-label={ex.name}>
+      <section className="card item item-row" aria-label={ex.name}>
         <button type="button" className="item-toggle" aria-expanded={false} onClick={onToggle}>
           <Thumb src={ex.thumb} name={ex.name} size={44} />
           <span className="xitem-text">
@@ -91,6 +92,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
             <Icon name="chevronDown" />
           </span>
         </button>
+        <InfoButton id={ex.id} name={ex.name} />
       </section>
     );
   }
@@ -105,6 +107,7 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
             <Icon name="chevronDown" />
           </span>
         </button>
+        <InfoButton id={ex.id} name={ex.name} />
         <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>
           <Icon name="arrowUp" />
         </button>

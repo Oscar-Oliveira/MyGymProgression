@@ -5,6 +5,7 @@ import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { buzz, metricLabel, metricShort } from '../util';
 import { Icon } from './Icon';
+import { openExercise } from './ExerciseSheet';
 
 /** A whole circuit on one screen: every round with its exercises, pre-filled; one "done" at the end marks all sets. */
 export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit: Circuit; entries: WorkoutEntry[]; onChange: (es: WorkoutEntry[]) => void; thumbOf: (id: string, fallback?: string) => string | undefined }) {
@@ -20,6 +21,13 @@ export function CircuitFocus({ circuit, entries, onChange, thumbOf }: { circuit:
       <h1 className="ex-title">{circuit.name}</h1>
       <div className="ex-meta">
         {t('circuit.roundsCount', { count: rounds })} · {entries.map((e) => e.exercise.name).join(' → ')}
+      </div>
+      <div className="wk-actions ex-chips">
+        {entries.map((e) => (
+          <button key={e.id} className="chip" aria-label={t('exercise.info', { name: e.exercise.name })} onClick={() => openExercise(e.exerciseId)}>
+            <Icon name="info" /> {e.exercise.name}
+          </button>
+        ))}
       </div>
       <div className="hint">{t('circuit.workoutHelp', { rounds })}</div>
       {Array.from({ length: rounds }, (_, r) => (

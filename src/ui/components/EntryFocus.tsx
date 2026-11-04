@@ -9,6 +9,7 @@ import { CoachAvatar, CoachName } from './CoachAvatar';
 import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
+import { InfoButton } from './ExerciseSheet';
 
 function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -99,8 +100,8 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
 
 /**
  * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
- * `tips`: technique tips of the exercise (D48, D54): a bulb button opens one in a bubble of the trainer; "another tip" goes to the next.
- * `onTip`: called with the tip shown (the voice reads it).
+ * `tips`: technique tips of the exercise (D48, D54, D75): a bulb button opens one in a bubble (the trainer's, when it is on); "another tip" goes to the next.
+ * `onTip`: called with the tip shown (the voice reads it). `info`: the exercise is in the library, so its sheet can open.
  */
 export function EntryFocus({
   entry,
@@ -113,6 +114,7 @@ export function EntryFocus({
   tips,
   onTip,
   coach,
+  info,
 }: {
   entry: WorkoutEntry;
   previous?: WorkoutEntry;
@@ -124,6 +126,7 @@ export function EntryFocus({
   tips?: string[];
   onTip?: (tip: string) => void;
   coach?: CoachSettings;
+  info?: boolean;
 }) {
   const { t } = useTranslation();
   const s = useSettings();
@@ -149,7 +152,8 @@ export function EntryFocus({
         <div style={{ minWidth: 0 }}>
           <h1 className="ex-title">
             {entry.exercise.name}
-            {coach && tips && tips.length > 0 && (
+            {info && <InfoButton id={entry.exerciseId} name={entry.exercise.name} />}
+            {tips && tips.length > 0 && (
               <button type="button" className={`tip-btn ${tip !== undefined ? 'on' : ''}`} aria-expanded={tip !== undefined} aria-label={t('workout.tip')} onClick={() => showTip(tip === undefined ? 0 : undefined)}>
                 <Icon name="bulb" />
               </button>
@@ -181,14 +185,18 @@ export function EntryFocus({
           />
         </label>
       )}
-      {tip !== undefined && coach && tips?.[tip] && (
+      {tip !== undefined && tips?.[tip] && (
         <div className="coach tip" role="note" aria-label={t('workout.tip')}>
-          <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={32} />
+          {coach ? <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={32} /> : <span className="tip-ico"><Icon name="bulb" /></span>}
           <div className="tip-body">
-            <p>
-              <CoachName name={coach.name} />
-              {t(`trainer.tip.${coach.style}`, { tip: tips[tip] })}
-            </p>
+            {coach ? (
+              <p>
+                <CoachName name={coach.name} />
+                {t(`trainer.tip.${coach.style}`, { tip: tips[tip] })}
+              </p>
+            ) : (
+              <p>{tips[tip]}</p>
+            )}
             {s.language !== 'en' && <small>{t('workout.tipLanguage')}</small>}
             {tips.length > 1 && (
               <button type="button" className="ghost sm" onClick={() => showTip((tip + 1) % tips.length)}>

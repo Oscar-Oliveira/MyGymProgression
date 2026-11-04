@@ -2,7 +2,7 @@ import type { Resources } from './en';
 
 export const pt: Resources = {
   nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
-  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', achievements: 'Medalhas pelo teu histórico', coach: 'Estilo, mensagens, voz e dicas' },
+  more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', achievements: 'Medalhas pelo teu histórico', coach: 'Estilo, mensagens e voz' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
     whatsNew: 'Novidades', privacy: 'Dados e privacidade', privacyText: 'Todos os dados ficam neste dispositivo, no navegador. Nada é enviado para servidores. Faz cópias de segurança em Definições.',
@@ -135,11 +135,12 @@ export const pt: Resources = {
     backupDue: 'Sem cópia há {{count}} dias. Os dados estão só neste navegador.', backupDue_one: 'Sem cópia há {{count}} dia. Os dados estão só neste navegador.', saveBackup: 'Guardar cópia',
   },
   dashboard: { emptyLibrary: 'A biblioteca de exercícios está vazia.', backupReminder: 'Última cópia: {{date}}.' },
+  start: { inProgress: 'O treino "{{name}}" está em curso. Termina-o antes de começares outro.', continue: 'Continuar esse treino', bar: 'Treino em curso' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
     free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
     addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica',
-    prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntry: 'Remover este exercício',
+    prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
     pause: 'Pausar', pauseLong: 'Pausar — continuar mais tarde', pauseHelp: 'O treino fica aberto. Continua-o no Início ou no Histórico.',
     resume: 'Retomar treino', resumeHelp: 'Retomar anula as alterações de progressão deste treino; é avaliado de novo quando o terminares.',
     otherInProgress: 'Há outro treino aberto. Termina-o ou descarta-o primeiro.', statusLabel: 'Estado', notDone: '{{count}} séries por fazer', notDone_one: '{{count}} série por fazer',
@@ -157,6 +158,7 @@ export const pt: Resources = {
   dialog: { confirm: 'Confirmar', notice: 'Aviso', ok: 'OK' },
   history: { title: 'Histórico', empty: 'Ainda não há treinos.', count: '{{count}} treinos', count_one: '{{count}} treino', page: 'Página {{page}} de {{pages}}', pages: 'Páginas do histórico', prev: 'Anterior', next: 'Seguinte' },
   exercise: {
+    info: 'Sobre {{name}}', fullPage: 'Página completa: histórico, gráficos e metas',
     title: 'Exercícios', new: 'Novo exercício', edit: 'Editar exercício', aliases: 'Outros nomes (separados por vírgulas)', primary: 'Músculos principais', secondary: 'Músculos secundários',
     equipment: 'Equipamento', category: 'Categoria', instructions: 'Instruções / técnica', safety: 'Notas de segurança', personal: 'Notas pessoais', tags: 'Etiquetas (separadas por vírgulas)',
     links: 'Imagens, vídeos, ligações', linkLabel: 'Etiqueta', linkUrl: 'URL', active: 'Ativo', inactive: 'Inativo', showInactive: 'Mostrar inativos',
@@ -178,7 +180,7 @@ export const pt: Resources = {
     rangeReason: 'Faixa de reps alterada no plano', rangeHelp: 'Os treinos usam {{range}} (depois de “subir reps”). Se mudares as reps aqui, volta a valer a faixa do plano.',
     title: 'Planos', count: '{{count}} planos ativos', count_one: '{{count}} plano ativo', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
     color: 'Cor do plano', dayColor: 'Cor do dia', samePlanColor: 'Igual ao plano', daySummary: '{{count}} exercícios · {{sets}} séries', daySummary_one: '{{count}} exercício · {{sets}} séries',
-    removeDay: 'Remover este dia', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
+    removeDay: 'Remover este dia', removeDayConfirm: 'Remover o dia "{{name}}" do plano? Sai quando guardares.', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
     advanced: 'Avançado', setBySet: 'Série a série', group: 'Superset', role: 'Função', substitutes: 'Substitutos',
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adiciona um dia de treino.', noItems: 'Ainda sem exercícios.',
@@ -214,6 +216,7 @@ export const pt: Resources = {
     prev: 'Anterior', next: 'Seguinte', close: 'Fechar', slide: 'Ecrã {{n}} de {{total}}', weeks: 'semanas seguidas', tonnes: 'levantados',
   },
   bodyMap: {
+    tapRole: 'Toca num músculo para ver como é trabalhado.', notWorked: 'Não trabalhado', daySets: '{{n}} séries', role: { primary: 'Principal', secondary: 'Secundário' },
     title: 'Mapa do corpo', front: 'Frente', back: 'Costas', tap: 'Toca num músculo para ver as séries.', sets: '{{n}} séries/semana', week: 'Músculos desta semana', weekHelp: 'Séries feitas desde segunda.',
     level: { none: 'Sem séries', low: 'Menos de {{min}}', ok: '{{min}}–{{max}}', high: 'Mais de {{max}}' },
   },

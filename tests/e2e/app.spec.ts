@@ -165,6 +165,10 @@ async function tab(page: Page, name: 'Home' | 'Train' | 'History' | 'More') {
   if ((await page.locator('.shell .wk-nav').isVisible()) && (await page.locator('.back-btn').isVisible())) await page.locator('.back-btn').click();
   await nav.getByRole('link', { name }).click();
 }
+/** Plans are listed in Train (D77). */
+async function plans(page: Page) {
+  await tab(page, 'Train');
+}
 async function more(page: Page, name: RegExp) {
   await tab(page, 'More');
   await page.getByRole('link', { name }).click();
@@ -178,7 +182,7 @@ async function menu(page: Page, action: string) {
 /** Creates a one-day plan with the given exercises and starts it. New plans default to Hypertrophy. */
 async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Push');
   if (goal) await page.getByRole('radio', { name: goal }).click();
@@ -194,7 +198,7 @@ async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') 
 
 test('plan goal is saved; a mixed plan sets the type of each day', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Mix');
   const planGoal = page.getByRole('radiogroup', { name: 'Goal' });
@@ -226,7 +230,7 @@ test('plan goal is saved; a mixed plan sets the type of each day', async ({ page
 
 test('circuit: built in the plan, done once at the end of the whole circuit', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Circ');
   await page.getByRole('button', { name: 'Day' }).click();
@@ -259,7 +263,7 @@ test('circuit: built in the plan, done once at the end of the whole circuit', as
 
 test('join a duplicate exercise: the plan uses the kept one and the old name still finds it', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Push');
   await page.getByRole('button', { name: 'Day' }).click();
@@ -280,7 +284,7 @@ test('join a duplicate exercise: the plan uses the kept one and the old name sti
   await expect(page.locator('.toast')).toContainText('was joined into');
   await expect(page.locator('.page-head small')).toContainText('Machine Chest Press'); // now another name
 
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('link', { name: /^Push/ }).click();
   await expect(page.getByRole('region', { name: 'Barbell Bench Press' })).toBeVisible();
   await more(page, /^Exercises/);
@@ -349,7 +353,7 @@ test('about: version and what is new', async ({ page }) => {
 test('plan colour without a day colour: the workout buttons use the plan colour; strength has no mode selector', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('link', { name: /^Demo/ }).click();
   await page.getByRole('radiogroup', { name: 'Plan colour' }).getByRole('radio', { name: 'Teal' }).click();
   await page.getByRole('radiogroup', { name: 'Goal' }).getByRole('radio', { name: 'Strength' }).click();
@@ -359,7 +363,8 @@ test('plan colour without a day colour: the workout buttons use the plan colour;
   await confirm.getByRole('button', { name: 'Cancel' }).click();
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await tab(page, 'Home');
-  await page.getByRole('button', { name: /Start workout/ }).click();
+  // The Home card: Train, left just before, also has Start buttons (D77).
+  await page.locator('.hero').getByRole('button', { name: /Start workout/ }).click();
   await expect(page.getByRole('button', { name: 'Set done' })).toHaveCSS('background-color', 'rgb(15, 118, 110)');
 });
 
@@ -560,8 +565,8 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
   await page.reload();
   await closeSplash(page);
   await page.getByRole('button', { name: 'Try with example data' }).click();
-  await more(page, /^Plans/);
-  const name = (await page.locator('.nav-row .title').first().innerText()).trim();
+  await plans(page);
+  const name = (await page.locator('.plan-head h2').first().innerText()).trim();
   await page.getByRole('button', { name: `Options for ${name}` }).click();
   await page.getByRole('button', { name: 'Share', exact: true }).click();
   await page.getByRole('button', { name: /Share link/ }).click();
@@ -575,14 +580,14 @@ test('share a plan by link: the link opens a preview and imports a new copy of t
   await page.getByRole('button', { name: /Import plan/ }).click();
   await expect(page).toHaveURL(/#\/plans\//);
   await expect(page.getByLabel('Plan name')).toBeVisible();
-  await more(page, /^Plans/);
-  await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
+  await plans(page);
+  await expect(page.locator('.plan-head h2', { hasText: name })).toHaveCount(2);
 });
 
 test('share a plan by QR: one code per day; days read in any order join into one plan', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
-  await more(page, /^Plans/);
-  const name = (await page.locator('.nav-row .title').first().innerText()).trim();
+  await plans(page);
+  const name = (await page.locator('.plan-head h2').first().innerText()).trim();
   await page.getByRole('button', { name: `Options for ${name}` }).click();
   await page.getByRole('button', { name: 'Share', exact: true }).click();
   await page.getByRole('button', { name: /QR per day/ }).click();
@@ -607,8 +612,8 @@ test('share a plan by QR: one code per day; days read in any order join into one
   await page.getByRole('button', { name: /Import plan/ }).click();
   await expect(page).toHaveURL(/#\/plans\//);
   await expect(page.getByLabel('Plan name')).toBeVisible();
-  await more(page, /^Plans/);
-  await expect(page.locator('.nav-row .title', { hasText: name })).toHaveCount(2);
+  await plans(page);
+  await expect(page.locator('.plan-head h2', { hasText: name })).toHaveCount(2);
 });
 
 test('a damaged share link shows an error', async ({ page }) => {
@@ -731,7 +736,7 @@ test('correction: leaving with unsaved changes asks first', async ({ page }) => 
 });
 
 test('plan editor: leaving with unsaved changes asks first', async ({ page }) => {
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Unsaved');
   await page.locator('.back-btn').click();
@@ -746,7 +751,7 @@ test('plan editor: leaving with unsaved changes asks first', async ({ page }) =>
 
 test('exercise page: add the exercise to a plan day; a day that has it is marked', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Push');
   await page.getByRole('button', { name: 'Day' }).click();
@@ -766,7 +771,7 @@ test('exercise page: add the exercise to a plan day; a day that has it is marked
   await menu(page, 'Add to plan');
   await sheet.getByRole('button', { name: /1 exercise/ }).click();
   await expect(page.locator('.toast')).toContainText('Added to');
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByText('Push').first().click();
   await expect(page.getByText('Lat Pulldown').first()).toBeVisible();
   expect(nativeDialogs).toEqual([]);
@@ -834,9 +839,10 @@ test('weekly challenge: off by default; turned on in Settings, shows on Home, ca
   await page.getByText('Decide for next time').waitFor();
   await expect(page.getByRole('region', { name: 'Weekly challenge' })).toHaveCount(0);
 
-  await more(page, /^Weekly challenge/);
-  await expect(page.getByText('The weekly challenge is off.')).toBeVisible();
-  await page.getByRole('link', { name: 'Settings' }).click();
+  // Off: not listed in More (D78); turned on in Settings.
+  await tab(page, 'More');
+  await expect(page.getByRole('link', { name: /^Weekly challenge/ })).toHaveCount(0);
+  await more(page, /^Settings/);
   await page.getByLabel(/^Weekly challenge/).click();
   await tab(page, 'Home');
   const card = page.getByRole('region', { name: 'Weekly challenge' });
@@ -859,7 +865,7 @@ test('weekly challenge: off by default; turned on in Settings, shows on Home, ca
 test('loads across plans: hypertrophy load up → asks to update the strength plan → strength uses the new load', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   for (const [name, goal] of [['Heavy', 'Strength'], ['Pump', 'Hypertrophy']]) {
-    await more(page, /^Plans/);
+    await plans(page);
     await page.getByRole('button', { name: 'New plan' }).click();
     await page.getByLabel('Plan name').fill(name);
     await page.getByRole('radio', { name: goal }).click();
@@ -880,20 +886,23 @@ test('loads across plans: hypertrophy load up → asks to update the strength pl
   await expect(page.getByText('Hypertrophy in Pump — Day A went up to 22.5 kg.')).toBeVisible();
   await page.getByRole('button', { name: 'Update to 22.5 kg' }).click();
   await expect(page.getByText('Set to 22.5 kg')).toBeVisible();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByText('Heavy', { exact: true }).click();
   await page.getByRole('button', { name: /Start this day/ }).click();
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Load', { exact: true })).toHaveValue('22.5');
 });
 
 test('personal trainer page: own menu entry; extras off by default; reports are not there', async ({ page }) => {
-  await more(page, /^Personal trainer/);
-  await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
-  await expect(page.getByText('The trainer is off.')).toBeVisible();
-  await page.getByRole('link', { name: 'Settings' }).click();
+  // Off: not listed in More (D78).
+  await tab(page, 'More');
+  await expect(page.getByRole('link', { name: /^Personal trainer/ })).toHaveCount(0);
+  await more(page, /^Settings/);
   await page.getByLabel(/^Personal trainer/).click();
   await more(page, /^Personal trainer/);
-  for (const name of [/Reaction when you beat last time/, /Technique tips/]) await expect(page.getByLabel(name)).not.toBeChecked();
+  await expect(page.getByRole('heading', { name: 'Personal trainer', level: 1 })).toBeVisible();
+  await expect(page.getByLabel(/Reaction when you beat last time/)).not.toBeChecked();
+  // Technique tips no longer need the trainer (D75).
+  await expect(page.getByLabel(/Technique tips/)).toHaveCount(0);
   await expect(page.getByLabel(/You vs 3 months ago|Week report/)).toHaveCount(0);
 });
 
@@ -949,13 +958,17 @@ test('reports without the trainer: tabs, the Sunday report on Home, the rival on
   await page.getByText('Decide for next time').waitFor();
   await more(page, /^Reports/);
   await expect(page.getByRole('heading', { name: 'Reports', level: 1 })).toBeVisible();
+  // Off: their tabs are not shown (D78).
+  await expect(page.getByRole('tab', { name: 'Week' })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: 'You vs 3 months' })).toHaveCount(0);
+  await more(page, /^Settings/);
+  await page.getByLabel(/^Week report/).click();
+  await page.getByLabel(/^You vs 3 months ago/).click();
+  await more(page, /^Reports/);
   await page.getByRole('tab', { name: 'Week' }).click();
   await expect(page.getByRole('region', { name: 'Week report' })).toBeVisible();
   await page.getByRole('tab', { name: 'You vs 3 months' }).click();
   await expect(page.getByRole('region', { name: 'You vs your past self' })).toBeVisible();
-  await more(page, /^Settings/);
-  await page.getByLabel(/^Week report/).click();
-  await page.getByLabel(/^You vs 3 months ago/).click();
   await tab(page, 'Home');
   const report = page.getByRole('region', { name: 'Week report' });
   await expect(report).toBeVisible();
@@ -1041,7 +1054,7 @@ test('body map (D71): this week on Home and the period in Analysis; tapping a mu
 
 test('plan balance (D72): closed by default; shows the planned sets and updates while the plan is edited', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
-  await more(page, /^Plans/);
+  await plans(page);
   await page.getByRole('button', { name: 'New plan' }).click();
   await page.getByLabel('Plan name').fill('Push');
   await page.getByRole('button', { name: 'Day' }).click();
@@ -1076,7 +1089,10 @@ test('achievements (D73): the first workout earns a medal on its summary; the pa
 
   await more(page, /^Settings/);
   await page.getByLabel(/^Achievements/).click();
-  await more(page, /^Achievements/);
+  // Off: not listed in More (D78); the page itself says so.
+  await tab(page, 'More');
+  await expect(page.getByRole('link', { name: /^Achievements/ })).toHaveCount(0);
+  await page.goto('/#/achievements');
   await expect(page.getByText('Achievements are off.')).toBeVisible();
   await expect(page.getByText('First workout')).toHaveCount(0);
 });
@@ -1105,4 +1121,44 @@ test('year in review (D74): the Year tab opens screens one by one; the last one 
   await page.keyboard.press('Escape');
   await expect(story).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'See your year' })).toBeVisible();
+});
+
+test('exercise sheet (D75): opens next to the name in the workout and the plan editor; the full page keeps the workout one tap away (D78)', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await page.getByRole('button', { name: 'About Machine Chest Press' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Machine Chest Press' });
+  await expect(sheet.getByRole('group', { name: 'Body map' })).toBeVisible();
+  await expect(sheet.getByText('Primary', { exact: true })).toBeVisible();
+  await sheet.getByRole('link', { name: /^Full page/ }).click();
+  await expect(page.getByRole('heading', { name: 'Machine Chest Press', level: 1 })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.locator('.active-bar').click();
+  await expect(page.getByRole('button', { name: 'Set done' })).toBeVisible();
+  await expect(page.locator('.active-bar')).toHaveCount(0);
+});
+
+test('train (D77, D78): plans with their days, muscles and balance; Start with a workout in progress offers to continue it; removing a logged exercise asks', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await page.getByText('Decide for next time').waitFor();
+  await tab(page, 'Train');
+  await expect(page.getByRole('heading', { name: 'Demo Upper / Lower' })).toBeVisible();
+  const upper = page.getByRole('region', { name: 'A · Upper' });
+  await upper.locator('.day-muscles summary').click();
+  await expect(upper.getByRole('group', { name: 'Body map' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Plan balance/ })).toBeVisible();
+  await upper.getByRole('button', { name: /Start workout/ }).click();
+  await expect(page.getByRole('button', { name: 'Set done' })).toBeVisible();
+  await page.getByRole('link', { name: /Pause/ }).click();
+
+  await tab(page, 'Train');
+  await page.getByRole('region', { name: 'B · Lower' }).getByRole('button', { name: /Start workout/ }).click();
+  const confirm = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(confirm).toContainText('"A · Upper" is in progress');
+  await confirm.getByRole('button', { name: 'Continue that workout' }).click();
+  await page.getByRole('button', { name: 'Set done' }).click();
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('button', { name: 'Remove this exercise' }).click();
+  await expect(confirm).toContainText('logged set is lost');
+  await confirm.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByRole('button', { name: 'Workout options' })).toBeVisible();
 });

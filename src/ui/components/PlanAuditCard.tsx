@@ -8,7 +8,7 @@ import { Icon } from './Icon';
 import { Section } from './Section';
 
 /** Plan balance (D72): planned sets per muscle on the body map and the warnings, updated while the plan is edited. */
-export function PlanAuditCard({ days, exercises }: { days: PlanDay[]; exercises: Map<string, Exercise> }) {
+export function PlanAuditCard({ id = 'plan-audit', days, exercises }: { id?: string; days: PlanDay[]; exercises: Map<string, Exercise> }) {
   const { t } = useTranslation();
   const s = useSettings();
   const { sets, warnings } = planAudit(days, exercises);
@@ -19,7 +19,7 @@ export function PlanAuditCard({ days, exercises }: { days: PlanDay[]; exercises:
     </>
   );
   return (
-    <Section id="plan-audit" title={title} defaultOpen={false}>
+    <Section id={id} title={title} defaultOpen={false}>
       <p className="help">{t('audit.help')}</p>
       <BodyMap sets={sets} lang={s.language} small />
       {warnings.length === 0 ? (
