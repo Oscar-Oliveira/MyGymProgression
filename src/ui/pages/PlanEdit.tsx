@@ -20,6 +20,7 @@ import { dialog } from '../components/Dialog';
 import { ItemCard, working, type Targets } from '../components/PlanItemCard';
 import { Icon } from '../components/Icon';
 import { PlanAuditCard } from '../components/PlanAuditCard';
+import { useStart } from '../start';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
 /** Day goals of a mixed plan; 'free' = each exercise uses its own rule. */
@@ -47,6 +48,7 @@ export function PlanEdit() {
   const [openId, setOpenId] = useState<string>();
   const [nameError, setNameError] = useState(false);
   const unsaved = useUnsavedGuard();
+  const start = useStart();
 
   useEffect(() => {
     if (stored?.plan && stored.version && (!plan || plan.currentVersionId !== stored.plan.currentVersionId)) {
@@ -128,17 +130,13 @@ export function PlanEdit() {
     setEdits({});
     toast(t('common.saved'));
   };
-  const startDay = async () => {
-    const open = await db.workouts.where('status').equals('in_progress').first();
-    if (open) {
-      await dialog.alert(t('home.finishFirst'));
-      return nav(`/workout/${open.id}`);
-    }
-    if (dirty) await save();
-    if (!plan.name.trim()) return;
-    unsaved.current = false; // just saved; the page has not reloaded the plan yet
-    nav(`/workout/${await repo.startWorkout(plan.id, day.id)}`);
-  };
+  const startDay = () =>
+    start(plan.id, day.id, async () => {
+      if (dirty) await save();
+      if (!plan.name.trim()) return false;
+      unsaved.current = false; // just saved; the page has not reloaded the plan yet
+      return true;
+    });
   const pick = async (ex: Exercise) => {
     if (!picker) return;
     if (picker.item) {
@@ -259,7 +257,7 @@ export function PlanEdit() {
                   {
                     label: t('plan.removeDay'),
                     danger: true,
-                    onClick: async () => (await dialog.confirm(t('common.confirmDelete', { name: day.name }), { danger: true, ok: t('common.delete') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0)),
+                    onClick: async () => (await dialog.confirm(t('plan.removeDayConfirm', { name: day.name }), { danger: true, ok: t('common.remove') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0)),
                   },
                 ]}
               />

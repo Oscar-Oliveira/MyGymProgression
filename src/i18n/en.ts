@@ -1,6 +1,6 @@
 export const en = {
   nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
-  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', achievements: 'Medals for your history', coach: 'Style, messages, voice and tips' },
+  more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', achievements: 'Medals for your history', coach: 'Style, messages and voice' },
   about: {
     version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
     whatsNew: "What's new", privacy: 'Data and privacy', privacyText: 'All data stays on this device, in the browser. Nothing is sent to servers. Make backups in Settings.',
@@ -133,11 +133,12 @@ export const en = {
     backupDue: 'No backup for {{count}} days. Data lives only in this browser.', backupDue_one: 'No backup for {{count}} day. Data lives only in this browser.', saveBackup: 'Save backup',
   },
   dashboard: { emptyLibrary: 'Your exercise library is empty.', backupReminder: 'Last backup: {{date}}.' },
+  start: { inProgress: 'The workout "{{name}}" is in progress. Finish it before you start another one.', continue: 'Continue that workout', bar: 'Workout in progress' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
     free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
     addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique',
-    prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntry: 'Remove this exercise',
+    prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
     pause: 'Pause', pauseLong: 'Pause — continue later', pauseHelp: 'The workout stays open. Continue it from Home or History.',
     resume: 'Resume workout', resumeHelp: 'Resuming undoes the progression changes of this workout; it is evaluated again when you finish it.',
     otherInProgress: 'Another workout is open. Finish or discard it first.', statusLabel: 'Status', notDone: '{{count}} sets not done', notDone_one: '{{count}} set not done',
@@ -165,6 +166,7 @@ export const en = {
     applyPreset: 'Apply type', groups: 'Muscle groups', allEquipment: 'All equipment', showMore: 'Show {{n}} more ({{left}} left)',
     addToPlan: 'Add to plan', inDay: 'already there', addedToPlan: 'Added to {{day}} ({{plan}}).',
     join: 'Join a duplicate', joinOk: 'Join', joinConfirm: 'Join «{{dup}}» into «{{keep}}»? Moving to «{{keep}}»: {{plans}} plans, {{workouts}} workouts and {{progression}} progression records. «{{dup}}» becomes another name and is deleted.', joinDone: '«{{dup}}» was joined into «{{keep}}».',
+    info: 'About {{name}}', fullPage: 'Full page: history, charts and goals',
     video: 'Watch video', muscles: 'Muscles', description: 'Description', howTo: 'How to do it', tips: 'Tips', related: 'Related exercises', presetWarn: 'This replaces metrics, default sets and progression.', unitChangeWarn: 'Changing a unit does not convert past records.',
   },
   prescription: { sets: 'Sets', addSet: 'Add set', kind: 'Type', min: 'min', max: 'max', target: 'target', setN: 'Set {{n}}' },
@@ -176,7 +178,7 @@ export const en = {
     rangeReason: 'Rep range changed in the plan', rangeHelp: 'The workouts use {{range}} (after “reps up”). Changing the reps here makes the plan range apply again.',
     title: 'Plans', count: '{{count}} active plans', count_one: '{{count}} active plan', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
     color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
-    removeDay: 'Remove this day', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
+    removeDay: 'Remove this day', removeDayConfirm: 'Remove the day "{{name}}" from the plan? It is gone when you save.', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
     advanced: 'Advanced', setBySet: 'Set by set', group: 'Superset', role: 'Role', substitutes: 'Substitutes',
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
@@ -212,6 +214,7 @@ export const en = {
     prev: 'Previous', next: 'Next', close: 'Close', slide: 'Screen {{n}} of {{total}}', weeks: 'weeks in a row', tonnes: 'lifted',
   },
   bodyMap: {
+    tapRole: 'Tap a muscle to see how it is worked.', notWorked: 'Not worked', daySets: '{{n}} sets', role: { primary: 'Primary', secondary: 'Secondary' },
     title: 'Body map', front: 'Front', back: 'Back', tap: 'Tap a muscle to see its sets.', sets: '{{n}} sets/week', week: 'Muscles this week', weekHelp: 'Sets done since Monday.',
     level: { none: 'No sets', low: 'Under {{min}}', ok: '{{min}}–{{max}}', high: 'Over {{max}}' },
   },

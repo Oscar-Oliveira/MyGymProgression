@@ -1,27 +1,27 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { generateDemo } from '../../domain/demo';
-import type { Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
+import type { Exercise, Plan, PlanDay, Workout, WorkoutEntry } from '../../domain/types';
 import { canDecide, lastEntryFinder, nextPlanned, startWorkout } from '../../domain/workout';
 import { toneOf, toneStyle, useTones } from '../colors';
-import { DecisionCard, rxLine, SyncCard } from '../progress';
-import { ExerciseItem } from '../components/ExerciseItem';
+import { DecisionCard, SyncCard } from '../progress';
+import { DayCard } from '../components/DayCard';
+import { useStart } from '../start';
 import { PageCoach } from '../components/CoachCard';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { HomeReport } from '../components/TrainerBits';
 import { Modal } from '../components/Modal';
 import { Section } from '../components/Section';
-import { fmtDate, saveBackup, useSettings, useThumbs } from '../util';
+import { fmtDate, saveBackup, useSettings } from '../util';
 import { backupDue } from '../../domain/backup';
 import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
 import { BodyMap } from '../components/BodyMap';
 import { Icon } from '../components/Icon';
 
-const PREVIEW = 4;
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
 /** Monday to Sunday of the current week, each with the finished workouts of that day. */
@@ -37,30 +37,11 @@ function week(workouts: Workout[]) {
 type Planned = { plan: Plan; day: PlanDay; entries: WorkoutEntry[] };
 
 /** Window for one date of the week: workouts done that day; from today on, also the plan days set to that weekday. */
-function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: { date: Date; done: Workout[]; planned: Planned[]; fallback?: Planned; active?: Workout; onStart: (p: Planned) => void; onClose: () => void }) {
+function DaySheet({ date, done, planned, fallback, exercises, onStart, onClose }: { date: Date; done: Workout[]; planned: Planned[]; fallback?: Planned; exercises: Map<string, Exercise>; onStart: (p: Planned) => void; onClose: () => void }) {
   const { t } = useTranslation();
   const s = useSettings();
-  const thumbOf = useThumbs();
   const toneFor = useTones();
-  const sets = (es: WorkoutEntry[]) => es.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
-  const card = (p: Planned) => (
-    <section key={`${p.plan.id}:${p.day.id}`} className="card toned day-card" style={toneStyle(toneOf(p.plan, p.day))}>
-      <h3>{p.day.name}</h3>
-      <p className="muted">
-        {p.plan.name} · {t('home.size', { count: p.entries.length, sets: sets(p.entries) })}
-      </p>
-      {p.entries.map((e) => (
-        <ExerciseItem key={e.id} name={e.exercise.name} thumb={thumbOf(e.exerciseId, e.exercise.thumb)} sub={rxLine(e, t, s.language)} size="sm" to={`/exercises/${e.exerciseId}`} />
-      ))}
-      {active ? (
-        <p className="help">{t('home.finishFirst')}</p>
-      ) : (
-        <button className="primary xl" onClick={() => onStart(p)}>
-          <Icon name="play" /> {t('home.start')}
-        </button>
-      )}
-    </section>
-  );
+  const card = (p: Planned) => <DayCard key={`${p.plan.id}:${p.day.id}`} plan={p.plan} day={p.day} entries={p.entries} exercises={exercises} showPlan all onStart={() => onStart(p)} />;
   return (
     <Modal title={fmtDate(date.toISOString(), s.language)} onClose={onClose}>
       {done.length > 0 && (
@@ -105,10 +86,9 @@ function DaySheet({ date, done, planned, fallback, active, onStart, onClose }: {
 
 export function Home() {
   const { t } = useTranslation();
-  const nav = useNavigate();
   const s = useSettings();
-  const thumbOf = useThumbs();
   const toneFor = useTones();
+  const startDay = useStart();
   const [open, setOpen] = useState<number>();
   const data = useLiveQuery(async () => {
     const [exercises, plans, versions, workouts, states, events] = await Promise.all([
@@ -142,7 +122,7 @@ export function Home() {
   // Questions that newer progress has made out of date are not asked.
   const pending = events.filter((e) => canDecide(e, ctx.states.get(e.lineageId)));
   const entryOf = (entryId?: string) => workouts.flatMap((w) => w.entries).find((e) => e.id === entryId);
-  const start = async (planId = plan?.id, dayId = day?.id) => nav(`/workout/${await repo.startWorkout(planId, dayId)}`);
+
   const demo = async () => {
     await repo.seedLibrary();
     await repo.importMerge(generateDemo(await db.exercises.toArray()));
@@ -160,7 +140,6 @@ export function Home() {
   const days = week(finished);
   const weekdays = t('weekday', { returnObjects: true }) as string[];
   const weekMuscles = muscleSetsPerWeek(finished.filter((w) => w.startedAt >= days[0].date.toISOString()), localDay(days[0].date), localDay(now));
-  const previewSets = preview?.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0) ?? 0;
 
   return (
     <div>
@@ -184,18 +163,14 @@ export function Home() {
         </div>
       </div>
 
-      <PageCoach place="home" extra={{ day: active ? undefined : day?.name }} />
-      <HomeReport />
-      <ChallengeCard />
-
       {open !== undefined && (
         <DaySheet
           date={days[open].date}
           done={days[open].done}
           planned={days[open].past ? [] : plannedOn(open)}
           fallback={!days[open].past && plan && day && preview ? { plan, day, entries: preview.entries } : undefined}
-          active={active}
-          onStart={(p) => void start(p.plan.id, p.day.id)}
+          exercises={ctx.exercises}
+          onStart={(p) => void startDay(p.plan.id, p.day.id)}
           onClose={() => setOpen(undefined)}
         />
       )}
@@ -212,25 +187,11 @@ export function Home() {
           </Link>
         </section>
       ) : preview && plan && day ? (
-        <section className="hero toned" style={toneStyle(toneOf(plan, day))}>
-          <p className="eyebrow">{t('home.next')}</p>
-          <h1>{day.name}</h1>
-          <p className="muted">
-            {plan.name} · {t('home.size', { count: preview.entries.length, sets: previewSets })}
-          </p>
-          <div style={{ margin: '0.6rem 0 1rem' }}>
-            {preview.entries.slice(0, PREVIEW).map((e) => (
-              <ExerciseItem key={e.id} name={e.exercise.name} thumb={thumbOf(e.exerciseId, e.exercise.thumb)} sub={rxLine(e, t, s.language)} size="sm" to={`/exercises/${e.exerciseId}`} />
-            ))}
-            {preview.entries.length > PREVIEW && <p className="muted">{t('home.andMore', { count: preview.entries.length - PREVIEW })}</p>}
-          </div>
-          <button className="primary xl" onClick={() => void start()}>
-            <Icon name="play" /> {t('home.start')}
-          </button>
-          <Link to="/train" className="btn ghost xl" style={{ marginTop: '0.25rem' }}>
+        <DayCard hero eyebrow={t('home.next')} plan={plan} day={day} entries={preview.entries} exercises={ctx.exercises} showPlan onStart={() => void startDay(plan.id, day.id)}>
+          <Link to="/train" className="btn ghost xl">
             {t('home.otherDay')}
           </Link>
-        </section>
+        </DayCard>
       ) : (
         <section className="hero stack">
           <p className="eyebrow">{t('home.getStarted')}</p>
@@ -247,6 +208,19 @@ export function Home() {
           <button className="ghost" onClick={() => void demo()}>
             {t('home.demo')}
           </button>
+        </section>
+      )}
+
+      {pending.length > 0 && (
+        <section>
+          <div className="section-head">
+            <h2>{t('home.decide')}</h2>
+          </div>
+          {pending.map((ev) => {
+            if (ev.outcome === 'sync') return <SyncCard key={ev.id} ev={ev} exercise={ctx.exercises.get(ev.exerciseId)} />;
+            const e = entryOf(ev.entryId);
+            return e ? <DecisionCard key={ev.id} entry={e} ev={ev} /> : null;
+          })}
         </section>
       )}
 
@@ -267,17 +241,11 @@ export function Home() {
         </div>
       )}
 
-      {pending.length > 0 && (
-        <section>
-          <div className="section-head">
-            <h2>{t('home.decide')}</h2>
-          </div>
-          {pending.map((ev) => {
-            if (ev.outcome === 'sync') return <SyncCard key={ev.id} ev={ev} exercise={ctx.exercises.get(ev.exerciseId)} />;
-            const e = entryOf(ev.entryId);
-            return e ? <DecisionCard key={ev.id} entry={e} ev={ev} /> : null;
-          })}
-        </section>
+      {finished.length > 0 && (
+        <Section id="home-muscles" title={t('bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
+          <p className="help">{t('bodyMap.weekHelp')}</p>
+          <BodyMap sets={weekMuscles} lang={s.language} small />
+        </Section>
       )}
 
       {last && (
@@ -291,12 +259,9 @@ export function Home() {
         </Section>
       )}
 
-      {finished.length > 0 && (
-        <Section id="home-muscles" title={t('bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
-          <p className="help">{t('bodyMap.weekHelp')}</p>
-          <BodyMap sets={weekMuscles} lang={s.language} small />
-        </Section>
-      )}
+      <PageCoach place="home" extra={{ day: active ? undefined : day?.name }} />
+      <HomeReport />
+      <ChallengeCard />
 
       {due !== undefined ? (
         <section className="card warn" role="status">

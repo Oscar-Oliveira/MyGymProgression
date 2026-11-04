@@ -1,84 +1,144 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import { nextDay } from '../../domain/workout';
-import { ThumbStack } from '../components/ExerciseItem';
+import { duplicatePlan, newPlan } from '../../domain/factory';
+import type { Plan } from '../../domain/types';
+import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { Empty, PageHead } from '../components/Bits';
-import { toneOf, toneStyle } from '../colors';
+import { ActionMenu } from '../components/ActionMenu';
+import { DayCard } from '../components/DayCard';
+import { dialog } from '../components/Dialog';
 import { Icon } from '../components/Icon';
+import { PlanAuditCard } from '../components/PlanAuditCard';
+import { ShareSheet } from '../components/PlanShare';
+import { toneStyle } from '../colors';
+import { useStart } from '../start';
 
-/** Choose what to train: an active workout opens directly; otherwise every day of every active plan. */
+/**
+ * Train (D77): the plans and their days in one place. Each day starts a workout; each plan opens its editor,
+ * shows its balance and has the other actions in ⋯. Archived plans are listed below when asked.
+ */
 export function Train() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const data = useLiveQuery(async () => ({
-    active: await db.workouts.where('status').equals('in_progress').first(),
-    plans: (await db.plans.toArray()).filter((p) => p.status === 'active'),
-    versions: await db.planVersions.toArray(),
-    workouts: await db.workouts.toArray(),
-    exercises: new Map((await db.exercises.toArray()).map((e) => [e.id, e])),
-  }));
+  const start = useStart();
+  const [archived, setArchived] = useState(false);
+  const [sharing, setSharing] = useState<Plan>();
+  const data = useLiveQuery(async () => {
+    const [plans, versions, workouts, exercises, states] = await Promise.all([db.plans.toArray(), db.planVersions.toArray(), db.workouts.toArray(), db.exercises.toArray(), db.progressionStates.toArray()]);
+    return { plans: plans.sort((a, b) => a.name.localeCompare(b.name)), versions, workouts, exercises: new Map(exercises.map((e) => [e.id, e])), states: new Map(states.map((s) => [s.lineageId, s])) };
+  });
   if (!data) return null;
-  if (data.active) return <Navigate to={`/workout/${data.active.id}`} replace />;
-  const start = async (planId?: string, dayId?: string) => nav(`/workout/${await repo.startWorkout(planId, dayId)}`);
+  const active = data.plans.filter((p) => p.status === 'active');
+  const old = data.plans.filter((p) => p.status === 'archived');
+  const ctx = { exercises: data.exercises, states: data.states, lastEntry: lastEntryFinder(data.workouts) };
+
+  const create = async () => {
+    const { plan, version } = newPlan(t('plan.new'));
+    await repo.createPlan(plan, version);
+    nav(`/plans/${plan.id}`);
+  };
+  const duplicate = async (p: Plan) => {
+    const v = data.versions.find((x) => x.id === p.currentVersionId)!;
+    const d = duplicatePlan(p, v, t('plan.duplicateName', { name: p.name }));
+    await repo.createPlan(d.plan, d.version);
+  };
+  const remove = async (p: Plan) => {
+    if (await dialog.confirm(t('common.confirmDelete', { name: p.name }), { danger: true, ok: t('common.delete') })) await repo.deletePlan(p.id);
+  };
+  const actions = (p: Plan) => (
+    <ActionMenu
+      title={p.name}
+      actions={[
+        { label: t('common.duplicate'), onClick: () => void duplicate(p) },
+        { label: t('share.menu'), onClick: () => setSharing(p) },
+        { label: p.status === 'active' ? t('common.archive') : t('common.unarchive'), onClick: () => void db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' }) },
+        { label: t('common.delete'), danger: true, onClick: () => void remove(p) },
+      ]}
+    />
+  );
 
   return (
     <div>
-      <PageHead title={t('train.title')} />
-      {data.plans.length === 0 && (
+      <PageHead
+        title={t('train.title')}
+        count={active.length > 0 ? t('plan.count', { count: active.length }) : undefined}
+        aside={
+          <>
+            <Link className="btn outline" to="/plans/scan">
+              <Icon name="qr" /> {t('scan.open')}
+            </Link>
+            <button className="primary" onClick={() => void create()}>
+              <Icon name="plus" /> {t('plan.new')}
+            </button>
+          </>
+        }
+      />
+      {active.length === 0 && (
         <Empty
           action={
-            <Link className="btn primary" to="/plans">
+            <button className="btn primary" onClick={() => void create()}>
               {t('home.createPlan')}
-            </Link>
+            </button>
           }
         >
           {t('train.noPlans')}
         </Empty>
       )}
-      {data.plans.map((p) => {
+      {active.map((p) => {
         const v = data.versions.find((x) => x.id === p.currentVersionId);
         if (!v) return null;
         const next = nextDay(v, data.workouts);
         return (
-          <section key={p.id}>
-            <div className="section-head toned" style={toneStyle(p.color)}>
+          <section key={p.id} className="plan-block">
+            <div className="section-head toned plan-head" style={toneStyle(p.color)}>
               <h2 className="row">
                 <span className="tone-dot" />
-                {p.name}
+                <Link to={`/plans/${p.id}`}>{p.name}</Link>
               </h2>
+              <span className="row">
+                <span className="pill">{t(`goal.${p.goal}`)}</span>
+                <Link className="btn outline sm" to={`/plans/${p.id}`}>
+                  {t('common.edit')}
+                </Link>
+                {actions(p)}
+              </span>
             </div>
-            {v.days.map((d) => {
-              const items = d.items.map((i) => data.exercises.get(i.exerciseId)).filter((e) => !!e);
-              const isNext = d.id === next?.id;
-              return (
-                <div key={d.id} className={`card day-card toned tone-bar ${isNext ? 'next' : ''}`} style={toneStyle(toneOf(p, d))}>
-                  <div className="row between">
-                    <div>
-                      <h2 style={{ margin: 0 }}>
-                        {d.name} {isNext && <span className="pill tone">{t('train.next')}</span>}
-                      </h2>
-                      <small>{t('train.exercises', { count: d.items.length })}</small>
-                    </div>
-                    <ThumbStack items={items.map((e) => ({ name: e.name, thumb: e.thumb }))} />
-                  </div>
-                  <p className="help" style={{ margin: '0.5rem 0 0.75rem' }}>
-                    {items.map((e) => e.name).join(' · ')}
-                  </p>
-                  <button className={isNext ? 'primary xl' : 'outline xl'} disabled={!d.items.length} onClick={() => void start(p.id, d.id)}>
-                    <Icon name="play" /> {t('home.start')}
-                  </button>
-                </div>
-              );
-            })}
+            {v.days.length === 0 ? (
+              <Empty>{t('plan.noDays')}</Empty>
+            ) : (
+              v.days.map((d) => <DayCard key={d.id} plan={p} day={d} entries={startWorkout(p, v, d, ctx).entries} exercises={data.exercises} next={d.id === next?.id} onStart={() => void start(p.id, d.id)} />)
+            )}
+            {v.days.some((d) => d.items.length > 0) && <PlanAuditCard id={`plan-audit:${p.id}`} days={v.days} exercises={data.exercises} />}
           </section>
         );
       })}
       <button className="ghost xl" onClick={() => void start()}>
         <Icon name="plus" /> {t('workout.free')}
       </button>
+
+      {old.length > 0 && (
+        <label className="check">
+          <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} /> {t('plan.showArchived')}
+        </label>
+      )}
+      {archived &&
+        old.map((p) => (
+          <div key={p.id} className="card nav-row toned tone-bar plan-row" style={toneStyle(p.color)}>
+            <Link to={`/plans/${p.id}`} className="main">
+              <span className="title">
+                {p.name} <span className="pill">{t('plan.archived')}</span>
+              </span>
+              <span className="meta">{t(`goal.${p.goal}`)}</span>
+            </Link>
+            {actions(p)}
+          </div>
+        ))}
+
+      {sharing && <ShareSheet plan={sharing} onClose={() => setSharing(undefined)} />}
     </div>
   );
 }

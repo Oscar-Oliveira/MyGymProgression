@@ -12,8 +12,11 @@ import { canSpeak, speak } from '../voice';
 
 const COACH_STYLES: CoachStyle[] = ['support', 'energy', 'spite', 'stoic', 'sergeant'];
 export const NO_COACH: CoachSettings = { enabled: false, style: 'support', profanity: false };
-/** Extras of the trainer (D45, D47, D48), all off by default. Voice only where the device can speak. The week report and the rival are in Reports (D57). */
-const EXTRAS = ['live', 'tips', 'voice'] as const;
+/**
+ * Extras of the trainer (D45, D47), all off by default. Voice only where the device can speak. The week report and the rival are in Reports (D57).
+ * Technique tips no longer need the trainer (D75): the old `tips` setting is kept in the data but not used.
+ */
+const EXTRAS = ['live', 'voice'] as const;
 
 /** One part of the look (D63): a row of round buttons, one per option. */
 function LookChoice<T extends string>({ label, options, value, name, onPick, children }: { label: string; options: readonly T[]; value: T; name: (o: T) => string; onPick: (o: T) => void; children: (o: T) => ReactNode }) {

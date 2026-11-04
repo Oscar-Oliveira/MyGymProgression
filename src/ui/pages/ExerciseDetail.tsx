@@ -12,7 +12,8 @@ import { ActionMenu } from '../components/ActionMenu';
 import { toast } from '../components/Toast';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
-import { exerciseGroup, MUSCLE_DETAIL_PT, relatedOf } from '../../domain/library';
+import { exerciseGroup, relatedOf } from '../../domain/library';
+import { ExerciseLinks, ExerciseMuscles } from '../components/ExerciseSheet';
 import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
@@ -133,7 +134,6 @@ export function ExerciseDetail() {
     toast(t('exercise.addedToPlan', { day: day.name, plan: plan.name }));
   };
   const weekdays = t('weekday', { returnObjects: true }) as string[];
-  const muscle = (n: string) => (s.language === 'pt' ? (MUSCLE_DETAIL_PT[n] ?? n) : n);
   const name = ex?.name ?? history[0].entry.exercise.name;
 
   return (
@@ -208,38 +208,11 @@ export function ExerciseDetail() {
 
       {ex && (
         <>
-          <div className="row wrap">
-            {ex.video && (
-              <a className="btn primary" href={ex.video} target="_blank" rel="noopener noreferrer">
-                <Icon name="play" /> {t('exercise.video')}
-              </a>
-            )}
-            {ex.source?.url && (
-              <a className="btn outline" href={ex.source.url} target="_blank" rel="noopener noreferrer">
-                {ex.source.name} <Icon name="external" />
-              </a>
-            )}
-          </div>
+          <ExerciseLinks ex={ex} />
 
           <section className="card">
             <h2>{t('exercise.muscles')}</h2>
-            {ex.muscleDetail && ex.muscleDetail.primary.length > 0 ? (
-              <>
-                <p>
-                  <strong>{t('exercise.primary')}:</strong> {ex.muscleDetail.primary.map(muscle).join(', ')}
-                </p>
-                {ex.muscleDetail.secondary.length > 0 && (
-                  <p>
-                    <strong>{t('exercise.secondary')}:</strong> {ex.muscleDetail.secondary.map(muscle).join(', ')}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p>
-                {ex.primaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')}
-                {ex.secondaryMuscles.length > 0 && <small> (+ {ex.secondaryMuscles.map((m) => tr(t, 'muscle', m)).join(', ')})</small>}
-              </p>
-            )}
+            <ExerciseMuscles ex={ex} />
           </section>
 
           {ex.overview && (
@@ -259,7 +232,7 @@ export function ExerciseDetail() {
                   ))}
                 </ol>
               ) : null}
-              {ex.instructions && <p style={{ whiteSpace: 'pre-wrap' }}>{ex.instructions}</p>}
+              {ex.instructions && <p className="pre">{ex.instructions}</p>}
             </section>
           )}
 
@@ -287,19 +260,8 @@ export function ExerciseDetail() {
             <p>
               <strong>{t(`strategy.${ex.progression.strategy}`)}</strong> — <span className="help">{t(`strategy.help.${ex.progression.strategy}`)}</span>
             </p>
-            {ex.safetyNotes && <p className="error" style={{ whiteSpace: 'pre-wrap' }}><Icon name="warning" /> {ex.safetyNotes}</p>}
-            {ex.personalNotes && <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>{ex.personalNotes}</p>}
-            {ex.links.length > 0 && (
-              <ul>
-                {ex.links.map((l) => (
-                  <li key={l.url}>
-                    <a href={l.url} target="_blank" rel="noopener noreferrer">
-                      {l.label || l.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {ex.safetyNotes && <p className="error pre"><Icon name="warning" /> {ex.safetyNotes}</p>}
+            {ex.personalNotes && <p className="muted pre">{ex.personalNotes}</p>}
           </section>
 
           {related.length > 0 && (

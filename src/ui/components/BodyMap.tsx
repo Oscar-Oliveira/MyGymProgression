@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MUSCLE_SETS_GUIDE, muscleLevel, type MuscleLevel } from '../../domain/analysis';
+import type { MuscleRole } from '../../domain/audit';
 import { fmtNum, tr } from '../util';
 
 type Shape = { m?: string } & ({ rect: [number, number, number, number, number] } | { ell: [number, number, number, number] });
@@ -42,19 +43,26 @@ const BACK: Shape[] = [
   { m: 'hamstrings', rect: [52, 102, 12, 36, 6] },
 ];
 const LEVELS: MuscleLevel[] = ['none', 'low', 'ok', 'high'];
+const ROLES: MuscleRole[] = ['primary', 'secondary'];
 
 /**
  * Body map (D71): each of the 12 muscles coloured by its sets per week against the 10–20 guideline.
+ * With `roles` (D76) it shows the muscles one day or one exercise works instead: primary or secondary, and the sets of the day when given.
  * Tapping a muscle (or Enter on it) shows its name and value under the map.
  */
-export function BodyMap({ sets, lang, small }: { sets: Record<string, number>; lang: string; small?: boolean }) {
+export function BodyMap({ sets = {}, roles, lang, small }: { sets?: Record<string, number>; roles?: Record<string, MuscleRole>; lang: string; small?: boolean }) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState<string>();
-  const label = (m: string) => `${tr(t, 'muscle', m)}: ${t('bodyMap.sets', { n: fmtNum(sets[m] ?? 0, lang, 1) })}`;
+  const label = (m: string) =>
+    `${tr(t, 'muscle', m)}: ${
+      roles
+        ? [roles[m] ? t(`bodyMap.role.${roles[m]}`) : t('bodyMap.notWorked'), sets[m] ? t('bodyMap.daySets', { n: fmtNum(sets[m], lang, 1) }) : ''].filter(Boolean).join(' · ')
+        : t('bodyMap.sets', { n: fmtNum(sets[m] ?? 0, lang, 1) })
+    }`;
   const figure = (shapes: Shape[], dx: number, side: string) => (
     <g transform={`translate(${dx} 0)`}>
       {shapes.map((s, i) => {
-        const level = s.m ? muscleLevel(sets[s.m]) : undefined;
+        const level = s.m ? (roles ? (roles[s.m] ?? 'none') : muscleLevel(sets[s.m])) : undefined;
         const props = {
           className: s.m ? `bm-muscle bm-${level} ${picked === s.m ? 'on' : ''}` : 'bm-body',
           ...(s.m && {
@@ -84,15 +92,22 @@ export function BodyMap({ sets, lang, small }: { sets: Record<string, number>; l
         {figure(BACK, 110, 'back')}
       </svg>
       <p className="bm-picked" aria-live="polite">
-        {picked ? label(picked) : t('bodyMap.tap')}
+        {picked ? label(picked) : t(roles ? 'bodyMap.tapRole' : 'bodyMap.tap')}
       </p>
       <ul className="bm-legend">
-        {LEVELS.map((l) => (
-          <li key={l}>
-            <span className={`bm-swatch bm-${l}`} aria-hidden="true" />
-            {t(`bodyMap.level.${l}`, MUSCLE_SETS_GUIDE)}
-          </li>
-        ))}
+        {roles
+          ? ROLES.map((r) => (
+              <li key={r}>
+                <span className={`bm-swatch bm-${r}`} aria-hidden="true" />
+                {t(`bodyMap.role.${r}`)}
+              </li>
+            ))
+          : LEVELS.map((l) => (
+              <li key={l}>
+                <span className={`bm-swatch bm-${l}`} aria-hidden="true" />
+                {t(`bodyMap.level.${l}`, MUSCLE_SETS_GUIDE)}
+              </li>
+            ))}
       </ul>
     </div>
   );

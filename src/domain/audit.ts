@@ -49,3 +49,19 @@ export function planAudit(days: PlanDay[], exercises: Map<string, Exercise>): Pl
     if (Math.max(a, b) > AUDIT_RATIO_MAX * Math.min(a, b)) warnings.push({ kind: k, a, b });
   return { sets, warnings };
 }
+
+export type MuscleRole = 'primary' | 'secondary';
+
+/** Muscles of some exercises (D76): primary when any of them has it as a primary muscle, else secondary. */
+export function muscleRoles(exercises: Pick<Exercise, 'primaryMuscles' | 'secondaryMuscles'>[]): Record<string, MuscleRole> {
+  const out: Record<string, MuscleRole> = {};
+  for (const ex of exercises) for (const m of ex.secondaryMuscles) out[m] ??= 'secondary';
+  for (const ex of exercises) for (const m of ex.primaryMuscles) out[m] = 'primary';
+  return out;
+}
+
+/** Muscles a plan day works (D76): planned working sets per muscle (as in `planAudit`) and the role of each muscle. */
+export function dayMuscles(day: PlanDay, exercises: Map<string, Exercise>): { sets: Record<string, number>; roles: Record<string, MuscleRole> } {
+  const used = day.items.map((i) => exercises.get(i.exerciseId)).filter((e) => !!e);
+  return { sets: planAudit([day], exercises).sets, roles: muscleRoles(used) };
+}

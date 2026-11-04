@@ -189,7 +189,7 @@ export function Analysis() {
   return (
     <div>
       <PageCoach place="analysis" />
-      <div className="segmented" role="tablist" aria-label={t('analysis.period')}>
+      <div className="seg fill" role="tablist" aria-label={t('analysis.period')}>
         {PERIODS.map((p) => (
           <button key={p} role="tab" aria-selected={days === p} className={days === p ? 'on' : ''} onClick={() => setDays(p)}>
             {t(`analysis.p${p}`)}

@@ -196,7 +196,7 @@ export function DecisionCard({ entry, ev: stored, compact }: { entry: WorkoutEnt
   const pending = !compact && !!ev && canDecide(ev, state);
   const pill = <TrendPill trend={trend} />;
   const item = (
-    <ExerciseItem name={entry.exercise.name} thumb={thumbOf(entry.exerciseId, entry.exercise.thumb)} sub={what} trailing={pill} size={compact ? 'sm' : 'md'}>
+    <ExerciseItem name={entry.exercise.name} thumb={thumbOf(entry.exerciseId, entry.exercise.thumb)} sub={what} trailing={pill} size={compact ? 'sm' : 'md'} info={entry.exerciseId}>
       {compact && why && <span className="xitem-sub">{why}</span>}
     </ExerciseItem>
   );

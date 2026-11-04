@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planAudit } from './audit';
+import { dayMuscles, muscleRoles, planAudit } from './audit';
 import { addCircuit, addToCircuit } from './circuit';
 import { DEFAULT_SETTINGS, newDay, newExercise, newPlanItem } from './factory';
 import type { Exercise, PlanDay } from './types';
@@ -41,5 +41,14 @@ describe('plan audit', () => {
     // Glutes are a secondary muscle of the squat: no hip sets.
     expect(planAudit([day(3, squat)], all).warnings).toContainEqual({ kind: 'quadHip', a: 3, b: 0 });
     expect(planAudit([day(3, squat, curl)], all).warnings.some((w) => w.kind === 'quadHip')).toBe(false);
+  });
+});
+
+describe('muscles worked', () => {
+  it('a muscle is primary when any exercise has it as primary, else secondary', () => {
+    expect(muscleRoles([bench, ex('Dips', ['triceps'], ['chest'])])).toEqual({ chest: 'primary', triceps: 'primary', shoulders: 'secondary' });
+  });
+  it('a day gives its planned sets and the role of each muscle', () => {
+    expect(dayMuscles(day(3, squat, curl), all)).toEqual({ sets: { quads: 3, glutes: 1.5, hamstrings: 3 }, roles: { quads: 'primary', glutes: 'secondary', hamstrings: 'primary' } });
   });
 });

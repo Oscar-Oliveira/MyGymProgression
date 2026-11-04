@@ -68,11 +68,12 @@ npm run e2e                       # build + end-to-end tests (desktop and Pixel 
 2. **Home** shows one pending decision (missed reps): keep or step back.
 3. **Start workout**. Each set is pre-filled with today's goal; tap **✓ Set done**. **Next ›** moves to the next exercise.
 4. **Finish workout**: the summary shows ⬆ up / ＝ keep / ⬇ down for each exercise.
-5. **Plans**: give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
-6. **More → Personal trainer**: optional motivating messages, and extras (live reactions, technique tips, voice).
-7. **More → Reports**: Analysis (progress per exercise, sets per muscle per week with a body map, comparison with the previous period), Week (Sunday week report), You vs 3 months ago and Year (your year in the gym, as full-screen screens and a share image). **More → Settings**: JSON/CSV export and import.
-8. **More → Achievements**: medals for workouts, weeks in a row, volume, records and more; new ones show on the workout summary.
-9. **Plans → ⋯ → Share**: send the plan as a file, a link or one QR code per day; the link opens a preview and imports a copy. **Plans → Scan QR** reads the codes.
+5. **Train** lists the plans and their days (muscles of each day, plan balance, Edit, ⋯); give plans and days a colour; **⟳ Circuit** groups exercises done back to back (one "Circuit done" in the workout).
+6. The **ⓘ** next to an exercise opens its sheet (muscles, how to do it, tips, video) without leaving the page, also during a workout.
+7. **More → Personal trainer** (after turning it on in Settings → Features): optional motivating messages, and extras (live reactions, voice).
+8. **More → Reports**: Analysis (progress per exercise, sets per muscle per week with a body map, comparison with the previous period), Week (Sunday week report), You vs 3 months ago and Year (your year in the gym, as full-screen screens and a share image). **More → Settings**: JSON/CSV export and import.
+9. **More → Achievements**: medals for workouts, weeks in a row, volume, records and more; new ones show on the workout summary.
+10. **Train → plan ⋯ → Share**: send the plan as a file, a link or one QR code per day; the link opens a preview and imports a copy. **Train → Scan QR** reads the codes.
 
 ## Structure
 

@@ -129,6 +129,7 @@ small, .muted { color: var(--muted); }
 .col { display: flex; flex-direction: column; gap: 0.5rem; }
 .stack > * + * { margin-top: 0.75rem; }
 .spacer { flex: 1; }
+.flush-top { margin-top: 0; }
 .grid3 { display: grid; gap: 0.6rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* Buttons */
@@ -276,6 +277,14 @@ td.num, th.num { text-align: right; }
 .wk-nav > * { flex: 1; }
 @media (max-width: 899px) { .shell:not(.focus) .wk-nav { bottom: calc(var(--tabs-h) + 1.1rem + env(safe-area-inset-bottom)); } }
 .shell.focus { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+/* Workout in progress (D78): a bar above the tab bar, on every page but Home and the workout. */
+.active-bar { position: fixed; z-index: 19; left: 0.75rem; right: 0.75rem; bottom: calc(var(--tabs-h) + 1.1rem + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.9rem; border-radius: 16px; background: var(--tone); color: #fff; text-decoration: none; font-weight: 700; box-shadow: var(--shadow-lg); }
+.active-bar .main { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.active-bar small { color: inherit; font-size: 0.72rem; font-weight: 650; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.05em; }
+.active-bar .go { display: inline-flex; align-items: center; gap: 0.2rem; }
+.shell.has-bar:not(:has(.wk-nav)) { padding-bottom: calc(var(--tabs-h) + 6rem + env(safe-area-inset-bottom)); }
+body:has(.shell .wk-nav) .active-bar { display: none; }
+@media (min-width: 900px) { .active-bar { left: 50%; right: auto; bottom: 1rem; transform: translateX(-50%); width: min(560px, 90vw); } .shell.has-bar { padding-bottom: 6rem; } }
 /* A form with Cancel + Save (exercise, plan, correction) hides the tab bar, like the workout: more room to edit (D69). */
 body:has(.shell .wk-nav) .tabs { display: none; }
 .shell:has(.wk-nav) { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
@@ -296,6 +305,8 @@ body:has(.shell .wk-nav) .tabs { display: none; }
 .seg { display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 0.2rem; }
 .seg button { flex: none; min-height: 40px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); }
 .seg button.on { background: var(--tone); color: #fff; border-color: transparent; }
+/* A control that fills the width, such as the period of Analysis. */
+.seg.fill button { flex: 1; }
 /* Plan editor: one line per exercise; the open one shows its editor. */
 .item { padding: 0.35rem 0.6rem; margin-bottom: 0.45rem; }
 .item.open { padding: 0.6rem 0.85rem 0.85rem; border-color: color-mix(in srgb, var(--tone) 55%, var(--border)); }
@@ -381,6 +392,13 @@ a.xitem:hover .xitem-name { color: var(--accent); }
 .section-head h2 { margin: 0; }
 .section-head a { font-size: 0.9rem; color: var(--muted); text-decoration: none; background: none; border: 0; min-height: 0; padding: 0; font-weight: 600; }
 .card > .section-head:first-child { margin-top: 0; }
+.section-head a.btn { min-height: 36px; padding: 0 0.7rem; border: 1px solid var(--border); color: var(--text); }
+/* Train (D77): one block per plan, its head with the goal, Edit and ⋯. */
+.plan-head { align-items: center; flex-wrap: wrap; }
+.plan-head h2 a { font: inherit; color: inherit; }
+.plan-block + .plan-block { margin-top: 1.75rem; }
+.plan-row { padding: 0.8rem 1rem; margin-bottom: 0.5rem; }
+.plan-row .main { text-decoration: none; color: inherit; }
 
 /* Navigable list rows (history, plans, settings) */
 .nav-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0; text-decoration: none; color: inherit; min-height: 56px; }
@@ -500,9 +518,6 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 @keyframes toast-in { from { opacity: 0; transform: translateY(16px); } }
 
 /* Analysis: full-width period control and workouts per week */
-.segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border-radius: 14px; background: var(--surface-2); }
-.segmented button { min-height: 40px; padding: 0 0.3rem; border-radius: 11px; background: transparent; color: var(--muted); font-size: 0.9rem; }
-.segmented button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 /* Reports tabs (D57): underlined, so they differ from the period selector of Analysis below. */
 .period-range { text-align: center; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin: 0.45rem 0 0.2rem; }
 .weeks { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 0.2rem; scrollbar-width: none; }
@@ -519,6 +534,20 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .week-day .dot.planned { border: 2px dashed var(--tone); color: var(--text); }
 .day-card h3 { margin: 0 0 0.15rem; }
 .day-card .xl { margin-top: 0.6rem; }
+.day-title { margin: 0 0 0.15rem; }
+.day-meta { margin: 0 0 0.3rem; }
+.day-list { margin: 0.3rem 0 0.2rem; }
+.day-list > button.ghost { padding-left: 0; }
+.day-hero .xl { margin-top: 0.6rem; }
+.day-hero + .btn.ghost, .day-hero .btn.ghost { margin-top: 0.25rem; }
+.day-muscles > summary { min-height: 36px; font-weight: 500; font-size: 0.9rem; }
+.day-muscles > summary strong { color: var(--text); }
+.day-muscles .body-map { margin-top: 0.3rem; }
+/* On the solid hero the plan colour is the background: muscles in white. */
+.hero .bm-primary { --bm: #fff; }
+.hero .bm-secondary { --bm: rgb(255 255 255 / 0.5); }
+.hero .bm-none { --bm: rgb(0 0 0 / 0.18); }
+.hero .bm-body { fill: rgb(255 255 255 / 0.12); }
 
 /* Personal trainer face: the mouth moves for a moment when a message appears */
 .coach-avatar { flex: none; border-radius: 50%; }
@@ -555,6 +584,8 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .bm-low { --bm: var(--warn); }
 .bm-ok { --bm: var(--up); }
 .bm-high { --bm: var(--accent); }
+.bm-primary { --bm: var(--tone); }
+.bm-secondary { --bm: color-mix(in srgb, var(--tone) 40%, var(--surface-2)); }
 .bm-muscle { fill: var(--bm); }
 .bm-side { fill: var(--muted); font-size: 7px; text-anchor: middle; }
 .bm-picked { text-align: center; font-weight: 700; margin: 0.4rem 0; }
@@ -752,10 +783,24 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 @media (prefers-reduced-motion: reduce) { #splash img, .splash-tap, .splash-crew button.poked, .splash-crew .bubble { animation: none; } }
 
 /* Tip button and bubble (D54) */
+.pre { white-space: pre-wrap; }
+.ex-sheet .ex-hero { max-height: 220px; }
+.ex-sheet h3 { margin: 0 0 0.3rem; }
+.ex-sheet p { margin: 0; }
+.ex-sheet .setup-note { margin: 0.75rem 0 0; }
+.info-btn { flex: none; min-height: 0; min-width: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 1rem; line-height: 1.4; vertical-align: middle; }
+.info-btn:hover { color: var(--accent); border-color: var(--accent); }
+.xitem .info-btn, .pick-row .info-btn, .item-row .info-btn { padding: 0.35rem 0.5rem; }
+.pick-row { display: flex; align-items: center; gap: 0.25rem; border-bottom: 1px solid var(--border); }
+.pick-row button.pick { flex: 1; border-bottom: 0; }
+.item-row { display: flex; align-items: center; }
+.item-row .item-toggle { flex: 1; min-width: 0; }
+.ex-chips { margin-top: 0.6rem; }
 .tip-btn { min-height: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; font-size: 1rem; line-height: 1.4; vertical-align: middle; }
 .tip-btn.on { background: var(--warn-bg); border-color: var(--warn); }
 .coach.tip { align-items: flex-start; }
 .tip-body { flex: 1; min-width: 0; }
+.tip-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--warn-bg); color: var(--warn); }
 .tip-body small { display: block; color: var(--muted); margin-top: 0.2rem; }
 .tip-body .ghost { margin-top: 0.3rem; padding-left: 0; }
 
