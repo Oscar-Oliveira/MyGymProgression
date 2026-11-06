@@ -367,6 +367,8 @@ export interface Settings {
   secretGame?: boolean;
   /** Achievements page and new medals on the workout summary (D73). Default: on. */
   achievements?: boolean;
+  /** Gym name, shown on the splash as "@ name". Optional. */
+  gymName?: string;
 }
 
 /**

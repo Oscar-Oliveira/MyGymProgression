@@ -5,7 +5,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 ```json
 {
   "format": "mygymprogression",
-  "schemaVersion": 16,
+  "schemaVersion": 17,
   "exportedAt": "2026-10-29T10:00:00.000Z",
   "app": { "version": "0.1.0" },
   "scope": "full | library | plans",
@@ -44,6 +44,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 ## Import
 
 1. Migration. Older `schemaVersion` values are upgraded step by step (`MIGRATIONS` in `interchange.ts`, record functions in `migrations.ts`). A newer version is rejected.
+   - v16 → v17: additive only — `gymName` in settings (text, up to 40 characters; shown on the splash).
    - v15 → v16: additive only — `achievements` in settings (boolean; not set = on).
    - v14 → v15: additive only — `coach.name` (text, up to 40 characters) and `coach.look` in settings (`skin`, `hair`, `hairColor`, `beard`, `glasses`; see the enums in `schema.ts`). Without `look`, the face of the style and gender is used.
    - v13 → v14: additive only — `report`, `rival`, `retro` and `secretGame` in settings (booleans; `coach.report` / `coach.rival` stay valid and are read when the new ones are not set) and the game ids `legday` and `rerack`.

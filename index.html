@@ -14,6 +14,7 @@
       /* Splash: visible before the app loads; src/main.tsx fades it out. */
       #splash { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; background: #08090f; color: #f3f4fa; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; pointer-events: none; transition: opacity 0.35s ease; }
       #splash strong { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.4rem; }
+      #splash em { font-style: normal; font-size: 1rem; font-weight: 600; color: #c4c8d8; margin-top: -0.4rem; max-width: 90vw; text-align: center; overflow-wrap: anywhere; }
       #splash span { font-size: 0.85rem; color: #9298ad; font-variant-numeric: tabular-nums; }
       #splash.hide { opacity: 0; }
       @media (prefers-reduced-motion: reduce) { #splash { transition: none; } }
@@ -23,7 +24,16 @@
     <div id="splash">
       <img src="/icon.svg" width="88" height="88" alt="" aria-hidden="true" />
       <strong>MyGymProgression</strong>
+      <em id="splash-gym" hidden></em>
       <span>v%APP_VERSION%</span>
+      <script>
+        // The gym name (D80) from the last start, so it shows before the app loads. SplashCrew keeps it up to date.
+        try {
+          var gym = localStorage.getItem('gymName');
+          var el = document.getElementById('splash-gym');
+          if (gym) (el.textContent = '@ ' + gym), (el.hidden = false);
+        } catch (e) {}
+      </script>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

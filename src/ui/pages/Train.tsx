@@ -15,7 +15,10 @@ import { Icon } from '../components/Icon';
 import { PlanAuditCard } from '../components/PlanAuditCard';
 import { ShareSheet } from '../components/PlanShare';
 import { toneStyle } from '../colors';
+import { planText } from '../planText';
 import { useStart } from '../start';
+import { toast as notify } from '../components/Toast';
+import { useSettings } from '../util';
 
 /**
  * Train (D77): the plans and their days in one place. Each day starts a workout; each plan opens its editor,
@@ -23,6 +26,7 @@ import { useStart } from '../start';
  */
 export function Train() {
   const { t } = useTranslation();
+  const s = useSettings();
   const nav = useNavigate();
   const start = useStart();
   const [archived, setArchived] = useState(false);
@@ -49,12 +53,26 @@ export function Train() {
   const remove = async (p: Plan) => {
     if (await dialog.confirm(t('common.confirmDelete', { name: p.name }), { danger: true, ok: t('common.delete') })) await repo.deletePlan(p.id);
   };
+  /** Plans as text (D81), to paste in an AI chat. */
+  const copyText = async (plans: Plan[]) => {
+    const text = plans.flatMap((p) => {
+      const v = data.versions.find((x) => x.id === p.currentVersionId);
+      return v ? [planText(p, v, ctx, t, s.language)] : [];
+    });
+    try {
+      await navigator.clipboard.writeText(text.join('\n\n'));
+      notify(t('workout.textCopied'));
+    } catch {
+      notify(t('common.copyFailed'));
+    }
+  };
   const actions = (p: Plan) => (
     <ActionMenu
       title={p.name}
       actions={[
         { label: t('common.duplicate'), onClick: () => void duplicate(p) },
         { label: t('share.menu'), onClick: () => setSharing(p) },
+        { label: t('plan.copyText'), onClick: () => void copyText([p]) },
         { label: p.status === 'active' ? t('common.archive') : t('common.unarchive'), onClick: () => void db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' }) },
         { label: t('common.delete'), danger: true, onClick: () => void remove(p) },
       ]}
@@ -119,6 +137,11 @@ export function Train() {
       <button className="ghost xl" onClick={() => void start()}>
         <Icon name="plus" /> {t('workout.free')}
       </button>
+      {active.length > 1 && (
+        <button className="ghost" onClick={() => void copyText(active)}>
+          {t('plan.copyAll')}
+        </button>
+      )}
 
       {old.length > 0 && (
         <label className="check">

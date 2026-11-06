@@ -182,7 +182,7 @@ export const en = {
     advanced: 'Advanced', setBySet: 'Set by set', group: 'Superset', role: 'Role', substitutes: 'Substitutes',
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
-    startDay: 'Start this day', days: 'days', actions: 'Options for',
+    startDay: 'Start this day', copyText: 'Copy as text', copyAll: 'Copy all active plans as text', days: 'days', actions: 'Options for',
     dayGoal: 'Type of this day', dayFree: 'Free',
     goalHelp: {
       hypertrophy: 'Hypertrophy: 3×8–12. When every set reaches 12, you choose: more load (back to 8 reps) or more reps (9–13, same load).',
@@ -247,7 +247,7 @@ export const en = {
     },
   },
   settings: {
-    title: 'Settings', preferences: 'Preferences', features: 'Features', reportOn: 'Week report', rivalOn: 'You vs 3 months ago', coachSub: 'Messages in and out of the workout. Choose the style and the look in More › Personal trainer.', gameSound: 'Game sound', gameHaptic: 'Game vibration', theme: 'Theme', themes: { dark: 'Dark', light: 'Light', system: 'Same as system' }, library: 'Exercise library', danger: 'Danger zone', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after',
+    title: 'Settings', preferences: 'Preferences', gym: 'Gym', gymPlaceholder: 'E.g. City Gym Downtown', features: 'Features', reportOn: 'Week report', rivalOn: 'You vs 3 months ago', coachSub: 'Messages in and out of the workout. Choose the style and the look in More › Personal trainer.', gameSound: 'Game sound', gameHaptic: 'Game vibration', theme: 'Theme', themes: { dark: 'Dark', light: 'Light', system: 'Same as system' }, library: 'Exercise library', danger: 'Danger zone', language: 'Language', loadUnit: 'Default load unit', distanceUnit: 'Default distance unit', stalledThreshold: 'Stalled after',
     data: 'Backup and data', export: 'Export', exportFull: 'Full backup (JSON)', exportLibrary: 'Exercises (JSON)', exportPlans: 'Plans (JSON)',
     csvSets: 'Sets (CSV)', csvWorkouts: 'Workouts (CSV)', csvEvents: 'Progression (CSV)', import: 'Import', chooseFile: 'Restore or import (JSON file)',
     seed: 'Add starter exercises', seeded: '{{count}} exercises added.', importLibrary: 'Import library file', openLibrary: 'Install open library', openLibraryHelp: 'About 870 exercises with photos and instructions (English), from free-exercise-db (public domain). Download about 3 MB, once; then it works offline.', openLibraryFailed: 'The open library could not be downloaded. Check the connection and try again.', libraryNotice: 'Imports exercises from a library file (JSON, format in docs/data-format.md). Exercises you already have get the images and instructions; plans and history do not change. Only use data you are allowed to use.', libraryResult: '{{added}} added, {{updated}} updated.', libraryInvalid: 'This file is not an exercise library.', demo: 'Load demo data', demoConfirm: 'Add a demo plan and 6 weeks of example workouts?',
