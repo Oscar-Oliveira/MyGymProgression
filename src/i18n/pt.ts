@@ -184,7 +184,7 @@ export const pt: Resources = {
     advanced: 'Avançado', setBySet: 'Série a série', group: 'Superset', role: 'Função', substitutes: 'Substitutos',
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adiciona um dia de treino.', noItems: 'Ainda sem exercícios.',
-    startDay: 'Começar este dia', days: 'dias', actions: 'Opções de',
+    startDay: 'Começar este dia', copyText: 'Copiar como texto', copyAll: 'Copiar todos os planos ativos como texto', days: 'dias', actions: 'Opções de',
     dayGoal: 'Tipo deste dia', dayFree: 'Livre',
     goalHelp: {
       hypertrophy: 'Hipertrofia: 3×8–12. Quando todas as séries chegam a 12, escolhe: mais carga (volta a 8 reps) ou mais reps (9–13, mesma carga).',
@@ -249,7 +249,7 @@ export const pt: Resources = {
     },
   },
   settings: {
-    title: 'Definições', preferences: 'Preferências', features: 'Funcionalidades', reportOn: 'Relatório da semana', rivalOn: 'Tu vs há 3 meses', coachSub: 'Mensagens no treino e fora dele. O estilo e o aspeto escolhem-se em Mais › PT.', gameSound: 'Som nos jogos', gameHaptic: 'Vibração nos jogos', theme: 'Tema', themes: { dark: 'Escuro', light: 'Claro', system: 'Igual ao sistema' }, library: 'Biblioteca de exercícios', danger: 'Zona de perigo', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após',
+    title: 'Definições', preferences: 'Preferências', gym: 'Ginásio', gymPlaceholder: 'Ex.: Fitness Hut Porto', features: 'Funcionalidades', reportOn: 'Relatório da semana', rivalOn: 'Tu vs há 3 meses', coachSub: 'Mensagens no treino e fora dele. O estilo e o aspeto escolhem-se em Mais › PT.', gameSound: 'Som nos jogos', gameHaptic: 'Vibração nos jogos', theme: 'Tema', themes: { dark: 'Escuro', light: 'Claro', system: 'Igual ao sistema' }, library: 'Biblioteca de exercícios', danger: 'Zona de perigo', language: 'Idioma', loadUnit: 'Unidade de carga', distanceUnit: 'Unidade de distância', stalledThreshold: 'Estagnado após',
     data: 'Cópia de segurança e dados', export: 'Exportar', exportFull: 'Cópia completa (JSON)', exportLibrary: 'Exercícios (JSON)', exportPlans: 'Planos (JSON)',
     csvSets: 'Séries (CSV)', csvWorkouts: 'Treinos (CSV)', csvEvents: 'Progressão (CSV)', import: 'Importar', chooseFile: 'Restaurar ou importar (ficheiro JSON)',
     seed: 'Adicionar exercícios iniciais', seeded: '{{count}} exercícios adicionados.', importLibrary: 'Importar ficheiro da biblioteca', openLibrary: 'Instalar biblioteca aberta', openLibraryHelp: 'Cerca de 870 exercícios com fotos e instruções (em inglês), da free-exercise-db (domínio público). Descarrega cerca de 3 MB, uma vez; depois funciona offline.', openLibraryFailed: 'Não foi possível descarregar a biblioteca aberta. Verifica a ligação e tenta outra vez.', libraryNotice: 'Importa exercícios de um ficheiro de biblioteca (JSON, formato em docs/data-format.md). Os exercícios que já tens ficam com as imagens e as instruções; planos e histórico não mudam. Usa apenas dados que tens autorização para usar.', libraryResult: '{{added}} adicionados, {{updated}} atualizados.', libraryInvalid: 'Este ficheiro não é uma biblioteca de exercícios.', demo: 'Carregar dados de exemplo', demoConfirm: 'Adicionar um plano de exemplo e 6 semanas de treinos?',

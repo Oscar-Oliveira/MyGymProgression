@@ -297,6 +297,10 @@ export function SettingsPage() {
           </select>
         </label>
         <label className="setting-row">
+          <span>{t('settings.gym')}</span>
+          <input type="text" defaultValue={s.gymName ?? ''} maxLength={40} placeholder={t('settings.gymPlaceholder')} onChange={(e) => void repo.saveSettings({ gymName: e.target.value.trim() || undefined })} />
+        </label>
+        <label className="setting-row">
           <span>{t('settings.theme')}</span>
           <select value={s.theme ?? 'dark'} onChange={(e) => void repo.saveSettings({ theme: e.target.value as 'dark' | 'light' | 'system' })}>
             {(['dark', 'light', 'system'] as const).map((th) => (

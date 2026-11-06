@@ -7,6 +7,17 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-06',
+    pt: [
+      'Nome do ginásio: escreve-o em Definições → Preferências e aparece no ecrã de entrada, por baixo de MyGymProgression.',
+      'Planos como texto: em Treinar, ⋯ → Copiar como texto (ou todos os planos ativos de uma vez), com dias, exercícios, séries, cargas atuais e regra de progressão. Cola numa IA para analisar o plano.',
+    ],
+    en: [
+      'Gym name: type it in Settings → Preferences and it shows on the start screen, below MyGymProgression.',
+      'Plans as text: in Train, ⋯ → Copy as text (or all active plans at once), with days, exercises, sets, current loads and the progression rule. Paste it in an AI chat to review the plan.',
+    ],
+  },
+  {
     date: '2026-11-04',
     pt: [
       'Ficha do exercício: o botão ⓘ ao lado do nome abre os músculos, como fazer, dicas e vídeo sem sair da página, também durante o treino, no plano e ao escolher um exercício.',

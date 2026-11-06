@@ -32,6 +32,20 @@ export function SplashCrew() {
   const [poked, setPoked] = useState<{ i: number; at: number }>();
   const pokedAt = useRef(0);
 
+  // The gym name (D80): copied to localStorage, so index.html shows it at once on the next start.
+  useEffect(() => {
+    if (!settings) return;
+    const gym = settings.gymName?.trim();
+    try {
+      if (gym) localStorage.setItem('gymName', gym);
+      else localStorage.removeItem('gymName');
+    } catch {
+      // No storage: the name shows only after the settings load.
+    }
+    const el = document.getElementById('splash-gym');
+    if (el) (el.textContent = gym ? `@ ${gym}` : ''), (el.hidden = !gym);
+  }, [settings?.gymName]);
+
   const say = (i: number) => setTalk({ i, text: pick(t(`splash.say.${crew[i].style}`, { lng, returnObjects: true }) as string[]), at: Date.now() });
   useEffect(() => {
     if (!lng) return;
