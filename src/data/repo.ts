@@ -159,6 +159,11 @@ export function createRepo(db: GymDB) {
       await db.exercises.update(id, { personalNotes, updatedAt: nowIso() });
     },
 
+    /** Marks or unmarks an exercise as a favourite (D83). */
+    async setFavorite(id: string, on: boolean) {
+      await db.exercises.update(id, { favorite: on || undefined, updatedAt: nowIso() });
+    },
+
     /** Returns the names of plans that use the exercise. Deletion is allowed only when the list is empty. */
     async exerciseUsage(id: string): Promise<string[]> {
       const versions = await db.planVersions.toArray();

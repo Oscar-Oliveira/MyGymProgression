@@ -791,6 +791,11 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .info-btn { flex: none; min-height: 0; min-width: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 1rem; line-height: 1.4; vertical-align: middle; }
 .info-btn:hover { color: var(--accent); border-color: var(--accent); }
 .xitem .info-btn, .pick-row .info-btn, .item-row .info-btn { padding: 0.35rem 0.5rem; }
+/* Favourite star (D83): outline when off, filled amber when on. */
+.fav-btn { flex: none; min-width: 44px; min-height: 44px; padding: 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); }
+.fav-btn:hover { color: var(--accent); border-color: var(--accent); }
+.fav-btn.on, .fav-mark { color: #f5b301; }
+.fav-btn.on path, .fav-mark path { fill: currentColor; }
 .pick-row { display: flex; align-items: center; gap: 0.25rem; border-bottom: 1px solid var(--border); }
 .pick-row button.pick { flex: 1; border-bottom: 0; }
 .item-row { display: flex; align-items: center; }

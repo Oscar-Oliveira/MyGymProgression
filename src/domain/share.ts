@@ -5,11 +5,11 @@ import { buildBundle, emptyDataSet, type Bundle, type DataSet } from './intercha
 import type { Exercise } from './types';
 
 /**
- * Exercise as shared: personal notes are never included. For a link (lite), library text and images are left out
+ * Exercise as shared: personal notes and the favourite mark are never included. For a link (lite), library text and images are left out
  * to keep the address short; the receiver's library usually has them, and a later library import fills them in.
  */
 function shareExercise(e: Exercise, lite: boolean): Exercise {
-  const out = { ...e, personalNotes: '' };
+  const out = { ...e, personalNotes: '', favorite: undefined };
   if (!lite) return out;
   return { ...out, instructions: '', safetyNotes: '', links: [], thumb: undefined, image: undefined, video: undefined, overview: undefined, steps: undefined, tips: undefined, muscleDetail: undefined, related: undefined };
 }

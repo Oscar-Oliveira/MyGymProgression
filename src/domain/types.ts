@@ -82,6 +82,8 @@ export interface Exercise {
   instructions: string;
   safetyNotes: string;
   personalNotes: string;
+  /** Marked as a favourite: listed first in searches (D83). */
+  favorite?: boolean;
   tags: string[];
   links: Link[];
   active: boolean;

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, startWorkout, substitute, withCurrentPlan } from './workout';
+import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, timeOfDay, withTime, startWorkout, substitute, withCurrentPlan } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -430,5 +430,27 @@ describe('use the current plan in a correction (D70)', () => {
     const res = withCurrentPlan(w, t.plan, t.version, t.exercises, t.states, []);
     expect(res.changed).toBe(1);
     expect(res.workout.entries[0]).toBe(w.entries[0]);
+  });
+});
+
+describe('withTime (D82)', () => {
+  const local = (y: number, mo: number, d: number, h: number, mi: number) => new Date(y, mo, d, h, mi).toISOString();
+  const w = { startedAt: local(2026, 10, 5, 18, 0), endedAt: local(2026, 10, 5, 19, 10) } as Workout;
+  it('changes the start or the end on the same day, and the duration follows', () => {
+    const a = withTime(w, 'start', '17:30');
+    expect([timeOfDay(a.startedAt), a.endedAt]).toEqual(['17:30', w.endedAt]);
+    const b = withTime(w, 'end', '18:45');
+    expect([b.startedAt, timeOfDay(b.endedAt!)]).toEqual([w.startedAt, '18:45']);
+    expect(Date.parse(b.endedAt!) - Date.parse(b.startedAt)).toBe(45 * 60000);
+  });
+  it('puts an end before the start on the next day (past midnight)', () => {
+    const late = withTime(withTime(w, 'start', '23:00'), 'end', '00:30');
+    expect(Date.parse(late.endedAt!) - Date.parse(late.startedAt)).toBe(90 * 60000);
+  });
+  it('moves the end back to the start day when the start moves past it', () => {
+    const late = withTime(withTime(w, 'start', '23:00'), 'end', '00:30');
+    const back = withTime(late, 'start', '00:10');
+    expect(Date.parse(back.endedAt!) - Date.parse(back.startedAt)).toBe(20 * 60000);
+    expect(new Date(back.startedAt).getDate()).toBe(5);
   });
 });

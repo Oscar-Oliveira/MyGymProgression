@@ -1162,3 +1162,38 @@ test('train (D77, D78): plans with their days, muscles and balance; Start with a
   await confirm.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('button', { name: 'Workout options' })).toBeVisible();
 });
+
+test('correction (D82): start and end times change the duration', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [10, 10, 10]);
+  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await menu(page, 'Correct records');
+  await page.getByLabel('Start', { exact: true }).fill('10:00');
+  await page.getByLabel('End', { exact: true }).fill('11:15');
+  await expect(page.getByText('Duration: 1:15:00')).toBeVisible();
+  await page.getByRole('button', { name: 'Save correction' }).click();
+  await expect(page.locator('.stat', { hasText: 'Duration' })).toContainText('1:15:00');
+});
+
+test('favourites (D83): the star on the exercise page; the Favourites filter; the search lists favourites first', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  await more(page, /^Exercises/);
+  await page.getByLabel('Search').fill('Machine Chest Press');
+  await page.getByRole('link', { name: /^Machine Chest Press/ }).click();
+  await page.getByRole('button', { name: 'Mark Machine Chest Press as favourite' }).click();
+  await expect(page.getByRole('button', { name: 'Remove Machine Chest Press from favourites' })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.back-btn').click();
+  await page.getByLabel('Search').fill('');
+  await page.getByLabel('Favourites').check();
+  await expect(page.getByText('1 exercise', { exact: true })).toBeVisible();
+  await plans(page);
+  await page.getByRole('button', { name: 'New plan' }).click();
+  await page.getByRole('button', { name: 'Day' }).click();
+  await page.getByRole('button', { name: 'Add exercise' }).click();
+  const picker = page.getByRole('dialog', { name: 'Choose exercise' });
+  await expect(picker.getByText('Your favourites. Type to search all exercises.')).toBeVisible();
+  await expect(picker.locator('.pick')).toHaveCount(1);
+  await picker.getByPlaceholder('Search by name, other name or tag').fill('Press');
+  await expect(picker.locator('.pick').first()).toContainText('Machine Chest Press');
+  expect(await picker.locator('.pick').count()).toBeGreaterThan(1);
+});

@@ -30,7 +30,7 @@ JSON file produced by **Settings → Export**. The authoritative definition is t
 
 | Object | Purpose |
 |---|---|
-| `Exercise` | Library definition: metrics, default sets, default progression. |
+| `Exercise` | Library definition: metrics, default sets, default progression. Optional `favorite` (boolean, D83). |
 | `Plan` / `PlanVersion` | Plan metadata / content that is immutable once used (days → items → set prescriptions). |
 | `PlanItem.lineageId` | Stable across versions; keys `ProgressionState`. |
 | `ProgressionState` | Current progressed targets per lineage, e.g. `{ "load": 42.5 }`. |
@@ -102,7 +102,7 @@ A separate file to add many exercises at once (Settings → Exercise library →
 
 ## Shared plan
 
-A shared plan is a normal export bundle (scope `plans`) with one plan, one version and the exercises it uses. The plan, version, days, items and lineages have new ids, so an import always adds a new plan. It has no progression states, workouts or personal notes.
+A shared plan is a normal export bundle (scope `plans`) with one plan, one version and the exercises it uses. The plan, version, days, items and lineages have new ids, so an import always adds a new plan. It has no progression states, workouts, personal notes or favourite marks.
 
 - **File:** `<plan name>.mygymprogression.json`; import it in Settings → Import.
 - **Link:** `<app address>#/share?d=<code>`. The code is the bundle JSON, compressed with raw DEFLATE and encoded as base64url. Exercises in a link have no library text or images (`instructions`, `overview`, `steps`, `tips`, `thumb`, `image`, `video`, `muscleDetail`, `related`, `links` are empty). The link opens a preview; on import, exercises that already exist (same id, or same name and equipment) are reused.

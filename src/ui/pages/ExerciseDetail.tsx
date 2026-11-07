@@ -13,7 +13,7 @@ import { toast } from '../components/Toast';
 import type { TFunction } from 'i18next';
 import { db } from '../../data/db';
 import { exerciseGroup, relatedOf } from '../../domain/library';
-import { ExerciseLinks, ExerciseMuscles } from '../components/ExerciseSheet';
+import { ExerciseLinks, ExerciseMuscles, FavoriteButton } from '../components/ExerciseSheet';
 import { assetUrl, Thumb } from '../components/Thumb';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
@@ -148,6 +148,7 @@ export function ExerciseDetail() {
         aside={
           ex && (
             <>
+              <FavoriteButton ex={ex} />
               <Link className="btn outline" to={`/exercises/${ex.id}/edit`}>
                 {t('common.edit')}
               </Link>
