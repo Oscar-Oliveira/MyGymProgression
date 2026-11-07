@@ -7,6 +7,17 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-07',
+    pt: [
+      'Corrigir registos de um treino: muda também a hora de início e de fim, e a duração é recalculada.',
+      'Exercícios favoritos: toca na estrela na ficha ou na página do exercício. Ao escolher um exercício, os favoritos aparecem primeiro (escreve para procurar todos). Em Exercícios há o filtro Favoritos.',
+    ],
+    en: [
+      'Correct records of a workout: also change the start and end time, and the duration is calculated again.',
+      'Favourite exercises: tap the star on the exercise sheet or page. When you choose an exercise, favourites come first (type to search all). Exercises has a Favourites filter.',
+    ],
+  },
+  {
     date: '2026-11-06',
     pt: [
       'Nome do ginásio: escreve-o em Definições → Preferências e aparece no ecrã de entrada, por baixo de MyGymProgression.',

@@ -141,7 +141,7 @@ export const en = {
     prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
     pause: 'Pause', pauseLong: 'Pause — continue later', pauseHelp: 'The workout stays open. Continue it from Home or History.',
     resume: 'Resume workout', resumeHelp: 'Resuming undoes the progression changes of this workout; it is evaluated again when you finish it.',
-    otherInProgress: 'Another workout is open. Finish or discard it first.', statusLabel: 'Status', notDone: '{{count}} sets not done', notDone_one: '{{count}} set not done',
+    otherInProgress: 'Another workout is open. Finish or discard it first.', statusLabel: 'Status', startTime: 'Start', endTime: 'End', notDone: '{{count}} sets not done', notDone_one: '{{count}} set not done',
     interrupt: 'End early (interrupted)', discard: 'Discard workout', discardConfirm: 'Discard this workout? Nothing will be saved.',
     finishPending: '{{count}} sets are not done. They will count as skipped. Finish?', noEntries: 'No exercises. Add one from the menu ⋯.',
     status: { in_progress: 'Paused', completed: 'Completed', partial: 'Partially completed', interrupted: 'Interrupted' },
@@ -156,6 +156,7 @@ export const en = {
   dialog: { confirm: 'Confirm', notice: 'Notice', ok: 'OK' },
   history: { title: 'History', empty: 'No workouts yet.', count: '{{count}} workouts', count_one: '{{count}} workout', page: 'Page {{page}} of {{pages}}', pages: 'History pages', prev: 'Previous', next: 'Next' },
   exercise: {
+    favorites: 'Favourites', favAdd: 'Mark {{name}} as favourite', favRemove: 'Remove {{name}} from favourites', favHint: 'Your favourites. Type to search all exercises.',
     title: 'Exercises', new: 'New exercise', edit: 'Edit exercise', aliases: 'Other names (comma separated)', primary: 'Main muscles', secondary: 'Secondary muscles',
     equipment: 'Equipment', category: 'Category', instructions: 'Instructions / technique', safety: 'Safety notes', personal: 'Personal notes', tags: 'Tags (comma separated)',
     links: 'Images, videos, links', linkLabel: 'Label', linkUrl: 'URL', active: 'Active', inactive: 'Inactive', showInactive: 'Show inactive',

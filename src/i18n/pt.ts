@@ -143,7 +143,7 @@ export const pt: Resources = {
     prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
     pause: 'Pausar', pauseLong: 'Pausar — continuar mais tarde', pauseHelp: 'O treino fica aberto. Continua-o no Início ou no Histórico.',
     resume: 'Retomar treino', resumeHelp: 'Retomar anula as alterações de progressão deste treino; é avaliado de novo quando o terminares.',
-    otherInProgress: 'Há outro treino aberto. Termina-o ou descarta-o primeiro.', statusLabel: 'Estado', notDone: '{{count}} séries por fazer', notDone_one: '{{count}} série por fazer',
+    otherInProgress: 'Há outro treino aberto. Termina-o ou descarta-o primeiro.', statusLabel: 'Estado', startTime: 'Início', endTime: 'Fim', notDone: '{{count}} séries por fazer', notDone_one: '{{count}} série por fazer',
     interrupt: 'Terminar antes (interrompido)', discard: 'Descartar treino', discardConfirm: 'Descartar este treino? Nada será guardado.',
     finishPending: 'Há {{count}} séries por fazer. Contam como saltadas. Terminar?', noEntries: 'Sem exercícios. Adiciona um no menu ⋯.',
     status: { in_progress: 'Em pausa', completed: 'Concluído', partial: 'Parcialmente concluído', interrupted: 'Interrompido' },
@@ -158,7 +158,7 @@ export const pt: Resources = {
   dialog: { confirm: 'Confirmar', notice: 'Aviso', ok: 'OK' },
   history: { title: 'Histórico', empty: 'Ainda não há treinos.', count: '{{count}} treinos', count_one: '{{count}} treino', page: 'Página {{page}} de {{pages}}', pages: 'Páginas do histórico', prev: 'Anterior', next: 'Seguinte' },
   exercise: {
-    info: 'Sobre {{name}}', fullPage: 'Página completa: histórico, gráficos e metas',
+    info: 'Sobre {{name}}', favorites: 'Favoritos', favAdd: 'Marcar {{name}} como favorito', favRemove: 'Tirar {{name}} dos favoritos', favHint: 'Os teus favoritos. Escreve para procurar todos os exercícios.', fullPage: 'Página completa: histórico, gráficos e metas',
     title: 'Exercícios', new: 'Novo exercício', edit: 'Editar exercício', aliases: 'Outros nomes (separados por vírgulas)', primary: 'Músculos principais', secondary: 'Músculos secundários',
     equipment: 'Equipamento', category: 'Categoria', instructions: 'Instruções / técnica', safety: 'Notas de segurança', personal: 'Notas pessoais', tags: 'Etiquetas (separadas por vírgulas)',
     links: 'Imagens, vídeos, ligações', linkLabel: 'Etiqueta', linkUrl: 'URL', active: 'Ativo', inactive: 'Inativo', showInactive: 'Mostrar inativos',

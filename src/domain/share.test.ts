@@ -5,7 +5,7 @@ import { emptyDataSet, parseBundle, planMerge } from './interchange';
 import { seedExercises } from './seed';
 import { dayShare, decodeShare, encodeCompact, encodeShare, joinDays, parseQrLink, planShare, qrLink } from './share';
 
-const exercises = seedExercises(DEFAULT_SETTINGS).map((e, i) => (i === 0 ? { ...e, personalNotes: 'private', overview: 'long text' } : e));
+const exercises = seedExercises(DEFAULT_SETTINGS).map((e, i) => (i === 0 ? { ...e, personalNotes: 'private', overview: 'long text' } : e)).map((e) => ({ ...e, favorite: true }));
 const data = { ...generateDemo(exercises), exercises };
 const plan = data.plans[0];
 const used = new Set(data.planVersions.find((v) => v.id === plan.currentVersionId)!.days.flatMap((d) => d.items.map((i) => i.exerciseId)));
@@ -21,6 +21,7 @@ describe('planShare', () => {
     expect(b.data.workouts).toHaveLength(0);
     expect(b.data.progressionStates).toHaveLength(0);
     expect(b.data.exercises.every((e) => e.personalNotes === '')).toBe(true);
+    expect(b.data.exercises.some((e) => e.favorite)).toBe(false);
   });
   it('leaves library text out of a link', () => {
     const lite = planShare(data, plan.id, '0.1.0', true)!;

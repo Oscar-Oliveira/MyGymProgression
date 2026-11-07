@@ -292,6 +292,28 @@ export function finishWorkout(
   return { workout, ...eventsFor(workout, states) };
 }
 
+/** Local "HH:MM" of an ISO time. */
+export const timeOfDay = (iso: string) => {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+/**
+ * Correction of the start or end time ("HH:MM", local) of a finished workout (D82). The date does not change.
+ * The end is on the day of the start, or on the next day when it is before the start (past midnight).
+ */
+export function withTime(w: Workout, which: 'start' | 'end', hm: string): Workout {
+  const [h, m] = hm.split(':').map(Number);
+  const start = new Date(w.startedAt);
+  if (which === 'start') start.setHours(h, m, 0, 0);
+  if (!w.endedAt && which === 'start') return { ...w, startedAt: start.toISOString() };
+  const end = new Date(w.endedAt ?? w.startedAt);
+  if (which === 'end') end.setHours(h, m, 0, 0);
+  end.setFullYear(start.getFullYear(), start.getMonth(), start.getDate());
+  if (end < start) end.setDate(end.getDate() + 1);
+  return { ...w, startedAt: start.toISOString(), endedAt: end.toISOString() };
+}
+
 /**
  * Reopens a finished workout so it can be continued (resume after an interruption).
  * Skipped sets become pending again (sets left open at the interruption were saved as skipped); evaluations are removed,

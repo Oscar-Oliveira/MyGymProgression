@@ -20,6 +20,7 @@ const fromUrl = (params: URLSearchParams) => ({
   group: (params.get('group') ?? '') as MuscleGroup | '',
   equip: params.get('equip') ?? '',
   inactive: params.get('inactive') === '1',
+  fav: params.get('fav') === '1',
   n: Math.max(PAGE, Number(params.get('n')) || PAGE),
 });
 
@@ -38,7 +39,7 @@ export function ExerciseList() {
     // Only a new page of history counts, not each update of the URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-  const { q, group, equip, inactive, n: limit } = filters;
+  const { q, group, equip, inactive, fav, n: limit } = filters;
   const set = (next: Partial<typeof filters>) => {
     const v = { ...filters, n: PAGE, ...next };
     setFilters(v);
@@ -47,6 +48,7 @@ export function ExerciseList() {
     if (v.group) out.group = v.group;
     if (v.equip) out.equip = v.equip;
     if (v.inactive) out.inactive = '1';
+    if (v.fav) out.fav = '1';
     if (v.n > PAGE) out.n = String(v.n);
     setParams(out, { replace: true });
   };
@@ -71,12 +73,12 @@ export function ExerciseList() {
   const list = useMemo(
     () =>
       (all ?? [])
-        .filter((e) => (inactive || e.active) && (!group || exerciseGroup(e) === group) && (!equip || e.equipment === equip) && matches(e, q))
+        .filter((e) => (inactive || e.active) && (!fav || e.favorite) && (!group || exerciseGroup(e) === group) && (!equip || e.equipment === equip) && matches(e, q))
         .sort((a, b) => Number(!!b.thumb) - Number(!!a.thumb) || a.name.localeCompare(b.name)),
-    [all, q, group, equip, inactive],
+    [all, q, group, equip, inactive, fav],
   );
   if (!all) return null;
-  const showing = q || group || equip ? list.slice(0, limit) : [];
+  const showing = q || group || equip || fav ? list.slice(0, limit) : [];
   const importLib = async () => {
     setBusy(true);
     await repo.seedLibrary();
@@ -133,9 +135,14 @@ export function ExerciseList() {
             <label className="check">
               <input type="checkbox" checked={inactive} onChange={(e) => set({ inactive: e.target.checked })} /> {t('exercise.showInactive')}
             </label>
+            {(fav || all.some((e) => e.favorite)) && (
+              <label className="check">
+                <input type="checkbox" checked={fav} onChange={(e) => set({ fav: e.target.checked })} /> {t('exercise.favorites')}
+              </label>
+            )}
           </div>
 
-          {!q && !group && !equip ? (
+          {!q && !group && !equip && !fav ? (
             <section className="card">
               <h2>{t('exercise.groups')}</h2>
               {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (

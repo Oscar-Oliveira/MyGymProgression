@@ -33,6 +33,7 @@ export const exerciseSchema = z.object({
   instructions: z.string(),
   safetyNotes: z.string(),
   personalNotes: z.string(),
+  favorite: z.boolean().optional(),
   tags: z.array(z.string()),
   links: z.array(z.object({ label: z.string(), url: z.string() })),
   active: z.boolean(),

@@ -8,7 +8,7 @@ import type { Exercise, Workout, WorkoutEntry } from '../../domain/types';
 import { coachContext, coachMessage, speaksAfterStep } from '../../domain/coach';
 import { COACH_BANKS } from '../../i18n/coach';
 import { workoutSteps } from '../../domain/circuit';
-import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute } from '../../domain/workout';
+import { adHocLineage, entryAdHoc, moveToEnd, shortenWorkout, substitute, timeOfDay, withTime } from '../../domain/workout';
 import { beatsLastTime, rivalOn, rivalRows, rivalWorkout } from '../../domain/trainer';
 import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
@@ -510,6 +510,19 @@ export function WorkoutPage() {
                 ))}
               </select>
             </label>
+            <label className="setting-row">
+              <span>{t('workout.startTime')}</span>
+              <input type="time" value={timeOfDay(draft.startedAt)} onChange={(e) => e.target.value && setDraft(withTime(draft, 'start', e.target.value))} />
+            </label>
+            <label className="setting-row">
+              <span>{t('workout.endTime')}</span>
+              <input type="time" value={draft.endedAt ? timeOfDay(draft.endedAt) : ''} onChange={(e) => e.target.value && setDraft(withTime(draft, 'end', e.target.value))} />
+            </label>
+            {draft.endedAt && (
+              <p className="help">
+                {t('analysis.duration')}: {fmtSeconds((Date.parse(draft.endedAt) - Date.parse(draft.startedAt)) / 1000)}
+              </p>
+            )}
           </section>
           <CorrectionEditor draft={draft} onChange={setDraft} thumbOf={thumbOf} />
           <div className="wk-nav">

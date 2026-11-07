@@ -3,6 +3,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../data/db';
+import { repo } from '../../data/repo';
 import { muscleRoles } from '../../domain/audit';
 import { MUSCLES } from '../../domain/challenge';
 import { exerciseGroup, MUSCLE_DETAIL_PT } from '../../domain/library';
@@ -30,6 +31,17 @@ export function InfoButton({ id, name }: { id: string; name: string }) {
   return (
     <button type="button" className="info-btn" aria-label={t('exercise.info', { name })} onClick={open}>
       <Icon name="info" />
+    </button>
+  );
+}
+
+/** Star that marks or unmarks an exercise as a favourite (D83). */
+export function FavoriteButton({ ex }: { ex: Exercise }) {
+  const { t } = useTranslation();
+  const on = !!ex.favorite;
+  return (
+    <button type="button" className={`fav-btn ${on ? 'on' : ''}`} aria-pressed={on} aria-label={t(on ? 'exercise.favRemove' : 'exercise.favAdd', { name: ex.name })} onClick={() => void repo.setFavorite(ex.id, !on)}>
+      <Icon name="star" />
     </button>
   );
 }
@@ -102,9 +114,12 @@ function ExerciseSheet({ id, onClose }: { id: string; onClose: () => void }) {
     <Modal title={ex.name} onClose={onClose}>
       <div className="stack ex-sheet">
         {image && <img className="ex-hero" src={assetUrl(image)} alt={ex.name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />}
-        <p className="eyebrow">
-          {t(`group.${exerciseGroup(ex)}`)} · {tr(t, 'equipment', ex.equipment)}
-        </p>
+        <div className="row between">
+          <p className="eyebrow">
+            {t(`group.${exerciseGroup(ex)}`)} · {tr(t, 'equipment', ex.equipment)}
+          </p>
+          <FavoriteButton ex={ex} />
+        </div>
         <ExerciseMuscles ex={ex} />
         {ex.personalNotes && (
           <p className="setup-note">
