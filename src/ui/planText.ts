@@ -12,15 +12,15 @@ function rx(s: SetPrescription, metrics: MetricDef[], lang: string): string {
       const x = s.targets[m.key];
       if (!x) return [];
       const unit = m.key === 'reps' ? 'reps' : m.unit;
-      if (x.value !== undefined) return [fmtValue(x.value, unit, lang)];
+      if (x.value !== undefined) return [m.key === 'reps' ? `${fmtValue(x.value, unit, lang)} reps` : fmtValue(x.value, unit, lang)];
       if (x.min !== undefined || x.max !== undefined) return [`${x.min ?? '?'}${x.max !== undefined ? `–${x.max}` : '+'} ${unit}`.trim()];
       return [];
     })
     .join(' · ');
 }
 
-/** Equal sets in a row are grouped: "Warm-up: 1 × 10 reps · 20 kg; Working: 3 × 8–12 reps · 40 kg". */
-function setsText(sets: SetPrescription[], metrics: MetricDef[], t: TFunction, lang: string): string {
+/** Equal sets in a row, grouped: kind, "8–12 reps · 40 kg" and how many. */
+export function setGroups(sets: SetPrescription[], metrics: MetricDef[], lang: string): { kind: string; text: string; n: number }[] {
   const groups: { kind: string; text: string; n: number }[] = [];
   for (const s of sets) {
     const text = rx(s, metrics, lang) || '—';
@@ -28,7 +28,12 @@ function setsText(sets: SetPrescription[], metrics: MetricDef[], t: TFunction, l
     if (last && last.kind === s.kind && last.text === text) last.n++;
     else groups.push({ kind: s.kind, text, n: 1 });
   }
-  return groups.map((g) => `${t(`setKind.${g.kind}`)}: ${g.n} × ${g.text}`).join('; ');
+  return groups;
+}
+
+/** Equal sets in a row are grouped: "Warm-up: 1 × 10 reps · 20 kg; Working: 3 × 8–12 reps · 40 kg". */
+function setsText(sets: SetPrescription[], metrics: MetricDef[], t: TFunction, lang: string): string {
+  return setGroups(sets, metrics, lang).map((g) => `${t(`setKind.${g.kind}`)}: ${g.n} × ${g.text}`).join('; ');
 }
 
 export function planText(plan: Plan, version: PlanVersion, ctx: StartContext, t: TFunction, lang: string): string {

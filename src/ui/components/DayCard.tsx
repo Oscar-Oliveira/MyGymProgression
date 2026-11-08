@@ -46,6 +46,7 @@ export function DayCard({
   showPlan,
   all,
   onStart,
+  onShare,
   children,
 }: {
   plan: Plan;
@@ -59,6 +60,8 @@ export function DayCard({
   /** Every exercise at once, without "show more". */
   all?: boolean;
   onStart: () => void;
+  /** Shares the day as an image (D84): a small icon next to the eyebrow. */
+  onShare?: () => void;
   children?: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -71,7 +74,16 @@ export function DayCard({
   const meta = [showPlan && plan.name, day.weekday !== undefined && weekdays[day.weekday], t('home.size', { count: entries.length, sets })].filter(Boolean).join(' · ');
   return (
     <section className={hero ? 'hero toned day-hero' : `card day-card toned tone-bar ${next ? 'next' : ''}`} style={toneStyle(toneOf(plan, day))} aria-label={day.name}>
-      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+      {onShare ? (
+        <div className="day-head">
+          {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          <button type="button" className="ghost icon" aria-label={t('share.image')} title={t('share.image')} onClick={onShare}>
+            <Icon name="share" />
+          </button>
+        </div>
+      ) : (
+        eyebrow && <p className="eyebrow">{eyebrow}</p>
+      )}
       {hero ? (
         <h1>{day.name}</h1>
       ) : (

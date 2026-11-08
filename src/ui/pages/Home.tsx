@@ -21,6 +21,7 @@ import { backupDue } from '../../domain/backup';
 import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
 import { BodyMap } from '../components/BodyMap';
 import { Icon } from '../components/Icon';
+import { shareDayImage } from '../dayImage';
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
@@ -187,7 +188,7 @@ export function Home() {
           </Link>
         </section>
       ) : preview && plan && day ? (
-        <DayCard hero eyebrow={t('home.next')} plan={plan} day={day} entries={preview.entries} exercises={ctx.exercises} showPlan onStart={() => void startDay(plan.id, day.id)}>
+        <DayCard hero eyebrow={t('home.next')} plan={plan} day={day} entries={preview.entries} exercises={ctx.exercises} showPlan onStart={() => void startDay(plan.id, day.id)} onShare={() => void shareDayImage(plan, day, preview.entries, t, s.language)}>
           <Link to="/train" className="btn ghost xl">
             {t('home.otherDay')}
           </Link>

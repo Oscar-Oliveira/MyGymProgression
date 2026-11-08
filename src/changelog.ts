@@ -7,6 +7,11 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-08',
+    pt: ['Partilhar o treino como imagem: no Início, toca no ícone de partilha do próximo treino. Em Treinar, ⋯ → Partilhar → Partilhar como imagem, e escolhe o dia. A imagem tem os exercícios, o aquecimento, as séries e as cargas, para outra pessoa seguir.'],
+    en: ['Share the workout as an image: on Home, tap the share icon of the next workout. In Train, ⋯ → Share → Share as image, and choose the day. The image has the exercises, warm-up, sets and loads, for another person to follow.'],
+  },
+  {
     date: '2026-11-07',
     pt: [
       'Corrigir registos de um treino: muda também a hora de início e de fim, e a duração é recalculada.',

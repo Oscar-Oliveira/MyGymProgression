@@ -535,6 +535,8 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .day-card h3 { margin: 0 0 0.15rem; }
 .day-card .xl { margin-top: 0.6rem; }
 .day-title { margin: 0 0 0.15rem; }
+.day-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: -0.6rem -0.5rem 0 0; }
+.day-head .eyebrow { margin: 0; }
 .day-meta { margin: 0 0 0.3rem; }
 .day-list { margin: 0.3rem 0 0.2rem; }
 .day-list > button.ghost { padding-left: 0; }

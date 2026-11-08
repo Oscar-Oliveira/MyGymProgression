@@ -43,7 +43,7 @@ export function fit(ctx: CanvasRenderingContext2D, text: string, max: number): s
 }
 
 /** Splits a text in lines of at most `max` pixels (at most `lines` lines). */
-function wrap(ctx: CanvasRenderingContext2D, text: string, max: number, lines: number): string[] {
+export function wrap(ctx: CanvasRenderingContext2D, text: string, max: number, lines: number): string[] {
   const out: string[] = [];
   let cur = '';
   for (const word of text.split(/\s+/)) {
