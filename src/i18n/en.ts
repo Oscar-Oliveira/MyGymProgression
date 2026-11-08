@@ -279,6 +279,7 @@ export const en = {
     file: 'Send file', link: 'Share link', copied: 'Link copied.', fileHelp: 'The other person imports the file in Settings → Import.',
     qr: 'QR per day', qrDay: 'Day {{i}} of {{n}} · {{name}}', qrHelp: 'In the other app: Plans → Scan QR. For the whole plan, scan the QR of each day. For one day, scan only that one.',
     qrTooBig: 'This day has too many exercises for one QR. Use the link or the file.',
+    image: 'Share as image', imageHelp: 'Choose the day. The image has the exercises, warm-up, sets and today’s loads, for another person to follow the workout.',
   },
   scan: {
     open: 'Scan QR', title: 'Scan plan QR', help: 'Point the camera at the QR of a day. Scan the QR of every day to get the whole plan.',

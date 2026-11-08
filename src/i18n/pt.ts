@@ -280,6 +280,7 @@ export const pt: Resources = {
     file: 'Enviar ficheiro', link: 'Partilhar link', copied: 'Link copiado.', fileHelp: 'A outra pessoa importa o ficheiro em Definições → Importar.',
     qr: 'QR por dia', qrDay: 'Dia {{i}} de {{n}} · {{name}}', qrHelp: 'Na outra app: Planos → Ler QR. Para o plano todo, lê o QR de cada dia. Para um só dia, lê só esse.',
     qrTooBig: 'Este dia tem demasiados exercícios para um QR. Usa o link ou o ficheiro.',
+    image: 'Partilhar como imagem', imageHelp: 'Escolhe o dia. A imagem tem os exercícios, o aquecimento, as séries e as cargas de hoje, para outra pessoa seguir o treino.',
   },
   scan: {
     open: 'Ler QR', title: 'Ler QR de plano', help: 'Aponta a câmara ao QR de um dia. Lê os QR de todos os dias para ficares com o plano completo.',
