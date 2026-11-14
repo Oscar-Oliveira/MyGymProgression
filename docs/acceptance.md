@@ -5,7 +5,7 @@
 | 1 | Create, edit, reuse exercises | e2e "custom exercise…", "library → plan…"; `workout.test.ts` duplicate as variation |
 | 2 | Different measurement types and units | `analysis.test.ts` (lb/kg, per side, cardio); e2e custom duration exercise |
 | 3 | Create, modify, execute plans | e2e "library → plan → workout"; `repo.test.ts` plan edit/versions |
-| 4 | Each set recorded independently | e2e set-by-set logging; `workout.test.ts` pending → skipped |
+| 4 | Each set recorded independently | e2e set-by-set logging, e2e "quick view…" (D85); `workout.test.ts` pending → skipped, `editSet` |
 | 5 | Double progression follows rules | `progression.test.ts` §6.3 and §6.4 sequences |
 | 6 | Load increase only when all conditions hold | `progression.test.ts` exceptions (pain, technique, substitution, load below, cap); e2e auto increase, undo, missed reps → step back, skipped set → keep |
 | 7 | Incomplete sessions and manual overrides | `progression.test.ts` incomplete/skipped; `workout.test.ts` revert/keep/stepBack/set, manualAdjust |

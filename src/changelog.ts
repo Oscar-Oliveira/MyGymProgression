@@ -7,6 +7,11 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-14',
+    pt: ['Vista rápida do treino: no treino, toca no ícone de lista no topo para ver todos os exercícios e séries num só ecrã. Toca no ✓ para marcar a série (mantém premido para saltar) e no valor para mudar a carga ou as reps. Uma nova carga passa para as séries seguintes.'],
+    en: ['Quick view of the workout: in a workout, tap the list icon at the top to see every exercise and set on one screen. Tap ✓ to mark a set (press and hold to skip) and tap the value to change the load or reps. A new load goes to the next sets.'],
+  },
+  {
     date: '2026-11-08',
     pt: ['Partilhar o treino como imagem: no Início, toca no ícone de partilha do próximo treino. Em Treinar, ⋯ → Partilhar → Partilhar como imagem, e escolhe o dia. A imagem tem os exercícios, o aquecimento, as séries e as cargas, para outra pessoa seguir.'],
     en: ['Share the workout as an image: on Home, tap the share icon of the next workout. In Train, ⋯ → Share → Share as image, and choose the day. The image has the exercises, warm-up, sets and loads, for another person to follow.'],

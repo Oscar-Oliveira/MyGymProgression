@@ -11,7 +11,7 @@ import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
 import { InfoButton } from './ExerciseSheet';
 
-function stepFor(m: MetricDef): number {
+export function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
   if (m.key === 'duration') return m.unit === 'min' ? 1 : 5;
   if (m.key === 'speed' || m.key === 'distance') return 0.5;

@@ -29,6 +29,7 @@ import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
 import { CoachCard, coachIncrease, PageCoach } from '../components/CoachCard';
 import { CircuitFocus } from '../components/CircuitFocus';
+import { QuickView } from '../components/QuickView';
 import { CorrectionEditor } from '../components/CorrectionEditor';
 import { RivalCard, Speak, trainerLine } from '../components/TrainerBits';
 import { drawShareCard, shareImage } from '../shareCard';
@@ -59,6 +60,8 @@ export function WorkoutPage() {
   const [picker, setPicker] = useState<'add' | 'sub'>();
   const [menu, setMenu] = useState(false);
   const [list, setList] = useState(false);
+  // Quick view (D85): all sets on one screen. Each workout opens in the normal view.
+  const [quick, setQuick] = useState(false);
   // Personal trainer message shown for a few seconds after an exercise or circuit is done.
   const [toast, setToast] = useState<string>();
   useEffect(() => {
@@ -84,6 +87,7 @@ export function WorkoutPage() {
       if (loadedFor.current !== `${stored.id}:${stored.status}`) {
         const first = stored.entries.findIndex((e) => e.sets.some((x) => x.status === 'pending'));
         setCur(Math.max(0, workoutSteps(stored.entries).findIndex((st) => st.indexes.includes(first))));
+        setQuick(false);
       }
       loadedFor.current = `${stored.id}:${stored.status}`;
       setDraft(stored);
@@ -207,6 +211,9 @@ export function WorkoutPage() {
                 {t('workout.setsDone', { done: doneWorking, total: totalWorking })} <Icon name="chevronDown" />
               </span>
             </button>
+            <button className={`ghost icon ${quick ? 'on' : ''}`} aria-label={t('workout.quick')} aria-pressed={quick} onClick={() => (setQuick(!quick), window.scrollTo(0, 0))} disabled={!draft.entries.length}>
+              <Icon name="list" />
+            </button>
             <button className="ghost icon" aria-label={t('workout.menu')} onClick={() => setMenu(true)}>
               <Icon name="more" />
             </button>
@@ -216,7 +223,7 @@ export function WorkoutPage() {
               <span key={st.indexes[0]} className={i === cur ? 'cur' : stepDone(st) ? 'done' : ''} />
             ))}
           </div>
-          <div className="wk-chips" role="tablist" ref={chipsRef}>
+          {!quick && <div className="wk-chips" role="tablist" ref={chipsRef}>
             {steps.map((st, i) => {
               const e = draft.entries[st.indexes[0]];
               return (
@@ -229,18 +236,32 @@ export function WorkoutPage() {
                 </button>
               );
             })}
-          </div>
+          </div>}
         </div>
 
-        {coach && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} look={coach.look} name={coach.name} />}
-        {coach?.voice && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} lang={s.language} coach={coach} />}
+        {coach && !quick && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} look={coach.look} name={coach.name} />}
+        {coach?.voice && !quick && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} lang={s.language} coach={coach} />}
         {!draft.short && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
           <button className="chip short-chip" onClick={() => void shorten()}>
             <Icon name="timer" /> {t('workout.short')}
           </button>
         )}
 
-        {step?.circuit ? (
+        {quick ? (
+          <>
+            <QuickView
+              entries={draft.entries}
+              onChange={(e) => update({ ...draft, entries: draft.entries.map((x) => (x.id === e.id ? e : x)) })}
+              onOpen={(i) => (setCur(i), setQuick(false))}
+              thumbOf={thumbOf}
+            />
+            <div className="wk-nav">
+              <button className={pendingSets === 0 ? 'primary' : 'outline'} onClick={() => void finish()}>
+                <Icon name="check" /> {t('workout.finish')}
+              </button>
+            </div>
+          </>
+        ) : step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
         ) : entry ? (
           <EntryFocus
@@ -261,7 +282,7 @@ export function WorkoutPage() {
           <Empty>{t('workout.noEntries')}</Empty>
         )}
 
-        {toast && (
+        {toast && !quick && (
           <div className="coach coach-toast" role="status" aria-label={t('coach.title')}>
             <CoachAvatar style={coach?.style ?? 'support'} gender={coach?.gender} look={coach?.look} />
             <p>
@@ -275,7 +296,7 @@ export function WorkoutPage() {
           </div>
         )}
 
-        <div className="wk-nav">
+        {!quick && <div className="wk-nav">
           {cur > 0 && (
             <button className="outline" onClick={() => setCur(cur - 1)}>
               <Icon name="chevronLeft" /> {t('workout.prev')}
@@ -290,16 +311,16 @@ export function WorkoutPage() {
               <Icon name="check" /> {t('workout.finish')}
             </button>
           )}
-        </div>
+        </div>}
 
         {menu && (
           <Modal title={t('workout.menu')} onClose={() => setMenu(false)}>
             <div className="sheet">
               <button onClick={() => nav('/')}><Icon name="pause" /> {t('workout.pauseLong')}</button>
               <button onClick={() => (setMenu(false), setPicker('add'))}><Icon name="plus" /> {t('workout.addExercise')}</button>
-              {step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}><Icon name="download" /> {t('workout.later')}</button>}
+              {!quick && step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}><Icon name="download" /> {t('workout.later')}</button>}
               {!draft.short && <button onClick={() => void shorten()}><Icon name="timer" /> {t('workout.short')}</button>}
-              {entry && (
+              {!quick && entry && (
                 <button onClick={() => void removeEntry(entry)}>
                   {t('workout.removeEntry')}
                 </button>
@@ -329,7 +350,7 @@ export function WorkoutPage() {
                 const total = es.reduce((a, x) => a + x.sets.length, 0);
                 return (
                   <li key={st.indexes[0]}>
-                    <button className={`${i === cur ? 'cur' : ''} ${stepDone(st) ? 'done' : ''}`} onClick={() => (setCur(i), setList(false))}>
+                    <button className={`${i === cur ? 'cur' : ''} ${stepDone(st) ? 'done' : ''}`} onClick={() => (setCur(i), setList(false), setQuick(false))}>
                       <span className="idx">{stepDone(st) ? <Icon name="check" /> : i + 1}</span>
                       <Thumb src={thumbOf(e.exerciseId, e.exercise.thumb)} name={e.exercise.name} size={40} />
                       <span className="xitem-text">

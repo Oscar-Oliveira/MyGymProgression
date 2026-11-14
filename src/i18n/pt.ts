@@ -138,7 +138,7 @@ export const pt: Resources = {
   start: { inProgress: 'O treino "{{name}}" está em curso. Termina-o antes de começares outro.', continue: 'Continuar esse treino', bar: 'Treino em curso' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
-    free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
+    quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
     addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica',
     prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
     pause: 'Pausar', pauseLong: 'Pausar — continuar mais tarde', pauseHelp: 'O treino fica aberto. Continua-o no Início ou no Histórico.',
