@@ -466,6 +466,32 @@ test('strength (fixed 5×5): all sets done → load goes up automatically, undo 
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Kept at 20 kg (increase undone)', { exact: true })).toBeVisible();
 });
 
+test('quick view: all sets on one screen; a new load goes to the next sets; long press skips; the normal view shows the same sets', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await page.getByRole('button', { name: 'Quick view' }).click();
+  const quick = page.getByRole('region', { name: 'Quick view' });
+  await quick.getByRole('button', { name: /^Change Set 2:/ }).click();
+  await quick.getByLabel('Load', { exact: true }).fill('17.5');
+  await quick.getByRole('button', { name: 'OK' }).click();
+  await expect(quick.getByRole('button', { name: /^Change Set 1:.* 20 kg$/ })).toBeVisible();
+  await expect(quick.getByRole('button', { name: /^Change Set 2:.* 17\.5 kg$/ })).toBeVisible();
+  await expect(quick.getByRole('button', { name: /^Change Set 3:.* 17\.5 kg$/ })).toBeVisible();
+  await quick.getByRole('button', { name: 'Set 1 done' }).click();
+  await expect(quick.getByRole('button', { name: 'Set 1 done' })).toHaveAttribute('aria-pressed', 'true');
+  await quick.getByRole('button', { name: 'Set 3 done' }).click({ delay: 800 });
+  await expect(quick.getByRole('button', { name: 'Change Set 3: Skipped' })).toBeVisible();
+  await expect(page.getByText('1/3 sets')).toBeVisible();
+  // Back to the normal view: the same workout, set 2 open with the new load.
+  await page.getByRole('button', { name: 'Quick view' }).click();
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  await expect(chest.getByRole('button', { name: 'Set 3: Skipped' })).toBeVisible();
+  await expect(chest.getByLabel('Load', { exact: true })).toHaveValue('17.5');
+  // A new workout opens in the normal view.
+  await chest.getByRole('button', { name: 'Set done' }).click();
+  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await expect(page.getByRole('button', { name: 'Quick view' })).toHaveCount(0);
+});
+
 test('missed reps → asks keep or step back → step back lowers the load', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [9, 7, 6]);

@@ -219,7 +219,7 @@ td.num, th.num { text-align: right; }
 
 /* Workout: focused logging */
 .wk-head { position: sticky; top: 0; z-index: 15; margin: calc(-1rem - env(safe-area-inset-top)) -1rem 0.9rem; padding: calc(0.4rem + env(safe-area-inset-top)) 1rem 0.5rem; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid var(--border); }
-.wk-top { display: grid; grid-template-columns: auto 1fr var(--tap); align-items: center; gap: 0.25rem; }
+.wk-top { display: grid; grid-template-columns: auto 1fr var(--tap) var(--tap); align-items: center; gap: 0.25rem; }
 .wk-pause { min-height: 40px; padding: 0 0.8rem; font-size: 0.88rem; font-weight: 700; gap: 0.35rem; }
 .btn.icon, button.icon { width: var(--tap); padding: 0; font-size: 1.4rem; color: var(--text); }
 .wk-title { flex-direction: column; gap: 0; min-width: 0; background: transparent; padding: 0.2rem 0.5rem; border-radius: 12px; }
@@ -268,6 +268,29 @@ td.num, th.num { text-align: right; }
 /* Sticky action bar: a floating panel (like the tab bar), so it never cuts the content behind it. */
 .wk-nav { position: sticky; z-index: 10; bottom: calc(0.6rem + env(safe-area-inset-bottom)); display: flex; gap: 0.5rem; margin-top: 1rem; padding: 0.45rem; border-radius: 22px; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px); border: 1px solid var(--border); box-shadow: 0 8px 30px rgb(10 12 30 / 0.16); }
 .wk-nav button { min-height: 50px; border-radius: 16px; }
+/* Quick view (D85): every set of the workout on one screen. */
+button.icon.on { background: var(--tone-soft); color: var(--tone-text); }
+.quick { display: flex; flex-direction: column; gap: 0.7rem; }
+.quick-ex { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 0.6rem 0.7rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.quick-name { justify-content: flex-start; gap: 0.5rem; background: transparent; padding: 0.2rem 0; min-height: 40px; font-weight: 800; text-align: left; color: var(--text); }
+.quick-round .eyebrow { margin: 0.3rem 0 0.2rem; }
+.quick-set { border-radius: 14px; background: var(--surface-2); }
+.quick-set.done { background: var(--up-bg); }
+.quick-set.skipped { opacity: 0.55; }
+.quick-line { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.3rem 0.2rem 0.6rem; min-height: 52px; }
+.quick-line .n { width: 1.5rem; height: 1.5rem; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; background: var(--surface); color: var(--muted); }
+.quick-line .who { font-size: 0.8rem; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
+.quick-val { flex: 1; justify-content: flex-start; background: transparent; padding: 0.3rem 0.2rem; min-height: 44px; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); text-align: left; text-decoration: underline dotted var(--muted); text-underline-offset: 4px; }
+.quick-check { flex: none; width: var(--tap); min-height: var(--tap); padding: 0; border-radius: 50%; font-size: 1.3rem; background: var(--surface); color: var(--muted); border: 2px solid var(--border); -webkit-touch-callout: none; user-select: none; }
+.quick-set.done .quick-check { background: var(--up); border-color: var(--up); color: var(--surface); }
+.quick-set.warmup .quick-line, .quick-set.backoff .quick-line { min-height: 46px; }
+.quick-set.warmup .quick-val, .quick-set.backoff .quick-val { font-size: 0.92rem; font-weight: 600; }
+.quick-edit { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.3rem 0.6rem 0.6rem; }
+.quick-metric { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.quick-metric .lbl { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.quick-metric .ctl { display: grid; grid-template-columns: 44px 5.5rem 44px; align-items: center; gap: 0.3rem; }
+.quick-metric .ctl button { min-height: 44px; padding: 0; font-size: 1.2rem; border-radius: 12px; background: var(--tone-soft); color: var(--tone-text); }
+.quick-metric input { width: 100%; min-height: 44px; font-size: 1.15rem; font-weight: 800; text-align: center; padding: 0; font-variant-numeric: tabular-nums; }
 .wk-list { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
 .wk-list button { width: 100%; justify-content: flex-start; gap: 0.7rem; padding: 0.5rem 0.7rem; min-height: 60px; text-align: left; font-weight: inherit; background: transparent; border-radius: 14px; }
 .wk-list button.cur { background: var(--tone-soft); }

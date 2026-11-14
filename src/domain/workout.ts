@@ -208,6 +208,20 @@ export function addSet(entry: WorkoutEntry, kind: SetRecord['kind'] = 'working')
   return { ...entry, sets: [...entry.sets, set] };
 }
 
+/** Quick view (D85): changes the values of one set. A new load also goes to the next pending sets of the same kind. */
+export function editSet(entry: WorkoutEntry, setId: string, values: SetRecord['values']): WorkoutEntry {
+  const i = entry.sets.findIndex((x) => x.id === setId);
+  if (i < 0) return entry;
+  const set = entry.sets[i];
+  const load = typeof values.load === 'number' && !Number.isNaN(values.load) && values.load !== set.values.load ? values.load : undefined;
+  return {
+    ...entry,
+    sets: entry.sets.map((x, j) =>
+      j === i ? { ...x, values } : load !== undefined && j > i && x.kind === set.kind && x.status === 'pending' ? { ...x, values: { ...x.values, load } } : x,
+    ),
+  };
+}
+
 export function evaluateEntry(entry: WorkoutEntry, previous?: WorkoutEntry) {
   return evaluate({
     config: entry.progression,

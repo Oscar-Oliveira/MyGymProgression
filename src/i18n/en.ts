@@ -136,7 +136,7 @@ export const en = {
   start: { inProgress: 'The workout "{{name}}" is in progress. Finish it before you start another one.', continue: 'Continue that workout', bar: 'Workout in progress' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
-    free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
+    quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
     addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique',
     prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
     pause: 'Pause', pauseLong: 'Pause — continue later', pauseHelp: 'The workout stays open. Continue it from Home or History.',

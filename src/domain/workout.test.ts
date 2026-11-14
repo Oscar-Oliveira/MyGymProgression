@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, duplicateAsVariation, newDay, newExercise, newPlan, newPlanItem, saveVersion } from './factory';
 import { seedExercises, SEED_SIZE } from './seed';
 import type { ProgressionState, Workout, WorkoutEntry } from './types';
-import { addSet, decide, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, timeOfDay, withTime, startWorkout, substitute, withCurrentPlan } from './workout';
+import { addSet, decide, editSet, entryAdHoc, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resumable, timeOfDay, withTime, startWorkout, substitute, withCurrentPlan } from './workout';
 
 function setup() {
   const bench = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Chest Press' });
@@ -130,6 +130,36 @@ describe('workout flow', () => {
     expect(e.sets).toHaveLength(4);
     expect(e.sets[3].status).toBe('pending');
     expect(e.sets[3].values.load).toBe(40);
+  });
+
+  it('editSet: a new load goes to the next pending sets of the same kind only', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    const base = w.entries[1];
+    // Three working sets (the third already done), then a pending back-off set.
+    const entry = { ...base, sets: [...base.sets.map((x, i) => (i === 2 ? { ...x, status: 'done' as const } : x)), { ...base.sets[0], id: 'b', kind: 'backoff' as const }] };
+    const [s1, s2, s3, backoff] = entry.sets;
+    const e = editSet(entry, s1.id, { ...s1.values, load: 37.5 });
+    expect(e.sets.map((x) => x.values.load)).toEqual([37.5, 37.5, 40, 40]);
+    expect(e.sets.map((x) => x.id)).toEqual([s1.id, s2.id, s3.id, backoff.id]);
+    expect(e.sets[0].values.reps).toBe(s1.values.reps);
+  });
+
+  it('editSet: reps and a cleared load change only that set', () => {
+    const t = setup();
+    const w = startWorkout(t.plan, t.version, t.day, { exercises: t.exercises, states: t.states, lastEntry: t.lastEntry });
+    const entry = w.entries[1];
+    const [s1, s2] = entry.sets;
+    const reps = editSet(entry, s1.id, { ...s1.values, reps: 7 });
+    expect(reps.sets[0].values.reps).toBe(7);
+    expect(reps.sets[1].values).toEqual(s2.values);
+    const cleared = editSet(entry, s1.id, { ...s1.values, load: undefined });
+    expect(cleared.sets[0].values.load).toBeUndefined();
+    expect(cleared.sets[1].values.load).toBe(40);
+    // Earlier sets never change.
+    const last = editSet(entry, entry.sets[2].id, { ...entry.sets[2].values, load: 45 });
+    expect(last.sets[0].values.load).toBe(40);
+    expect(last.sets[2].values.load).toBe(45);
   });
 });
 
