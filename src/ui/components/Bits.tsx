@@ -1,8 +1,9 @@
 import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { Outcome, ProgressionStrategy } from '../../domain/types';
 import { Icon } from './Icon';
+import { MoreButton } from './NavSheets';
 
 const TONE: Record<Outcome, string> = {
   increase: 'up',
@@ -25,13 +26,17 @@ export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy
 }
 
 /** Title of every page: an optional line above, a subtitle below, a count and other content on the right. */
-export function PageHead({ eyebrow, title, sub, count, aside }: { eyebrow?: ReactNode; title: ReactNode; sub?: ReactNode; count?: ReactNode; aside?: ReactNode }) {
+export function PageHead({ eyebrow, title, sub, count, aside, more }: { eyebrow?: ReactNode; title: ReactNode; sub?: ReactNode; count?: ReactNode; aside?: ReactNode; more?: boolean }) {
   return (
     <div className="page-head">
-      <div>
-        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-        <h1>{title}</h1>
-        {sub && <small>{sub}</small>}
+      <div className="page-title">
+        <div>
+          {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          <h1>{title}</h1>
+          {sub && <small>{sub}</small>}
+        </div>
+        {/* Main pages (tabs) have the "More" grid in the header (V2-D10). */}
+        {more && <MoreButton />}
       </div>
       {(count !== undefined || aside) && (
         <div className="row wrap">
@@ -105,6 +110,24 @@ export function Pager({ page, pages, label, pageKey = 'page' }: { page: number; 
       <button className="outline" disabled={page >= pages} onClick={() => go(page + 1)}>
         {t('history.next')} <Icon name="chevronRight" />
       </button>
+    </nav>
+  );
+}
+
+/** Progress tab (V2-D10): reports and history, one switch on top of both pages. */
+export function ProgressSwitch({ on }: { on: 'reports' | 'history' | 'body' }) {
+  const { t } = useTranslation();
+  return (
+    <nav className="seg fill progress-switch" aria-label={t('nav.progress')}>
+      <Link to="/reports" className={on === 'reports' ? 'on' : ''} aria-current={on === 'reports' ? 'page' : undefined}>
+        {t('nav.reports')}
+      </Link>
+      <Link to="/history" className={on === 'history' ? 'on' : ''} aria-current={on === 'history' ? 'page' : undefined}>
+        {t('nav.history')}
+      </Link>
+      <Link to="/body" className={on === 'body' ? 'on' : ''} aria-current={on === 'body' ? 'page' : undefined}>
+        {t('nav.body')}
+      </Link>
     </nav>
   );
 }

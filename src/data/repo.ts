@@ -11,7 +11,7 @@ import { createChallenge, settleChallenges, weekKey } from '../domain/challenge'
 import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } from '../domain/sync';
 import { reportOn, reportWeek, weekReport } from '../domain/trainer';
 import { addWarmups } from '../domain/warmup';
-import type { Exercise, GameId, Goal, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
+import type { Exercise, GameId, Goal, MeasurePart, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
 import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, withCurrentPlan, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
@@ -455,6 +455,26 @@ export function createRepo(db: GymDB) {
         const workouts = data.workouts.map((w) => (w.status === 'in_progress' && w.id !== keep ? { ...w, status: 'interrupted' as const, endedAt: w.endedAt ?? w.updatedAt } : w));
         for (const t of TABLES) if (data[t].length) await db.table(t).bulkPut(t === 'workouts' ? workouts : data[t]);
       });
+    },
+
+    /** Body (V2-D6): a weigh-in (canonical kg) for a local date. */
+    async addBodyWeight(kg: number, date: string) {
+      await db.bodyWeights.add({ id: uid(), date, kg, createdAt: nowIso() });
+    },
+    async deleteBodyWeight(id: string) {
+      await db.bodyWeights.delete(id);
+    },
+    async addMeasurement(part: MeasurePart, value: number, date: string) {
+      await db.measurements.add({ id: uid(), date, part, value, createdAt: nowIso() });
+    },
+    async deleteMeasurement(id: string) {
+      await db.measurements.delete(id);
+    },
+    async addPhoto(dataUrl: string, date: string) {
+      await db.photos.add({ id: uid(), date, dataUrl, createdAt: nowIso() });
+    },
+    async deletePhoto(id: string) {
+      await db.photos.delete(id);
     },
 
     /** Replaces all data. Callers must create a backup first. */

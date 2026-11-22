@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { MetricDef, MetricKey, ProgressionConfig, ProgressionStrategy, SetKind, SetPrescription } from '../../domain/types';
 import { METRIC_KEYS } from '../../domain/types';
 import { DEFAULT_CRITERIA, isBuiltin, METRIC_UNITS } from '../../domain/units';
-import { metricLabel, metricShort } from '../util';
+import { metricLabel, metricShort, useSettings } from '../util';
+import { effortScale } from '../../domain/effort';
 import { NumInput } from './NumInput';
 import { Icon } from './Icon';
 
@@ -68,11 +69,13 @@ export function MetricsEditor({ metrics, onChange }: { metrics: MetricDef[]; onC
   );
 }
 
-const KINDS: SetKind[] = ['warmup', 'working', 'backoff'];
+const KINDS: SetKind[] = ['warmup', 'working', 'backoff', 'drop', 'restpause'];
 
 /** `fixedCount`: sets cannot be added or removed (a circuit item: one set per round, set by the circuit). */
 export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { sets: SetPrescription[]; metrics: MetricDef[]; fixedCount?: boolean; onChange: (s: SetPrescription[]) => void }) {
   const { t } = useTranslation();
+  // Target RIR per set (V2-D6), when effort is on and the exercise counts reps.
+  const withRir = !!effortScale(useSettings()) && metrics.some((m) => m.key === 'reps');
   const upd = (i: number, f: (s: SetPrescription) => SetPrescription) => onChange(sets.map((s, j) => (j === i ? f(structuredClone(s)) : s)));
   const setTarget = (i: number, key: MetricKey, field: 'value' | 'min' | 'max', v: number | undefined) =>
     upd(i, (s) => {
@@ -82,7 +85,7 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
       return s;
     });
   // Reps take two columns (min–max); every other metric one column.
-  const cols = { gridTemplateColumns: `1.6rem minmax(4.6rem, 1fr) ${metrics.map((m) => (m.key === 'reps' ? 'minmax(0, 1.6fr)' : 'minmax(0, 1fr)')).join(' ')} 2.2rem` };
+  const cols = { gridTemplateColumns: `1.6rem minmax(4.6rem, 1fr) ${metrics.map((m) => (m.key === 'reps' ? 'minmax(0, 1.6fr)' : 'minmax(0, 1fr)')).join(' ')}${withRir ? ' minmax(0, 0.8fr)' : ''} 2.2rem` };
   return (
     <div>
       {sets.length > 0 && (
@@ -96,6 +99,7 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
                 {m.unit !== 'reps' && <small>{m.unit}</small>}
               </span>
             ))}
+            {withRir && <span role="columnheader">RIR</span>}
             <span />
           </div>
           {sets.map((s, i) => (
@@ -118,6 +122,14 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
                 ) : (
                   <NumInput key={m.key} label={`${metricLabel(t, m.key, metrics)} ${i + 1}`} placeholder={t('prescription.target')} value={s.targets[m.key]?.value} onChange={(v) => setTarget(i, m.key, 'value', v)} />
                 ),
+              )}
+              {withRir && (
+                <NumInput
+                  label={`RIR ${i + 1}`}
+                  placeholder="–"
+                  value={s.rir}
+                  onChange={(v) => upd(i, (x) => ({ ...x, rir: v === undefined ? undefined : Math.max(0, Math.min(10, Math.round(v))) }))}
+                />
               )}
               {fixedCount ? (
                 <span />

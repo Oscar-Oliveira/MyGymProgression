@@ -47,6 +47,7 @@ export function DayCard({
   all,
   onStart,
   onShare,
+  menu,
   children,
 }: {
   plan: Plan;
@@ -62,6 +63,8 @@ export function DayCard({
   onStart: () => void;
   /** Shares the day as an image (D84): a small icon next to the eyebrow. */
   onShare?: () => void;
+  /** The day's ⋯ menu (V2-D10), next to its name. */
+  menu?: ReactNode;
   children?: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -87,9 +90,12 @@ export function DayCard({
       {hero ? (
         <h1>{day.name}</h1>
       ) : (
-        <h2 className="day-title">
-          {day.name} {next && <span className="pill tone">{t('train.next')}</span>}
-        </h2>
+        <div className="day-title-row">
+          <h2 className="day-title">
+            {day.name} {next && <span className="pill tone">{t('train.next')}</span>}
+          </h2>
+          {menu}
+        </div>
       )}
       <p className="muted day-meta">{meta}</p>
       <DayMuscles day={day} exercises={exercises} />

@@ -24,11 +24,14 @@ export interface Target {
   max?: number;
 }
 
-export type SetKind = 'warmup' | 'working' | 'backoff';
+/** drop: drop set (less load, right after); restpause: rest-pause (a short rest, more reps). Only working sets count for progression. */
+export type SetKind = 'warmup' | 'working' | 'backoff' | 'drop' | 'restpause';
 
 export interface SetPrescription {
   kind: SetKind;
   targets: Partial<Record<MetricKey, Target>>;
+  /** Target reps in reserve (V2-D6), e.g. 2 = stop 2 reps before failure. */
+  rir?: number;
 }
 
 export type ProgressionStrategy = 'double' | 'duration' | 'distance' | 'intensity' | 'multi' | 'manual' | 'none';
@@ -139,6 +142,8 @@ export interface PlanItem {
   progression?: ProgressionConfig;
   substitutes: string[];
   notes: string;
+  /** Rest after each set, in seconds (V2-D6). Not set = the setting. */
+  restSec?: number;
 }
 
 export interface PlanDay {
@@ -207,6 +212,8 @@ export interface SetRecord {
   goal?: Partial<Record<MetricKey, number>>;
   status: SetStatus;
   notes: string;
+  /** Reps in reserve logged for the set (0 = failure). The RPE scale shows 10 − RIR (V2-D6). */
+  rir?: number;
 }
 
 /** Copy of exercise fields at the time of the workout. Keeps history meaningful after edits. */
@@ -276,6 +283,8 @@ export interface WorkoutEntry {
   evaluation?: Evaluation;
   /** "Short on time" removed a working set: no increase this time (D40). */
   short?: boolean;
+  /** Rest after each set, from the plan item (V2-D6). */
+  restSec?: number;
 }
 
 export type WorkoutStatus = 'in_progress' | 'completed' | 'partial' | 'interrupted';
@@ -295,6 +304,9 @@ export interface Workout {
   updatedAt: string;
   /** "Short on time" was used (D40). */
   short?: boolean;
+  /** Rest timer running: when it ends, and its length in seconds (V2-D6). */
+  restUntil?: string;
+  restTotal?: number;
 }
 
 /**
@@ -371,6 +383,16 @@ export interface Settings {
   achievements?: boolean;
   /** Gym name, shown on the splash as "@ name". Optional. */
   gymName?: string;
+  /** Home shortcuts chosen by the user, in order (V2-D11). Not set = the default list. */
+  shortcuts?: string[];
+  /** Effort per set (V2-D6): reps in reserve, RPE, or off. Default: RIR. */
+  effort?: 'rir' | 'rpe' | 'off';
+  /** Rest between sets in seconds; 0 = off. Default: 90 (V2-D6). */
+  restSec?: number;
+  /** Bars and plates the user has, in the load unit (V2-D6). Not set = the defaults of the unit. */
+  equipment?: { bars: { barbell: number; ez_bar: number; trap_bar: number }; plates: number[] };
+  /** Target body weight, canonical kg (V2-D6). */
+  bodyGoal?: number;
 }
 
 /**
@@ -450,6 +472,33 @@ export interface Challenge {
   muscle?: string;
   status: 'open' | 'done' | 'missed';
   doneAt?: string;
+  createdAt: string;
+}
+
+/** Body (V2-D6): a weigh-in, in canonical kg. */
+export interface BodyWeight {
+  id: string;
+  /** Local date YYYY-MM-DD. */
+  date: string;
+  kg: number;
+  createdAt: string;
+}
+export const MEASURE_PARTS = ['waist', 'chest', 'hips', 'arm', 'thigh', 'calf', 'neck', 'shoulders', 'bodyFat'] as const;
+export type MeasurePart = (typeof MEASURE_PARTS)[number];
+/** A body measurement: centimetres, or percent for body fat. */
+export interface Measurement {
+  id: string;
+  date: string;
+  part: MeasurePart;
+  value: number;
+  createdAt: string;
+}
+/** A progress photo, kept small (JPEG data URL, at most 1080 px) so it fits in a backup. */
+export interface ProgressPhoto {
+  id: string;
+  date: string;
+  dataUrl: string;
+  note?: string;
   createdAt: string;
 }
 

@@ -18,6 +18,8 @@ import { achievementsOn } from '../../domain/achievements';
 import { fx, fxOn, setFx, type FxSetting } from '../games/feedback';
 import { NO_COACH } from './CoachPage';
 import { parseLibraryFile } from '../../domain/library';
+import { DEFAULT_REST, REST_CHOICES } from '../../domain/rest';
+import { EquipmentEditor } from '../components/EquipmentEditor';
 import { cachedCount, downloadMedia, mediaUrls } from '../media';
 import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
@@ -355,6 +357,30 @@ export function SettingsPage() {
       <section className="card">
         <label className="setting-row">
           <span className="lbl">
+            {t('effort.setting')}
+            <small>{t('effort.settingSub')}</small>
+          </span>
+          <select value={s.effort ?? 'rir'} onChange={(e) => void repo.saveSettings({ effort: e.target.value as 'rir' | 'rpe' | 'off' })}>
+            <option value="rir">RIR</option>
+            <option value="rpe">RPE</option>
+            <option value="off">{t('effort.off')}</option>
+          </select>
+        </label>
+        <label className="setting-row">
+          <span className="lbl">
+            {t('rest.setting')}
+            <small>{t('rest.settingSub')}</small>
+          </span>
+          <select value={s.restSec ?? DEFAULT_REST} onChange={(e) => void repo.saveSettings({ restSec: Number(e.target.value) })}>
+            {REST_CHOICES.map((sec) => (
+              <option key={sec} value={sec}>
+                {sec === 0 ? t('effort.off') : sec < 60 ? `${sec} s` : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')} min`}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="setting-row">
+          <span className="lbl">
             {t('settings.warmup')}
             <small>{t('settings.warmupSub')}</small>
           </span>
@@ -367,6 +393,13 @@ export function SettingsPage() {
           </span>
           <NumInput label={t('settings.stalledThreshold')} value={s.stalledThreshold} onChange={(v) => v && v >= 2 && v <= 20 && Number.isInteger(v) && void repo.saveSettings({ stalledThreshold: v })} />
         </label>
+      </section>
+
+      <div className="section-head">
+        <h2>{t('plates.title')}</h2>
+      </div>
+      <section className="card">
+        <EquipmentEditor />
       </section>
 
       <div className="section-head">

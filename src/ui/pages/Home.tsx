@@ -20,6 +20,8 @@ import { fmtDate, saveBackup, useSettings } from '../util';
 import { backupDue } from '../../domain/backup';
 import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
 import { BodyMap } from '../components/BodyMap';
+import { MoreButton } from '../components/NavSheets';
+import { ShortcutGrid } from '../components/Shortcuts';
 import { Icon } from '../components/Icon';
 import { shareDayImage } from '../dayImage';
 
@@ -145,7 +147,19 @@ export function Home() {
   return (
     <div>
       <div className="home-top">
-        <p className="eyebrow">{fmtDate(now.toISOString(), s.language)}</p>
+        {/* v2 header (V2-D10): date, greeting, search and the "More" grid. */}
+        <div className="home-head">
+          <div>
+            <p className="eyebrow">{fmtDate(now.toISOString(), s.language)}</p>
+            <h1>{t(`hello.${now.getHours() < 12 ? 'morning' : now.getHours() < 20 ? 'afternoon' : 'evening'}`)}</h1>
+          </div>
+          <div className="head-icons">
+            <Link to="/exercises" className="icon-btn" aria-label={t('nav.searchExercises')}>
+              <Icon name="search" />
+            </Link>
+            <MoreButton />
+          </div>
+        </div>
         <div className="week" aria-label={t('home.week')}>
           {days.map((d, i) => {
             const planned = d.past ? undefined : plannedOn(i)[0];
@@ -215,6 +229,8 @@ export function Home() {
           </button>
         </section>
       )}
+
+      <ShortcutGrid />
 
       {pending.length > 0 && (
         <section>

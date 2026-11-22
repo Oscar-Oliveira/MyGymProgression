@@ -7,9 +7,12 @@ const iso = z.string().min(10);
 const metricValues = z.record(metricKey, num);
 
 export const targetSchema = z.object({ value: num.optional(), min: num.optional(), max: num.optional() });
+const setKind = z.enum(['warmup', 'working', 'backoff', 'drop', 'restpause']);
+const rir = z.number().min(0).max(10);
 export const setPrescriptionSchema = z.object({
-  kind: z.enum(['warmup', 'working', 'backoff']),
+  kind: setKind,
   targets: z.record(metricKey, targetSchema),
+  rir: rir.optional(),
 });
 export const progressionSchema = z.object({
   strategy: z.enum(['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none']),
@@ -70,6 +73,7 @@ const planItem = z.object({
   progression: progressionSchema.optional(),
   substitutes: z.array(z.string()),
   notes: z.string(),
+  restSec: z.number().int().min(0).max(900).optional(),
 });
 
 export const planSchema = z.object({
@@ -114,12 +118,14 @@ const suggestion = z.object({ metric: metricKey, from: num, to: num, kind: z.enu
 
 const setRecord = z.object({
   id: z.string(),
-  kind: z.enum(['warmup', 'working', 'backoff']),
+  kind: setKind,
   values: metricValues,
   goal: metricValues.optional(),
   status: z.enum(['pending', 'done', 'skipped']),
   notes: z.string(),
+  rir: rir.optional(),
 });
+export const setRecordSchema = setRecord;
 
 const entry = z.object({
   id: z.string(),
@@ -137,6 +143,7 @@ const entry = z.object({
   technique: z.boolean(),
   notes: z.string(),
   short: z.boolean().optional(),
+  restSec: z.number().int().min(0).max(900).optional(),
   evaluation: z
     .object({
       strategy: progressionSchema.shape.strategy,
@@ -163,6 +170,8 @@ export const workoutSchema = z.object({
   entries: z.array(entry),
   updatedAt: iso,
   short: z.boolean().optional(),
+  restUntil: iso.optional(),
+  restTotal: z.number().min(0).optional(),
 });
 
 export const progressionEventSchema = z.object({
@@ -233,6 +242,11 @@ export const settingsSchema = z.object({
   secretGame: z.boolean().optional(),
   achievements: z.boolean().optional(),
   gymName: z.string().max(40).optional(),
+  shortcuts: z.array(z.string().max(40)).max(20).optional(),
+  effort: z.enum(['rir', 'rpe', 'off']).optional(),
+  restSec: z.number().int().min(0).max(900).optional(),
+  equipment: z.object({ bars: z.object({ barbell: num, ez_bar: num, trap_bar: num }), plates: z.array(num).max(20) }).optional(),
+  bodyGoal: z.number().positive().max(500).optional(),
 });
 
 export const gameScoreSchema = z.object({ id: z.string().min(1), game: z.enum(['memory', 'whack', 'muscle', 'flappy', 'runner', 'starship', 'legday', 'rerack']), score: num, at: iso });
@@ -264,7 +278,17 @@ export const coachReportSchema = z.object({
   createdAt: iso,
 });
 
-export const SCHEMA_VERSION = 17;
+export const bodyWeightSchema = z.object({ id: z.string().min(1), date: day, kg: z.number().positive().max(500), createdAt: iso });
+export const measurementSchema = z.object({
+  id: z.string().min(1),
+  date: day,
+  part: z.enum(['waist', 'chest', 'hips', 'arm', 'thigh', 'calf', 'neck', 'shoulders', 'bodyFat']),
+  value: z.number().positive().max(400),
+  createdAt: iso,
+});
+export const photoSchema = z.object({ id: z.string().min(1), date: day, dataUrl: z.string().startsWith('data:image/'), note: z.string().max(500).optional(), createdAt: iso });
+
+export const SCHEMA_VERSION = 18;
 export const FORMAT_ID = 'mygymprogression';
 
 export const bundleSchema = z.object({
@@ -285,6 +309,9 @@ export const bundleSchema = z.object({
     challenges: z.array(challengeSchema).default([]),
     goals: z.array(goalSchema).default([]),
     coachReports: z.array(coachReportSchema).default([]),
+    bodyWeights: z.array(bodyWeightSchema).default([]),
+    measurements: z.array(measurementSchema).default([]),
+    photos: z.array(photoSchema).default([]),
     settings: settingsSchema.optional(),
   }),
 });

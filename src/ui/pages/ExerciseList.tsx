@@ -89,6 +89,7 @@ export function ExerciseList() {
     <div>
       <PageHead
         title={t('exercise.title')}
+        more
         count={t('exercise.count', { count: all.filter((e) => e.active).length })}
         aside={
           <Link className="btn primary" to="/exercises/new">

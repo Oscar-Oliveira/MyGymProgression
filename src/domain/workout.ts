@@ -84,6 +84,7 @@ export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionS
     progression,
     group: item.group,
     role: item.role,
+    ...(item.restSec !== undefined ? { restSec: item.restSec } : {}),
     sets: setsFor(prescription, progression, prev),
     pain: false,
     technique: false,

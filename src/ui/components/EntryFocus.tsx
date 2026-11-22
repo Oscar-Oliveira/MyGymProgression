@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CoachSettings, LoadMode, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { addSet } from '../../domain/workout';
+import { effortBand, effortScale, effortText, RIR_CHOICES } from '../../domain/effort';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
 import { CoachAvatar, CoachName } from './CoachAvatar';
@@ -10,6 +11,7 @@ import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
 import { InfoButton } from './ExerciseSheet';
+import { PlateLine } from './PlateLine';
 
 export function stepFor(m: MetricDef): number {
   if (m.key === 'load') return m.unit === 'lb' ? 5 : 2.5;
@@ -43,10 +45,31 @@ function BigStepper({ def, metrics, loadMode, value, goal, onChange }: { def: Me
   );
 }
 
-function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntry; activeId?: string; onActivate: (id: string) => void; onChange: (e: WorkoutEntry) => void }) {
+/** Effort of the open set (V2-D6): one tap for 0…5+ reps in reserve (or the RPE equivalent); tap again to clear. */
+function EffortPicker({ scale, value, target, onChange }: { scale: 'rir' | 'rpe'; value?: number; target?: number; onChange: (rir: number | undefined) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="effort" role="group" aria-label={t('effort.label')}>
+      <span className="lbl">
+        {t(`effort.${scale}Long`)}
+        {target !== undefined && <span> · {t('effort.target', { value: effortText(target, scale) })}</span>}
+      </span>
+      <div className="effort-chips">
+        {RIR_CHOICES.map((r) => (
+          <button key={r} type="button" className={`chip effort-${effortBand(r)} ${value === r ? 'on' : ''}`} aria-pressed={value === r} aria-label={effortText(r, scale)} onClick={() => onChange(value === r ? undefined : r)}>
+            {scale === 'rpe' ? 10 - r : r >= 5 ? '5+' : r}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SetList({ entry, equipment, activeId, onActivate, onChange }: { entry: WorkoutEntry; equipment?: string; activeId?: string; onActivate: (id: string) => void; onChange: (e: WorkoutEntry) => void }) {
   const { t } = useTranslation();
   const s = useSettings();
   const metrics = entry.exercise.metrics;
+  const scale = effortScale(s);
   const up = (id: string, patch: Partial<SetRecord>) => onChange({ ...entry, sets: entry.sets.map((x) => (x.id === id ? { ...x, ...patch } : x)) });
   let working = 0;
   return (
@@ -68,6 +91,15 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
                   <BigStepper key={m.key} def={m} metrics={metrics} loadMode={entry.exercise.loadMode} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
                 ))}
               </div>
+              <PlateLine load={set.values.load} equipment={equipment} loadMode={entry.exercise.loadMode} />
+              {scale && set.kind !== 'warmup' && (
+                <EffortPicker
+                  scale={scale}
+                  value={set.rir}
+                  target={entry.prescription[entry.sets.indexOf(set)]?.rir}
+                  onChange={(rir) => up(set.id, { rir })}
+                />
+              )}
               <div className="row">
                 <button className="primary xl" disabled={blocked} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
                   <Icon name="check" /> {t('workout.setDone')}
@@ -89,7 +121,10 @@ function SetList({ entry, activeId, onActivate, onChange }: { entry: WorkoutEntr
         return (
           <button key={set.id} className={`set ${set.status} ${miss ? 'miss' : ''}`} onClick={() => onActivate(set.id)} aria-label={`${t('workout.setN', { n: label })}: ${set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language)}`}>
             <span className="n">{set.status === 'done' ? <Icon name="check" /> : label}</span>
-            <span className="v">{set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—'}</span>
+            <span className="v">
+              {set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—'}
+              {scale && set.rir !== undefined && set.status === 'done' && <span className={`eff effort-${effortBand(set.rir)}`}> · {effortText(set.rir, scale)}</span>}
+            </span>
             {set.status === 'pending' && set.goal?.reps !== undefined && <span className="g">{t('workout.goal', { value: set.goal.reps })}</span>}
           </button>
         );
@@ -115,6 +150,7 @@ export function EntryFocus({
   onTip,
   coach,
   info,
+  equipment,
 }: {
   entry: WorkoutEntry;
   previous?: WorkoutEntry;
@@ -127,6 +163,8 @@ export function EntryFocus({
   onTip?: (tip: string) => void;
   coach?: CoachSettings;
   info?: boolean;
+  /** Equipment of the exercise (for the plates of a bar). */
+  equipment?: string;
 }) {
   const { t } = useTranslation();
   const s = useSettings();
@@ -215,6 +253,7 @@ export function EntryFocus({
 
       <SetList
         entry={entry}
+        equipment={equipment}
         activeId={activeId}
         onActivate={(id) => {
           const x = entry.sets.find((y) => y.id === id);

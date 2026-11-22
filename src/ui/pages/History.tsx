@@ -6,7 +6,7 @@ import { dialog } from '../components/Dialog';
 import { resumable } from '../../domain/workout';
 import { db } from '../../data/db';
 import type { Workout } from '../../domain/types';
-import { askedPage, Empty, PAGE_SIZE, PageHead, Pager } from '../components/Bits';
+import { askedPage, Empty, PAGE_SIZE, PageHead, Pager, ProgressSwitch } from '../components/Bits';
 import { ThumbStack } from '../components/ExerciseItem';
 import { PageCoach } from '../components/CoachCard';
 import { useSettings, useThumbs } from '../util';
@@ -53,7 +53,8 @@ export function History() {
 
   return (
     <div>
-      <PageHead title={t('history.title')} count={total > 0 ? t('history.count', { count: total }) : undefined} />
+      <PageHead title={t('nav.progress')} count={total > 0 ? t('history.count', { count: total }) : undefined} more />
+      <ProgressSwitch on="history" />
       {total > 0 && <PageCoach place="history" />}
       {total === 0 ? (
         <Empty

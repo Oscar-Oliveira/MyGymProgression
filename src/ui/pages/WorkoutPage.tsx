@@ -20,6 +20,8 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, fmtMetric, rxLine, setsLine, setText, SyncCard } from '../progress';
+import { restAfterChange } from '../../domain/rest';
+import { RestBar } from '../components/RestBar';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { achievements, achievementsOn } from '../../domain/achievements';
@@ -151,7 +153,8 @@ export function WorkoutPage() {
         }
       }
     }
-    update(next);
+    // A set marked done starts the rest timer (V2-D6).
+    update(active ? restAfterChange(draft, next, s) : next);
   };
   const upEntry = (e: WorkoutEntry) => upEntries([e]);
   const stepDone = (st: Step) => stepEntries(st).every(entryDone);
@@ -277,6 +280,7 @@ export function WorkoutPage() {
             onTip={readTip}
             coach={coach}
             info={ctx.exercises.has(entry.exerciseId)}
+            equipment={ctx.exercises.get(entry.exerciseId)?.equipment}
           />
         ) : (
           <Empty>{t('workout.noEntries')}</Empty>
@@ -296,6 +300,7 @@ export function WorkoutPage() {
           </div>
         )}
 
+        {active && !quick && <RestBar workout={draft} onChange={update} />}
         {!quick && <div className="wk-nav">
           {cur > 0 && (
             <button className="outline" onClick={() => setCur(cur - 1)}>
@@ -474,10 +479,11 @@ export function WorkoutPage() {
             <ActionMenu
               title={draft.dayName ?? t('workout.free')}
               actions={[
-                { label: t('workout.correct'), onClick: () => setEditing(true) },
-                { label: t('workout.copyText'), onClick: () => void copyText() },
+                { label: t('workout.correct'), icon: 'edit', sub: t('menu.correctSub'), onClick: () => setEditing(true) },
+                { label: t('workout.copyText'), icon: 'note', sub: t('menu.copyTextSub'), onClick: () => void copyText() },
                 {
                   label: t('common.delete'),
+                  icon: 'trash',
                   danger: true,
                   onClick: async () => {
                     if (!(await dialog.confirm(t('workout.deleteConfirm'), { danger: true, ok: t('common.delete') }))) return;

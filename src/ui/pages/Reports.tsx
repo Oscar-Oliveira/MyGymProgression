@@ -5,7 +5,7 @@ import { db } from '../../data/db';
 import { weekKey } from '../../domain/challenge';
 import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
-import { Empty, PageHead, Pager, usePage } from '../components/Bits';
+import { Empty, PageHead, Pager, ProgressSwitch, usePage } from '../components/Bits';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
 import { fmtDate, useSettings } from '../util';
 import { Analysis } from './Analysis';
@@ -83,7 +83,8 @@ export function Reports() {
   const tab: Tab = tabs.find((x) => x === params.get('tab')) ?? 'analysis';
   return (
     <div>
-      <PageHead title={t('reports.title')} />
+      <PageHead title={t('nav.progress')} more />
+      <ProgressSwitch on="reports" />
       <div className="seg" role="tablist" style={{ marginBottom: '1rem' }} aria-label={t('reports.title')}>
         {tabs.map((x) => (
           <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? 'on' : ''} onClick={() => setParams(x === 'analysis' ? {} : { tab: x }, { replace: true })}>

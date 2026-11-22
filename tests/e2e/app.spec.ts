@@ -159,19 +159,39 @@ test('library file: muscle groups, detail with how-to, video and related exercis
   await expect(page.getByRole('heading', { name: 'Incline Bench Press', level: 1 })).toBeVisible();
 });
 
+/**
+ * v2 navigation (V2-D10): tabs Home · Plan · ▶ · Progress · Exercises; History is inside Progress; More opens from the
+ * header of a main page. The old names stay, so the tests read as before.
+ */
 async function tab(page: Page, name: 'Home' | 'Train' | 'History' | 'More') {
   const nav = page.getByRole('navigation', { name: 'Main' });
+  // The More sheet already open: keep it for "More", close it for a tab.
+  const sheet = page.getByRole('dialog', { name: 'More' });
+  if (await sheet.isVisible()) {
+    if (name === 'More') return;
+    await page.keyboard.press('Escape');
+    await expect(sheet).toHaveCount(0);
+  }
   // A form with Cancel + Save hides the tab bar (D69): leave it with Back first.
   if ((await page.locator('.shell .wk-nav').isVisible()) && (await page.locator('.back-btn').isVisible())) await page.locator('.back-btn').click();
-  await nav.getByRole('link', { name }).click();
+  if (name === 'Home') return nav.getByRole('link', { name: 'Home' }).click();
+  if (name === 'Train') return nav.getByRole('link', { name: 'Plan' }).click();
+  if (name === 'History') {
+    await nav.getByRole('link', { name: 'Progress' }).click();
+    return page.getByRole('navigation', { name: 'Progress' }).getByRole('link', { name: 'History' }).click();
+  }
+  // From the current page when it has the button; else from Exercises (a page without trainer messages, which show once a day).
+  const moreButton = page.getByRole('button', { name: 'More options' });
+  if (!(await moreButton.isVisible())) await nav.getByRole('link', { name: 'Exercises' }).click();
+  await moreButton.click();
 }
-/** Plans are listed in Train (D77). */
+/** Plans are listed in Plan (D77). */
 async function plans(page: Page) {
   await tab(page, 'Train');
 }
 async function more(page: Page, name: RegExp) {
   await tab(page, 'More');
-  await page.getByRole('link', { name }).click();
+  await page.getByRole('dialog').getByRole('link', { name }).click();
 }
 /** Opens the ⋯ menu of the page (secondary actions) and picks one. */
 async function menu(page: Page, action: string) {
@@ -648,14 +668,19 @@ test('a damaged share link shows an error', async ({ page }) => {
   await expect(page.getByText('This link is not valid or is incomplete.')).toBeVisible();
 });
 
-test('open library: installs from the app, with images for built-in exercises', async ({ page }) => {
+test('v2 library: installs from the app; images come from the source, with the attribution in Exercises', async ({ page }) => {
+  // The media is served by jsDelivr (V2-D12); here a tiny local image stands in, so the test does not need the network.
+  const tiny = Buffer.from('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64');
+  await page.route('https://cdn.jsdelivr.net/**', (r) => r.fulfill({ contentType: 'image/gif', body: tiny, headers: { 'access-control-allow-origin': '*' } }));
   await more(page, /^Settings/);
-  await page.getByRole('button', { name: /Install open library/ }).click();
-  await expect(page.getByText(/^\d{3} added, 0 updated\.$/)).toBeVisible({ timeout: 30000 });
-  await tab(page, 'More');
-  await page.getByRole('link', { name: /^Exercises/ }).click();
-  await page.getByRole('searchbox').fill('Barbell Squat');
-  await expect(page.getByRole('link', { name: /^Barbell Squat/ }).first().locator('img.thumb')).toBeVisible();
+  await page.getByRole('button', { name: /Install exercise library/ }).click();
+  await expect(page.getByText(/^1324 added, 0 updated\.$/)).toBeVisible({ timeout: 30000 });
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Barbell Full Squat');
+  const thumb = page.getByRole('link', { name: /^Barbell Full Squat/ }).first().locator('img.thumb');
+  await expect(thumb).toHaveAttribute('src', /^https:\/\/cdn\.jsdelivr\.net\/gh\/hasaneyldrm\/exercises-dataset@/);
+  await expect(thumb).toHaveAttribute('crossorigin', 'anonymous');
+  await expect(page.getByText(/Gym visual/)).toBeVisible();
 });
 
 test('analysis: weekly sets per muscle with the guideline, and comparison with the previous period', async ({ page }) => {
@@ -983,7 +1008,7 @@ test('reports without the trainer: tabs, the Sunday report on Home, the rival on
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
   await more(page, /^Reports/);
-  await expect(page.getByRole('heading', { name: 'Reports', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Progress', level: 1 })).toBeVisible();
   // Off: their tabs are not shown (D78).
   await expect(page.getByRole('tab', { name: 'Week' })).toHaveCount(0);
   await expect(page.getByRole('tab', { name: 'You vs 3 months' })).toHaveCount(0);
@@ -1222,4 +1247,39 @@ test('favourites (D83): the star on the exercise page; the Favourites filter; th
   await picker.getByPlaceholder('Search by name, other name or tag').fill('Press');
   await expect(picker.locator('.pick').first()).toContainText('Machine Chest Press');
   expect(await picker.locator('.pick').count()).toBeGreaterThan(1);
+});
+
+test('v2: effort (RIR), rest timer and plates per side in the workout', async ({ page }) => {
+  await planAndStart(page, ['Barbell Back Squat']);
+  const squat = page.getByRole('region', { name: 'Barbell Back Squat' });
+  await squat.getByLabel('Load', { exact: true }).fill('60');
+  await expect(squat.locator('.plates b')).toHaveText('20');
+  await squat.getByRole('button', { name: 'RIR 2' }).click();
+  await expect(squat.getByRole('button', { name: 'RIR 2' })).toHaveAttribute('aria-pressed', 'true');
+  await squat.getByLabel('Reps', { exact: true }).fill('8');
+  await squat.getByRole('button', { name: 'Set done' }).click();
+  const rest = page.getByRole('region', { name: 'Rest' });
+  await expect(rest.getByRole('timer')).toBeVisible();
+  await rest.getByRole('button', { name: '15 seconds more' }).click();
+  await rest.getByRole('button', { name: 'Skip' }).click();
+  await expect(rest).toHaveCount(0);
+  await expect(squat.locator('.eff').first()).toContainText('RIR 2');
+});
+
+test('v2: tools estimate the 1RM and the plates per side', async ({ page }) => {
+  await more(page, /^Tools/);
+  await page.getByLabel('Load (kg)', { exact: true }).fill('100');
+  await page.getByLabel('Reps', { exact: true }).fill('10');
+  await expect(page.locator('.tool-result .big').first()).toHaveText('133.3');
+  await page.getByLabel('Total load (kg)', { exact: true }).fill('102.5');
+  await expect(page.getByText('25 + 15 + 1.25')).toBeVisible();
+});
+
+test('v2: body weight from the Weight shortcut, shown in Progress → Body', async ({ page }) => {
+  await page.getByRole('button', { name: 'Weight', exact: true }).click();
+  const form = page.getByRole('dialog', { name: 'Log weight' });
+  await form.getByLabel('Body weight (kg)', { exact: true }).fill('78.4');
+  await form.getByRole('button', { name: 'Save' }).click();
+  await expect(page.locator('.tool-result .big')).toHaveText('78.4');
+  await expect(page.getByRole('navigation', { name: 'Progress' }).getByRole('link', { name: 'Body' })).toHaveAttribute('aria-current', 'page');
 });

@@ -256,6 +256,7 @@ export function PlanEdit() {
                 actions={[
                   {
                     label: t('plan.removeDay'),
+                    icon: 'trash',
                     danger: true,
                     onClick: async () => (await dialog.confirm(t('plan.removeDayConfirm', { name: day.name }), { danger: true, ok: t('common.remove') })) && (setDays(days.filter((d) => d.id !== day.id)), setDayIdx(0)),
                   },

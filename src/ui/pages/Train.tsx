@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { duplicatePlan, newPlan } from '../../domain/factory';
-import type { Plan } from '../../domain/types';
+import type { Plan, PlanVersion } from '../../domain/types';
 import { lastEntryFinder, nextDay, startWorkout } from '../../domain/workout';
 import { Empty, PageHead } from '../components/Bits';
 import { ActionMenu } from '../components/ActionMenu';
@@ -16,6 +16,7 @@ import { PlanAuditCard } from '../components/PlanAuditCard';
 import { ShareSheet } from '../components/PlanShare';
 import { toneStyle } from '../colors';
 import { planText } from '../planText';
+import { shareDayImage } from '../dayImage';
 import { useStart } from '../start';
 import { toast as notify } from '../components/Toast';
 import { useSettings } from '../util';
@@ -54,9 +55,9 @@ export function Train() {
     if (await dialog.confirm(t('common.confirmDelete', { name: p.name }), { danger: true, ok: t('common.delete') })) await repo.deletePlan(p.id);
   };
   /** Plans as text (D81), to paste in an AI chat. */
-  const copyText = async (plans: Plan[]) => {
+  const copyText = async (plans: Plan[], only?: PlanVersion) => {
     const text = plans.flatMap((p) => {
-      const v = data.versions.find((x) => x.id === p.currentVersionId);
+      const v = only ?? data.versions.find((x) => x.id === p.currentVersionId);
       return v ? [planText(p, v, ctx, t, s.language)] : [];
     });
     try {
@@ -70,11 +71,12 @@ export function Train() {
     <ActionMenu
       title={p.name}
       actions={[
-        { label: t('common.duplicate'), onClick: () => void duplicate(p) },
-        { label: t('share.menu'), onClick: () => setSharing(p) },
-        { label: t('plan.copyText'), onClick: () => void copyText([p]) },
-        { label: p.status === 'active' ? t('common.archive') : t('common.unarchive'), onClick: () => void db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' }) },
-        { label: t('common.delete'), danger: true, onClick: () => void remove(p) },
+        { label: t('common.edit'), icon: 'edit', sub: t('menu.editPlanSub'), onClick: () => nav(`/plans/${p.id}`) },
+        { label: t('common.duplicate'), icon: 'copy', sub: t('menu.duplicateSub'), onClick: () => void duplicate(p) },
+        { label: t('share.menu'), icon: 'share', sub: t('menu.shareSub'), onClick: () => setSharing(p) },
+        { label: t('plan.copyText'), icon: 'note', sub: t('menu.copyTextSub'), onClick: () => void copyText([p]) },
+        { label: p.status === 'active' ? t('common.archive') : t('common.unarchive'), icon: 'archive', sub: p.status === 'active' ? t('menu.archiveSub') : undefined, onClick: () => void db.plans.put({ ...p, status: p.status === 'active' ? 'archived' : 'active' }) },
+        { label: t('common.delete'), icon: 'trash', danger: true, onClick: () => void remove(p) },
       ]}
     />
   );
@@ -82,7 +84,8 @@ export function Train() {
   return (
     <div>
       <PageHead
-        title={t('train.title')}
+        title={t('nav.plan')}
+        more
         count={active.length > 0 ? t('plan.count', { count: active.length }) : undefined}
         aside={
           <>
@@ -119,16 +122,37 @@ export function Train() {
               </h2>
               <span className="row">
                 <span className="pill">{t(`goal.${p.goal}`)}</span>
-                <Link className="btn outline sm" to={`/plans/${p.id}`}>
-                  {t('common.edit')}
-                </Link>
                 {actions(p)}
               </span>
             </div>
             {v.days.length === 0 ? (
               <Empty>{t('plan.noDays')}</Empty>
             ) : (
-              v.days.map((d) => <DayCard key={d.id} plan={p} day={d} entries={startWorkout(p, v, d, ctx).entries} exercises={data.exercises} next={d.id === next?.id} onStart={() => void start(p.id, d.id)} />)
+              v.days.map((d) => {
+                const entries = startWorkout(p, v, d, ctx).entries;
+                return (
+                  <DayCard
+                    key={d.id}
+                    plan={p}
+                    day={d}
+                    entries={entries}
+                    exercises={data.exercises}
+                    next={d.id === next?.id}
+                    onStart={() => void start(p.id, d.id)}
+                    menu={
+                      <ActionMenu
+                        title={d.name}
+                        actions={[
+                          { label: t('home.start'), icon: 'play', onClick: () => void start(p.id, d.id) },
+                          { label: t('menu.editDay'), icon: 'edit', onClick: () => nav(`/plans/${p.id}`) },
+                          { label: t('share.image'), icon: 'image', sub: t('menu.imageSub'), onClick: () => void shareDayImage(p, d, entries, t, s.language) },
+                          { label: t('plan.copyText'), icon: 'note', sub: t('menu.copyTextSub'), onClick: () => void copyText([p], { ...v, days: [d] }) },
+                        ]}
+                      />
+                    }
+                  />
+                );
+              })
             )}
             {v.days.some((d) => d.items.length > 0) && <PlanAuditCard id={`plan-audit:${p.id}`} days={v.days} exercises={data.exercises} />}
           </section>

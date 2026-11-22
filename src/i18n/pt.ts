@@ -1,7 +1,7 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
+  nav: { main: 'Principal', home: 'Início', plan: 'Plano', progress: 'Progresso', scan: 'Ler QR', moreOptions: 'Mais opções', searchExercises: 'Procurar exercícios', tools: 'Ferramentas', body: 'Corpo', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
   more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', achievements: 'Medalhas pelo teu histórico', coach: 'Estilo, mensagens e voz' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
@@ -19,7 +19,7 @@ export const pt: Resources = {
   },
   metric: { reps: 'Repetições', load: 'Carga', duration: 'Duração', distance: 'Distância', speed: 'Velocidade', incline: 'Inclinação', resistance: 'Resistência', calories: 'Calorias', custom: 'Personalizada' },
   metricShort: { reps: 'Reps', load: 'Carga', duration: 'Tempo', distance: 'Dist.', speed: 'Vel.', incline: 'Incl.', resistance: 'Nível', calories: 'kcal' },
-  setKindShort: { warmup: 'Aquec.', working: 'Trab.', backoff: 'Back' },
+  setKindShort: { warmup: 'Aquec.', working: 'Trab.', backoff: 'Back', drop: 'Drop', restpause: 'R-P' },
   category: { compound: 'Composto', isolation: 'Isolamento', cardio: 'Cardio', warmup: 'Aquecimento', mobility: 'Mobilidade', other: 'Outro' },
   muscle: {
     chest: 'Peito', back: 'Costas', shoulders: 'Ombros', biceps: 'Bíceps', triceps: 'Tríceps', forearms: 'Antebraços', core: 'Core', quads: 'Quadríceps',
@@ -86,7 +86,7 @@ export const pt: Resources = {
   },
   trend: { up: 'Sobe', same: 'Mantém', down: 'Desce', ask: 'Decidir', done: 'Cumprido', short: 'Incompleto' },
   validation: { required: 'Obrigatório', invalid: 'Número inválido' },
-  setKind: { warmup: 'Aquecimento', working: 'Trabalho', backoff: 'Back-off' },
+  setKind: { warmup: 'Aquecimento', working: 'Trabalho', backoff: 'Back-off', drop: 'Drop set', restpause: 'Rest-pause' },
   setStatus: { done: 'Feita', skipped: 'Saltada' },
   role: { warmup: 'Aquecimento', main: 'Principal', optional: 'Opcional' },
   loadMode: { label: 'Carga registada como', total: 'Carga total', perSide: 'Por lado / por halter', short: { total: 'total', perSide: 'por lado' } },
@@ -446,5 +446,14 @@ export const pt: Resources = {
     done: 'Feito. Os teus dados estão na v2; a versão 1 ficou como estava.', home: 'Ir para o início', getMedia: 'Descarregar imagens dos exercícios',
     tables: { plans: 'Planos', planVersions: 'Versões de planos', progressionStates: 'Estados de progressão', workouts: 'Treinos', progressionEvents: 'Eventos de progressão', revisions: 'Correções', gameScores: 'Pontuações dos jogos', challenges: 'Desafios', goals: 'Metas', coachReports: 'Relatórios do PT', sets: 'Séries' },
   },
+  effort: { setting: 'Esforço por série', settingSub: 'RIR: repetições que ficam por fazer (0 = falha). RPE: 10 − RIR.', off: 'Desligado', label: 'Esforço da série', rirLong: 'RIR · repetições em reserva', rpeLong: 'RPE · esforço percebido', target: 'alvo {{value}}' },
+  body: { weight: 'Peso corporal', log: 'Registar peso', change: '{{value}} em 30 dias', rate: '{{value}}/semana', goal: 'objetivo {{value}}', goalLabel: 'Peso objetivo ({{unit}})', history: 'Registos ({{count}})', noWeight: 'Ainda sem registos de peso.', deleteWeight: 'Apagar o peso de {{date}}', deleteConfirm: 'Apagar este registo?', measures: 'Medidas', addMeasure: 'Nova medida', noMeasures: 'Ainda sem medidas.', part: 'Medida', date: 'Data', photos: 'Fotos de progresso', compare: 'Comparar', photoOf: 'Foto de {{date}}', noPhotos: 'Ainda sem fotos. Tira uma de frente, com a mesma luz, para comparar mais tarde.', addPhoto: 'Adicionar foto', photosPrivacy: 'As fotos ficam só neste telemóvel e na cópia de segurança. Nunca são enviadas.', before: 'Antes', after: 'Depois', slider: 'Mostrar mais de antes ou de depois', chart: 'Peso de {{from}} para {{to}} {{unit}}', parts: { waist: 'Cintura', chest: 'Peito', hips: 'Anca', arm: 'Braço', thigh: 'Coxa', calf: 'Gémeo', neck: 'Pescoço', shoulders: 'Ombros', bodyFat: 'Gordura corporal' } },
+  tools: { title: 'Ferramentas', sub: 'Estimativas pela fórmula de Epley: ajudam a escolher cargas, não substituem um teste.', oneRm: '1RM estimado', oneRmHelp: 'Escreve a carga e as repetições de uma série (e o RIR, se ficaram repetições por fazer).', estimate: 'estimativa', percent: 'Percentagens do 1RM', repsAt: 'reps a RIR {{rir}}', byRir: 'Carga por repetições e RIR', total: 'Carga total', bar: 'Barra', onlyBar: 'Só a barra: não precisa de discos.' },
+  plates: { bar: 'Barra {{bar}} {{unit}}', perSide: 'por lado', rest: 'faltam {{rest}} {{unit}} por lado', line: 'Barra {{bar}} {{unit}}, por lado {{plates}}', title: 'Barras e discos', sub: 'Para mostrar os discos por lado no treino.', barbell: 'Barra olímpica', ez_bar: 'Barra EZ', trap_bar: 'Barra hexagonal', have: 'Discos que tens' },
+  rest: { title: 'Descanso', over: 'Descanso terminado', less: 'Menos 15 segundos', more: 'Mais 15 segundos', skip: 'Saltar', default: 'Igual às definições', setting: 'Descanso entre séries', settingSub: 'Começa sozinho ao marcar uma série; cada exercício do plano pode ter o seu.' },
+  menu: { editPlanSub: 'Dias, exercícios, séries e progressão', duplicateSub: 'Uma cópia para editar', shareSub: 'Ficheiro, link, QR por dia ou imagem', copyTextSub: 'Para colar numa mensagem', archiveSub: 'Sai da lista e mantém o histórico', editDay: 'Editar dia', imageSub: 'Exercícios, séries e cargas de hoje', joinSub: 'Junta com um exercício repetido', correctSub: 'Séries, cargas, horas e estado' },
+  shortcuts: { title: 'Atalhos', edit: 'Editar', editTitle: 'Atalhos do Início', help: 'Escolhe os atalhos e a ordem. Fica guardado logo.', up: 'Subir {{name}}', down: 'Descer {{name}}', reset: 'Repor os atalhos de origem', backupDone: 'Cópia de segurança guardada.', items: { weight: 'Peso', onerm: '1RM', plates: 'Discos', free: 'Treino livre', history: 'Histórico', reports: 'Relatórios', exercises: 'Exercícios', newExercise: 'Novo exercício', scan: 'Ler QR', backup: 'Cópia de segurança', settings: 'Definições', achievements: 'Conquistas', games: 'Jogos', coach: 'Personal trainer' } },
+  startSheet: { title: 'Começar treino', next: 'Próximo: {{day}}' },
+  hello: { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
   picker: { title: 'Escolher exercício', placeholder: 'Pesquisar por nome, outro nome ou etiqueta' },
 };

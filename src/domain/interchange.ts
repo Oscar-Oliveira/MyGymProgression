@@ -1,7 +1,7 @@
 // Export/import logic for the versioned JSON interchange format. Pure functions; storage is done in src/data.
-import type { Challenge, CoachReport, Exercise, Goal, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
+import type { BodyWeight, Challenge, CoachReport, Exercise, Goal, GameScore, Measurement, Plan, PlanVersion, ProgressPhoto, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from './types';
 import { bundleSchema, FORMAT_ID, SCHEMA_VERSION } from './schema';
-import { v1to2 } from './migrations';
+import { dropRest, v1to2 } from './migrations';
 
 export interface DataSet {
   exercises: Exercise[];
@@ -15,11 +15,14 @@ export interface DataSet {
   challenges: Challenge[];
   goals: Goal[];
   coachReports: CoachReport[];
+  bodyWeights: BodyWeight[];
+  measurements: Measurement[];
+  photos: ProgressPhoto[];
   settings?: Settings;
 }
 
 export type TableName = Exclude<keyof DataSet, 'settings'>;
-export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions', 'gameScores', 'challenges', 'goals', 'coachReports'];
+export const TABLES: TableName[] = ['exercises', 'plans', 'planVersions', 'progressionStates', 'workouts', 'progressionEvents', 'revisions', 'gameScores', 'challenges', 'goals', 'coachReports', 'bodyWeights', 'measurements', 'photos'];
 export type Scope = 'full' | 'library' | 'plans';
 
 export interface Bundle {
@@ -37,7 +40,7 @@ export const keyOf = (table: TableName, r: object): string =>
   table === 'progressionStates' ? (r as ProgressionState).lineageId : (r as { id: string }).id;
 
 export function emptyDataSet(): DataSet {
-  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [], gameScores: [], challenges: [], goals: [], coachReports: [] };
+  return { exercises: [], plans: [], planVersions: [], progressionStates: [], workouts: [], progressionEvents: [], revisions: [], gameScores: [], challenges: [], goals: [], coachReports: [], bodyWeights: [], measurements: [], photos: [] };
 }
 
 /** Builds an export bundle. "library" = exercises only; "plans" = plans, versions, states and referenced exercises. */
@@ -67,8 +70,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   2: (raw) => ({ ...raw, schemaVersion: 3 }),
   // v4 only adds optional library fields to exercises (images, steps, video, source).
   3: (raw) => ({ ...raw, schemaVersion: 4 }),
-  // v5 removes rest times; validation drops the old restSec fields.
-  4: (raw) => ({ ...raw, schemaVersion: 5 }),
+  // v5 removes rest times. v2 brings back restSec with a new meaning (V2-D6), so the old values are dropped here.
+  4: (raw) => dropRest({ ...raw, schemaVersion: 5 }),
   // v6 only adds an optional goal per day (mixed plans).
   5: (raw) => ({ ...raw, schemaVersion: 6 }),
   // v7 only adds optional fields: colours, circuits, theme and personal trainer settings.
@@ -93,6 +96,8 @@ const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string
   15: (raw) => ({ ...raw, schemaVersion: 16 }),
   // v17 only adds the gym name (settings.gymName).
   16: (raw) => ({ ...raw, schemaVersion: 17 }),
+  // v18 (v2) only adds body data (weights, measurements, photos) and optional fields (RIR, set kinds, rest, equipment, shortcuts).
+  17: (raw) => ({ ...raw, schemaVersion: 18 }),
 };
 
 export type ParseResult = { ok: true; bundle: Bundle; migratedFrom?: number } | { ok: false; errors: string[] };

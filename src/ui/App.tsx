@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type TouchEvent } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createHashRouter, Link, Navigate, NavLink, Route, RouterProvider, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { db } from '../data/db';
@@ -24,6 +24,9 @@ import { Challenges } from './pages/Challenges';
 import { Achievements } from './pages/Achievements';
 import { CoachPage } from './pages/CoachPage';
 import { MigrationPage } from './pages/MigrationPage';
+import { ToolsPage } from './pages/ToolsPage';
+import { BodyPage } from './pages/BodyPage';
+import { StartSheet } from './components/NavSheets';
 import { Icon } from './components/Icon';
 import { toneStyle, useTones } from './colors';
 // Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
@@ -31,22 +34,19 @@ const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail').then((m) => (
 const GamesPage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamesPage })));
 const GamePage = lazy(() => import('./games/Games').then((m) => ({ default: m.GamePage })));
 
-// Outline icons (24×24, stroke = currentColor).
-const ICONS = {
-  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
-  train: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
-  history: 'M12 7v5l3 2M3.05 11a9 9 0 1 1 .5 4M3 4v4h4',
-  more: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
-} as const;
+// Tabs (V2-D10): Home · Plan · ▶ (start or resume) · Progress · Exercises. "More" opens from the page headers.
 const TABS = [
-  ['/', 'home'],
-  ['/train', 'train'],
-  ['/history', 'history'],
-  ['/more', 'more'],
+  ['/', 'home', 'home'],
+  ['/train', 'plan', 'calendar'],
+  ['/reports', 'progress', 'chart'],
+  ['/exercises', 'exercises', 'dumbbell'],
 ] as const;
-// The plan pages belong to Train (D77).
-const TRAIN_PATHS = ['/train', '/plans'];
-const MORE_PATHS = ['/more', '/exercises', '/reports', '/analysis', '/settings', '/about', '/games', '/challenges', '/coach'];
+/** Pages below each tab, for the active mark. The plan pages belong to Plan (D77); History belongs to Progress. */
+const TAB_PATHS: Record<string, string[]> = {
+  plan: ['/train', '/plans'],
+  progress: ['/reports', '/analysis', '/history', '/workout/', '/body'],
+  exercises: ['/exercises'],
+};
 
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
@@ -109,6 +109,7 @@ function Shell() {
   useScrollMemory();
   const toneFor = useTones();
   const active = useLiveQuery(() => db.workouts.where('status').equals('in_progress').first(), []);
+  const [starting, setStarting] = useState(false);
   // The active workout screen hides the tab bar to keep the focus on logging.
   const focus = !!active && pathname === `/workout/${active.id}`;
   // On a main tab, a horizontal swipe opens the tab to the left or right.
@@ -138,23 +139,27 @@ function Shell() {
     <>
       {!focus && (
         <nav className="tabs" aria-label={t('nav.main')}>
-          {TABS.map(([to, key]) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                isActive || (key === 'more' && MORE_PATHS.some((p) => pathname.startsWith(p))) || (key === 'train' && TRAIN_PATHS.some((p) => pathname.startsWith(p))) ? 'active' : ''
-              }
-            >
-              <svg className="ico" viewBox="0 0 24 24" aria-hidden="true">
-                <path d={ICONS[key]} />
-              </svg>
-              <span>{t(`nav.${key}`)}</span>
-            </NavLink>
+          {TABS.map(([to, key, icon], i) => (
+            <Fragment key={to}>
+              {i === 2 &&
+                (active ? (
+                  <Link to={`/workout/${active.id}`} className="tab-go" aria-label={t('home.continue')}>
+                    <Icon name="play" />
+                  </Link>
+                ) : (
+                  <button type="button" className="tab-go" aria-label={t('nav.train')} aria-haspopup="dialog" onClick={() => setStarting(true)}>
+                    <Icon name="play" />
+                  </button>
+                ))}
+              <NavLink to={to} end={to === '/'} className={({ isActive }) => (isActive || TAB_PATHS[key]?.some((p) => pathname.startsWith(p)) ? 'active' : '')}>
+                <Icon name={icon} />
+                <span>{t(`nav.${key}`)}</span>
+              </NavLink>
+            </Fragment>
           ))}
         </nav>
       )}
+      {starting && <StartSheet onClose={() => setStarting(false)} />}
       {/* A workout in progress is one tap away on every page (D78); Home shows it in its own card. */}
       {active && !focus && pathname !== '/' && (
         <Link to={`/workout/${active.id}`} className="active-bar toned" style={toneStyle(toneFor(active.planId, active.dayId))}>
@@ -201,6 +206,8 @@ function Shell() {
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/coach" element={<CoachPage />} />
             <Route path="/migrate" element={<MigrationPage />} />
+            <Route path="/tools" element={<ToolsPage />} />
+            <Route path="/body" element={<BodyPage />} />
           </Routes>
         </Suspense>
       </main>

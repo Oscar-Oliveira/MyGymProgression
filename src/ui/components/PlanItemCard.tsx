@@ -7,6 +7,7 @@ import { Thumb } from './Thumb';
 import { fmtValue, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
 import { InfoButton } from './ExerciseSheet';
+import { REST_CHOICES } from '../../domain/rest';
 
 
 type Goal = Pick<Plan, 'goal'>;
@@ -24,7 +25,7 @@ function setCount(sets: SetPrescription[], n: number): SetPrescription[] {
   const template = w[w.length - 1] ?? { kind: 'working' as const, targets: {} };
   const others = sets.filter((s) => s.kind !== 'working');
   const next = Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => w[i] ?? structuredClone(template));
-  return [...others.filter((s) => s.kind === 'warmup'), ...next, ...others.filter((s) => s.kind === 'backoff')];
+  return [...others.filter((s) => s.kind === 'warmup'), ...next, ...others.filter((s) => s.kind !== 'warmup' && s.kind !== 'working')];
 }
 
 interface ItemProps {
@@ -169,6 +170,17 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
                     {t(`role.${r}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t('rest.title')}
+              <select value={item.restSec ?? ''} onChange={(e) => onChange({ ...item, restSec: e.target.value === '' ? undefined : Number(e.target.value) })}>
+                <option value="">{t('rest.default')}</option>
+                {REST_CHOICES.map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec === 0 ? t('effort.off') : sec < 60 ? `${sec} s` : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')} min`}
                   </option>
                 ))}
               </select>

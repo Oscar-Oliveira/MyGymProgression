@@ -156,10 +156,11 @@ export function ExerciseDetail() {
               <ActionMenu
                 title={name}
                 actions={[
-                  { label: t('exercise.addToPlan'), onClick: () => setAdding(true) },
-                  { label: t('exercise.join'), onClick: () => setJoining(true) },
-                  { label: t('exercise.variation'), onClick: () => void variation() },
-                  { label: t('common.delete'), danger: true, onClick: () => void remove() },
+                  { label: t('common.edit'), icon: 'edit', onClick: () => nav(`/exercises/${ex.id}/edit`) },
+                  { label: t('exercise.addToPlan'), icon: 'plus', onClick: () => setAdding(true) },
+                  { label: t('exercise.join'), icon: 'swap', sub: t('menu.joinSub'), onClick: () => setJoining(true) },
+                  { label: t('exercise.variation'), icon: 'copy', onClick: () => void variation() },
+                  { label: t('common.delete'), icon: 'trash', danger: true, onClick: () => void remove() },
                 ]}
               />
             </>

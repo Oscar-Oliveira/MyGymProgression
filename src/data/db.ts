@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { dropRest, v1to2 } from '../domain/migrations';
-import type { Challenge, CoachReport, Exercise, Goal, GameScore, Plan, PlanVersion, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
+import type { BodyWeight, Challenge, CoachReport, Exercise, Goal, GameScore, Measurement, Plan, PlanVersion, ProgressPhoto, ProgressionEvent, ProgressionState, Revision, Settings, Workout } from '../domain/types';
 
 export class GymDB extends Dexie {
   exercises!: Table<Exercise, string>;
@@ -15,6 +15,9 @@ export class GymDB extends Dexie {
   challenges!: Table<Challenge, string>;
   goals!: Table<Goal, string>;
   coachReports!: Table<CoachReport, string>;
+  bodyWeights!: Table<BodyWeight, string>;
+  measurements!: Table<Measurement, string>;
+  photos!: Table<ProgressPhoto, string>;
 
   // v2 has its own database (V2-D2): the v1 database ('mygymprogression') stays as it was, so v1 can come back.
   constructor(name = 'mygymprogression-v2') {
@@ -49,6 +52,8 @@ export class GymDB extends Dexie {
     this.version(4).stores({ gameScores: 'id, game, at', challenges: 'id, week' });
     // v5: goals and the trainer's week reports.
     this.version(5).stores({ goals: 'id, exerciseId', coachReports: 'id, week' });
+    // v6 (v2, V2-D6): body weight, measurements and progress photos.
+    this.version(6).stores({ bodyWeights: 'id, date', measurements: 'id, date, part', photos: 'id, date' });
   }
 }
 

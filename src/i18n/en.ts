@@ -1,5 +1,5 @@
 export const en = {
-  nav: { main: 'Main', home: 'Home', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
+  nav: { main: 'Main', home: 'Home', plan: 'Plan', progress: 'Progress', scan: 'Scan QR', moreOptions: 'More options', searchExercises: 'Search exercises', tools: 'Tools', body: 'Body', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
   more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', achievements: 'Medals for your history', coach: 'Style, messages and voice' },
   about: {
     version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
@@ -17,7 +17,7 @@ export const en = {
   },
   metric: { reps: 'Reps', load: 'Load', duration: 'Duration', distance: 'Distance', speed: 'Speed', incline: 'Incline', resistance: 'Resistance', calories: 'Calories', custom: 'Custom' },
   metricShort: { reps: 'Reps', load: 'Load', duration: 'Time', distance: 'Dist.', speed: 'Speed', incline: 'Incl.', resistance: 'Level', calories: 'kcal' },
-  setKindShort: { warmup: 'Warm', working: 'Work', backoff: 'Back' },
+  setKindShort: { warmup: 'Warm', working: 'Work', backoff: 'Back', drop: 'Drop', restpause: 'R-P' },
   category: { compound: 'Compound', isolation: 'Isolation', cardio: 'Cardio', warmup: 'Warm-up', mobility: 'Mobility', other: 'Other' },
   muscle: {
     chest: 'Chest', back: 'Back', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms', core: 'Core', quads: 'Quadriceps',
@@ -84,7 +84,7 @@ export const en = {
   },
   trend: { up: 'Up', same: 'Keep', down: 'Down', ask: 'Decide', done: 'Done', short: 'Short' },
   validation: { required: 'Required', invalid: 'Invalid number' },
-  setKind: { warmup: 'Warm-up', working: 'Working', backoff: 'Back-off' },
+  setKind: { warmup: 'Warm-up', working: 'Working', backoff: 'Back-off', drop: 'Drop set', restpause: 'Rest-pause' },
   setStatus: { done: 'Done', skipped: 'Skipped' },
   role: { warmup: 'Warm-up', main: 'Main', optional: 'Optional' },
   loadMode: { label: 'Load recorded as', total: 'Total load', perSide: 'Per side / per dumbbell', short: { total: 'total', perSide: 'per side' } },
@@ -445,6 +445,15 @@ export const en = {
     done: 'Done. Your data is in v2; version 1 stayed as it was.', home: 'Go to Home', getMedia: 'Download exercise images',
     tables: { plans: 'Plans', planVersions: 'Plan versions', progressionStates: 'Progression states', workouts: 'Workouts', progressionEvents: 'Progression events', revisions: 'Corrections', gameScores: 'Game scores', challenges: 'Challenges', goals: 'Goals', coachReports: 'Trainer reports', sets: 'Sets' },
   },
+  effort: { setting: 'Effort per set', settingSub: 'RIR: reps left in reserve (0 = failure). RPE: 10 − RIR.', off: 'Off', label: 'Effort of the set', rirLong: 'RIR · reps in reserve', rpeLong: 'RPE · rate of perceived exertion', target: 'target {{value}}' },
+  body: { weight: 'Body weight', log: 'Log weight', change: '{{value}} in 30 days', rate: '{{value}}/week', goal: 'goal {{value}}', goalLabel: 'Goal weight ({{unit}})', history: 'Weigh-ins ({{count}})', noWeight: 'No weigh-ins yet.', deleteWeight: 'Delete the weight of {{date}}', deleteConfirm: 'Delete this entry?', measures: 'Measurements', addMeasure: 'New measurement', noMeasures: 'No measurements yet.', part: 'Measurement', date: 'Date', photos: 'Progress photos', compare: 'Compare', photoOf: 'Photo of {{date}}', noPhotos: 'No photos yet. Take one from the front, in the same light, to compare later.', addPhoto: 'Add photo', photosPrivacy: 'Photos stay on this device and in the backup. They are never sent.', before: 'Before', after: 'After', slider: 'Show more of before or after', chart: 'Weight from {{from}} to {{to}} {{unit}}', parts: { waist: 'Waist', chest: 'Chest', hips: 'Hips', arm: 'Arm', thigh: 'Thigh', calf: 'Calf', neck: 'Neck', shoulders: 'Shoulders', bodyFat: 'Body fat' } },
+  tools: { title: 'Tools', sub: 'Estimates with the Epley formula: they help to choose loads, they do not replace a test.', oneRm: 'Estimated 1RM', oneRmHelp: 'Type the load and reps of a set (and the RIR, if reps were left).', estimate: 'estimate', percent: 'Percentages of the 1RM', repsAt: 'reps at RIR {{rir}}', byRir: 'Load by reps and RIR', total: 'Total load', bar: 'Bar', onlyBar: 'The bar alone: no plates needed.' },
+  plates: { bar: 'Bar {{bar}} {{unit}}', perSide: 'per side', rest: '{{rest}} {{unit}} per side missing', line: 'Bar {{bar}} {{unit}}, per side {{plates}}', title: 'Bars and plates', sub: 'To show the plates per side in the workout.', barbell: 'Olympic bar', ez_bar: 'EZ bar', trap_bar: 'Trap bar', have: 'Plates you have' },
+  rest: { title: 'Rest', over: 'Rest is over', less: '15 seconds less', more: '15 seconds more', skip: 'Skip', default: 'Same as Settings', setting: 'Rest between sets', settingSub: 'Starts by itself when a set is marked; each plan exercise can have its own.' },
+  menu: { editPlanSub: 'Days, exercises, sets and progression', duplicateSub: 'A copy to edit', shareSub: 'File, link, QR per day or image', copyTextSub: 'To paste in a message', archiveSub: 'Leaves the list and keeps the history', editDay: 'Edit day', imageSub: 'Exercises, sets and today’s loads', joinSub: 'Join with a duplicate exercise', correctSub: 'Sets, loads, times and status' },
+  shortcuts: { title: 'Shortcuts', edit: 'Edit', editTitle: 'Home shortcuts', help: 'Choose the shortcuts and their order. Saved at once.', up: 'Move {{name}} up', down: 'Move {{name}} down', reset: 'Back to the default shortcuts', backupDone: 'Backup saved.', items: { weight: 'Weight', onerm: '1RM', plates: 'Plates', free: 'Free workout', history: 'History', reports: 'Reports', exercises: 'Exercises', newExercise: 'New exercise', scan: 'Scan QR', backup: 'Backup', settings: 'Settings', achievements: 'Achievements', games: 'Games', coach: 'Personal trainer' } },
+  startSheet: { title: 'Start workout', next: 'Next: {{day}}' },
+  hello: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
   picker: { title: 'Choose exercise', placeholder: 'Search by name, other name or tag' },
 };
 

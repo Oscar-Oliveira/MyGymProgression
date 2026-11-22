@@ -258,3 +258,32 @@ describe('schema v16 (D73)', () => {
     expect(r16.ok && r16.bundle.data.settings).toEqual(d.settings);
   });
 });
+
+describe('v2 backup (schema 18)', () => {
+  it('body data (weights, measurements, photos) goes through a backup unchanged', () => {
+    const data = emptyDataSet();
+    data.bodyWeights = [{ id: 'w1', date: '2026-11-22', kg: 78.4, createdAt: '2026-11-22T08:00:00.000Z' }];
+    data.measurements = [{ id: 'm1', date: '2026-11-22', part: 'waist', value: 84, createdAt: '2026-11-22T08:00:00.000Z' }];
+    data.photos = [{ id: 'p1', date: '2026-11-22', dataUrl: 'data:image/jpeg;base64,AAAA', createdAt: '2026-11-22T08:00:00.000Z' }];
+    const r = parseBundle(JSON.stringify(buildBundle(data, 'full', '2.0.0')));
+    expect(r.ok && r.bundle.data.bodyWeights).toEqual(data.bodyWeights);
+    expect(r.ok && r.bundle.data.measurements).toEqual(data.measurements);
+    expect(r.ok && r.bundle.data.photos).toEqual(data.photos);
+  });
+
+  it('a v1 backup (schema 17) gets empty body tables; an old one (schema 4) drops its old rest times', () => {
+    const data = sample();
+    const v17 = { ...buildBundle(data, 'full', '0.1.30'), schemaVersion: 17 } as Record<string, unknown>;
+    delete (v17.data as Record<string, unknown>).bodyWeights;
+    const r17 = parseBundle(JSON.stringify(v17));
+    expect(r17.ok && r17.bundle.data.bodyWeights).toEqual([]);
+    expect(r17.ok && r17.migratedFrom).toBe(17);
+
+    const old = structuredClone(buildBundle(data, 'full', '0.1.0')) as unknown as { schemaVersion: number; data: DataSet };
+    old.schemaVersion = 4;
+    old.data.planVersions[0].days[0].items[0].restSec = 90;
+    const r4 = parseBundle(JSON.stringify(old));
+    expect(r4.ok).toBe(true);
+    expect(r4.ok && r4.bundle.data.planVersions[0].days[0].items[0].restSec).toBeUndefined();
+  });
+});
