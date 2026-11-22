@@ -180,6 +180,12 @@ describe('library import', () => {
     expect(updated[0]).toMatchObject({ id: mine.id, personalNotes: 'banco 3', source: { id: '0025' } });
   });
 
+  it('v2 library: Portuguese steps of the record (V2-D18) only when the language is Portuguese', () => {
+    const r = rec({ sid: '0025', slug: 'exds-0025', name: 'Barbell Bench Press', steps: ['Lie down.', 'Press.'], pt: { name: 'Supino com barra', steps: ['Deita-te.', 'Empurra.'] } });
+    expect(toExercise(r, { ...DEFAULT_SETTINGS, language: 'pt' }, r.pt)).toMatchObject({ name: 'Supino com barra', steps: ['Deita-te.', 'Empurra.'] });
+    expect(toExercise(r, { ...DEFAULT_SETTINGS, language: 'en' }, r.pt)).toMatchObject({ name: 'Barbell Bench Press', steps: ['Lie down.', 'Press.'] });
+  });
+
   it('dataset muscle names map to app muscles; dataset body parts map to groups', () => {
     expect(muscleKeys(['Abs', 'Pectorals', 'Delts', 'Quads', 'Spine', 'Hip Flexors', 'Rotator Cuff', 'Groin', 'Inner Thighs', 'Shins', 'Grip Muscles', 'Upper Chest', 'Core', 'Lower Abs'])).toEqual([
       'core', 'chest', 'shoulders', 'quads', 'back', 'adductors', 'calves', 'forearms',

@@ -73,6 +73,15 @@ describe('QR codes, one per day (D60)', () => {
     expect(back.data.planVersions[0].days[0].items.every((i) => ids.has(i.exerciseId))).toBe(true);
   });
 
+  it('the short form leaves out the empty tables; the reader gets them back empty', async () => {
+    const b = dayShare(data, plan.id, version.days[0].id, '0.1.0')!;
+    const text = (await decodeShare(await encodeCompact(b)))!;
+    expect(Object.keys(JSON.parse(text).data).sort()).toEqual(['exercises', 'planVersions', 'plans']);
+    const back = await read(await encodeCompact(b));
+    expect(back.data.workouts).toEqual([]);
+    expect(back.data.photos).toEqual([]);
+  });
+
   it('the link carries the plan group and the day; a plain share link is day 1 of 1', () => {
     const link = qrLink('https://x.test/app/', { code: '~abc', group: 'g1', index: 1, total: 2 });
     expect(parseQrLink(link)).toEqual({ code: '~abc', group: 'g1', index: 1, total: 2 });

@@ -112,9 +112,15 @@ Done:
 
 - F5.6 Progression rules: RIR brake (RIR 0 on the last set at the top of the range → restricted, reason `rir_zero`); triple progression (`triple` strategy; the added sets are the progression target `custom:extraSets`, so apply, undo and decisions work as for load; a load increase drops it and goes back to the plan's sets); deload question (outcome `deload`, pending, made on finish and correction when "keep" completes a run of `stalledThreshold` sessions without progress; −10 % rounded down to the increment; the run restarts after progress or a deload question). `src/domain/deload.ts`, tests in `progression-v2.test.ts`.
 
-Left: F6 PT-PT instructions (V2-D18); F5.7 structural balance and muscle recovery map; workout set table of the prototype.
+Left: F5.7 structural balance and muscle recovery map; workout set table of the prototype.
+
+### F6 — PT-PT instructions (done 2026-11-22)
+
+Result: `scripts/data/exercises-dataset-pt-steps.tsv` holds the PT-PT steps of all 1324 exercises (own translation, `tu` imperative, same number of steps as the English text; fixed phrases for repeated steps). The import script puts them in `pt.steps` of each record; the app shows them when the language is Portuguese (English otherwise). Library file: 1324 PT names and 1324 PT step lists, 2.0 MB. Fix found on the way: the QR code of a plan day leaves out empty tables (the reader fills them in), so the code is smaller; the new body tables had made it too dense to read from a 1:1 desktop screenshot. Tests: 326 unit tests pass.
+
+Left in F6: final checks and publish on the same URL (after user acceptance).
 
 ## 4. Open points
 
-- How RIR acts in the progression rules (only recorded and shown, or also blocks or speeds up an increase). Decide in F5.
+- ~~How RIR acts in the progression rules.~~ Decided: RIR is a brake only (V2-D15, F5.6).
 - Exact home shortcuts and their order. Decide in F1.

@@ -56,11 +56,13 @@ const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/;
 /**
  * Shorter text for a QR code: random ids do not compress, so each id becomes ~0, ~1… and every date becomes the export date.
  * The reader makes new ids (a shared plan always gets new ids). A text that starts with "~" gets one more "~".
+ * Empty tables are left out: the reader's schema gives them back as empty lists.
  * The result starts with "~", so decodeShare knows it.
  */
 export async function encodeCompact(bundle: Bundle): Promise<string> {
   const ids = new Map<string, string>();
-  const text = JSON.stringify(bundle, (_k, v: unknown) => {
+  const data = Object.fromEntries(Object.entries(bundle.data).filter(([, v]) => !Array.isArray(v) || v.length > 0));
+  const text = JSON.stringify({ ...bundle, data }, (_k, v: unknown) => {
     if (typeof v !== 'string') return v;
     if (UUID.test(v)) {
       if (!ids.has(v)) ids.set(v, `~${ids.size.toString(36)}`);

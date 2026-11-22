@@ -26,6 +26,8 @@ CDN = f'https://cdn.jsdelivr.net/gh/{REPO}@{COMMIT}'
 UA = 'MyGymProgression-library-build/0.2'
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PT = os.path.join(ROOT, 'scripts', 'data', 'exercises-dataset-pt.tsv')
+# Portuguese steps (V2-D18): id<TAB>step 1<TAB>step 2...
+PT_STEPS = os.path.join(ROOT, 'scripts', 'data', 'exercises-dataset-pt-steps.tsv')
 OUT = os.path.join(ROOT, 'public', 'library', 'exercises-dataset.json')
 
 # Small words kept in lower case in English display names.
@@ -101,7 +103,15 @@ def load_pt():
         return {r[0]: r[1].strip() for r in rows if len(r) >= 2 and r[0] and not r[0].startswith('#') and r[1].strip()}
 
 
-def record(ex, pt):
+def load_pt_steps():
+    if not os.path.exists(PT_STEPS):
+        return {}
+    with open(PT_STEPS, encoding='utf-8', newline='') as f:
+        rows = csv.reader(f, delimiter='	', quoting=csv.QUOTE_NONE)
+        return {r[0]: [x.strip() for x in r[1:] if x.strip()] for r in rows if len(r) >= 2 and r[0] and not r[0].startswith('#')}
+
+
+def record(ex, pt, pt_steps):
     steps = [s.strip() for s in (ex.get('instruction_steps') or {}).get('en') or [] if s and s.strip()]
     rec = {
         'sid': ex['id'],
@@ -123,6 +133,8 @@ def record(ex, pt):
     }
     if ex['id'] in pt:
         rec['pt'] = {'name': pt[ex['id']]}
+        if ex['id'] in pt_steps:
+            rec['pt']['steps'] = pt_steps[ex['id']]
     return rec
 
 
@@ -130,11 +142,12 @@ def main():
     raw = open(sys.argv[1], 'rb').read() if len(sys.argv) > 1 else get(f'{CDN}/data/exercises.json')
     exercises = json.loads(raw)
     pt = load_pt()
-    recs = [record(ex, pt) for ex in exercises]
+    pt_steps = load_pt_steps()
+    recs = [record(ex, pt, pt_steps) for ex in exercises]
     ids = [r['sid'] for r in recs]
     assert len(ids) == len(set(ids)), 'duplicate ids'
-    unknown = sorted(set(pt) - set(ids))
-    assert not unknown, f'Portuguese names for unknown ids: {unknown[:5]}'
+    unknown = sorted((set(pt) | set(pt_steps)) - set(ids))
+    assert not unknown, f'Portuguese text for unknown ids: {unknown[:5]}'
     out = {
         'format': 'mygymprogression-library', 'version': 2, 'source': 'exercises-dataset (MIT)',
         'sourceUrl': f'https://github.com/{REPO}', 'commit': COMMIT,
@@ -144,7 +157,8 @@ def main():
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
     kinds = {k: sum(1 for r in recs if r['type'] == k) for k in ('weight_reps', 'reps_only', 'duration', 'distance')}
-    print(f"wrote {len(recs)} exercises, {sum(1 for r in recs if 'pt' in r)} with a Portuguese name, types {kinds}, "
+    print(f"wrote {len(recs)} exercises, {sum(1 for r in recs if 'pt' in r)} with a Portuguese name, "
+          f"{sum(1 for r in recs if r.get('pt', {}).get('steps'))} with Portuguese steps, types {kinds}, "
           f'{os.path.getsize(OUT) // 1024} KB -> {OUT}', flush=True)
 
 
