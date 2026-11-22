@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { db } from '../../data/db';
 import { achievementsOn } from '../../domain/achievements';
-import type { Settings } from '../../domain/types';
+import { dayMuscles } from '../../domain/audit';
+import { muscleFatigue, recoveryLevel } from '../../domain/recovery';
+import type { PlanDay, Settings } from '../../domain/types';
 import { nextPlanned } from '../../domain/workout';
 import { toneOf, toneStyle } from '../colors';
 import { useStart } from '../start';
-import { useSettings } from '../util';
+import { tr, useSettings } from '../util';
 import { Icon, type IconName } from './Icon';
 import { Modal } from './Modal';
 
@@ -67,11 +69,21 @@ export function StartSheet({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const start = useStart();
   const data = useLiveQuery(async () => {
-    const [plans, versions, workouts] = await Promise.all([db.plans.toArray(), db.planVersions.toArray(), db.workouts.orderBy('startedAt').reverse().toArray()]);
-    return { plans: plans.filter((p) => p.status === 'active'), versions, workouts };
+    const [plans, versions, workouts, exercises] = await Promise.all([db.plans.toArray(), db.planVersions.toArray(), db.workouts.orderBy('startedAt').reverse().toArray(), db.exercises.toArray()]);
+    return { plans: plans.filter((p) => p.status === 'active'), versions, workouts, exercises: new Map(exercises.map((e) => [e.id, e])) };
   });
   if (!data) return null;
   const next = nextPlanned(data.plans, data.versions, data.workouts);
+  // Recovery (V2-D20): the primary muscles of each day that are still tired, or else still recovering.
+  const fatigue = muscleFatigue(data.workouts, new Date());
+  const recoveryHint = (day: PlanDay) => {
+    const primary = Object.entries(dayMuscles(day, data.exercises).roles).filter(([, r]) => r === 'primary').map(([m]) => m);
+    for (const level of ['tired', 'recovering'] as const) {
+      const list = primary.filter((m) => recoveryLevel(fatigue[m]) === level);
+      if (list.length) return t(`recovery.day.${level}`, { list: list.map((m) => tr(t, 'muscle', m)).join(', ') });
+    }
+    return '';
+  };
   const go = (planId?: string, dayId?: string) => {
     onClose();
     void start(planId, dayId);
@@ -91,12 +103,18 @@ export function StartSheet({ onClose }: { onClose: () => void }) {
             <section key={p.id} className="start-plan">
               <p className="eyebrow">{p.name}</p>
               <div className="start-days">
-                {v.days.map((d) => (
-                  <button key={d.id} type="button" className="start-day toned" style={toneStyle(toneOf(p, d))} onClick={() => go(p.id, d.id)}>
-                    <span className="dot" aria-hidden="true" />
-                    {d.name}
-                  </button>
-                ))}
+                {v.days.map((d) => {
+                  const hint = recoveryHint(d);
+                  return (
+                    <button key={d.id} type="button" className="start-day toned" style={toneStyle(toneOf(p, d))} onClick={() => go(p.id, d.id)}>
+                      <span className="dot" aria-hidden="true" />
+                      <span className="start-day-text">
+                        {d.name}
+                        {hint && <span className="start-day-hint">{hint}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           );

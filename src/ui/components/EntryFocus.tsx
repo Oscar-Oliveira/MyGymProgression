@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CoachSettings, LoadMode, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
@@ -65,71 +65,153 @@ function EffortPicker({ scale, value, target, onChange }: { scale: 'rir' | 'rpe'
   );
 }
 
-function SetList({ entry, equipment, activeId, onActivate, onChange }: { entry: WorkoutEntry; equipment?: string; activeId?: string; onActivate: (id: string) => void; onChange: (e: WorkoutEntry) => void }) {
+/** The same set in the last workout: same kind, same place among the sets of that kind. */
+function beforeOf(entry: WorkoutEntry, set: SetRecord, previous?: WorkoutEntry): SetRecord | undefined {
+  if (!previous) return undefined;
+  const i = entry.sets.filter((x) => x.kind === set.kind).indexOf(set);
+  return previous.sets.filter((x) => x.kind === set.kind && x.status === 'done')[i];
+}
+
+/** Short text of a set for the "Before" column: load × reps, else the usual set text. */
+function shortSet(set: SetRecord, metrics: MetricDef[], lang: string): string {
+  const { load, reps } = set.values;
+  return load !== undefined && reps !== undefined ? `${fmtNum(load, lang)}×${fmtNum(reps, lang)}` : setText(set, metrics, lang);
+}
+
+/**
+ * Sets of one exercise (V2-D10, prototype variant A): a table with one row per set (set, the same set last time, the values,
+ * the effort, ✓). Tapping a row opens it; the open set is edited under the table with the big steppers and the effort chips.
+ */
+function SetList({
+  entry,
+  previous,
+  equipment,
+  activeId,
+  onActivate,
+  onChange,
+}: {
+  entry: WorkoutEntry;
+  previous?: WorkoutEntry;
+  equipment?: string;
+  activeId?: string;
+  onActivate: (id: string) => void;
+  onChange: (e: WorkoutEntry) => void;
+}) {
   const { t } = useTranslation();
   const s = useSettings();
+  const lang = s.language;
   const metrics = entry.exercise.metrics;
   const scale = effortScale(s);
+  const showEffort = !!scale && metrics.some((m) => m.key === 'reps');
   const up = (id: string, patch: Partial<SetRecord>) => onChange({ ...entry, sets: entry.sets.map((x) => (x.id === id ? { ...x, ...patch } : x)) });
+  const min = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.min;
   let working = 0;
+  const labels = new Map(entry.sets.map((x) => [x.id, x.kind === 'working' ? String(++working) : t(`setKind.${x.kind}`).slice(0, 1)]));
+  const nameOf = (x: SetRecord) => (x.kind === 'working' ? t('workout.setN', { n: labels.get(x.id) }) : t(`setKind.${x.kind}`));
+  const invalid = (x: SetRecord) => metrics.some((m) => validateValue(m, x.values[m.key]));
+  const effortCell = (x: SetRecord) => {
+    if (x.kind === 'warmup' || x.rir === undefined || !scale) return '–';
+    if (scale === 'rpe') return fmtNum(10 - x.rir, lang);
+    return x.rir >= 5 ? '5+' : String(x.rir);
+  };
+  const cols = `2rem minmax(0, 1fr) repeat(${metrics.length}, minmax(2.6rem, 3.6rem))${showEffort ? ' 2.6rem' : ''}`;
+  const kinds = [...new Set(entry.sets.map((x) => x.kind))].filter((k) => k !== 'working');
+  const set = entry.sets.find((x) => x.id === activeId);
+  const before = set && beforeOf(entry, set, previous);
+
   return (
-    <div className="sets">
-      {entry.sets.map((set) => {
-        const label = set.kind === 'working' ? String(++working) : t(`setKind.${set.kind}`).slice(0, 1);
-        const min = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.min;
-        const miss = set.status === 'done' && set.kind === 'working' && min !== undefined && (set.values.reps ?? 0) < min;
-        if (set.id === activeId) {
-          const blocked = metrics.some((m) => validateValue(m, set.values[m.key]));
+    <>
+      <div className="set-table" style={{ '--st-cols': cols } as CSSProperties}>
+        <div className="st-head" aria-hidden="true">
+          <span>{t('workout.colSet')}</span>
+          <span>{t('workout.colBefore')}</span>
+          {metrics.map((m) => (
+            <span key={m.key}>{m.key === 'reps' ? metricLabel(t, m.key, metrics) : m.unit}</span>
+          ))}
+          {showEffort && <span>{scale === 'rpe' ? 'RPE' : 'RIR'}</span>}
+        </div>
+        {entry.sets.map((x) => {
+          const prev = beforeOf(entry, x, previous);
+          const miss = x.status === 'done' && x.kind === 'working' && min !== undefined && (x.values.reps ?? 0) < min;
+          const cells = (
+            <>
+              <span className={`st-n k-${x.kind}`}>{labels.get(x.id)}</span>
+              <span className="st-before">{prev && previous ? shortSet(prev, previous.exercise.metrics, lang) : '—'}</span>
+              {metrics.map((m) => (
+                <span key={m.key} className={`st-cell ${m.key === 'reps' && miss ? 'miss' : ''}`}>
+                  {x.status === 'skipped' || x.values[m.key] === undefined ? '—' : fmtNum(x.values[m.key], lang)}
+                </span>
+              ))}
+              {showEffort && <span className={`st-eff eff ${x.rir !== undefined && x.kind !== 'warmup' ? `effort-${effortBand(x.rir)}` : ''}`}>{effortCell(x)}</span>}
+            </>
+          );
           return (
-            <div key={set.id} className="set active" role="group" aria-label={t('workout.setN', { n: label })}>
-              <div className="top">
-                <span className="n">{label}</span>
-                <strong>{set.kind === 'working' ? t('workout.setN', { n: label }) : t(`setKind.${set.kind}`)}</strong>
-              </div>
-              <div className="steppers">
-                {metrics.map((m) => (
-                  <BigStepper key={m.key} def={m} metrics={metrics} loadMode={entry.exercise.loadMode} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
-                ))}
-              </div>
-              <PlateLine load={set.values.load} equipment={equipment} loadMode={entry.exercise.loadMode} />
-              {scale && set.kind !== 'warmup' && (
-                <EffortPicker
-                  scale={scale}
-                  value={set.rir}
-                  target={entry.prescription[entry.sets.indexOf(set)]?.rir}
-                  onChange={(rir) => up(set.id, { rir })}
-                />
+            <div key={x.id} className={`st-row ${x.status} ${x.id === activeId ? 'active' : ''}`}>
+              {x.id === activeId ? (
+                <div className="st-main" aria-current="step">
+                  {cells}
+                </div>
+              ) : (
+                <button type="button" className="st-main" onClick={() => onActivate(x.id)} aria-label={`${nameOf(x)}: ${x.status === 'skipped' ? t('setStatus.skipped') : setText(x, metrics, lang) || '—'}`}>
+                  {cells}
+                </button>
               )}
-              <div className="row">
-                <button className="primary xl" disabled={blocked} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
-                  <Icon name="check" /> {t('workout.setDone')}
+              {x.status === 'pending' ? (
+                <button type="button" className="st-check" disabled={invalid(x)} aria-label={t('workout.quickDone', { set: nameOf(x) })} onClick={() => (buzz(), up(x.id, { status: 'done' }))}>
+                  <Icon name="check" />
                 </button>
-              </div>
-              <div className="row between">
-                <button className="ghost sm" onClick={() => up(set.id, { status: 'skipped' })}>
-                  {t('workout.skip')}
-                </button>
-                {!entry.prescription[entry.sets.indexOf(set)] && (
-                  <button className="ghost sm" onClick={() => onChange({ ...entry, sets: entry.sets.filter((x) => x.id !== set.id) })}>
-                    {t('common.remove')}
-                  </button>
-                )}
-              </div>
+              ) : (
+                <span className={`st-check ${x.status === 'done' ? 'on' : ''}`} aria-hidden="true">
+                  {x.status === 'done' && <Icon name="check" />}
+                </span>
+              )}
             </div>
           );
-        }
-        return (
-          <button key={set.id} className={`set ${set.status} ${miss ? 'miss' : ''}`} onClick={() => onActivate(set.id)} aria-label={`${t('workout.setN', { n: label })}: ${set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language)}`}>
-            <span className="n">{set.status === 'done' ? <Icon name="check" /> : label}</span>
-            <span className="v">
-              {set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—'}
-              {scale && set.rir !== undefined && set.status === 'done' && <span className={`eff effort-${effortBand(set.rir)}`}> · {effortText(set.rir, scale)}</span>}
+        })}
+      </div>
+      {(kinds.length > 0 || showEffort) && (
+        <p className="st-legend">
+          {kinds.map((k) => (
+            <span key={k}>
+              <b className={`k-${k}`}>{t(`setKind.${k}`).slice(0, 1)}</b>
+              {t(`setKind.${k}`)}
             </span>
-            {set.status === 'pending' && set.goal?.reps !== undefined && <span className="g">{t('workout.goal', { value: set.goal.reps })}</span>}
-          </button>
-        );
-      })}
-    </div>
+          ))}
+          {showEffort && <span>{t(scale === 'rpe' ? 'effort.rpeLong' : 'effort.rirLong')}</span>}
+        </p>
+      )}
+      {set && (
+        <div className="set active" role="group" aria-label={t('workout.setN', { n: labels.get(set.id) })}>
+          <div className="top">
+            <span className="n">{labels.get(set.id)}</span>
+            <strong>{nameOf(set)}</strong>
+            {before && previous && <span className="help">{t('workout.before', { value: shortSet(before, previous.exercise.metrics, lang) })}</span>}
+          </div>
+          <div className="steppers">
+            {metrics.map((m) => (
+              <BigStepper key={m.key} def={m} metrics={metrics} loadMode={entry.exercise.loadMode} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
+            ))}
+          </div>
+          <PlateLine load={set.values.load} equipment={equipment} loadMode={entry.exercise.loadMode} />
+          {scale && set.kind !== 'warmup' && <EffortPicker scale={scale} value={set.rir} target={entry.prescription[entry.sets.indexOf(set)]?.rir} onChange={(rir) => up(set.id, { rir })} />}
+          <div className="row">
+            <button className="primary xl" disabled={invalid(set)} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
+              <Icon name="check" /> {t('workout.setDone')}
+            </button>
+          </div>
+          <div className="row between">
+            <button className="ghost sm" onClick={() => up(set.id, { status: 'skipped' })}>
+              {t('workout.skip')}
+            </button>
+            {!entry.prescription[entry.sets.indexOf(set)] && (
+              <button className="ghost sm" onClick={() => onChange({ ...entry, sets: entry.sets.filter((x) => x.id !== set.id) })}>
+                {t('common.remove')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -253,6 +335,7 @@ export function EntryFocus({
 
       <SetList
         entry={entry}
+        previous={previous}
         equipment={equipment}
         activeId={activeId}
         onActivate={(id) => {

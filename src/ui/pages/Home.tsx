@@ -19,6 +19,7 @@ import { Section } from '../components/Section';
 import { fmtDate, saveBackup, useSettings } from '../util';
 import { backupDue } from '../../domain/backup';
 import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
+import { muscleFatigue, RECOVERY_HOURS } from '../../domain/recovery';
 import { BodyMap } from '../components/BodyMap';
 import { MoreButton } from '../components/NavSheets';
 import { ShortcutGrid } from '../components/Shortcuts';
@@ -38,6 +39,17 @@ function week(workouts: Workout[]) {
 }
 
 type Planned = { plan: Plan; day: PlanDay; entries: WorkoutEntry[] };
+
+/** Body map on Home: sets this week, or recovery (V2-D20). The choice is remembered on this device. */
+type MuscleView = 'week' | 'recovery';
+const MUSCLE_VIEW_KEY = 'v2:homeMuscles';
+const readMuscleView = (): MuscleView => {
+  try {
+    return localStorage.getItem(MUSCLE_VIEW_KEY) === 'recovery' ? 'recovery' : 'week';
+  } catch {
+    return 'week';
+  }
+};
 
 /** Window for one date of the week: workouts done that day; from today on, also the plan days set to that weekday. */
 function DaySheet({ date, done, planned, fallback, exercises, onStart, onClose }: { date: Date; done: Workout[]; planned: Planned[]; fallback?: Planned; exercises: Map<string, Exercise>; onStart: (p: Planned) => void; onClose: () => void }) {
@@ -93,6 +105,15 @@ export function Home() {
   const toneFor = useTones();
   const startDay = useStart();
   const [open, setOpen] = useState<number>();
+  const [muscleView, setMuscleView] = useState<MuscleView>(readMuscleView);
+  const pickMuscleView = (v: MuscleView) => {
+    setMuscleView(v);
+    try {
+      localStorage.setItem(MUSCLE_VIEW_KEY, v);
+    } catch {
+      // Storage may be unavailable (private mode); the choice still works for this visit.
+    }
+  };
   const data = useLiveQuery(async () => {
     const [exercises, plans, versions, workouts, states, events] = await Promise.all([
       db.exercises.toArray(),
@@ -263,9 +284,25 @@ export function Home() {
       )}
 
       {finished.length > 0 && (
-        <Section id="home-muscles" title={t('bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
-          <p className="help">{t('bodyMap.weekHelp')}</p>
-          <BodyMap sets={weekMuscles} lang={s.language} small />
+        <Section id="home-muscles" title={t(muscleView === 'recovery' ? 'recovery.title' : 'bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
+          <div className="seg fill" role="tablist" aria-label={t('bodyMap.title')}>
+            {(['week', 'recovery'] as const).map((v) => (
+              <button key={v} type="button" role="tab" aria-selected={muscleView === v} className={muscleView === v ? 'on' : ''} onClick={() => pickMuscleView(v)}>
+                {t(`recovery.view.${v}`)}
+              </button>
+            ))}
+          </div>
+          {muscleView === 'recovery' ? (
+            <>
+              <p className="help">{t('recovery.help', { hours: RECOVERY_HOURS })}</p>
+              <BodyMap fatigue={muscleFatigue(workouts, now)} lang={s.language} small />
+            </>
+          ) : (
+            <>
+              <p className="help">{t('bodyMap.weekHelp')}</p>
+              <BodyMap sets={weekMuscles} lang={s.language} small />
+            </>
+          )}
         </Section>
       )}
 

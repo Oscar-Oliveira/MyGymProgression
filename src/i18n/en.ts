@@ -144,6 +144,7 @@ export const en = {
   start: { inProgress: 'The workout "{{name}}" is in progress. Finish it before you start another one.', continue: 'Continue that workout', bar: 'Workout in progress' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
+    colSet: 'Set', colBefore: 'Before', before: 'last time {{value}}',
     quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
     addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique',
     prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
@@ -462,6 +463,19 @@ export const en = {
   menu: { editPlanSub: 'Days, exercises, sets and progression', duplicateSub: 'A copy to edit', shareSub: 'File, link, QR per day or image', copyTextSub: 'To paste in a message', archiveSub: 'Leaves the list and keeps the history', editDay: 'Edit day', imageSub: 'Exercises, sets and today’s loads', joinSub: 'Join with a duplicate exercise', correctSub: 'Sets, loads, times and status' },
   shortcuts: { title: 'Shortcuts', edit: 'Edit', editTitle: 'Home shortcuts', help: 'Choose the shortcuts and their order. Saved at once.', up: 'Move {{name}} up', down: 'Move {{name}} down', reset: 'Back to the default shortcuts', backupDone: 'Backup saved.', items: { weight: 'Weight', onerm: '1RM', plates: 'Plates', free: 'Free workout', history: 'History', reports: 'Reports', exercises: 'Exercises', newExercise: 'New exercise', scan: 'Scan QR', backup: 'Backup', settings: 'Settings', achievements: 'Achievements', games: 'Games', coach: 'Personal trainer' } },
   startSheet: { title: 'Start workout', next: 'Next: {{day}}' },
+  recovery: {
+    title: 'Muscle recovery', view: { week: 'This week', recovery: 'Recovery' },
+    help: 'Recent sets per muscle, fading to zero in {{hours}} hours. A guide to choose the day, not a measure of the body.',
+    level: { fresh: 'Recovered', recovering: 'Recovering', tired: 'Tired' }, sets: '{{n}} recent sets',
+    legend: { fresh: 'Recovered', recovering: 'Recovering ({{recovering}}+)', tired: 'Tired ({{tired}}+)' },
+    day: { tired: 'Tired: {{list}}', recovering: 'Recovering: {{list}}' },
+  },
+  balance: {
+    title: 'Strength balance', help: 'Best estimated 1RM (Epley, RIR included) of each barbell lift in the last {{weeks}} weeks, compared in pairs with usual reference ranges.',
+    lift: { squat: 'Squat', deadlift: 'Deadlift', bench: 'Bench press', ohp: 'Overhead press', row: 'Barbell row' },
+    ok: 'Balanced', behind: '{{lift}} behind', noData: 'No data', ratio: '{{pct}}% · reference {{min}}–{{max}}%', missing: 'Missing: {{list}}.',
+    note: 'The ranges are rough guidelines, not rules: build and training history change them. Only the barbell versions count (no front squat, incline or machines).',
+  },
   hello: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
   picker: { title: 'Choose exercise', placeholder: 'Search by name, other name or tag' },
 };

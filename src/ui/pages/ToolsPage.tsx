@@ -1,4 +1,4 @@
-// Tools (V2-D6): 1RM calculator with percentages, loads for reps at a RIR, and plates per side.
+// Tools (V2-D6): 1RM calculator with percentages, loads for reps at a RIR, plates per side, and strength balance (V2-D19).
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { barOf, equipmentOf, platesPerSide, type Equipment } from '../../domain/
 import { loadFor, oneRmOf, percentTable, roundTo } from '../../domain/tools';
 import { PageHead } from '../components/Bits';
 import { NumInput } from '../components/NumInput';
+import { StrengthBalance } from '../components/StrengthBalance';
 import { fmtNum, useSettings } from '../util';
 
 export function ToolsPage() {
@@ -139,6 +140,8 @@ export function ToolsPage() {
           total !== undefined && <p className="help">{t('tools.onlyBar')}</p>
         )}
       </section>
+
+      <StrengthBalance />
     </div>
   );
 }

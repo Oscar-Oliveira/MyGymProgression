@@ -1263,7 +1263,10 @@ test('v2: effort (RIR), rest timer and plates per side in the workout', async ({
   await rest.getByRole('button', { name: '15 seconds more' }).click();
   await rest.getByRole('button', { name: 'Skip' }).click();
   await expect(rest).toHaveCount(0);
-  await expect(squat.locator('.eff').first()).toContainText('RIR 2');
+  // The set table: the done set shows its values and effort; the next sets have a ✓ of their own.
+  await expect(squat.getByRole('button', { name: 'Set 1: 8 × 60 kg' })).toBeVisible();
+  await expect(squat.locator('.st-eff').first()).toHaveText('2');
+  await expect(squat.getByRole('button', { name: 'Set 3 done' })).toBeVisible();
 });
 
 test('v2: tools estimate the 1RM and the plates per side', async ({ page }) => {
@@ -1282,4 +1285,21 @@ test('v2: body weight from the Weight shortcut, shown in Progress → Body', asy
   await form.getByRole('button', { name: 'Save' }).click();
   await expect(page.locator('.tool-result .big')).toHaveText('78.4');
   await expect(page.getByRole('navigation', { name: 'Progress' }).getByRole('link', { name: 'Body' })).toHaveAttribute('aria-current', 'page');
+});
+
+test('v2: recovery map on Home; strength balance in Tools from the barbell lifts', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try with example data' }).click();
+  await expect(page.getByRole('heading', { name: 'Muscles this week' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Recovery' }).click();
+  await expect(page.getByRole('heading', { name: 'Muscle recovery' })).toBeVisible();
+  await expect(page.getByText('Tired (5+)')).toBeVisible();
+  await page.getByRole('group', { name: 'Body map' }).getByRole('button', { name: /^Quadriceps: / }).first().click();
+  await expect(page.getByText(/^Quadriceps: (Recovered|Recovering|Tired) · [\d.]+ recent sets$/)).toBeVisible();
+
+  await more(page, /^Tools/);
+  const card = page.locator('#balance');
+  await expect(card.getByRole('heading', { name: 'Strength balance' })).toBeVisible();
+  await expect(card.getByText('Barbell Back Squat')).toBeVisible();
+  await expect(card.getByText('Missing: Bench press.')).toBeVisible();
+  await expect(card.getByText('Missing: Deadlift.')).toBeVisible();
 });

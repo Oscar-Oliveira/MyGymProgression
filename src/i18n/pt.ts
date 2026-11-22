@@ -146,6 +146,7 @@ export const pt: Resources = {
   start: { inProgress: 'O treino "{{name}}" está em curso. Termina-o antes de começares outro.', continue: 'Continuar esse treino', bar: 'Treino em curso' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
+    colSet: 'Série', colBefore: 'Antes', before: 'última vez {{value}}',
     quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
     addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica',
     prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
@@ -463,6 +464,19 @@ export const pt: Resources = {
   menu: { editPlanSub: 'Dias, exercícios, séries e progressão', duplicateSub: 'Uma cópia para editar', shareSub: 'Ficheiro, link, QR por dia ou imagem', copyTextSub: 'Para colar numa mensagem', archiveSub: 'Sai da lista e mantém o histórico', editDay: 'Editar dia', imageSub: 'Exercícios, séries e cargas de hoje', joinSub: 'Junta com um exercício repetido', correctSub: 'Séries, cargas, horas e estado' },
   shortcuts: { title: 'Atalhos', edit: 'Editar', editTitle: 'Atalhos do Início', help: 'Escolhe os atalhos e a ordem. Fica guardado logo.', up: 'Subir {{name}}', down: 'Descer {{name}}', reset: 'Repor os atalhos de origem', backupDone: 'Cópia de segurança guardada.', items: { weight: 'Peso', onerm: '1RM', plates: 'Discos', free: 'Treino livre', history: 'Histórico', reports: 'Relatórios', exercises: 'Exercícios', newExercise: 'Novo exercício', scan: 'Ler QR', backup: 'Cópia de segurança', settings: 'Definições', achievements: 'Conquistas', games: 'Jogos', coach: 'Personal trainer' } },
   startSheet: { title: 'Começar treino', next: 'Próximo: {{day}}' },
+  recovery: {
+    title: 'Recuperação muscular', view: { week: 'Esta semana', recovery: 'Recuperação' },
+    help: 'Séries recentes por músculo, que descem até zero em {{hours}} horas. Uma ajuda para escolher o dia, não uma medida do corpo.',
+    level: { fresh: 'Recuperado', recovering: 'A recuperar', tired: 'Cansado' }, sets: '{{n}} séries recentes',
+    legend: { fresh: 'Recuperado', recovering: 'A recuperar ({{recovering}}+)', tired: 'Cansado ({{tired}}+)' },
+    day: { tired: 'Cansado: {{list}}', recovering: 'A recuperar: {{list}}' },
+  },
+  balance: {
+    title: 'Equilíbrio de força', help: 'Melhor 1RM estimado (Epley, com o RIR) de cada levantamento com barra nas últimas {{weeks}} semanas, comparado aos pares com intervalos de referência habituais.',
+    lift: { squat: 'Agachamento', deadlift: 'Peso morto', bench: 'Supino', ohp: 'Press militar', row: 'Remada com barra' },
+    ok: 'Equilibrado', behind: '{{lift}} atrás', noData: 'Sem dados', ratio: '{{pct}} % · referência {{min}}–{{max}} %', missing: 'Falta: {{list}}.',
+    note: 'Os intervalos são orientações gerais, não regras: a constituição e o historial de treino mudam-nos. Só contam as versões com barra (sem agachamento frontal, inclinado nem máquinas).',
+  },
   hello: { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
   picker: { title: 'Escolher exercício', placeholder: 'Pesquisar por nome, outro nome ou etiqueta' },
 };

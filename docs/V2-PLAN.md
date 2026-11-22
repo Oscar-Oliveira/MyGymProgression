@@ -1,6 +1,6 @@
 # MyGymProgression v2 — Plan
 
-Status: **F0–F3 done (library; v1 migration with review and report); next F4 (new UI, variant A).** Branch `v2`. Started 2026-11-22.
+Status: **F0–F3 and F5 done; F4 done except the F4.5 page review; F6 PT-PT instructions done. Left: F4.5 review, final checks and publish (after acceptance).** Branch `v2`. Started 2026-11-22.
 
 Goal: a more professional app. New design, clearer organisation (shortcut icons, complete menus), features compared with openGym, exercise library from [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), and all v1 data migrated without loss. **v1 is kept and can come back at any time.**
 
@@ -25,6 +25,8 @@ Goal: a more professional app. New design, clearer organisation (shortcut icons,
 | V2-D16 | Triple progression as a per-exercise option: all sets at the top of the range → +1 set (up to 2 above the plan); with the sets at the maximum and the top of the range → load up, back to the plan's sets and the range minimum. | 2026-11-22 |
 | V2-D17 | Deload suggested on a stall: after "Stalled after" sessions without progress (setting, default 3), the app suggests −10 % load for that exercise; the user accepts or ignores it, like the other decisions. No planned deload weeks. | 2026-11-22 |
 | V2-D18 | After the progression rules: PT-PT instructions for the 1324 exercises. | 2026-11-22 |
+| V2-D19 | Structural balance = strength ratios (volume balance already exists: D71, D72). Best estimated 1RM (Epley, RIR counts) of the barbell squat, deadlift, bench press, overhead press and row in the last 12 weeks; pairs bench/squat 65–85 %, deadlift/squat 105–135 %, overhead press/bench 55–75 %, row/bench 70–100 % (rough guidelines). Shown in Tools and Reports. | 2026-11-22 |
+| V2-D20 | Muscle recovery map: working sets per muscle (primary 1, secondary 0.5) fading linearly to zero in 72 h from the end of the workout; recovering from 2, tired from 5. Body map on Home (This week / Recovery) and a hint per day in the start sheet. | 2026-11-22 |
 | V2-D12 | Exercise media URLs point to jsDelivr, pinned to dataset commit `7455efae41b330c265e7cd4b78dfa848e7ce5ebd` (CORS allowed, immutable cache). Images use `crossorigin="anonymous"` so cached responses are not opaque (opaque responses use about 7 MB of quota each in Chrome). | 2026-11-22 |
 
 ## 2. Findings that shaped the plan
@@ -112,7 +114,11 @@ Done:
 
 - F5.6 Progression rules: RIR brake (RIR 0 on the last set at the top of the range → restricted, reason `rir_zero`); triple progression (`triple` strategy; the added sets are the progression target `custom:extraSets`, so apply, undo and decisions work as for load; a load increase drops it and goes back to the plan's sets); deload question (outcome `deload`, pending, made on finish and correction when "keep" completes a run of `stalledThreshold` sessions without progress; −10 % rounded down to the increment; the run restarts after progress or a deload question). `src/domain/deload.ts`, tests in `progression-v2.test.ts`.
 
-Left: F5.7 structural balance and muscle recovery map; workout set table of the prototype.
+- F5.7 Strength balance and recovery (V2-D19, V2-D20): `src/domain/balance.ts` (main barbell lifts found by name or English alias; front, incline, upright, single-leg and machine variants do not count), `src/domain/recovery.ts`; card `StrengthBalance.tsx` (best lifts, then each ratio on a bar whose middle third is the reference range) in Tools and Reports; `BodyMap` recovery mode on Home (choice kept in `v2:homeMuscles`); start sheet shows the tired (or recovering) primary muscles of each day. Tests: `balance.test.ts` (6), e2e "v2: recovery map…".
+
+- F5.8 Workout set table (prototype variant A; chosen 2026-11-22: table + steppers): one row per set (set, the same set last time, the values, RIR/RPE, ✓); tapping a row opens it; the open set keeps the big steppers, plates, effort chips and "Set done" under the table; ✓ on a pending row marks it done with its values; other set types show their first letter (PT: A aquecimento, D drop set, B back-off, R rest-pause), with a legend. `EntryFocus.tsx` (`SetList`).
+
+F5 done. Left: F4.5 review of every page in both themes.
 
 ### F6 — PT-PT instructions (done 2026-11-22)
 

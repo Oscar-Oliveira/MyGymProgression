@@ -11,6 +11,7 @@ import { ExerciseItem } from '../components/ExerciseItem';
 import { Empty } from '../components/Bits';
 import { PageCoach } from '../components/CoachCard';
 import { BodyMap } from '../components/BodyMap';
+import { StrengthBalance } from '../components/StrengthBalance';
 import { Consistency } from '../components/Consistency';
 import { Goals } from '../components/Goals';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, tr, useSettings, useThumbs } from '../util';
@@ -266,6 +267,8 @@ export function Analysis() {
           <p className="help">{t('analysis.musclesGuide', MUSCLE_SETS_GUIDE)}</p>
         </section>
       )}
+
+      <StrengthBalance />
 
       {rows.length === 0 ? (
         <Empty>{t('analysis.noData')}</Empty>

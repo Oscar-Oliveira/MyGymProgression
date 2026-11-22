@@ -126,6 +126,8 @@ small, .muted { color: var(--muted); }
 .start-days { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .start-day { background: var(--surface-2); gap: 0.5rem; font-weight: 500; }
 .start-day .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tone); }
+.start-day-text { display: flex; flex-direction: column; align-items: flex-start; text-align: left; min-width: 0; }
+.start-day-hint { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
 
 /* Surfaces */
 .card { background: var(--surface); border: 1px solid transparent; border-radius: var(--radius); padding: 1.1rem; margin-bottom: 0.9rem; }
@@ -262,18 +264,36 @@ td.num, th.num { text-align: right; }
 .ex-meta { font-size: 0.95rem; font-weight: 600; color: var(--tone-text); }
 .ex-last { font-size: 0.85rem; color: var(--muted); }
 .hint { margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: 14px; background: var(--tone-soft); color: var(--text); font-size: 0.88rem; border-left: 3px solid var(--tone); }
-.sets { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.45rem; }
+/* Set table (prototype variant A): one row per set; the open row is edited in the panel under the table. */
+.set-table { margin-top: 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+.st-head, .st-main { display: grid; grid-template-columns: var(--st-cols); gap: 0.35rem; align-items: center; }
+.st-head { grid-template-columns: var(--st-cols) 2.75rem; padding: 0.55rem 0.6rem 0.3rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.st-head > span:nth-child(n + 3) { text-align: center; }
+.st-row { display: grid; grid-template-columns: minmax(0, 1fr) 2.75rem; gap: 0.35rem; align-items: center; padding: 0.35rem 0.6rem; min-height: 56px; }
+.st-row + .st-row { border-top: 1px solid var(--border); }
+.st-main { min-height: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text); font-weight: 500; text-align: left; }
+button.st-main:active { transform: none; }
+.st-n { width: 1.75rem; height: 1.75rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; background: var(--surface-2); color: var(--muted); }
+.k-warmup { color: var(--warn); }
+.k-backoff, .k-drop, .k-restpause { color: var(--accent); }
+.st-before { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.st-cell, .st-eff { height: 2.5rem; border-radius: 10px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.st-row.pending:not(.active) .st-cell { color: var(--muted); }
+.st-cell.miss { color: var(--warn); }
+.st-row.skipped { opacity: 0.55; }
+.st-row.active { background: var(--tone-soft); }
+.st-row.active .st-cell, .st-row.active .st-eff { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--tone); }
+.st-check { width: 2.75rem; height: 2.75rem; min-height: 0; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--muted); }
+.st-check.on { background: var(--up); color: var(--surface); }
+.st-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; margin: 0.45rem 0.2rem 0; font-size: 0.78rem; color: var(--muted); }
+.st-legend b { margin-right: 0.3rem; }
+/* The open set: steppers, plates, effort and "Set done", under the table. */
 .set { display: flex; align-items: center; justify-content: flex-start; gap: 0.75rem; padding: 0.7rem 0.8rem; border-radius: 16px; background: var(--surface-2); border: 1px solid transparent; width: 100%; text-align: left; font-weight: 500; min-height: 56px; color: var(--text); }
 .set .n { width: 1.6rem; height: 1.6rem; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; background: var(--surface); color: var(--muted); }
-.set .v { font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.set .g { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
-.set.done { background: var(--up-bg); }
-.set.done .n { background: var(--up); color: var(--surface); }
-.set.skipped { opacity: 0.55; }
-.set.miss .v { color: var(--warn); }
-.set.active { flex-direction: column; align-items: stretch; background: var(--surface); border-color: var(--tone); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 22%, transparent), var(--shadow); padding: 0.95rem; gap: 0.8rem; }
+.set.active { margin-top: 0.75rem; flex-direction: column; align-items: stretch; background: var(--surface); border-color: var(--tone); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 22%, transparent), var(--shadow); padding: 0.95rem; gap: 0.8rem; }
 .set.active .n { background: var(--tone); color: #fff; }
 .set.active .top { display: flex; align-items: center; gap: 0.6rem; }
+.set.active .top .help { margin: 0 0 0 auto; font-variant-numeric: tabular-nums; }
 .steppers { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 .bigstep { display: flex; flex-direction: column; gap: 0.25rem; }
 .bigstep .lbl { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -626,12 +646,29 @@ label.setting-row > input[type='checkbox'] { min-width: 0; width: 1.4rem; height
 .bm-high { --bm: var(--accent); }
 .bm-primary { --bm: var(--tone); }
 .bm-secondary { --bm: color-mix(in srgb, var(--tone) 40%, var(--surface-2)); }
+/* Recovery map (V2-D20). */
+.bm-fresh { --bm: var(--up); }
+.bm-recovering { --bm: var(--warn); }
+.bm-tired { --bm: var(--down); }
 .bm-muscle { fill: var(--bm); }
 .bm-side { fill: var(--muted); font-size: 7px; text-anchor: middle; }
 .bm-picked { text-align: center; font-weight: 600; margin: 0.4rem 0; }
 .bm-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 0.9rem; list-style: none; padding: 0; margin: 0 0 0.6rem; font-size: 0.8rem; color: var(--muted); }
 .bm-legend li { display: flex; align-items: center; gap: 0.35rem; }
 .bm-swatch { width: 0.75rem; height: 0.75rem; border-radius: 3px; display: inline-block; background: var(--bm); }
+/* Strength balance (V2-D19): best lifts, then each ratio on a bar whose middle third is the reference range. */
+.balance-lifts, .balance-rows { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.balance-lifts li { display: grid; grid-template-columns: 1fr auto; gap: 0 0.75rem; align-items: baseline; }
+.balance-lifts li .help { grid-column: 1 / -1; margin: 0; font-size: 0.8rem; }
+.balance-rows { gap: 0.9rem; border-top: 1px solid var(--border); padding-top: 0.9rem; }
+.balance-rows .help { margin: 0.3rem 0 0; }
+.balance-head { display: flex; justify-content: space-between; gap: 0.75rem; font-weight: 600; }
+.balance-status { font-weight: 500; font-size: 0.85rem; color: var(--muted); }
+.balance-status.ok { color: var(--up); }
+.balance-status.aLow, .balance-status.bLow { color: var(--warn); }
+.balance-bar { position: relative; height: 8px; border-radius: 4px; background: var(--surface-2); margin-top: 0.4rem; }
+.balance-bar .band { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: color-mix(in srgb, var(--up) 35%, var(--surface-2)); }
+.balance-bar .mark { position: absolute; top: -3px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--surface); }
 /* Plan balance warnings (D72). */
 .audit-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.5rem; }
 .audit-list li { display: flex; gap: 0.5rem; align-items: flex-start; }
