@@ -180,6 +180,8 @@ export function ExerciseList() {
               )}
             </section>
           )}
+          {/* Attribution of the v2 library media, shown only in the Exercises area (V2-D4). */}
+          {all?.some((e) => e.source?.name.startsWith('exercises-dataset')) && <p className="privacy-note">{t('exercise.mediaCredit')}</p>}
         </>
       )}
     </div>

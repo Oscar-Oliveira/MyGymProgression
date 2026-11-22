@@ -144,6 +144,50 @@ describe('library import', () => {
     expect(muscleKeys(['Lats', 'Traps', 'Shoulders', 'Calves', 'Abductors', 'Lower Back'])).toEqual(['back', 'shoulders', 'calves', 'glutes']);
   });
 
+  it('v2 library (exercises-dataset): every record converts, in Portuguese, with muscles, group and media', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { en } = await import('../i18n/en');
+    const file = JSON.parse(readFileSync(new URL('../../public/library/exercises-dataset.json', import.meta.url), 'utf8'));
+    const records = parseLibraryFile(file)!;
+    expect(records).toHaveLength(1324);
+    expect(file.mediaCredit).toContain('Gym visual');
+    const exercises = records.map((r) => toExercise(r, DEFAULT_SETTINGS, r.pt));
+    // Portuguese name, English name kept as an alias (search in both languages); no alias when both are the same (Burpee).
+    expect(exercises.filter((e, i) => e.name !== records[i].pt?.name || (e.name === records[i].name ? e.aliases.length : e.aliases[0] !== records[i].name)).map((e) => e.name)).toEqual([]);
+    // Every exercise has a muscle group; every non-cardio exercise has a main muscle.
+    expect(exercises.filter((e) => e.group === 'other').map((e) => e.name)).toEqual([]);
+    expect(exercises.filter((e) => e.group !== 'cardio' && !e.primaryMuscles.length).map((e) => e.aliases[0])).toEqual([]);
+    // Every equipment has a label.
+    const labels = en.equipment as Record<string, string>;
+    expect([...new Set(exercises.map((e) => e.equipment).filter((q) => !labels[q]))]).toEqual([]);
+    // Media from the pinned dataset commit, never copied into the app.
+    const bench = exercises[records.findIndex((r) => r.sid === '0025')];
+    expect(bench).toMatchObject({ name: 'Supino com barra', aliases: ['Barbell Bench Press'], primaryMuscles: ['chest'], equipment: 'barbell', group: 'chest' });
+    expect(bench.thumb).toMatch(/^https:\/\/cdn\.jsdelivr\.net\/gh\/hasaneyldrm\/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd\/images\/0025-.+\.jpg$/);
+    expect(bench.image).toMatch(/\/videos\/0025-.+\.gif$/);
+    expect(bench.metrics.map((m) => m.key)).toEqual(['reps', 'load']);
+    // Holds and cardio get time (and distance) metrics.
+    const byId = (sid: string) => exercises[records.findIndex((r) => r.sid === sid)];
+    expect(byId('2135').metrics.map((m) => m.key)).toEqual(['duration']); // weighted front plank
+    expect(byId('3666').category).toBe('cardio'); // walking on incline treadmill
+  });
+
+  it('v2 library: a v1 exercise with the same English name is enriched and keeps its id', () => {
+    const mine = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Barbell Bench Press', personalNotes: 'banco 3' });
+    const r = rec({ sid: '0025', slug: 'exds-0025', name: 'Barbell Bench Press', primary: ['Pectorals'], secondary: ['Triceps', 'Shoulders'], bodyParts: ['chest'], pt: { name: 'Supino com barra' } });
+    const { added, updated } = mergeLibrary([mine], [r], DEFAULT_SETTINGS);
+    expect(added).toEqual([]);
+    expect(updated[0]).toMatchObject({ id: mine.id, personalNotes: 'banco 3', source: { id: '0025' } });
+  });
+
+  it('dataset muscle names map to app muscles; dataset body parts map to groups', () => {
+    expect(muscleKeys(['Abs', 'Pectorals', 'Delts', 'Quads', 'Spine', 'Hip Flexors', 'Rotator Cuff', 'Groin', 'Inner Thighs', 'Shins', 'Grip Muscles', 'Upper Chest', 'Core', 'Lower Abs'])).toEqual([
+      'core', 'chest', 'shoulders', 'quads', 'back', 'adductors', 'calves', 'forearms',
+    ]);
+    expect(toExercise(rec({ bodyParts: ['upper legs'], primary: ['Quads'] }), DEFAULT_SETTINGS).group).toBe('legs');
+    expect(toExercise(rec({ bodyParts: ['lower arms'], primary: ['Forearms'] }), DEFAULT_SETTINGS).group).toBe('arms');
+  });
+
   it('muscle keys and groups', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');

@@ -98,6 +98,9 @@ A separate file to add many exercises at once (Settings → Exercise library →
 - Required per exercise: `sid` (unique in the source) and `name`. Missing lists are treated as empty.
 - `thumb`: small image, embedded as a `data:` URL so it works offline. `imageUrl`: full image, loaded from the web and then kept offline.
 - `type`: `weight_reps`, `reps_only`, `duration` or `distance_duration`; it chooses what is recorded.
+- `pt` (optional, v2): Portuguese text carried in the file, `{ "name": "…", "overview": "…", "steps": ["…"] }`. Used when the app language is Portuguese; the English name becomes an alias.
+- `thumb` and `imageUrl` can also be web addresses (v2 library: jsDelivr, pinned to one exercises-dataset commit). The app keeps them offline only after Settings → Exercise library → Images and animations.
+- Optional file fields (v2): `sourceUrl`, `commit`, `mediaCredit` (shown in the Exercises area).
 - Import is repeatable: an exercise with the same `sid`, or the same name, is updated (id, settings, plans and history are kept); others are added.
 
 ## Shared plan

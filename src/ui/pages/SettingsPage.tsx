@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { backupDue } from '../../domain/backup';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
@@ -17,6 +18,7 @@ import { achievementsOn } from '../../domain/achievements';
 import { fx, fxOn, setFx, type FxSetting } from '../games/feedback';
 import { NO_COACH } from './CoachPage';
 import { parseLibraryFile } from '../../domain/library';
+import { cachedCount, downloadMedia, mediaUrls } from '../media';
 import type { LoadSync } from '../../domain/types';
 import { DEFAULT_LOAD_SYNC } from '../../domain/sync';
 import { Icon, type IconName } from '../components/Icon';
@@ -226,14 +228,34 @@ function ImportPanel() {
 export function SettingsPage() {
   const { t } = useTranslation();
   const s = useSettings();
+  const nav = useNavigate();
   const [persisted, setPersisted] = useState<boolean>();
   const loadSync = s.loadSync ?? DEFAULT_LOAD_SYNC;
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
   const due = backupDue(s.lastBackupAt, workouts);
+  // Library images and animations on this device (v2 library), and the download in progress.
+  const [media, setMedia] = useState<{ have: number; total: number }>();
+  const [fetching, setFetching] = useState<{ done: number; total: number }>();
+  const refreshMedia = async () => {
+    const urls = mediaUrls(await db.exercises.toArray());
+    setMedia({ have: await cachedCount(urls), total: urls.length });
+  };
   useEffect(() => {
     void navigator.storage?.persisted?.().then(setPersisted);
+    void refreshMedia();
   }, []);
   const flash = toast;
+  const getMedia = async () => {
+    if (fetching) return;
+    const urls = mediaUrls(await db.exercises.toArray());
+    if (!urls.length) return flash(t('settings.mediaNone'));
+    if (!(await dialog.confirm(t('settings.mediaConfirm')))) return;
+    void navigator.storage?.persist?.();
+    const res = await downloadMedia(urls, (done, total) => setFetching({ done, total }));
+    setFetching(undefined);
+    await refreshMedia();
+    flash(res.failed ? t('settings.mediaFailed', res) : t('settings.mediaDone', res));
+  };
 
   const csv = async (kind: 'sets' | 'workouts' | 'events') => {
     const d = await repo.readAll();
@@ -254,14 +276,15 @@ export function SettingsPage() {
     if (!records) return flash(t('settings.libraryInvalid'));
     flash(t('settings.libraryResult', await repo.importLibrary(records)));
   };
-  // The open library is published with the app (public/library), and downloaded only when asked for.
+  // The v2 library (exercises-dataset, data only) is published with the app (public/library), and downloaded only when asked for.
   const openLibrary = async () => {
     flash('…');
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}library/free-exercise-db.json`);
+      const res = await fetch(`${import.meta.env.BASE_URL}library/exercises-dataset.json`);
       const records = res.ok ? parseLibraryFile(await res.json()) : undefined;
       if (!records) return flash(t('settings.openLibraryFailed'));
       flash(t('settings.libraryResult', await repo.importLibrary(records)));
+      await refreshMedia();
     } catch {
       flash(t('settings.openLibraryFailed'));
     }
@@ -426,7 +449,14 @@ export function SettingsPage() {
       </div>
       <section className="card">
         <div className="act-list">
+          <ActionRow icon="upload" tone="accent" title={t('migrate.entry')} sub={t('migrate.entrySub')} onClick={() => nav('/migrate')} />
           <ActionRow icon="download" tone="accent" title={t('settings.openLibrary')} sub={t('settings.openLibrarySub')} onClick={() => void openLibrary()} />
+          <ActionRow
+            icon="download"
+            title={t('settings.media')}
+            sub={fetching ? t('settings.mediaProgress', fetching) : media?.total ? t('settings.mediaSub', media) : t('settings.mediaNone')}
+            onClick={() => void getMedia()}
+          />
           <FileRow icon="upload" title={t('settings.importLibrary')} sub={t('settings.importLibrarySub')} onFile={(f) => void importLibrary(f)} />
           <ActionRow icon="plus" title={t('settings.seed')} sub={t('settings.seedSub')} onClick={() => void repo.seedLibrary().then((n) => flash(t('settings.seeded', { count: n })))} />
           <ActionRow icon="play" title={t('settings.demo')} sub={t('settings.demoSub')} onClick={() => void demo()} />

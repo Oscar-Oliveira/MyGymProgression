@@ -17,6 +17,13 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
+            // v2 library media (exercises-dataset on jsDelivr, CORS): downloaded on the device when the user asks (src/ui/media.ts).
+            // Only normal (200) responses: opaque ones would use far more storage quota.
+            urlPattern: ({ url }) => url.href.startsWith('https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'exercise-media', expiration: { maxEntries: 3000 }, cacheableResponse: { statuses: [200] }, matchOptions: { ignoreVary: true } },
+          },
+          {
             // Exercise images from other sites (library files may link to full-size images).
             urlPattern: ({ request, url }) => request.destination === 'image' && url.origin !== self.location.origin,
             handler: 'CacheFirst',
@@ -43,5 +50,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
+    // With Node 26, the default pools of Vitest 5.0.5 fail before any test runs ("reading 'config'"); vmThreads works.
+    pool: 'vmThreads',
   },
 });

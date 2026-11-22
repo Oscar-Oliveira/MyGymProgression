@@ -15,6 +15,7 @@ import { db } from '../../data/db';
 import { exerciseGroup, relatedOf } from '../../domain/library';
 import { ExerciseLinks, ExerciseMuscles, FavoriteButton } from '../components/ExerciseSheet';
 import { assetUrl, Thumb } from '../components/Thumb';
+import { corsOf } from '../media';
 import { exerciseHistory, personalRecords, type HistoryPoint } from '../../domain/analysis';
 import type { Exercise, MetricDef, MetricKey, Plan, PlanDay, SetRecord } from '../../domain/types';
 import { fmtMetric } from '../progress';
@@ -139,7 +140,7 @@ export function ExerciseDetail() {
   return (
     <div className="stack">
       {ex?.image || ex?.thumb ? (
-        <img className="ex-hero" src={assetUrl(ex.image ?? ex.thumb!)} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />
+        <img className="ex-hero" src={assetUrl(ex.image ?? ex.thumb!)} crossOrigin={corsOf(ex.image ?? ex.thumb)} alt={name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />
       ) : null}
       <PageHead
         eyebrow={ex && `${t(`group.${exerciseGroup(ex)}`)} · ${tr(t, 'equipment', ex.equipment)}`}

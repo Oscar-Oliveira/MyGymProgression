@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { corsOf } from '../media';
 
 /** Image address: web and embedded (data:) images as they are; app files relative to the app base. */
 export const assetUrl = (src: string) => (/^(https?|data):/.test(src) ? src : `${import.meta.env.BASE_URL}${src}`);
@@ -20,5 +21,5 @@ export function Thumb({ src, name, size = 48 }: { src?: string; name: string; si
       </span>
     );
   }
-  return <img className="thumb" style={style} src={assetUrl(src)} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  return <img className="thumb" style={style} src={assetUrl(src)} crossOrigin={corsOf(src)} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }

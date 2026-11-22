@@ -16,7 +16,8 @@ export class GymDB extends Dexie {
   goals!: Table<Goal, string>;
   coachReports!: Table<CoachReport, string>;
 
-  constructor(name = 'mygymprogression') {
+  // v2 has its own database (V2-D2): the v1 database ('mygymprogression') stays as it was, so v1 can come back.
+  constructor(name = 'mygymprogression-v2') {
     super(name);
     // Schema migrations: add a new this.version(n) block with an upgrade() function. Never edit an old block.
     this.version(1).stores({

@@ -1,0 +1,1330 @@
+# Portuguese (PT-PT) names for exercises-dataset, written for MyGymProgression (V2-D5). Format: id<TAB>name.
+# Glossary: barbell = com barra; dumbbell = com halteres (one arm: com haltere); cable = na polia; lever = na máquina;
+# smith = na Smith; band = com elástico; ez barbell = com barra EZ; stability/exercise ball = na bola suíça; weighted = com peso;
+# one arm = unilateral; one/single leg = com uma perna; lunge = afundo; pull-up = elevação na barra; chin-up = elevação supinada;
+# push-up = flexão; dip = fundos; crunch = abdominal; skull crusher = tríceps testa; pushdown = tríceps na polia.
+# "(male)" is dropped; "(female)" becomes "(mulher)"; "(back/side pov)" becomes "(vista de trás/lateral)".
+0001	Abdominal a 3/4
+0002	Inclinação lateral a 45°
+0003	Abdominal bicicleta no ar
+1512	Alongamento de quadríceps a quatro apoios
+0006	Toques alternados nos calcanhares
+0007	Puxada à frente alternada
+1368	Círculos com os tornozelos
+3293	Elevação na barra arqueiro
+3294	Flexão arqueiro
+2355	Suspensão com balanço de pernas fletidas
+2333	Suspensão com balanço de pernas esticadas
+3214	Toque nos pés com braços afastados em círculo
+3204	Abdominal completo com braços acima da cabeça
+0009	Fundos para peito assistidos (de joelhos)
+0011	Elevação de joelhos em suspensão assistida
+0010	Elevação de joelhos em suspensão assistida com empurrão
+1708	Alongamento de gémeos deitado assistido
+1709	Alongamento de glúteos deitado assistido
+1710	Alongamento de glúteos e piriforme deitado assistido
+0012	Elevação de pernas deitado assistida com empurrão lateral
+0013	Elevação de pernas deitado assistida com empurrão
+0014	Rotação russa assistida
+0015	Elevação na barra assistida, pegada paralela fechada
+0016	Isquiotibiais deitado de bruços assistido
+1713	Alongamento de quadríceps deitado de bruços assistido
+1714	Alongamento do reto femoral deitado de bruços assistido
+0017	Elevação na barra assistida
+1716	Alongamento do peitoral maior sentado assistido, com bola suíça
+1712	Alongamento dos adutores deitado de lado assistido
+1758	Abdominal completo assistido
+1431	Elevação supinada de pé assistida
+1432	Elevação na barra de pé assistida
+0018	Extensão de tríceps de pé assistida (com toalha)
+0019	Fundos para tríceps assistidos (de joelhos)
+2364	Fundos para peito assistidos, pegada larga (de joelhos)
+3220	Saltos com afastamento de pernas
+3672	Passo para a frente e para trás
+1314	Extensão lombar na bola suíça
+3297	Back lever
+1405	Alongamento do peitoral nas costas
+1473	Salto para trás
+0020	Prancha de equilíbrio
+0968	Curl de bíceps alternado com elástico
+0969	Abdominal em V alternado com elástico
+0970	Elevação na barra assistida com elástico
+0971	Roda abdominal assistida com elástico
+1254	Supino com elástico
+0980	Extensão da anca inclinado com elástico
+0972	Abdominal bicicleta com elástico
+0974	Puxada pegada fechada com elástico
+0975	Flexão pegada fechada com elástico
+0976	Curl concentrado com elástico
+3117	Puxada pegada fechada com elástico fixo atrás
+3116	Puxada supinada com elástico fixo atrás
+0977	Elevação frontal-lateral com elástico
+0978	Elevação frontal com elástico
+1408	Elevação da anca com elástico
+0979	Pallof press horizontal com elástico
+0981	Abdominal canivete com elástico
+0983	Puxada unilateral de joelhos com elástico
+0985	Abdominal com rotação de joelhos com elástico
+0984	Rotação interna da anca deitado com elástico
+1002	Elevação de pernas esticadas deitado com elástico
+0986	Curl de bíceps unilateral acima da cabeça com elástico
+0987	Agachamento dividido com uma perna e um braço com elástico
+0988	Remada baixa unilateral de pé com elástico
+0989	Press de peito unilateral com rotação com elástico
+0990	Remada sentada unilateral com rotação com elástico
+0991	Pull through com elástico
+0992	Abdominal completo com empurrão com elástico
+0993	Aberturas invertidas com elástico
+0994	Extensão de punho com elástico
+0996	Rotação interna da anca sentado com elástico
+1011	Rotação do tronco sentado com elástico
+0997	Press de ombros com elástico
+1018	Encolhimento de ombros com elástico
+0998	Extensão de tríceps lateral com elástico
+0999	Elevação de gémeos com uma perna com elástico
+1000	Elevação de gémeos invertida com uma perna com elástico
+1001	Agachamento dividido com uma perna com elástico
+1004	Agachamento com elástico
+1003	Agachamento com remada com elástico
+1005	Abdominal de pé com elástico
+1022	Remada para deltoide posterior de pé com elástico
+1007	Abdominal com rotação de pé com elástico
+1008	Subida ao banco com elástico
+1009	Peso morto de pernas rígidas com elástico
+1023	Peso morto de pernas rígidas com costas direitas com elástico
+1010	Peso morto de pernas esticadas com elástico
+1012	Press acima da cabeça com rotação com elástico
+1369	Elevação de gémeos com elástico sob as duas pernas v. 2
+1013	Puxada supinada com elástico
+1014	Abdominal em V com elástico
+1015	Pallof press vertical com elástico
+1016	Flexão de punho com elástico
+1017	Elevação em Y com elástico
+0023	Curl de bíceps alternado com barra
+0024	Agachamento frontal ao banco com barra
+0025	Supino com barra
+0026	Agachamento ao banco com barra
+1316	Pullover de braços fletidos com barra
+0027	Remada curvada com barra
+2407	Curl de bíceps com barra (com arm blaster)
+0028	Clean e press com barra
+0029	Agachamento frontal com pegada de clean com barra
+0030	Supino pegada fechada com barra
+0031	Curl com barra
+0032	Peso morto com barra
+0033	Supino declinado com barra
+0034	Pullover declinado de braços fletidos com barra
+0035	Press pegada fechada à testa, declinado, com barra
+1255	Pullover declinado com barra
+0036	Supino declinado pegada larga com barra
+0037	Pullover declinado pegada larga com barra
+0038	Curl arrastado com barra
+1370	Elevação de gémeos no chão com barra
+0039	Agachamento frontal ao peito com barra
+0041	Elevação frontal com barra
+0040	Elevação frontal e pullover com barra
+0042	Agachamento frontal com barra
+0043	Agachamento completo com barra
+1461	Agachamento completo com barra (vista de trás)
+1462	Agachamento completo com barra (vista lateral)
+1545	Agachamento Zercher completo com barra
+1409	Ponte de glúteos com barra
+3562	Ponte de glúteos com barra, pernas no banco
+0044	Good morning com barra
+0045	Supino guilhotina com barra
+0046	Agachamento hack com barra
+1436	Agachamento com barra alta
+0047	Supino inclinado com barra
+1719	Supino inclinado pegada fechada com barra
+0048	Press inclinado pegada invertida com barra
+0049	Remada inclinada com barra
+0050	Elevação de ombros inclinado com barra
+0051	Agachamento Jefferson com barra
+0052	Supino JM com barra
+0053	Agachamento com salto com barra
+1410	Afundo lateral com barra
+1435	Agachamento com barra baixa
+0054	Afundo com barra
+1720	Extensão de tríceps deitado atrás da cabeça com barra
+0055	Press pegada fechada deitado com barra
+0056	Extensão de tríceps deitado pegada fechada com barra
+0057	Extensão deitado com barra
+0058	Elevação da anca deitado com barra
+0059	Curl Scott deitado com barra
+0061	Extensão de tríceps deitado com barra
+0060	Tríceps testa com barra
+0063	Agachamento com pés juntos com barra
+0064	Remada curvada unilateral com barra
+0065	Press no chão unilateral com barra
+0066	Peso morto lateral unilateral com barra
+0067	Arranque unilateral com barra
+0068	Agachamento com uma perna com barra
+0069	Agachamento acima da cabeça com barra
+1411	Flexão de punho pronada sobre o banco com barra
+1412	Flexão de punho supinada sobre o banco com barra
+3017	Remada Pendlay com barra
+1751	Press em pinos com barra
+0070	Curl Scott com barra
+0071	Abdominal completo com press com barra
+0072	Curl inclinado de bruços com barra
+0073	Pullover com barra
+0022	Pullover com press com barra
+0074	Rack pull com barra
+0075	Elevação posterior com barra
+0076	Remada para deltoide posterior com barra
+0078	Afundo à retaguarda com barra
+0077	Afundo à retaguarda com barra v. 2
+0079	Extensão de punho com barra v. 2
+2187	Supino pegada invertida fechada com barra
+0080	Curl invertido com barra
+0118	Remada curvada pegada invertida com barra
+1256	Supino declinado pegada invertida com barra
+1257	Supino inclinado pegada invertida com barra
+1317	Remada no banco inclinado pegada invertida com barra
+1721	Tríceps testa pegada invertida com barra
+0081	Curl Scott invertido com barra
+0082	Extensão de punho com barra
+0084	Roda abdominal com barra
+0083	Roda abdominal com barra a partir do banco
+0085	Peso morto romeno com barra
+0086	Press militar sentado atrás da cabeça com barra
+0087	Press Bradford sentado com barra
+0088	Elevação de gémeos sentado com barra
+1371	Elevação de gémeos sentado com barra v. 2
+1718	Extensão de tríceps sentado atrás da nuca pegada fechada com barra
+0089	Curl concentrado sentado pegada fechada com barra
+0090	Good morning sentado com barra
+0091	Press acima da cabeça sentado com barra
+0092	Extensão de tríceps acima da cabeça sentado com barra
+0094	Rotação do tronco sentado com barra
+0095	Encolhimento de ombros com barra
+0096	Inclinação lateral com barra v. 2
+0098	Agachamento lateral dividido com barra
+0097	Agachamento lateral dividido com barra v. 2
+1756	Peso morto com uma perna com barra
+0099	Agachamento dividido com uma perna com barra
+2799	Elevação alternada de pernas sentado com barra
+2800	Elevação alternada de pernas sentado com barra (mulher)
+0100	Esquiador com barra
+0101	Agachamento rápido com barra
+2810	Agachamento dividido com barra v. 2
+0102	Agachamento de joelhos com barra
+2798	Agachamento com salto e afundo à retaguarda com barra
+0103	Roda abdominal de pé com barra
+0104	Flexão de punho atrás das costas de pé com barra
+0105	Press Bradford de pé com barra
+1372	Elevação de gémeos de pé com barra
+0106	Curl pegada fechada de pé com barra
+1456	Press militar pegada fechada de pé com barra
+2414	Curl concentrado de pé com barra
+0107	Elevação frontal acima da cabeça de pé com barra
+0108	Elevação de gémeos de pé com barra v. 2
+0109	Extensão de tríceps acima da cabeça de pé com barra
+0110	Curl pegada invertida de pé com barra
+0111	Elevação de gémeos de pé com balanço com barra
+0112	Rotação do tronco de pé com barra
+1629	Curl de bíceps pegada larga de pé com barra
+1457	Press militar pegada larga de pé com barra
+0113	Curl pegada larga de pé com barra
+0114	Subida ao banco com barra
+0115	Good morning de pernas rígidas com barra
+0116	Peso morto de pernas esticadas com barra
+0117	Peso morto sumo com barra
+3305	Thruster com barra
+0120	Remada alta com barra
+0119	Remada alta com barra v. 2
+0121	Remada alta com barra v. 3
+0122	Supino pegada larga com barra
+1258	Supino pegada invertida larga com barra
+0124	Agachamento com pés afastados com barra
+0123	Remada alta pegada larga com barra
+0126	Flexão de punho com barra
+0125	Flexão de punho com barra v. 2
+0127	Agachamento Zercher com barra
+3212	Toque nos pés básico
+0128	Cordas de batalha
+3360	Rastejar de urso
+1259	Alongamento do peito com mãos atrás da cabeça
+0129	Fundos no banco (joelhos fletidos)
+1399	Fundos no chão
+0130	Extensão da anca no banco
+3019	Elevações na barra com banco
+3639	Rotação deitado com joelhos fletidos
+1770	Curl concentrado apoiado na perna
+0139	Elevações supinadas fechadas
+0140	Elevação na barra para bíceps
+0137	Body-up
+3543	Agachamento com salto em queda
+3544	Prancha lateral inclinada
+1771	Extensão de tríceps de joelhos com o peso do corpo
+1769	Curl de bíceps deitado de lado com o peso do corpo
+3168	Remada agachado com o peso do corpo
+3167	Remada agachado com o peso do corpo (com toalha)
+1373	Elevação de gémeos de pé com o peso do corpo
+3156	Remada unilateral pegada fechada de pé com o peso do corpo
+3158	Remada pegada fechada de pé com o peso do corpo
+3162	Remada unilateral de pé com o peso do corpo
+3161	Remada unilateral de pé com o peso do corpo (com toalha)
+3166	Remada de pé com o peso do corpo
+3165	Remada de pé com o peso do corpo (com toalha)
+0138	Bottoms-up
+1374	Salto da caixa com estabilização numa perna
+2466	Ponte com escalador (cruzado)
+1160	Burpee
+0870	Elevações de glúteos
+1494	Postura da borboleta (ioga)
+0148	Press de ombros alternado na polia
+0149	Extensão de tríceps alternada na polia
+3235	Curl de pernas inverso assistido na polia
+0150	Puxada à frente com barra na polia
+0151	Supino na polia
+1630	Curl pegada fechada na polia
+1631	Curl concentrado na polia
+0152	Extensão concentrada na polia (de joelho)
+0153	Puxada à frente cruzada na polia
+0154	Aberturas invertidas cruzadas na polia
+0155	Cruzamento na polia, variante
+0868	Curl na polia
+0157	Peso morto na polia
+0158	Aberturas declinadas na polia
+1260	Press declinado unilateral na polia
+1261	Press declinado na polia
+0159	Remada sentada declinada pegada larga na polia
+1632	Curl arrastado na polia
+0160	Remada sentada no chão pegada larga na polia
+0161	Elevação para a frente na polia
+0162	Elevação frontal na polia
+0164	Elevação frontal de ombros na polia
+0165	Curl martelo na polia (com corda)
+1722	Extensão de tríceps acima da cabeça na polia alta
+0167	Remada na polia alta (de joelhos)
+0168	Adução da anca na polia
+0169	Supino inclinado na polia
+1318	Remada no banco inclinado na polia
+0171	Aberturas inclinadas na polia
+0170	Aberturas inclinadas na polia (na bola suíça)
+0172	Tríceps na polia inclinado
+0173	Extensão de tríceps inclinado na polia
+0174	Judo flip na polia
+0860	Coice de tríceps na polia
+0175	Abdominal de joelhos na polia
+3697	Remada para deltoide posterior de joelhos na polia (com corda)
+0176	Extensão de tríceps de joelhos na polia
+2330	Puxada à frente na polia, amplitude completa
+0177	Puxada à frente na polia (com corda)
+2616	Puxada à frente na polia com triângulo
+0178	Elevação lateral na polia
+0179	Aberturas baixas na polia
+0180	Remada sentada baixa na polia
+1634	Curl de bíceps deitado na polia
+0182	Curl pegada fechada deitado na polia
+0184	Pullover com extensão deitado na polia (com corda)
+0185	Aberturas deitado na polia
+0186	Extensão de tríceps deitado na polia v. 2
+0188	Aberturas a meia altura na polia
+0189	Remada curvada unilateral na polia
+0190	Curl unilateral na polia
+1262	Aberturas declinadas unilaterais na polia
+1263	Aberturas unilaterais na polia na bola suíça
+1264	Aberturas inclinadas unilaterais na polia na bola suíça
+1265	Press inclinado unilateral na polia
+1266	Press inclinado unilateral na polia na bola suíça
+0191	Elevação lateral curvado unilateral na polia
+0192	Elevação lateral unilateral na polia
+1633	Curl Scott unilateral na polia
+1267	Press unilateral na polia na bola suíça
+3563	Puxada unilateral na polia
+1635	Curl Scott invertido unilateral na polia
+0193	Remada alta unilateral com costas direitas na polia (de joelhos)
+1723	Tríceps na polia unilateral
+1636	Curl acima da cabeça na polia
+1637	Curl acima da cabeça na polia na bola suíça
+0194	Extensão de tríceps acima da cabeça na polia (com corda)
+1319	Remada com rotação da palma na polia
+0195	Curl Scott na polia
+1268	Press na polia na bola suíça
+0196	Pull through na polia (com corda)
+0198	Puxada na polia
+0197	Puxada na polia (barra pro lat)
+1638	Curl de bíceps na polia alta
+0201	Tríceps na polia
+0199	Puxada de braços esticados na polia v. 2
+0200	Tríceps na polia (com corda)
+0202	Remada para deltoide posterior na polia (com pegas)
+0203	Remada para deltoide posterior na polia (com corda)
+0204	Rear drive na polia
+0205	Puxada atrás da nuca na polia
+0873	Abdominal invertido na polia
+0206	Curl invertido na polia
+2406	Tríceps na polia pegada invertida (barra SZ, com arm blaster)
+1413	Curl invertido unilateral na polia
+0209	Curl Scott invertido na polia
+0210	Extensão de punho na polia
+0207	Tríceps na polia pegada invertida
+0208	Remada alta sentado pegada invertida com costas direitas na polia
+1320	Remada sentada cruzada com corda na polia
+1321	Remada sentada elevada com corda na polia
+1322	Remada no banco inclinado com extensão, com corda na polia
+1639	Curl martelo no banco Scott com corda na polia
+1724	Extensão de tríceps acima da cabeça com corda na polia alta
+1725	Extensão de tríceps inclinado com corda na polia
+1726	Extensão de tríceps deitado no chão com corda na polia
+1640	Curl martelo unilateral no banco Scott com corda na polia
+1323	Remada sentada com corda na polia
+0211	Rotação russa na polia (na bola suíça)
+2144	Press de peito sentado na polia
+0212	Abdominal sentado na polia
+1641	Curl sentado na polia
+0213	Remada alta sentado na polia (triângulo)
+0214	Remada sentada unilateral alternada na polia
+1642	Curl concentrado unilateral sentado na polia
+1643	Curl acima da cabeça sentado na polia
+0215	Elevação posterior sentado na polia
+0861	Remada sentada na polia
+0216	Rotação interna do ombro sentado na polia
+2399	Rotação do tronco sentado na polia
+0218	Remada sentada pegada larga na polia
+0219	Press de ombros na polia
+0220	Encolhimento de ombros na polia
+0222	Inclinação lateral na polia
+0221	Abdominal com inclinação lateral na polia (bosu)
+0223	Abdominal lateral na polia
+1717	Agachamento com remada na polia (com corda)
+1644	Curl agachado na polia
+0224	Flexão de punho atrás das costas de pé na polia
+1375	Elevação de gémeos de pé na polia
+0225	Aberturas invertidas altas cruzadas de pé na polia
+0226	Abdominal de pé na polia
+0874	Abdominal de pé na polia (com corda)
+0227	Aberturas de pé na polia
+0228	Extensão da anca de pé na polia
+0229	Curl interno de pé na polia
+0230	Elevação diagonal de pé na polia
+0231	Extensão de tríceps unilateral de pé na polia
+1376	Elevação de gémeos com uma perna de pé na polia
+0232	Puxada de pé na polia (com corda)
+0233	Remada para deltoide posterior de pé na polia (com corda)
+1727	Extensão de tríceps unilateral acima da cabeça pegada invertida de pé na polia
+0234	Remada de pé na polia (triângulo)
+0235	Rotação externa do ombro de pé na polia
+0236	Remada com rotação de pé na polia (triângulo)
+1269	Cruzamento na polia de pé com tronco direito
+0238	Puxada de braços esticados na polia
+0237	Puxada de braços esticados na polia (com corda)
+0239	Remada sentada com costas direitas na polia
+0240	Aberturas invertidas deitado de costas na polia
+2464	Remada caiaque de Thibaudeau na polia
+0241	Tríceps na polia (triângulo)
+2405	Tríceps na polia (triângulo, com arm blaster)
+0242	Abdominal invertido encolhido na polia
+0243	Rotação do tronco na polia
+0862	Rotação do tronco na polia (de cima para baixo)
+0244	Puxada com rotação na polia
+1645	Curl com dois braços no banco inclinado na polia
+1728	Coice de tríceps com dois braços na polia
+0245	Puxada supinada na polia
+1270	Cruzamento na polia para a parte superior do peito
+1324	Remada à altura do peito na polia
+0246	Remada alta na polia
+1325	Puxada atrás da nuca pegada larga na polia
+0247	Flexão de punho na polia
+1407	Alongamento de gémeos empurrando a parede
+1377	Alongamento de gémeos com as mãos na parede
+1378	Alongamento de gémeos com corda
+0248	Remada deitado com barra curva
+2963	Elevação de pernas esticadas na cadeira romana
+1548	Alongamento de perna esticada na cadeira
+1271	Alongamento do peito e da frente do ombro
+0251	Fundos para peito
+1430	Fundos para peito (na estação de fundos e elevações)
+2462	Fundos para peito na barra reta
+1272	Alongamento do peito com bola suíça
+3216	Flexão com toque no peito
+1326	Elevação supinada
+0253	Elevação supinada (pegada paralela fechada)
+0257	Alongamento do joelho em círculos
+1273	Flexão com palma
+0258	Flexão relógio
+1327	Elevação supinada pegada fechada
+0259	Flexão pegada fechada
+2398	Flexão pegada fechada (de joelhos)
+0260	Abdominal casulo
+1468	Caranguejo com rotação e toque no pé
+0262	Abdominal cruzado
+0267	Abdominal (mãos acima da cabeça)
+0271	Abdominal (na bola suíça)
+0272	Abdominal (na bola suíça, braços esticados)
+0274	Abdominal no chão
+3016	Abdominal parcial (curl-up)
+3769	Agachamento cruzado (vénia)
+2331	Bicicleta elíptica
+0276	Dead bug
+0277	Abdominal declinado
+0279	Flexão declinada
+0282	Abdominal completo declinado
+1274	Flexão profunda
+0283	Flexão diamante
+0284	Elevação de gémeos burro
+1275	Flexão com queda
+0285	Curl de bíceps alternado com halteres
+2403	Curl de bíceps alternado com halteres (com arm blaster)
+1646	Curl martelo alternado no banco Scott com halteres
+1647	Curl Scott alternado com halteres
+1648	Curl martelo alternado sentado com halteres
+0286	Press lateral alternado com halteres
+1649	Curl de bíceps alternado com perna elevada na bola suíça com halteres
+1650	Curl de bíceps alternado sentado na bola suíça com halteres
+2137	Press Arnold com halteres
+0287	Press Arnold com halteres v. 2
+0288	Pullover circular com halteres
+0289	Supino com halteres
+0290	Press sentado no banco com halteres
+0291	Agachamento ao banco com halteres
+0293	Remada curvada com halteres
+1651	Afundo com curl de bíceps e movimento de bowling com halteres
+1652	Curl de bíceps na bola suíça com perna elevada com halteres
+1653	Curl de bíceps numa perna com halteres
+0294	Curl de bíceps com halteres
+2401	Curl de bíceps com halteres (com arm blaster)
+1654	Curl de bíceps invertido com halteres
+1655	Agachamento com curl de bíceps com halteres
+1656	Curl de bíceps sentado em V no bosu com halteres
+1201	Burpee com halteres
+0295	Clean com halteres
+1731	Supino pegada fechada com halteres
+0296	Press pegada fechada com halteres
+0297	Curl concentrado com haltere
+3635	Afundo à frente contralateral com haltere
+0298	Curl martelo cruzado com halteres
+1657	Curl martelo cruzado com halteres v. 2
+0299	Press cubano com halteres
+2136	Press cubano com halteres v. 2
+0300	Peso morto com halteres
+0301	Supino declinado com halteres
+0302	Aberturas declinadas com halteres
+0303	Press declinado em martelo com halteres
+1276	Aberturas declinadas unilaterais com haltere
+1617	Press declinado em martelo unilateral com haltere
+0305	Encolhimento de ombros declinado com halteres
+0304	Encolhimento de ombros declinado com halteres v. 2
+0306	Extensão de tríceps declinado com halteres
+0307	Aberturas declinadas com rotação com halteres
+1437	Flexão dos dedos com halteres
+0308	Aberturas com halteres
+1277	Aberturas na bola suíça com halteres
+1732	Afundo à frente com extensão de tríceps com haltere
+0310	Elevação frontal com halteres
+0309	Elevação frontal com halteres v. 2
+0311	Elevação lateral com polegares para cima com halteres
+1760	Agachamento goblet com haltere
+0313	Curl martelo com halteres
+1659	Curl martelo na bola suíça com halteres
+0312	Curl martelo com halteres v. 2
+2402	Curl martelo com halteres (com arm blaster)
+1664	Curl alto com halteres
+3545	Supino inclinado alternado com halteres
+0314	Supino inclinado com halteres
+0315	Curl de bíceps inclinado com halteres
+0316	Incline breeding com halteres
+0318	Curl inclinado com halteres
+0317	Curl inclinado com halteres v. 2
+0319	Aberturas inclinadas com halteres
+1278	Aberturas inclinadas na bola suíça com halteres
+0320	Curl martelo inclinado com halteres
+0321	Press inclinado em martelo com halteres
+1618	Press inclinado em martelo na bola suíça com halteres
+0322	Curl de bíceps interno inclinado com halteres
+1279	Aberturas inclinadas unilaterais com haltere
+1280	Aberturas inclinadas unilaterais na bola suíça com haltere
+1619	Press inclinado em martelo unilateral com haltere
+1620	Press inclinado em martelo unilateral na bola suíça com haltere
+0323	Elevação lateral unilateral inclinado com haltere
+1281	Press inclinado unilateral com haltere
+1282	Press inclinado unilateral na bola suíça com haltere
+0324	Supino inclinado com palmas para dentro com halteres
+1283	Press inclinado na bola suíça com halteres
+0325	Elevação inclinada com halteres
+0326	Elevação posterior inclinado com halteres
+0327	Remada inclinada com halteres
+0328	Elevação de ombros inclinado com halteres
+0329	Encolhimento de ombros inclinado com halteres
+3542	Elevação em T inclinado com halteres
+0330	Extensão de tríceps inclinado com halteres
+0331	Aberturas inclinadas com rotação com halteres
+1733	Extensão de tríceps inclinado com dois braços com haltere
+3541	Elevação em Y inclinado com halteres
+0332	Cruz de ferro com halteres
+0333	Coice de tríceps com haltere
+1734	Coice de tríceps na bola suíça com halteres
+1660	Curl de bíceps de joelhos na bola suíça com halteres
+0334	Elevação lateral com halteres
+0335	Elevação lateral para frontal com halteres
+0336	Afundo com halteres
+1658	Afundo com curl de bíceps com halteres
+0337	Extensão de tríceps deitado cruzada à frente da cara com haltere
+1729	Extensão de tríceps alternada deitado com halteres
+0338	Press de cotovelos deitado com halteres
+0863	Rotação externa do ombro deitado com haltere
+0339	Curl femoral deitado com haltere
+0340	Press em martelo deitado com halteres
+2470	Elevação posterior deitado no chão com halteres
+0341	Elevação posterior unilateral deitado com haltere
+0343	Press unilateral deitado com haltere
+0342	Press unilateral deitado com haltere v. 2
+0344	Extensão de tríceps unilateral pronada deitado com haltere
+0345	Elevação posterior unilateral deitado de lado com haltere
+0346	Extensão de tríceps unilateral supinada deitado com haltere
+0347	Pronação deitado com haltere
+2705	Pronação deitado no chão com haltere
+1284	Pullover deitado na bola suíça com haltere
+1328	Remada para deltoide posterior deitado com halteres
+0348	Elevação posterior deitado com halteres
+1735	Extensão de tríceps unilateral deitado com haltere
+0349	Supinação deitado com haltere
+2706	Supinação deitado no chão com haltere
+1661	Curl de bíceps deitado de costas com halteres
+0350	Curl deitado de costas com halteres
+0351	Extensão de tríceps deitado com halteres
+1662	Curl aberto deitado com halteres
+0352	Supino pegada neutra com halteres
+1285	Aberturas unilaterais no banco com haltere
+0292	Remada curvada unilateral com haltere
+1286	Aberturas de peito unilaterais na bola suíça com haltere
+0353	Curl concentrado unilateral com haltere (na bola suíça)
+1287	Supino declinado unilateral com haltere
+1288	Aberturas unilaterais na bola suíça com haltere v. 2
+1736	Press francês unilateral na bola suíça com haltere
+1663	Curl martelo unilateral no banco Scott com haltere
+1621	Press em martelo unilateral na bola suíça com haltere
+1289	Supino inclinado unilateral com haltere
+0354	Coice de tríceps unilateral com haltere
+0355	Elevação lateral unilateral com haltere
+0356	Elevação lateral unilateral com apoio com haltere
+1290	Press unilateral na bola suíça com haltere
+1665	Curl unilateral de bruços com haltere
+1666	Curl martelo unilateral de bruços com haltere
+1291	Pullover unilateral na bola suíça com haltere
+0358	Extensão de punho unilateral com haltere
+0359	Aberturas invertidas unilaterais com haltere (com apoio)
+1622	Press unilateral pegada invertida com haltere
+1414	Curl Scott invertido unilateral com haltere
+1667	Curl aranha invertido unilateral com haltere
+1668	Curl de bíceps unilateral sentado na bola suíça com haltere
+1669	Curl martelo unilateral sentado com haltere
+1415	Flexão de punho unilateral pegada neutra sentado com haltere
+0361	Press de ombros unilateral com haltere
+0360	Press de ombros unilateral com haltere v. 2
+3888	Arranque unilateral com haltere
+1670	Curl unilateral de pé com haltere
+1671	Curl martelo unilateral de pé com haltere
+0362	Extensão de tríceps unilateral com haltere (no banco)
+0363	Remada alta unilateral com haltere
+0364	Flexão de punho unilateral com haltere
+1672	Curl Zottman unilateral no banco Scott com haltere
+1292	Aberturas com uma perna na bola suíça com halteres
+0365	Flexão de punho pegada neutra sobre o banco com halteres
+0366	Flexão de punho unilateral pegada neutra sobre o banco com haltere
+1441	Extensão de punho unilateral sobre o banco com haltere
+0367	Flexão de punho unilateral sobre o banco com haltere
+0368	Extensão de punho sobre o banco com halteres
+0369	Flexão de punho sobre o banco com halteres
+1329	Remada curvada com rotação da palma com halteres
+1623	Supino inclinado com palmas para dentro com halteres v. 2
+0370	Curl martelo no banco Scott com haltere
+0371	Agachamento pliométrico com halteres
+0372	Curl Scott com halteres
+1673	Curl Scott sobre a bola suíça com haltere
+1293	Supino na bola suíça com halteres
+0373	Extensão de tríceps pegada pronada com halteres
+0374	Curl inclinado de bruços com halteres
+1674	Curl martelo inclinado de bruços com halteres
+0375	Pullover com haltere
+1294	Pullover com extensão da anca na bola suíça com haltere
+1295	Pullover na bola suíça com haltere
+1700	Push press com halteres
+0376	Elevação com halteres
+2292	Elevação para deltoide posterior com halteres
+0377	Remada para deltoide posterior com halteres
+0378	Aberturas posteriores com halteres
+0380	Elevação posterior com halteres
+0379	Elevação posterior com halteres (cabeça apoiada)
+0381	Afundo à retaguarda com halteres
+0382	Curl de bíceps pegada invertida com halteres
+1624	Supino pegada invertida com halteres
+0383	Aberturas invertidas com halteres
+1330	Remada unilateral no banco inclinado pegada invertida com haltere
+1331	Remada com dois braços no banco inclinado pegada invertida com halteres
+2327	Remada pegada invertida com halteres (mulher)
+0384	Curl Scott invertido com halteres
+1675	Curl aranha invertido com halteres
+0385	Extensão de punho com halteres
+1459	Peso morto romeno com halteres
+0386	Aberturas invertidas com rotação com halteres
+2397	Press Scott com halteres
+0387	Elevação frontal alternada sentado com halteres
+1676	Curl martelo alternado sentado na bola suíça com halteres
+0388	Press alternado sentado com halteres
+3546	Press de ombros alternado sentado com halteres
+0389	Extensão de tríceps sentado no banco com haltere
+2317	Elevação lateral de braços fletidos sentado com halteres
+1730	Coice de tríceps alternado sentado e inclinado com halteres
+1737	Extensão de tríceps sentado e inclinado com halteres
+1677	Curl de bíceps sentado com halteres
+0390	Curl de bíceps sentado com halteres (na bola suíça)
+3547	Curl de bíceps com press de ombros sentado com halteres
+1379	Elevação de gémeos sentado com halteres
+0391	Curl sentado com halteres
+0392	Elevação frontal sentado com halteres
+1678	Curl martelo sentado com halteres
+0393	Curl de bíceps interno sentado com halteres
+0394	Coice de tríceps sentado com halteres
+0396	Elevação lateral sentado com halteres
+0395	Elevação lateral sentado com halteres v. 2
+0397	Flexão de punho pegada neutra sentado com halteres
+1679	Curl de bíceps unilateral sentado na bola suíça com perna elevada com haltere
+0398	Coice de tríceps unilateral sentado com haltere
+0399	Rotação unilateral sentado com haltere
+0400	Elevação de gémeos com uma perna sentado com haltere
+1380	Elevação de gémeos com uma perna sentado com haltere (pegada martelo)
+1381	Elevação de gémeos com uma perna sentado com haltere (palma para cima)
+0401	Flexão de punho supinada sentado com halteres
+0402	Curl Scott sentado com haltere
+0403	Curl concentrado pegada invertida sentado com haltere
+1738	Extensão de tríceps unilateral acima da cabeça pegada invertida sentado com haltere
+0405	Press de ombros sentado com halteres
+0404	Press de ombros sentado com halteres (pegada paralela)
+2188	Extensão de tríceps sentado com haltere
+0406	Encolhimento de ombros com halteres
+0407	Inclinação lateral com haltere
+0408	Elevação unilateral deitado de lado com haltere
+3664	Prancha lateral com aberturas posteriores com haltere
+3548	Transporte unilateral acima da cabeça com haltere
+0409	Elevação de gémeos com uma perna com haltere
+1757	Peso morto com uma perna com haltere
+2805	Peso morto com uma perna com apoio na caixa com haltere
+0410	Agachamento dividido com uma perna com halteres
+0411	Agachamento com uma perna com halteres
+0413	Agachamento com halteres
+3560	Curl martelo e press alternados de pé com halteres
+0414	Press acima da cabeça alternado de pé com halteres
+0415	Elevação alternada de pé com halteres
+1739	Coice de tríceps alternado de pé com halteres
+2143	Volta ao mundo de pé com halteres
+1740	Extensão de tríceps unilateral de pé inclinado com haltere
+1741	Extensão de tríceps com dois braços de pé inclinado com halteres
+0416	Curl de bíceps de pé com halteres
+0417	Elevação de gémeos de pé com halteres
+0418	Curl concentrado de pé com halteres
+0419	Elevação frontal acima da cabeça de pé com halteres
+2321	Curl de bíceps interno de pé com halteres v. 2
+0420	Coice de tríceps de pé com halteres
+0421	Curl concentrado unilateral de pé com haltere
+0422	Curl unilateral de pé sobre o banco inclinado com haltere
+1680	Curl unilateral de pé sobre o banco inclinado com haltere v. 2
+0423	Extensão de tríceps unilateral de pé com haltere
+0424	Press unilateral de pé com palma para dentro com haltere
+0425	Curl invertido unilateral de pé com haltere
+0426	Press acima da cabeça de pé com halteres
+0427	Press de pé com palmas para dentro com halteres
+0428	Curl Scott de pé com haltere
+0429	Curl invertido de pé com halteres
+0430	Extensão de tríceps de pé com haltere
+2293	Curl Zottman no banco Scott de pé com haltere
+1684	Subida ao banco com equilíbrio numa perna e curl de bíceps com halteres
+0431	Subida ao banco com halteres
+2796	Subida ao banco com afundo com halteres
+2812	Subida ao banco com agachamento dividido com halteres
+0432	Peso morto de pernas rígidas com halteres
+0433	Pullover de braços esticados com haltere
+0434	Peso morto de pernas esticadas com halteres
+2808	Pull through sumo com haltere
+2803	Agachamento com apoio com haltere
+0436	Press Tate com halteres
+1742	Coice de tríceps numa perna com haltere
+1743	Supino com rotação com halteres
+0437	Remada alta com halteres
+1765	Remada alta com halteres (vista de trás)
+0864	Rotação externa do ombro de pé com haltere
+5201	Curl de bíceps empregado de mesa com haltere
+0438	Press em W com halteres
+0439	Curl Zottman com halteres
+2294	Curl Zottman no banco Scott com haltere
+2189	Extensão de tríceps sentado com halteres
+1167	Alongamento dinâmico do peito
+3287	Fundos nos cotovelos
+1772	Elevação nos cotovelos (flexão invertida)
+0443	Cotovelo ao joelho
+3292	Elevador
+1332	Elevação alternada de braços na bola suíça
+1333	Extensão lombar na bola suíça com braços esticados
+1334	Extensão lombar na bola suíça com mãos atrás da cabeça
+1335	Extensão lombar na bola suíça com joelhos fora do chão
+1336	Extensão lombar na bola suíça com rotação
+1744	Fundos na bola suíça
+1559	Alongamento dos flexores da anca na bola suíça
+1338	Abraço à bola suíça
+1339	Alongamento do grande dorsal na bola suíça
+1341	Alongamento lombar na bola suíça (pirâmide)
+1342	Alongamento lateral do grande dorsal deitado na bola suíça
+1382	Elevação de gémeos com bola suíça na parede
+3241	Elevação de gémeos com bola suíça na parede (bola de ténis entre os tornozelos)
+3240	Elevação de gémeos com bola suíça na parede (bola de ténis entre os joelhos)
+1416	Rotação da parte inferior do corpo de bruços com uma perna na bola suíça
+1417	Curl de isquiotibiais com pontapé diagonal numa perna na bola suíça
+1296	Flexão em pique na bola suíça
+1343	Elevação de pernas de bruços na bola suíça
+1560	Alongamento de isquiotibiais sentado na bola suíça
+1745	Alongamento de tríceps sentado na bola suíça
+1746	Extensão de tríceps deitado de costas na bola suíça
+1747	Press francês na bola suíça com barra EZ
+3010	Pullover de braços fletidos deitado com barra EZ
+1748	Extensão de tríceps atrás da cabeça deitado pegada fechada com barra EZ
+1344	Remada curvada pegada invertida com barra EZ
+1682	Curl concentrado sentado pegada fechada com barra EZ
+1749	Press francês de pé com barra EZ
+0445	Press antigravidade com barra EZ
+1627	Curl Scott pegada fechada com barra EZ
+0446	Curl pegada fechada com barra EZ
+0447	Curl com barra EZ
+0448	Press à cara pegada fechada declinado com barra EZ
+2186	Extensão de tríceps declinado com barra EZ
+0449	Extensão de tríceps inclinado com barra EZ
+0450	Supino JM com barra EZ
+0451	Curl pegada invertida com barra EZ
+0452	Curl Scott pegada invertida com barra EZ
+1458	Curl sentado com barra EZ
+0453	Extensão de tríceps sentado com barra EZ
+0454	Curl aranha com barra EZ
+1628	Curl aranha com barra EZ v. 2
+2404	Curl de bíceps com barra EZ (com arm blaster)
+2432	Supino pegada fechada com barra EZ
+2741	Curl de bíceps pegada larga de pé com barra EZ
+2133	Passeio do agricultor
+0455	Flexão dos dedos
+3303	Bandeira humana
+0456	Abdominal completo com pernas fletidas
+0457	Abdominal completo com braços esticados
+0458	Aberturas no chão (com barra)
+0459	Pontapés alternados (flutter kicks)
+1472	Salto para a frente
+3470	Afundo à frente
+3194	Agachamento Frankenstein
+2429	Abdominal rã
+3301	Planche rã
+3296	Front lever
+3295	Front lever (repetições)
+0464	Prancha frontal com rotação
+3315	Maltese completo
+3299	Planche completa
+3327	Flexão em planche completa
+0466	Elevação Gironda ao esterno
+3561	Ponte de glúteos com marcha
+3523	Ponte de glúteos com as duas pernas no banco
+3193	Elevação glúteo-isquiotibiais (GHR)
+0467	Elevação gorila
+0469	Abdominal de virilha
+1383	Elevação de gémeos na máquina hack
+1384	Elevação de gémeos com uma perna na máquina hack
+3221	Meio agachamento
+3202	Meio abdominal
+1511	Alongamento de isquiotibiais
+2139	Bicicleta de braços
+3218	Toque nos pés com mãos entrelaçadas em círculo
+3215	Toque nos pés com mãos entrelaçadas invertidas em círculo
+3302	Pino
+0471	Flexão em pino
+1764	Elevação de pernas e anca em suspensão
+0472	Elevação de pernas em suspensão
+1761	Elevação de joelhos oblíqua em suspensão
+0473	Pique em suspensão
+0474	Elevação de pernas esticadas e anca em suspensão
+0475	Elevação de pernas esticadas em suspensão
+0476	Elevação de pernas esticadas e anca com rotação em suspensão
+3636	Joelhos ao peito contra a parede
+0484	Elevação da anca (joelhos fletidos)
+1418	Abraçar os joelhos ao peito
+3234	Aberturas altas com halteres
+0489	Hiperextensão lombar
+0488	Hiperextensão lombar (no banco)
+3289	Fundos impossíveis
+1471	Lagarta (inchworm)
+3698	Lagarta (inchworm) v. 2
+0490	Flexão inclinada pegada fechada
+0491	Elevação de pernas e anca inclinado (pernas esticadas)
+0492	Flexão inclinada com salto em profundidade
+0493	Flexão inclinada
+3785	Flexão inclinada (na caixa)
+0494	Flexão inclinada pegada invertida
+3011	Flexão escapular inclinada
+0495	Abdominal completo inclinado com rotação
+1564	Alongamento dos flexores da anca e quadríceps, intermédio
+0496	Curl de pernas inverso (com apoio no banco)
+2400	Curl de pernas inverso (na máquina de elevações com polia)
+0499	Remada invertida
+2300	Remada invertida com joelhos fletidos
+2298	Remada invertida no banco
+0497	Remada invertida v. 2
+0498	Remada invertida com fitas
+1419	Alongamento cruz de ferro
+1297	Compressão isométrica do peito
+0500	Limpa-para-brisas isométrico
+0501	Burpee com polichinelo
+3224	Polichinelo
+0507	Abdominal canivete
+0508	Abdominal Janda
+2612	Saltar à corda
+0514	Agachamento com salto
+0513	Agachamento com salto v. 2
+0517	Moinho avançado com kettlebell
+0518	Hang clean alternado com kettlebell
+0520	Press alternado com kettlebell
+0519	Press alternado no chão com kettlebell
+0521	Remada renegada alternada com kettlebell
+0522	Remada alternada com kettlebell
+0523	Press Arnold com kettlebell
+0524	Bent press com kettlebell
+0525	Clean invertido a partir da suspensão com kettlebell
+0526	Hang clean alternado duplo com kettlebell
+0527	Jerk duplo com kettlebell
+0528	Push press duplo com kettlebell
+0529	Arranque duplo com kettlebell
+0530	Moinho duplo com kettlebell
+0531	Press unilateral no chão com amplitude aumentada com kettlebell
+0532	Oito com kettlebell
+0533	Agachamento frontal com kettlebell
+0534	Agachamento goblet com kettlebell
+0535	Hang clean com kettlebell
+0536	Afundo com passagem por baixo da perna com kettlebell
+0537	Clean e jerk unilateral com kettlebell
+1298	Press no chão unilateral com kettlebell
+0538	Jerk unilateral com kettlebell
+0539	Press militar unilateral para o lado com kettlebell
+0540	Push press unilateral com kettlebell
+0541	Remada unilateral com kettlebell
+0542	Arranque unilateral com kettlebell
+0543	Pernas de pirata com kettlebell
+0544	Agachamento pistola com kettlebell
+0545	Flexão pliométrica com kettlebell
+0546	Press sentado com kettlebell
+1438	Press militar sentado com dois braços com kettlebell
+0547	Press alternado em baloiço com kettlebell
+0548	Puxada alta sumo com kettlebell
+0549	Swing com kettlebell
+0550	Thruster com kettlebell
+0551	Levantamento turco com kettlebell (estilo agachamento)
+0552	Clean com dois braços com kettlebell
+0553	Press militar com dois braços com kettlebell
+1345	Remada com dois braços com kettlebell
+0554	Moinho com kettlebell
+0555	Sentado com extensão de pernas (kick out)
+0558	Muscle-up com balanço
+3640	Abdominal com toque nos joelhos
+1420	Agachamento com salto a partir dos joelhos
+1346	Alongamento do grande dorsal de joelhos
+3239	Prancha de joelhos com toque no ombro
+3211	Flexão de joelhos
+3288	Fundos coreanos
+3418	Elevação na barra em L
+3419	L-sit no chão
+0562	Landmine 180
+3237	Elevação lateral com landmine
+3300	Planche inclinada
+2271	Gancho de esquerda (boxe)
+0570	Puxar as pernas no banco plano
+1576	Alongamento de isquiotibiais com perna elevada
+2287	Prensa de pernas alternada na máquina
+0571	Remada sentada alternada pegada estreita na máquina
+0572	Elevação supinada assistida na máquina
+0573	Extensão lombar na máquina
+0574	Remada curvada na máquina
+3200	Remada curvada na máquina com triângulo
+0575	Curl de bíceps na máquina
+2289	Prensa de gémeos na máquina
+0577	Press de peito na máquina
+0576	Press de peito na máquina v. 2
+0578	Peso morto na máquina
+1300	Press de peito declinado na máquina
+1253	Elevação de gémeos burro na máquina
+0579	Puxada à frente na máquina
+0580	Encolhimento de ombros sem pegas na máquina
+1439	Encolhimento de ombros sem pegas na máquina v. 2
+2288	Fortalecedor de mãos na máquina
+1615	Curl Scott pegada martelo na máquina
+0581	Remada alta na máquina
+2286	Extensão da anca na máquina v. 2
+2611	Prensa horizontal com uma perna na máquina
+1299	Press de peito inclinado na máquina
+1479	Press de peito inclinado na máquina v. 2
+0582	Curl de pernas de joelhos na máquina
+0583	Rotação do tronco de joelhos na máquina
+0584	Elevação lateral na máquina
+0585	Extensão de pernas na máquina
+0586	Curl de pernas deitado na máquina
+3195	Curl de pernas deitado, duas pernas e uma, na máquina
+0587	Press militar na máquina
+0588	Remada sentada pegada estreita na máquina
+0589	Remada curvada unilateral na máquina
+1356	Remada alta lateral unilateral na máquina
+1347	Puxada lateral larga unilateral na máquina
+0590	Press de ombros unilateral na máquina
+0591	Fundos para tríceps pegada pronada na máquina
+0592	Curl Scott na máquina
+1614	Curl Scott na máquina v. 2
+2285	Pullover na máquina
+2736	Puxada à frente pegada invertida na máquina
+1616	Curl Scott pegada invertida na máquina
+1348	Remada vertical pegada invertida na máquina
+0593	Hiperextensão invertida na máquina
+1349	Remada T invertida na máquina
+2315	Gémeos rotativos na máquina
+2335	Prensa de gémeos sentado na máquina
+0594	Elevação de gémeos sentado na máquina
+1452	Abdominal sentado na máquina
+0595	Abdominal sentado na máquina (apoio no peito)
+3760	Abdominal sentado na máquina v. 2
+1451	Fundos sentado na máquina
+0596	Aberturas sentado na máquina (peck deck)
+3759	Good morning sentado na máquina
+0597	Abdução da anca sentado na máquina
+0598	Adução da anca sentado na máquina
+0599	Curl de pernas sentado na máquina
+0600	Abdominal com elevação de pernas sentado na máquina
+0602	Aberturas invertidas sentado na máquina
+0601	Aberturas invertidas sentado na máquina (pegada paralela)
+1350	Remada sentada na máquina
+1385	Elevação de gémeos sentado na prensa de pernas
+0603	Press de ombros na máquina
+0869	Press de ombros na máquina v. 2
+2318	Press de ombros na máquina v. 3
+0604	Encolhimento de ombros na máquina
+0605	Elevação de gémeos de pé na máquina
+3758	Press de peito de pé na máquina
+0606	Remada T na máquina
+1351	Remada T pegada invertida na máquina
+0607	Extensão de tríceps na máquina
+1313	Remada unilateral na máquina
+0609	Ponte de Londres
+3013	Ponte de glúteos baixa no chão
+1352	Curl lombar
+3582	Afundo com salto
+1688	Afundo com rotação
+0613	Alongamento de quadríceps deitado de lado
+2312	Cotovelo ao joelho deitado
+0620	Elevação de pernas deitado no banco plano
+0865	Elevação de pernas e anca deitado
+1301	Press de peito interno na máquina
+0624	Marcha sentado na parede
+1353	Receção e lançamento acima da cabeça com bola medicinal
+1302	Passe de peito com bola medicinal
+1303	Lançamento de peito a partir de 3 apoios com bola medicinal
+1304	Lançamento de peito com resposta múltipla com bola medicinal
+1305	Lançamento de peito com resposta simples com bola medicinal
+1312	Lançamento de peito com saída em corrida com bola medicinal
+1701	Flexão pegada fechada na bola medicinal
+1354	Lançamento ao chão acima da cabeça com bola medicinal
+1750	Lançamento de peito deitado de costas com bola medicinal
+0627	Elevação na barra pegada mista
+3217	Flexão hindu modificada
+1421	Flexão modificada até aos antebraços
+0628	Passada de monstro
+0630	Escalador
+0631	Muscle-up
+1401	Muscle-up (na barra vertical)
+2328	Flexão estreita na bola suíça
+1403	Alongamento lateral do pescoço
+0634	Abdominal negativo
+1495	Abdominal oblíquo v. 2
+0635	Abdominais oblíquos no chão
+0636	Curl martelo com barra olímpica
+0637	Extensão de tríceps com barra olímpica
+1355	Alongamento de um braço na parede
+0638	Elevação supinada com um braço
+0639	Fundos com um braço
+0640	Lançamento ao chão com um braço (com bola medicinal)
+1773	Remada unilateral com toalha
+1386	Elevação de gémeos burro com uma perna
+1387	Elevação de gémeos no chão com uma perna
+1476	Agachamento com uma perna
+0641	Otis up
+0642	Flexão com pontapé lateral por fora
+0643	Alongamento de tríceps acima da cabeça
+3147	Báscula da bacia
+1422	Báscula da bacia até à ponte
+1388	Alongamento dos peroneais
+3662	Flexão de pique para cobra
+1306	Flexão pliométrica
+1687	Passo atrás com alcance acima da cabeça
+1389	Alongamento do tibial posterior
+3119	Agachamento de cócoras
+3132	Agachamento de cócoras com apoio
+0648	Power clean
+3665	Prancha em três apoios
+3203	Meio abdominal com mãos atrás da cabeça
+1707	Rotação de bruços na bola suíça
+0651	Elevação na barra (pegada neutra)
+0650	Puxar os joelhos (na bola suíça)
+0652	Elevação na barra
+1689	Empurrar e puxar com o peso do corpo
+3638	Flexão com saída em corrida
+1307	Flexão no bosu
+0662	Flexão
+0653	Flexão (bosu)
+0655	Flexão (na bola suíça)
+0656	Flexão (na bola suíça) v. 2
+0659	Flexão (na parede)
+0658	Flexão (na parede) v. 2
+0660	Flexão pegada fechada nos halteres
+0661	Flexão com pontapé lateral por dentro
+0663	Flexão na bola medicinal
+1467	Flexão nos antebraços
+3145	Flexão plus
+0664	Flexão com prancha lateral
+3533	Quadríceps
+3201	Quarto de abdominal
+3552	Pés rápidos v. 2
+0666	Flexão com elevação de um braço
+0668	Ponte declinada invertida
+0669	Alongamento do deltoide posterior
+0670	Elevação na barra atrás da nuca
+1582	Postura do dedo grande do pé reclinada com corda (ioga)
+3236	Hip thrust de joelhos com elástico (mulher)
+3007	Extensão de pernas com elástico
+3123	Curl de bíceps sentado com elástico
+3124	Press de peito sentado com elástico
+3006	Abdução da anca sentado com elástico
+3122	Press de ombros sentado com elástico
+3144	Remada sentada com costas direitas com elástico
+0872	Abdominal invertido
+0672	Fundos invertidos
+0673	Puxada à frente pegada invertida na máquina v. 2
+0674	Elevação na barra pegada invertida
+0675	Hiperextensão invertida (na bola suíça)
+1423	Hiperextensão invertida no banco plano
+3663	Prancha invertida com elevação de perna
+0677	Fundos nas argolas
+2571	Alongamento rã com balanço
+0678	Elevação Rocky com puxada
+2208	Alongamento das costas com rolo
+2204	Serra com rolo
+2205	Alongamento da anca e do grande dorsal com rolo
+2202	Alongamento da anca com rolo
+2206	Abdominal invertido com rolo
+2203	Flexão, depressão e retração dos ombros sentado com rolo
+2209	Flexão, depressão e retração dos ombros sentado com uma perna com rolo
+2207	Alongamento lateral do grande dorsal com rolo
+0680	Subir à corda
+0685	Corrida
+0684	Corrida (com equipamento)
+1585	Alongamento do corredor
+0687	Rotação russa
+3012	Fundos escapulares
+3021	Flexão escapular
+0688	Elevação escapular na barra
+3219	Saltos em tesoura
+1390	Alongamento de gémeos sentado
+1424	Alongamento de glúteos sentado
+0689	Elevação de pernas sentado
+0690	Alongamento lombar sentado
+2567	Alongamento do piriforme sentado
+0691	Abdominal lateral sentado (na parede)
+1587	Sequência da postura de ângulo aberto sentado (ioga)
+0697	Curl de pernas inverso autoassistido
+1766	Curl de pernas inverso autoassistido v. 2
+0696	Curl de pernas inverso autoassistido (no chão)
+3222	Salto em meio agachamento
+3656	Corrida de passada curta
+1763	Elevação na barra pegada à largura dos ombros
+3699	Toque no ombro
+0699	Flexão com toque no ombro
+1774	Ponte lateral com abdução da anca
+0705	Ponte lateral v. 2
+0709	Anca lateral (nas paralelas)
+0710	Abdução lateral da anca
+1358	Alongamento deitado de lado no chão
+3667	Adução da anca deitado de lado
+1775	Prancha lateral com adução da anca
+0716	Alongamento do pescoço com empurrão lateral
+0717	Flexão lateral
+0721	Alongamento do punho com puxada lateral
+0720	Elevação de lado a lado
+3213	Toque nos pés de lado a lado
+0725	Flexão com um braço
+3645	Ponte com uma perna e a outra esticada
+0727	Elevação de gémeos com uma perna (num haltere)
+0730	Deslize numa perna na plataforma
+1759	Agachamento pistola
+1489	Agachamento sissy
+0735	Abdominal completo v. 2
+3679	Abdominal completo com braços no peito
+3361	Saltos de patinador
+2142	Ergómetro de esqui
+3671	Passo de esqui
+3304	Skin the cat
+1425	Prensa de pernas a 45° com uma perna
+0738	Prensa de gémeos a 45°
+0739	Prensa de pernas a 45°
+1464	Prensa de pernas a 45° (vista de trás)
+1463	Prensa de pernas a 45° (vista lateral)
+0740	Prensa de pernas a 45° com pés afastados
+1391	Elevação de gémeos na prensa de pernas
+0741	Agachamento hack com pés juntos na máquina
+0742	Elevação de gémeos inclinado na máquina
+0743	Agachamento hack na máquina
+2334	Prensa de gémeos deitado na máquina
+0744	Agachamento deitado na máquina
+1392	Elevação de gémeos com uma perna na prensa de pernas
+1496	Marreta
+0746	Encolhimento de ombros atrás das costas na Smith
+0747	Press atrás da nuca na Smith
+0748	Supino na Smith
+0749	Good morning com joelhos fletidos na Smith
+1359	Remada curvada na Smith
+0750	Agachamento cadeira na Smith
+0751	Supino pegada fechada na Smith
+0752	Peso morto na Smith
+0753	Supino declinado na Smith
+0754	Press declinado pegada invertida na Smith
+1433	Agachamento frontal na Smith (pegada de clean)
+3281	Agachamento completo na Smith
+0755	Agachamento hack na Smith
+0756	Elevação da anca na Smith
+0757	Supino inclinado na Smith
+0758	Press inclinado pegada invertida na Smith
+0759	Elevação de ombros inclinado na Smith
+0760	Prensa de pernas na Smith
+1434	Agachamento com barra baixa na Smith
+1683	Curl de bíceps na Smith
+1625	Supino declinado pegada fechada na Smith
+1752	Extensão de tríceps inclinado na Smith
+1626	Supino declinado pegada fechada invertida na Smith
+0761	Remada estreita na Smith
+1360	Remada unilateral na Smith
+1393	Elevação de gémeos no chão com uma perna na Smith
+0762	Remada para deltoide posterior na Smith
+0763	Elevação de tibiais na Smith
+1394	Elevação de tibiais na Smith v. 2
+1361	Remada curvada pegada invertida na Smith
+0764	Press pegada invertida na Smith
+1395	Elevação de gémeos sentado com uma perna na Smith
+0765	Press de ombros sentado na Smith
+1426	Flexão de punho sentado na Smith
+0766	Press de ombros na Smith
+0767	Encolhimento de ombros na Smith
+0768	Agachamento dividido com uma perna na Smith
+0769	Afundo de sprinter na Smith
+0770	Agachamento na Smith
+0771	Flexão de punho atrás das costas de pé na Smith
+0772	Press militar atrás da cabeça de pé na Smith
+0773	Elevação de gémeos de pé na Smith
+0774	Press militar de pé na Smith
+3142	Agachamento sumo na Smith
+1396	Elevação das pontas dos pés na Smith
+0775	Remada alta na Smith
+1308	Supino pegada larga na Smith
+1309	Supino declinado pegada larga na Smith
+0776	Puxada de arranque
+0777	Feiticeiro (spell caster)
+1362	Esfinge
+0778	Flexão aranha a rastejar
+1363	Alongamento da coluna
+2329	Rotação da coluna
+2368	Agachamentos divididos
+0786	Squat jerk
+1705	Agachamento no bosu
+1685	Agachamento com alcance acima da cabeça
+1686	Agachamento com alcance acima da cabeça e rotação
+2297	Abdominal na bola suíça (amplitude completa, mãos atrás da cabeça)
+3291	Press Stalder
+3669	Arqueiro de pé
+0788	Press atrás da nuca de pé
+1490	Elevação de gémeos de pé (num degrau)
+1397	Gémeos de pé
+1398	Alongamento de gémeos de pé
+1599	Alongamento de isquiotibiais e gémeos de pé com fita
+0794	Alongamento lateral de pé
+1364	Báscula da bacia de pé
+0795	Curl de perna unilateral de pé
+0796	Roda abdominal de pé
+3223	Salto em estrela
+2138	Corrida na bicicleta estática v. 3
+0798	Bicicleta estática a passo
+3314	Maltese com pernas afastadas
+3298	Planche com pernas afastadas
+1427	Abdutor externo da anca com perna esticada
+0803	Flexão super-homem
+0805	Queda abdominal suspensa
+0806	Flexão suspensa
+0807	Abdominal invertido suspenso
+0808	Remada suspensa
+0809	Agachamento dividido suspenso
+3433	Pontapés de nadador v. 2
+3318	Swing 360
+1753	Fundos em três bancos
+2459	Virar pneu
+0811	Peso morto com barra hexagonal
+0814	Fundos para tríceps
+0812	Fundos para tríceps (pernas no banco)
+0813	Fundos para tríceps (entre bancos)
+0815	Fundos para tríceps no chão
+0816	Press de tríceps
+0817	Alongamento de tríceps
+0871	Abdominal encolhido
+0818	Puxada à frente pegada paralela com pega dupla
+1466	Elevação da anca com rotação
+2802	Elevação de pernas com rotação
+2801	Elevação de pernas com rotação (mulher)
+3231	Toque com os dois pés
+1365	Alongamento da parte superior das costas
+1366	Cão olhando para cima (ioga)
+3420	V-sit no chão
+0826	Elevação de pernas vertical (nas paralelas)
+2141	Elíptica a passo
+3655	Afundo a andar com joelhos altos
+1460	Afundo a andar
+3666	Caminhada na passadeira inclinada
+2311	Caminhada no simulador de escadas
+0830	Fundos no banco com peso
+2987	Elevação supinada pegada fechada com peso na estação de fundos
+3643	Agachamento cossaco com peso
+0832	Abdominal com peso
+3670	Abdominal completo declinado com peso
+0833	Elevação de gémeos burro com peso
+1310	Flexão com queda com peso
+2135	Prancha frontal com peso
+0834	Elevação frontal com peso
+0866	Elevação de pernas e anca em suspensão com peso
+0835	Hiperextensão com peso (na bola suíça)
+3641	Passo de joelhos com balanço com peso
+3644	Afundo com balanço com peso
+3286	Muscle-up com peso
+3312	Muscle-up com peso (na barra)
+3290	Elevação na barra com uma mão com peso
+0840	Abdominal acima da cabeça com peso (na bola suíça)
+0841	Elevação na barra com peso
+0844	Círculo de braços com peso
+0846	Rotação russa com peso
+0845	Rotação russa com peso (pernas no ar)
+2371	Rotação russa com peso v. 2
+0847	Curl de bíceps sentado com peso (na bola suíça)
+0849	Rotação sentado com peso (na bola suíça)
+0850	Inclinação lateral com peso (na bola suíça)
+0851	Agachamento sissy com peso
+0852	Agachamento com peso
+0853	Curl de pé com peso
+0854	Aperto de mão de pé com peso
+3313	Fundos na barra reta com peso
+3642	Afundo com alongamento com peso
+0856	Press Svend com peso
+1754	Fundos em três bancos com peso
+1755	Fundos para tríceps com peso
+1767	Fundos para tríceps nas paralelas altas com peso
+0857	Roda abdominal
+3637	Corrida com roda
+1429	Elevação na barra pegada larga
+1367	Elevação na barra atrás da nuca pegada larga
+1311	Flexão com mãos afastadas
+2363	Fundos para peito pegada larga nas paralelas altas
+0858	Sprints de vento
+1604	O melhor alongamento do mundo
+1428	Círculos com os punhos
+0859	Rolo de punhos

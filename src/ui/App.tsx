@@ -23,6 +23,7 @@ import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
 import { Achievements } from './pages/Achievements';
 import { CoachPage } from './pages/CoachPage';
+import { MigrationPage } from './pages/MigrationPage';
 import { Icon } from './components/Icon';
 import { toneStyle, useTones } from './colors';
 // Loaded on demand: the charts (recharts) and the games are the largest parts and are not needed at start.
@@ -50,7 +51,7 @@ const MORE_PATHS = ['/more', '/exercises', '/reports', '/analysis', '/settings',
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
   if (pathname.startsWith('/workout/')) return '/history';
-  if (pathname === '/share') return '/';
+  if (pathname === '/share' || pathname === '/migrate') return '/';
   if (pathname.startsWith('/plans')) return '/train';
   const up = pathname.replace(/\/[^/]+$/, '');
   return up && up !== pathname ? up : '/more';
@@ -199,6 +200,7 @@ function Shell() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/coach" element={<CoachPage />} />
+            <Route path="/migrate" element={<MigrationPage />} />
           </Routes>
         </Suspense>
       </main>

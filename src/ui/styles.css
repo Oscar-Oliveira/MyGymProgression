@@ -876,3 +876,22 @@ svg.glyph-more, svg.glyph-alert { stroke-width: 3; }
 
 /* A field label that is not a <label> (colour, goal) looks like one (D68). */
 .field-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; margin: 0 0 0.35rem; }
+
+/* v2 migration from version 1 (MigrationPage, F3). Final look comes with the new design (F4). */
+.mig-group > summary { cursor: pointer; list-style: none; }
+.mig-group > summary h2 { display: inline; font-size: 1.05rem; }
+.mig-row { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.85rem 0; border-top: 1px solid var(--border); }
+.mig-row.pending { box-shadow: inset 3px 0 0 var(--warn); padding-left: 0.75rem; }
+.mig-row .main { display: flex; flex-direction: column; gap: 0.1rem; }
+.mig-row .title { font-weight: 650; }
+.mig-row .meta, .mig-join { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.mig-join { color: var(--warn); }
+.mig-row select { width: 100%; min-height: var(--tap); }
+.mig-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mig-search { display: flex; flex-direction: column; gap: 0.35rem; }
+.mig-hit { display: flex; flex-direction: column; align-items: flex-start; text-align: left; min-height: var(--tap); }
+.mig-hit small { color: var(--muted); font-weight: 400; }
+.mig-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 0.5rem 0 0.75rem; }
+.mig-table th, .mig-table td { padding: 0.45rem 0.25rem; border-bottom: 1px solid var(--border); text-align: right; }
+.mig-table th:first-child { text-align: left; font-weight: 500; }
+.mig-pre { white-space: pre-wrap; font-size: 0.75rem; max-height: 12rem; overflow: auto; }

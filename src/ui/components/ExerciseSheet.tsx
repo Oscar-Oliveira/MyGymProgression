@@ -14,6 +14,7 @@ import { Empty } from './Bits';
 import { Icon } from './Icon';
 import { Modal } from './Modal';
 import { assetUrl } from './Thumb';
+import { corsOf } from '../media';
 
 let show: ((id: string) => void) | undefined;
 
@@ -113,7 +114,7 @@ function ExerciseSheet({ id, onClose }: { id: string; onClose: () => void }) {
   return (
     <Modal title={ex.name} onClose={onClose}>
       <div className="stack ex-sheet">
-        {image && <img className="ex-hero" src={assetUrl(image)} alt={ex.name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />}
+        {image && <img className="ex-hero" src={assetUrl(image)} crossOrigin={corsOf(image)} alt={ex.name} onError={(e) => ex.thumb && (e.currentTarget.src = assetUrl(ex.thumb))} />}
         <div className="row between">
           <p className="eyebrow">
             {t(`group.${exerciseGroup(ex)}`)} · {tr(t, 'equipment', ex.equipment)}

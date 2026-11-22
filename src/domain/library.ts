@@ -22,6 +22,8 @@ export interface LibraryRecord {
   related: string[];
   /** Name of the source, taken from the file (shown on the exercise page). */
   source?: string;
+  /** Portuguese text carried in the library file itself (v2 library, exercises-dataset). */
+  pt?: LibraryTranslation;
 }
 
 /** Portuguese text for a library exercise (optional, for common exercises). */
@@ -80,8 +82,8 @@ export function normalizeRecord(r: LibraryRecord): LibraryRecord {
 
 const BODY_GROUP: Record<string, MuscleGroup> = {
   chest: 'chest', back: 'back', shoulders: 'shoulders', neck: 'shoulders',
-  'upper arms': 'arms', triceps: 'arms', biceps: 'arms', forearms: 'arms',
-  quadriceps: 'legs', thighs: 'legs', hamstrings: 'legs', calves: 'legs', hips: 'legs', 'lower legs': 'legs', glutes: 'legs',
+  'upper arms': 'arms', triceps: 'arms', biceps: 'arms', forearms: 'arms', 'lower arms': 'arms',
+  quadriceps: 'legs', thighs: 'legs', hamstrings: 'legs', calves: 'legs', hips: 'legs', 'lower legs': 'legs', 'upper legs': 'legs', glutes: 'legs',
   waist: 'core', abs: 'core', cardio: 'cardio', plyometrics: 'cardio',
 };
 
@@ -94,23 +96,25 @@ const EQUIPMENT: Record<string, string> = {
   'medicine ball': 'medicine_ball', suspension: 'suspension', weighted: 'weighted', rope: 'rope', 'trap bar': 'trap_bar', treadmill: 'treadmill',
   'stationary bike': 'bike', rower: 'rower', 'battling ropes': 'battle_rope', 'battling rope': 'battle_rope', 'bosu ball': 'bosu', 'olympic barbell': 'barbell',
   assisted: 'assisted', 'wheel roller': 'ab_wheel', 'power sled': 'sled', roll: 'foam_roller', rollball: 'massage_ball', hammer: 'hammer', stick: 'stick', 'vibrate plate': 'vibration_plate',
+  // exercises-dataset (v2 library).
+  roller: 'foam_roller', 'elliptical machine': 'elliptical', 'stepmill machine': 'stepmill', 'skierg machine': 'skierg', 'upper body ergometer': 'ergometer', tire: 'tire',
 };
 
 /** Detailed muscle name → app muscle key (used by analysis). */
 const MUSCLE_KEY: [RegExp, string][] = [
-  [/pectoralis|serratus|^chest$/i, 'chest'],
+  [/pectoral|serratus|^chest$|^upper chest$/i, 'chest'],
   [/splenius|sternocleidomastoid|^neck$/i, 'neck'],
-  [/deltoid|levator scapulae|trapezius upper|subscapularis|^shoulders$/i, 'shoulders'],
-  [/latissimus|teres|infraspinatus|trapezius|rhomboid|erector spinae|back|^lats$|^traps$/i, 'back'],
+  [/deltoid|^delts$|rotator cuff|levator scapulae|trapezius upper|subscapularis|^shoulders$/i, 'shoulders'],
+  [/latissimus|teres|infraspinatus|trapezius|rhomboid|erector spinae|back|spine|^lats$|^traps$/i, 'back'],
   [/biceps|brachialis$/i, 'biceps'],
-  [/brachioradialis|wrist|forearm|flexor|extensor/i, 'forearms'],
+  [/brachioradialis|wrist|forearm|(?<!hip )flexor|extensor|grip/i, 'forearms'],
   [/triceps/i, 'triceps'],
-  [/rectus abdominis|oblique|transvers|iliopsoas|abdomin/i, 'core'],
+  [/rectus abdominis|oblique|transvers|iliopsoas|abdomin|^abs$|lower abs|^core$|hip flexor/i, 'core'],
   [/gluteus|glute|hip external rotators|abductor/i, 'glutes'],
-  [/adductor|pectineous|gracilis/i, 'adductors'],
+  [/adductor|pectineous|gracilis|groin|inner thigh/i, 'adductors'],
   [/hamstring|biceps femoris|semitendinosus|popliteus/i, 'hamstrings'],
-  [/quadricep|sartorius|tensor fasciae|rectus femoris|vastus/i, 'quads'],
-  [/gastrocnemius|soleus|calf|calves|tibialis/i, 'calves'],
+  [/quadricep|^quads$|sartorius|tensor fasciae|rectus femoris|vastus/i, 'quads'],
+  [/gastrocnemius|soleus|calf|calves|tibialis|shin/i, 'calves'],
 ];
 
 /** Portuguese names for detailed muscles (display only). */
@@ -131,6 +135,12 @@ export const MUSCLE_DETAIL_PT: Record<string, string> = {
   // Plain names used by free-exercise-db.
   Abdominals: 'Abdominais', Abductors: 'Abdutores', Adductors: 'Adutores', Biceps: 'Bíceps', Calves: 'Gémeos', Chest: 'Peito', Forearms: 'Antebraços',
   Glutes: 'Glúteos', Lats: 'Grande dorsal', 'Lower Back': 'Lombar', 'Middle Back': 'Meio das costas', Neck: 'Pescoço', Shoulders: 'Ombros', Traps: 'Trapézio', Triceps: 'Tríceps',
+  // Names used by exercises-dataset (v2 library).
+  Abs: 'Abdominais', Pectorals: 'Peitorais', Delts: 'Deltoides', Deltoids: 'Deltoides', 'Rear Deltoids': 'Deltoides posteriores', Quads: 'Quadríceps',
+  'Upper Back': 'Parte superior das costas', Back: 'Costas', Spine: 'Coluna (eretores)', 'Cardiovascular System': 'Sistema cardiovascular', Core: 'Core',
+  'Hip Flexors': 'Flexores da anca', 'Rotator Cuff': 'Coifa dos rotadores', Trapezius: 'Trapézio', 'Upper Chest': 'Parte superior do peito',
+  'Lower Abs': 'Abdominais inferiores', Groin: 'Virilha', 'Inner Thighs': 'Parte interna das coxas', Shins: 'Canelas', 'Grip Muscles': 'Músculos da pega',
+  Wrists: 'Punhos', Hands: 'Mãos', Ankles: 'Tornozelos', 'Ankle Stabilizers': 'Estabilizadores do tornozelo', Feet: 'Pés',
 };
 
 const norm = (s: string) => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -234,8 +244,8 @@ export function mergeLibrary(
   for (const raw of records) {
     const rec = normalizeRecord(raw);
     if (!rec.name) continue;
-    const pt = translations[rec.slug];
-    const match = bySource.get(rec.sid) ?? byName.get(norm(rec.name)) ?? (pt ? byName.get(norm(pt.name)) : undefined);
+    const pt = translations[rec.slug] ?? rec.pt;
+    const match =bySource.get(rec.sid) ?? byName.get(norm(rec.name)) ?? (pt ? byName.get(norm(pt.name)) : undefined);
     if (match && !used.has(match.id)) {
       used.add(match.id);
       const usePt = settings.language === 'pt' && pt;
