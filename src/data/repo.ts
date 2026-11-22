@@ -6,6 +6,7 @@ import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
 import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { mergeExercises } from '../domain/merge';
+import { deloadEvent } from '../domain/deload';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
 import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } from '../domain/sync';
@@ -34,6 +35,14 @@ export function createRepo(db: GymDB) {
       out.settings = await db.settings.get('settings');
     });
     return out;
+  }
+
+  /** Turns "keep" events into deload questions when their exercise has stalled (V2-D17). Runs inside the caller's transaction. */
+  async function withDeloads(events: ProgressionEvent[], workout: Workout, threshold: number): Promise<ProgressionEvent[]> {
+    const lineages = [...new Set(events.map((e) => e.lineageId))];
+    if (!lineages.length) return events;
+    const history = await db.progressionEvents.where('lineageId').anyOf(lineages).toArray();
+    return events.map((e) => deloadEvent(e, history, threshold, workout.entries.find((x) => x.id === e.entryId)?.progression.steps[0]));
   }
 
   /** Everything that can reference an exercise, for joining two of them. */
@@ -267,10 +276,12 @@ export function createRepo(db: GymDB) {
     },
 
     async finishWorkout(w: Workout, interrupted: boolean) {
+      const threshold = (await getSettings()).stalledThreshold;
       await db.transaction('rw', [db.workouts, db.progressionEvents, db.progressionStates, ...syncTables()], async () => {
         const others = (await db.workouts.toArray()).filter((x) => x.id !== w.id);
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const res = finishWorkout(w, interrupted, lastEntryFinder(others, w.startedAt), states);
+        res.events = await withDeloads(res.events, res.workout, threshold);
         // Older open questions of the same exercises are closed as "kept": this workout already used the targets they left unchanged.
         const lineages = new Set(res.events.map((e) => e.lineageId));
         const stale = (await db.progressionEvents.where('decision').equals('pending').toArray()).filter((e) => lineages.has(e.lineageId));
@@ -293,6 +304,7 @@ export function createRepo(db: GymDB) {
      * Returns the applied increases that the correction no longer supports, so the user can choose to undo them.
      */
     async correctWorkout(w: Workout): Promise<ProgressionEvent[]> {
+      const threshold = (await getSettings()).stalledThreshold;
       return db.transaction('rw', [db.workouts, db.revisions, db.progressionEvents, db.progressionStates, ...syncTables()], async () => {
         const previous = await db.workouts.get(w.id);
         if (!previous) throw new Error('workout_missing');
@@ -309,6 +321,7 @@ export function createRepo(db: GymDB) {
         const redo = new Set([...latest].filter((id) => !decidedEntries.has(id)));
         const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
         const res = eventsFor(evaluated, states, redo);
+        res.events = await withDeloads(res.events, evaluated, threshold);
         await db.progressionEvents.bulkDelete(undecided.map((e) => e.id));
         await db.progressionEvents.bulkAdd(res.events);
         await db.progressionStates.bulkPut(res.states);

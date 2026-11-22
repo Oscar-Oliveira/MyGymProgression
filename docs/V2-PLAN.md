@@ -110,7 +110,9 @@ Done:
 - F5.4 Tools (`#/tools`): estimated 1RM (Epley; RIR counts as reps left), percentage table with reps at RIR 2, loads by reps and RIR, plate calculator. Shortcuts 1RM and Plates.
 - F5.5 Body (`#/body`, Progress → Body): weigh-ins (unit of Settings, change over 30 days, weekly rate, goal line), measurements (latest per part with change), progress photos (JPEG ≤ 1080 px, kept in backups, before/after slider). Database v6, backup schema 18 (old schema-4 rest times are dropped on import, as in v1). Shortcut Weight.
 
-Left: F5.6 triple progression and deload, and how RIR acts in progression (needs the user's decision); F5.7 structural balance and muscle recovery map; workout set table of the prototype.
+- F5.6 Progression rules: RIR brake (RIR 0 on the last set at the top of the range → restricted, reason `rir_zero`); triple progression (`triple` strategy; the added sets are the progression target `custom:extraSets`, so apply, undo and decisions work as for load; a load increase drops it and goes back to the plan's sets); deload question (outcome `deload`, pending, made on finish and correction when "keep" completes a run of `stalledThreshold` sessions without progress; −10 % rounded down to the increment; the run restarts after progress or a deload question). `src/domain/deload.ts`, tests in `progression-v2.test.ts`.
+
+Left: F6 PT-PT instructions (V2-D18); F5.7 structural balance and muscle recovery map; workout set table of the prototype.
 
 ## 4. Open points
 

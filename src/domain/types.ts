@@ -34,7 +34,8 @@ export interface SetPrescription {
   rir?: number;
 }
 
-export type ProgressionStrategy = 'double' | 'duration' | 'distance' | 'intensity' | 'multi' | 'manual' | 'none';
+/** triple (V2-D16): reps up to the top of the range, then +1 set (up to 2 above the plan), then load. */
+export type ProgressionStrategy = 'double' | 'triple' | 'duration' | 'distance' | 'intensity' | 'multi' | 'manual' | 'none';
 
 /** One progressable variable. For 'double' the first step is the load-like variable. */
 export interface ProgressionStep {
@@ -236,8 +237,9 @@ export interface ExerciseSnapshot {
  * ready: every set reached the top (hypertrophy); the user chooses load up or reps up.
  * at_cap: targets met, but the configured cap is reached.
  * sync: the load went up in another plan with the same exercise; the user chooses to update this item (D36).
+ * deload: no progress for a number of sessions; the user chooses −10 % load or keep (V2-D17).
  */
-export type Outcome = 'increase' | 'ready' | 'progress' | 'keep' | 'incomplete' | 'restricted' | 'missed' | 'at_cap' | 'manual' | 'no_progression' | 'sync';
+export type Outcome = 'increase' | 'ready' | 'progress' | 'keep' | 'incomplete' | 'restricted' | 'missed' | 'at_cap' | 'manual' | 'no_progression' | 'sync' | 'deload';
 
 export type Completion = 'complete' | 'incomplete' | 'below_target';
 
@@ -285,6 +287,8 @@ export interface WorkoutEntry {
   short?: boolean;
   /** Rest after each set, from the plan item (V2-D6). */
   restSec?: number;
+  /** Triple progression (V2-D16): sets added above the plan's, at the start of this workout. */
+  extraSets?: number;
 }
 
 export type WorkoutStatus = 'in_progress' | 'completed' | 'partial' | 'interrupted';

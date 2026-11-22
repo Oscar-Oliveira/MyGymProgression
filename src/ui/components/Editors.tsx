@@ -156,7 +156,7 @@ export function PrescriptionEditor({ sets, metrics, fixedCount, onChange }: { se
   );
 }
 
-const STRATEGIES: ProgressionStrategy[] = ['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none'];
+const STRATEGIES: ProgressionStrategy[] = ['double', 'triple', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none'];
 const FIXED_METRIC: Partial<Record<ProgressionStrategy, MetricKey>> = { duration: 'duration', distance: 'distance' };
 
 function defaultSteps(strategy: ProgressionStrategy, metrics: MetricDef[]): ProgressionConfig['steps'] {

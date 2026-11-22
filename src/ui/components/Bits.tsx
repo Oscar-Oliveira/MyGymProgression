@@ -17,11 +17,12 @@ const TONE: Record<Outcome, string> = {
   incomplete: 'warn',
   restricted: 'warn',
   sync: 'warn',
+  deload: 'warn',
 };
 
 export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy?: ProgressionStrategy }) {
   const { t } = useTranslation();
-  const key = outcome === 'missed' && strategy && strategy !== 'double' ? 'missedTarget' : outcome;
+  const key = outcome === 'missed' && strategy && strategy !== 'double' && strategy !== 'triple' ? 'missedTarget' : outcome;
   return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${key}`)}</span>;
 }
 

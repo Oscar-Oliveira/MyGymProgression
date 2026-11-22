@@ -21,6 +21,9 @@ import type {
 import { round } from './units';
 
 const EPS = 1e-9;
+/** Triple progression (V2-D16): the sets added above the plan are a progression target under this key. */
+export const EXTRA_SETS: MetricKey = 'custom:extraSets';
+export const MAX_EXTRA_SETS = 2;
 
 export interface EvalInput {
   config: ProgressionConfig;
@@ -34,6 +37,8 @@ export interface EvalInput {
   short?: boolean;
   /** The last earlier session of the same lineage, if any. */
   previous?: { prescription: SetPrescription[]; sets: SetRecord[] };
+  /** Triple progression: sets added above the plan in this session. */
+  extraSets?: number;
 }
 
 interface Pair {
@@ -165,8 +170,15 @@ function evaluateDouble(input: EvalInput, completion: Completion, completionReas
 
   const blocked = blockers(input);
   if (blocked.length) return result(input, 'restricted', completion, [{ code: 'top_reached' }, ...blocked]);
+  // RIR brake (V2-D15): the last working set went to failure, so the load does not go up this time.
+  if (workingDone(input.sets).at(-1)?.rir === 0) return result(input, 'restricted', completion, [{ code: 'top_reached' }, { code: 'rir_zero' }]);
+  // Triple progression (V2-D16): one more set first, up to the maximum; then the load.
+  const extra = input.extraSets ?? 0;
+  if (input.config.strategy === 'triple' && extra < MAX_EXTRA_SETS) {
+    return result(input, 'increase', completion, [{ code: 'top_reached' }, { code: 'add_set', params: { sets: workingPrescribed(input.prescription).length + 1 } }], { metric: EXTRA_SETS, from: extra, to: extra + 1, kind: 'increase' });
+  }
   const range = repRange(input.prescription);
-  const repsOption = input.config.onTop === 'ask' && range ? { from: range, to: { min: range.min + 1, max: range.max + 1 } } : undefined;
+  const repsOption = input.config.onTop === 'ask' && input.config.strategy === 'double' && range ? { from: range, to: { min: range.min + 1, max: range.max + 1 } } : undefined;
   const from = s ? (currentTarget(input.prescription, pm) ?? Math.max(...ps.map((x) => x.r.values[pm] ?? 0))) : undefined;
   const capped = !s || from === undefined || (s.cap !== undefined && from >= s.cap - EPS);
   const load: Suggestion | undefined = !capped ? { metric: pm, from: from!, to: up(from!, s!), kind: 'increase' } : undefined;
@@ -205,6 +217,7 @@ export function evaluate(input: EvalInput): Evaluation {
     case 'manual':
       return result(input, 'manual', completion, reasons);
     case 'double':
+    case 'triple':
       return evaluateDouble(input, completion, reasons);
     default:
       return evaluateTargets(input, completion, reasons);
@@ -230,7 +243,7 @@ export function setGoals(config: ProgressionConfig, prescription: SetPrescriptio
     if (r) {
       const prevReps = previous?.sets.filter((x) => x.kind === p.kind && x.status === 'done')[i]?.values.reps;
       const min = r.min ?? r.value;
-      if (config.strategy === 'double' && p.kind === 'working' && sameLoad && prevReps !== undefined && min !== undefined) {
+      if ((config.strategy === 'double' || config.strategy === 'triple') && p.kind === 'working' && sameLoad && prevReps !== undefined && min !== undefined) {
         goal.reps = Math.max(min, r.max !== undefined ? Math.min(r.max, prevReps + 1) : prevReps + 1);
       } else if (min !== undefined) goal.reps = min;
     }
@@ -247,10 +260,15 @@ export function applyTargets(sets: SetPrescription[], targets: Partial<Record<Me
   for (const s of copy) {
     if (s.kind !== 'working') continue;
     for (const [metric, value] of Object.entries(targets ?? {}) as [MetricKey, number][]) {
+      if (metric === EXTRA_SETS) continue;
       s.targets[metric] = { ...s.targets[metric], value };
     }
     if (repsRange && s.targets.reps) s.targets.reps = { min: repsRange.min, max: repsRange.max };
   }
+  // Triple progression: the added sets copy the last working set, right after it.
+  const extra = Math.max(0, Math.round(targets?.[EXTRA_SETS] ?? 0));
+  const last = copy.map((s) => s.kind).lastIndexOf('working');
+  if (extra && last >= 0) copy.splice(last + 1, 0, ...Array.from({ length: extra }, () => structuredClone(copy[last])));
   return copy;
 }
 

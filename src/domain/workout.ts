@@ -1,5 +1,5 @@
 // Workout use-case logic: start from a plan day, session edits, finish, progression decisions. Pure functions.
-import { applyTargets, evaluate, initialTargets, setGoals } from './progression';
+import { applyTargets, evaluate, initialTargets, setGoals, EXTRA_SETS } from './progression';
 import { nowIso, uid } from './factory';
 import { dayGoal, goalProgression } from './goals';
 import type {
@@ -85,6 +85,7 @@ export function entryFromItem(item: PlanItem, ex: Exercise, state?: ProgressionS
     group: item.group,
     role: item.role,
     ...(item.restSec !== undefined ? { restSec: item.restSec } : {}),
+    ...(state?.targets[EXTRA_SETS] ? { extraSets: state.targets[EXTRA_SETS] } : {}),
     sets: setsFor(prescription, progression, prev),
     pain: false,
     technique: false,
@@ -232,6 +233,7 @@ export function evaluateEntry(entry: WorkoutEntry, previous?: WorkoutEntry) {
     technique: entry.technique,
     substituted: entry.substitutedFor !== undefined,
     short: entry.short,
+    extraSets: entry.extraSets,
     previous: previous && previous.exerciseId === entry.exerciseId ? { prescription: previous.prescription, sets: previous.sets } : undefined,
   });
 }
@@ -268,6 +270,8 @@ export function eventsFor(workout: Workout, states: Map<string, ProgressionState
       let after = { ...before };
       if (ev.outcome === 'increase' && ev.suggestion) {
         after = { ...before, [ev.suggestion.metric]: ev.suggestion.to };
+        // Triple progression: a load increase goes back to the plan's sets (V2-D16).
+        if (ev.strategy === 'triple' && ev.suggestion.metric !== EXTRA_SETS) delete after[EXTRA_SETS];
         // A load increase restarts from the plan's rep range.
         changed.push({ lineageId: e.lineageId!, exerciseId: e.exerciseId, targets: after, updatedAt: now });
       }
@@ -282,7 +286,7 @@ export function eventsFor(workout: Workout, states: Map<string, ProgressionState
         suggestion: ev.suggestion,
         ...(ev.repsOption ? { repsOption: ev.repsOption } : {}),
         reasons: ev.reasons,
-        decision: ev.outcome === 'increase' ? 'applied' : ev.outcome === 'missed' || ev.outcome === 'ready' ? 'pending' : 'none',
+        decision: ev.outcome === 'increase' ? 'applied' : ev.outcome === 'missed' || ev.outcome === 'ready' || ev.outcome === 'deload' ? 'pending' : 'none',
         before: { ...before },
         after,
         ...(state?.repsRange ? { rangeBefore: state.repsRange } : {}),

@@ -33,7 +33,7 @@ export const pt: Resources = {
   },
   strategy: {
     label: 'Progressão', double: 'Dupla progressão', duration: 'Progressão de duração', distance: 'Progressão de distância', intensity: 'Progressão de intensidade',
-    multi: 'Progressão multivariável', manual: 'Progressão manual', none: 'Sem progressão',
+    multi: 'Progressão multivariável', manual: 'Progressão manual', none: 'Sem progressão', triple: 'Progressão tripla',
     help: {
       double: 'Aumenta as repetições dentro do intervalo. Quando todas as séries chegam ao máximo, a carga sobe um incremento. Se ficares abaixo do mínimo, escolhes: manter ou descer.',
       duration: 'Quando todas as séries chegam à duração alvo, a duração sobe um incremento.',
@@ -42,9 +42,10 @@ export const pt: Resources = {
       multi: 'As variáveis sobem por ordem: a primeira até ao limite, depois a seguinte.',
       manual: 'Sem alterações automáticas. És tu que mudas os alvos.',
       none: 'Prescrição fixa. Só regista se cumpriste; nunca sobe e nunca é marcado como estagnado.',
+      triple: 'Repetições até ao máximo do intervalo, depois +1 série (até 2 a mais do que o plano), depois a carga sobe e voltas às séries do plano.',
     },
   },
-  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', missedTarget: 'Abaixo do alvo', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo', sync: 'Outro plano' },
+  outcome: { increase: 'Sobe', ready: 'Pronto para progredir', progress: 'Progresso', keep: 'Mantém', incomplete: 'Incompleto', restricted: 'Bloqueado', missed: 'Faltaram reps', missedTarget: 'Abaixo do alvo', at_cap: 'No limite', manual: 'Manual', no_progression: 'Fixo', sync: 'Outro plano', deload: 'Aliviar?' },
   decision: { applied: 'Subiu', reverted: 'Subida desfeita', pending: 'Por decidir', kept: 'Manteve', stepped_back: 'Desceu', reps_up: 'Subiu reps', overridden: 'Definido à mão', none: 'Sem alteração' },
   reason: {
     sync: '{{goal}} em {{plan}} — {{day}} subiu para {{load}}.',
@@ -56,6 +57,9 @@ export const pt: Resources = {
     reps_improved: 'Mais repetições do que da última vez com a mesma carga.',
     reps_improved_short: 'mais reps do que da última vez',
     top_reached: 'Todas as séries chegaram ao máximo do intervalo.',
+    rir_zero: 'A última série foi à falha (RIR 0): a carga não sobe desta vez.',
+    add_set: 'Mais uma série: {{sets}} séries.',
+    stalled: '{{n}} sessões seguidas sem progresso.',
     top_reached_short: 'todas as séries completas',
     targets_met: 'Todas as séries cumpriram o alvo.',
     pain: 'Foi registada dor ou desconforto.',
@@ -68,6 +72,8 @@ export const pt: Resources = {
   },
   hint: {
     double: 'Faz {{max}} reps em todas as séries → próxima vez {{to}}.',
+    tripleSet: 'Faz {{max}} reps em todas as séries → próxima vez {{sets}} séries.',
+    tripleLoad: 'Faz {{max}} reps em todas as séries → próxima vez {{to}} e voltas a {{sets}} séries.',
     ask: 'Faz {{max}} reps em todas as séries → depois escolhe: carga {{to}} ou reps {{range}}.',
     target: 'Chega a {{target}} em todas as séries → próxima vez {{to}}.',
     fixed: 'Exercício fixo: basta cumprir.',
@@ -77,6 +83,8 @@ export const pt: Resources = {
   decide: {
     up: 'Sobe para {{value}}', keep: 'Mantém {{value}}', down: 'Desce para {{value}}', set: 'Definido para {{value}}', reverted: 'Mantém {{value}} (subida desfeita)',
     missed: 'Faltaram repetições — manter ou descer?',
+    addSet: 'Mais uma série: {{sets}} séries a {{value}}',
+    deload: 'Sem progresso há algum tempo — aliviar para {{value}}?',
     missedTarget: 'Abaixo do alvo — manter ou descer?',
     ready: 'Pronto para progredir — carga ou reps?',
     repsUp: 'Reps {{range}} com {{value}}',
@@ -450,6 +458,7 @@ export const pt: Resources = {
   body: { weight: 'Peso corporal', log: 'Registar peso', change: '{{value}} em 30 dias', rate: '{{value}}/semana', goal: 'objetivo {{value}}', goalLabel: 'Peso objetivo ({{unit}})', history: 'Registos ({{count}})', noWeight: 'Ainda sem registos de peso.', deleteWeight: 'Apagar o peso de {{date}}', deleteConfirm: 'Apagar este registo?', measures: 'Medidas', addMeasure: 'Nova medida', noMeasures: 'Ainda sem medidas.', part: 'Medida', date: 'Data', photos: 'Fotos de progresso', compare: 'Comparar', photoOf: 'Foto de {{date}}', noPhotos: 'Ainda sem fotos. Tira uma de frente, com a mesma luz, para comparar mais tarde.', addPhoto: 'Adicionar foto', photosPrivacy: 'As fotos ficam só neste telemóvel e na cópia de segurança. Nunca são enviadas.', before: 'Antes', after: 'Depois', slider: 'Mostrar mais de antes ou de depois', chart: 'Peso de {{from}} para {{to}} {{unit}}', parts: { waist: 'Cintura', chest: 'Peito', hips: 'Anca', arm: 'Braço', thigh: 'Coxa', calf: 'Gémeo', neck: 'Pescoço', shoulders: 'Ombros', bodyFat: 'Gordura corporal' } },
   tools: { title: 'Ferramentas', sub: 'Estimativas pela fórmula de Epley: ajudam a escolher cargas, não substituem um teste.', oneRm: '1RM estimado', oneRmHelp: 'Escreve a carga e as repetições de uma série (e o RIR, se ficaram repetições por fazer).', estimate: 'estimativa', percent: 'Percentagens do 1RM', repsAt: 'reps a RIR {{rir}}', byRir: 'Carga por repetições e RIR', total: 'Carga total', bar: 'Barra', onlyBar: 'Só a barra: não precisa de discos.' },
   plates: { bar: 'Barra {{bar}} {{unit}}', perSide: 'por lado', rest: 'faltam {{rest}} {{unit}} por lado', line: 'Barra {{bar}} {{unit}}, por lado {{plates}}', title: 'Barras e discos', sub: 'Para mostrar os discos por lado no treino.', barbell: 'Barra olímpica', ez_bar: 'Barra EZ', trap_bar: 'Barra hexagonal', have: 'Discos que tens' },
+  progress: { extraSets: '{{count}} séries a mais', extraSets_one: '{{count}} série a mais' },
   rest: { title: 'Descanso', over: 'Descanso terminado', less: 'Menos 15 segundos', more: 'Mais 15 segundos', skip: 'Saltar', default: 'Igual às definições', setting: 'Descanso entre séries', settingSub: 'Começa sozinho ao marcar uma série; cada exercício do plano pode ter o seu.' },
   menu: { editPlanSub: 'Dias, exercícios, séries e progressão', duplicateSub: 'Uma cópia para editar', shareSub: 'Ficheiro, link, QR por dia ou imagem', copyTextSub: 'Para colar numa mensagem', archiveSub: 'Sai da lista e mantém o histórico', editDay: 'Editar dia', imageSub: 'Exercícios, séries e cargas de hoje', joinSub: 'Junta com um exercício repetido', correctSub: 'Séries, cargas, horas e estado' },
   shortcuts: { title: 'Atalhos', edit: 'Editar', editTitle: 'Atalhos do Início', help: 'Escolhe os atalhos e a ordem. Fica guardado logo.', up: 'Subir {{name}}', down: 'Descer {{name}}', reset: 'Repor os atalhos de origem', backupDone: 'Cópia de segurança guardada.', items: { weight: 'Peso', onerm: '1RM', plates: 'Discos', free: 'Treino livre', history: 'Histórico', reports: 'Relatórios', exercises: 'Exercícios', newExercise: 'Novo exercício', scan: 'Ler QR', backup: 'Cópia de segurança', settings: 'Definições', achievements: 'Conquistas', games: 'Jogos', coach: 'Personal trainer' } },

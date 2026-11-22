@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { canDecide, canRevert } from '../domain/workout';
-import { currentTarget } from '../domain/progression';
+import { currentTarget, EXTRA_SETS, MAX_EXTRA_SETS } from '../domain/progression';
 import type { Exercise, MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
 import { NumInput } from './components/NumInput';
 import { fmtNum, fmtValue, metricLabel, reasonText, useSettings, useThumbs } from './util';
@@ -81,6 +81,15 @@ export function progressHint(entry: WorkoutEntry, t: TFunction, lang: string): s
   const from = currentTarget(entry.prescription, s.metric);
   const to = from !== undefined ? Math.round((from + s.increment) * 100) / 100 : undefined;
   const capped = s.cap !== undefined && from !== undefined && from >= s.cap;
+  if (cfg.strategy === 'triple') {
+    const max = entry.prescription.find((p) => p.kind === 'working')?.targets.reps?.max;
+    if (max === undefined || to === undefined) return t('hint.manual');
+    const sets = entry.prescription.filter((p) => p.kind === 'working').length;
+    const extra = entry.extraSets ?? 0;
+    if (extra < MAX_EXTRA_SETS) return t('hint.tripleSet', { max, sets: sets + 1 });
+    if (capped) return t('hint.cap');
+    return t('hint.tripleLoad', { max, to: fmtMetric(metrics, s.metric, to, lang), sets: sets - extra });
+  }
   if (cfg.strategy === 'double') {
     const reps = entry.prescription.find((p) => p.kind === 'working')?.targets.reps;
     const max = reps?.max;
@@ -143,7 +152,14 @@ export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefin
     const m = mainValue(entry, targets);
     return m ? fmtMetric(metrics, m.metric, m.value, lang) : '';
   };
+  if (ev?.decision === 'applied' && ev.suggestion?.metric === EXTRA_SETS) {
+    const base = entry.prescription.filter((p) => p.kind === 'working').length - (entry.extraSets ?? 0);
+    return { what: t('decide.addSet', { sets: base + ev.suggestion.to, value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
+  }
   if (ev?.decision === 'applied') return { what: t('decide.up', { value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
+  if (ev?.decision === 'pending' && ev.outcome === 'deload' && ev.suggestion) {
+    return { what: t('decide.deload', { value: fmtMetric(metrics, ev.suggestion.metric, ev.suggestion.to, lang) }), why: `${sets} — ${firstReason(t, ev.reasons, metrics)}` };
+  }
   if (ev?.decision === 'reps_up' && ev.rangeAfter) {
     return { what: t('decide.repsUp', { range: `${ev.rangeAfter.min}–${ev.rangeAfter.max}`, value: val(ev.after) }), why: `${sets} — ${t('reason.top_reached_short')}` };
   }
@@ -151,7 +167,7 @@ export function decisionText(entry: WorkoutEntry, ev: ProgressionEvent | undefin
   if (ev?.decision === 'reverted') return { what: t('decide.reverted', { value: val(ev.after) }), why: sets };
   if (ev?.decision === 'pending') {
     // Without a step-back suggestion there is nothing to choose, so no question.
-    const key = entry.progression.strategy === 'double' ? 'missed' : 'missedTarget';
+    const key = entry.progression.strategy === 'double' || entry.progression.strategy === 'triple' ? 'missed' : 'missedTarget';
     return { what: t(ev.suggestion ? `decide.${key}` : `outcome.${key}`), why: `${sets} — ${firstReason(t, evn.reasons, metrics)}` };
   }
   if (ev?.decision === 'kept') return { what: t('decide.keep', { value: val(ev.after) }), why: sets };

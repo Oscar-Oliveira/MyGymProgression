@@ -20,6 +20,7 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
 import { DecisionCard, fmtMetric, rxLine, setsLine, setText, SyncCard } from '../progress';
+import { EXTRA_SETS } from '../../domain/progression';
 import { restAfterChange } from '../../domain/rest';
 import { RestBar } from '../components/RestBar';
 import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
@@ -402,7 +403,7 @@ export function WorkoutPage() {
       const e = draft.entries.find((x) => x.id === ev.entryId);
       if (!e) continue;
       const range = (r?: { min: number; max: number }) => (r ? `${r.min}–${r.max}` : '');
-      const value = (v: number) => fmtMetric(e.exercise.metrics, ev.suggestion!.metric, v, s.language);
+      const value = (v: number) => (ev.suggestion!.metric === EXTRA_SETS ? t('progress.extraSets', { count: v }) : fmtMetric(e.exercise.metrics, ev.suggestion!.metric, v, s.language));
       const [from, to] = ev.decision === 'reps_up' ? [range(ev.repsOption?.from), range(ev.repsOption?.to)] : ev.suggestion ? [value(ev.suggestion.from), value(ev.suggestion.to)] : ['', ''];
       if (await dialog.confirm(t('workout.revertAsk', { name: e.exercise.name, from, to }), { ok: t('workout.revertOk') })) await repo.decide(ev.id, { kind: 'revert' });
     }

@@ -31,7 +31,7 @@ export const en = {
   },
   strategy: {
     label: 'Progression', double: 'Double progression', duration: 'Duration progression', distance: 'Distance progression', intensity: 'Intensity progression',
-    multi: 'Multi-variable progression', manual: 'Manual progression', none: 'No progression',
+    multi: 'Multi-variable progression', manual: 'Manual progression', none: 'No progression', triple: 'Triple progression',
     help: {
       double: 'Build reps inside the range. When every set reaches the top, the load goes up by the increment. If reps fall below the minimum, you choose: keep or step back.',
       duration: 'When every set reaches the target duration, the duration goes up by the increment.',
@@ -40,9 +40,10 @@ export const en = {
       multi: 'Variables go up in order: the first until its cap, then the next.',
       manual: 'No automatic changes. You change the targets yourself.',
       none: 'Fixed prescription. Only completion is recorded; it never goes up and is never flagged as stalled.',
+      triple: 'Reps up to the top of the range, then +1 set (up to 2 more than the plan), then the load goes up and you go back to the plan’s sets.',
     },
   },
-  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', missedTarget: 'Below target', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed', sync: 'Other plan' },
+  outcome: { increase: 'Goes up', ready: 'Ready to progress', progress: 'Progress', keep: 'Keep', incomplete: 'Incomplete', restricted: 'Blocked', missed: 'Missed reps', missedTarget: 'Below target', at_cap: 'At cap', manual: 'Manual', no_progression: 'Fixed', sync: 'Other plan', deload: 'Deload?' },
   decision: { applied: 'Increased', reverted: 'Increase undone', pending: 'To decide', kept: 'Kept', stepped_back: 'Stepped back', reps_up: 'Reps up', overridden: 'Set manually', none: 'No change' },
   reason: {
     sync: '{{goal}} in {{plan}} — {{day}} went up to {{load}}.',
@@ -54,6 +55,9 @@ export const en = {
     reps_improved: 'More reps than last time at the same load.',
     reps_improved_short: 'more reps than last time',
     top_reached: 'Every set reached the top of the range.',
+    rir_zero: 'The last set went to failure (RIR 0): the load does not go up this time.',
+    add_set: 'One more set: {{sets}} sets.',
+    stalled: '{{n}} sessions in a row without progress.',
     top_reached_short: 'all sets complete',
     targets_met: 'Every set met its target.',
     pain: 'Pain or discomfort recorded.',
@@ -66,6 +70,8 @@ export const en = {
   },
   hint: {
     double: 'Do {{max}} reps in every set → next time {{to}}.',
+    tripleSet: 'Do {{max}} reps in every set → next time {{sets}} sets.',
+    tripleLoad: 'Do {{max}} reps in every set → next time {{to}} and back to {{sets}} sets.',
     ask: 'Do {{max}} reps in every set → then choose: load {{to}} or reps {{range}}.',
     target: 'Reach {{target}} in every set → next time {{to}}.',
     fixed: 'Fixed exercise: just complete it.',
@@ -75,6 +81,8 @@ export const en = {
   decide: {
     up: 'Up to {{value}}', keep: 'Keep {{value}}', down: 'Down to {{value}}', set: 'Set to {{value}}', reverted: 'Kept at {{value}} (increase undone)',
     missed: 'Missed reps — keep or step back?',
+    addSet: 'One more set: {{sets}} sets at {{value}}',
+    deload: 'No progress for a while — deload to {{value}}?',
     missedTarget: 'Below target — keep or step back?',
     ready: 'Ready to progress — load or reps?',
     repsUp: 'Reps {{range}} at {{value}}',
@@ -449,6 +457,7 @@ export const en = {
   body: { weight: 'Body weight', log: 'Log weight', change: '{{value}} in 30 days', rate: '{{value}}/week', goal: 'goal {{value}}', goalLabel: 'Goal weight ({{unit}})', history: 'Weigh-ins ({{count}})', noWeight: 'No weigh-ins yet.', deleteWeight: 'Delete the weight of {{date}}', deleteConfirm: 'Delete this entry?', measures: 'Measurements', addMeasure: 'New measurement', noMeasures: 'No measurements yet.', part: 'Measurement', date: 'Date', photos: 'Progress photos', compare: 'Compare', photoOf: 'Photo of {{date}}', noPhotos: 'No photos yet. Take one from the front, in the same light, to compare later.', addPhoto: 'Add photo', photosPrivacy: 'Photos stay on this device and in the backup. They are never sent.', before: 'Before', after: 'After', slider: 'Show more of before or after', chart: 'Weight from {{from}} to {{to}} {{unit}}', parts: { waist: 'Waist', chest: 'Chest', hips: 'Hips', arm: 'Arm', thigh: 'Thigh', calf: 'Calf', neck: 'Neck', shoulders: 'Shoulders', bodyFat: 'Body fat' } },
   tools: { title: 'Tools', sub: 'Estimates with the Epley formula: they help to choose loads, they do not replace a test.', oneRm: 'Estimated 1RM', oneRmHelp: 'Type the load and reps of a set (and the RIR, if reps were left).', estimate: 'estimate', percent: 'Percentages of the 1RM', repsAt: 'reps at RIR {{rir}}', byRir: 'Load by reps and RIR', total: 'Total load', bar: 'Bar', onlyBar: 'The bar alone: no plates needed.' },
   plates: { bar: 'Bar {{bar}} {{unit}}', perSide: 'per side', rest: '{{rest}} {{unit}} per side missing', line: 'Bar {{bar}} {{unit}}, per side {{plates}}', title: 'Bars and plates', sub: 'To show the plates per side in the workout.', barbell: 'Olympic bar', ez_bar: 'EZ bar', trap_bar: 'Trap bar', have: 'Plates you have' },
+  progress: { extraSets: '{{count}} extra sets', extraSets_one: '{{count}} extra set' },
   rest: { title: 'Rest', over: 'Rest is over', less: '15 seconds less', more: '15 seconds more', skip: 'Skip', default: 'Same as Settings', setting: 'Rest between sets', settingSub: 'Starts by itself when a set is marked; each plan exercise can have its own.' },
   menu: { editPlanSub: 'Days, exercises, sets and progression', duplicateSub: 'A copy to edit', shareSub: 'File, link, QR per day or image', copyTextSub: 'To paste in a message', archiveSub: 'Leaves the list and keeps the history', editDay: 'Edit day', imageSub: 'Exercises, sets and today’s loads', joinSub: 'Join with a duplicate exercise', correctSub: 'Sets, loads, times and status' },
   shortcuts: { title: 'Shortcuts', edit: 'Edit', editTitle: 'Home shortcuts', help: 'Choose the shortcuts and their order. Saved at once.', up: 'Move {{name}} up', down: 'Move {{name}} down', reset: 'Back to the default shortcuts', backupDone: 'Backup saved.', items: { weight: 'Weight', onerm: '1RM', plates: 'Plates', free: 'Free workout', history: 'History', reports: 'Reports', exercises: 'Exercises', newExercise: 'New exercise', scan: 'Scan QR', backup: 'Backup', settings: 'Settings', achievements: 'Achievements', games: 'Games', coach: 'Personal trainer' } },

@@ -15,7 +15,7 @@ export const setPrescriptionSchema = z.object({
   rir: rir.optional(),
 });
 export const progressionSchema = z.object({
-  strategy: z.enum(['double', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none']),
+  strategy: z.enum(['double', 'triple', 'duration', 'distance', 'intensity', 'multi', 'manual', 'none']),
   steps: z.array(z.object({ metric: metricKey, increment: num, cap: num.optional() })),
   criteria: z.object({ blockOnPain: z.boolean(), blockOnTechnique: z.boolean(), blockOnSubstitution: z.boolean() }),
   onTop: z.enum(['load', 'ask']).optional(),
@@ -113,7 +113,7 @@ export const planVersionSchema = z.object({
 export const progressionStateSchema = z.object({ lineageId: z.string().min(1), exerciseId: z.string(), targets: metricValues, repsRange: repRange.optional(), updatedAt: iso });
 
 const reason = z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), num])).optional() });
-const outcome = z.enum(['increase', 'ready', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression', 'sync']);
+const outcome = z.enum(['increase', 'ready', 'progress', 'keep', 'incomplete', 'restricted', 'missed', 'at_cap', 'manual', 'no_progression', 'sync', 'deload']);
 const suggestion = z.object({ metric: metricKey, from: num, to: num, kind: z.enum(['increase', 'decrease']) });
 
 const setRecord = z.object({
@@ -144,6 +144,7 @@ const entry = z.object({
   notes: z.string(),
   short: z.boolean().optional(),
   restSec: z.number().int().min(0).max(900).optional(),
+  extraSets: z.number().int().min(0).max(5).optional(),
   evaluation: z
     .object({
       strategy: progressionSchema.shape.strategy,
