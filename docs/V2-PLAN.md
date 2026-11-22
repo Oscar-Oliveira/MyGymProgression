@@ -1,6 +1,6 @@
 # MyGymProgression v2 — Plan
 
-Status: **F0–F3 and F5 done; F4 done except the F4.5 page review; F6 PT-PT instructions done. Left: F4.5 review, final checks and publish (after acceptance).** Branch `v2`. Started 2026-11-22.
+Status: **F0–F5 done; F6 PT-PT instructions done. Left: user acceptance, then version 2.0.0 with its "What's new" entry, final checks and publish on the same URL.** Branch `v2`. Started 2026-11-22.
 
 Goal: a more professional app. New design, clearer organisation (shortcut icons, complete menus), features compared with openGym, exercise library from [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), and all v1 data migrated without loss. **v1 is kept and can come back at any time.**
 
@@ -95,7 +95,9 @@ Done:
 - F4.3 Home: header (date, greeting, search, More) and shortcuts grid (`Shortcuts.tsx`); the user turns shortcuts on/off and orders them (`Settings.shortcuts`, optional, in backups).
 - F4.4 Menus: `ActionMenu` rows with icon and detail line (detail is the description, not the name); plan menu starts with Edit; every plan day has a ⋯ (start, edit, share as image, copy as text); exercise, finished workout and plan-editor menus have icons and Edit.
 
-Left: F4.5 review of every page in both themes, e2e tests adapted to the new navigation; workout screen with the set table of the prototype comes with RIR and set kinds (F5).
+- F4.5 Review (2026-11-22): 21 pages captured on the phone in dark and light. Fixed: the set table with 4 values (treadmill) squeezed the "Before" column (it now keeps 3.5 rem; column titles end with "…"); RIR chips showed on exercises without reps (now only with reps, like the table); History and Body are views of Progress like Reports (no "Back"); "6 months" no longer wraps in the period selector; space between "Start this day" and the plan balance card; Settings said the library was 1.4 MB with English instructions (now 2 MB, Portuguese and English). The e2e tests were adapted to the new navigation in F4.
+
+F4 done.
 
 Original notes:
 
@@ -118,13 +120,13 @@ Done:
 
 - F5.8 Workout set table (prototype variant A; chosen 2026-11-22: table + steppers): one row per set (set, the same set last time, the values, RIR/RPE, ✓); tapping a row opens it; the open set keeps the big steppers, plates, effort chips and "Set done" under the table; ✓ on a pending row marks it done with its values; other set types show their first letter (PT: A aquecimento, D drop set, B back-off, R rest-pause), with a legend. `EntryFocus.tsx` (`SetList`).
 
-F5 done. Left: F4.5 review of every page in both themes.
+F5 done.
 
 ### F6 — PT-PT instructions (done 2026-11-22)
 
 Result: `scripts/data/exercises-dataset-pt-steps.tsv` holds the PT-PT steps of all 1324 exercises (own translation, `tu` imperative, same number of steps as the English text; fixed phrases for repeated steps). The import script puts them in `pt.steps` of each record; the app shows them when the language is Portuguese (English otherwise). Library file: 1324 PT names and 1324 PT step lists, 2.0 MB. Fix found on the way: the QR code of a plan day leaves out empty tables (the reader fills them in), so the code is smaller; the new body tables had made it too dense to read from a 1:1 desktop screenshot. Tests: 326 unit tests pass.
 
-Left in F6: final checks and publish on the same URL (after user acceptance).
+Left in F6 (after user acceptance): version 2.0.0 and its "What's new" entry (About still lists only v1 changes), final checks, publish on the same URL.
 
 ## 4. Open points
 

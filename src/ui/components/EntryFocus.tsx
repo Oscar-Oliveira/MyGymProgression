@@ -114,7 +114,8 @@ function SetList({
     if (scale === 'rpe') return fmtNum(10 - x.rir, lang);
     return x.rir >= 5 ? '5+' : String(x.rir);
   };
-  const cols = `2rem minmax(0, 1fr) repeat(${metrics.length}, minmax(2.6rem, 3.6rem))${showEffort ? ' 2.6rem' : ''}`;
+  // "Before" keeps room for a short value; the value columns share the rest (up to 4 values, e.g. a treadmill).
+  const cols = `2rem minmax(3.5rem, 1fr) repeat(${metrics.length}, minmax(2.4rem, 3.4rem))${showEffort ? ' 2.6rem' : ''}`;
   const kinds = [...new Set(entry.sets.map((x) => x.kind))].filter((k) => k !== 'working');
   const set = entry.sets.find((x) => x.id === activeId);
   const before = set && beforeOf(entry, set, previous);
@@ -193,7 +194,7 @@ function SetList({
             ))}
           </div>
           <PlateLine load={set.values.load} equipment={equipment} loadMode={entry.exercise.loadMode} />
-          {scale && set.kind !== 'warmup' && <EffortPicker scale={scale} value={set.rir} target={entry.prescription[entry.sets.indexOf(set)]?.rir} onChange={(rir) => up(set.id, { rir })} />}
+          {showEffort && scale && set.kind !== 'warmup' && <EffortPicker scale={scale} value={set.rir} target={entry.prescription[entry.sets.indexOf(set)]?.rir} onChange={(rir) => up(set.id, { rir })} />}
           <div className="row">
             <button className="primary xl" disabled={invalid(set)} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
               <Icon name="check" /> {t('workout.setDone')}

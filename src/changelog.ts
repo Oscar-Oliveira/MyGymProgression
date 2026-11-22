@@ -7,6 +7,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-22',
+    pt: [
+      'Versão 2: novo visual e nova organização. Separadores Início · Plano · ▶ · Progresso · Exercícios; o ▶ começa ou retoma o treino; o resto está em Mais (ícone de grelha no topo). Atalhos no Início, que escolhes e ordenas.',
+      'Trazer os dados da versão 1: em Definições → Trazer dados da versão 1. Planos, treinos e progressão passam com um relatório que confirma que nada se perdeu. A versão 1 não muda.',
+      'Biblioteca de 1324 exercícios (exercises-dataset) com nomes e instruções em português; imagens e animações descarregam-se no telemóvel.',
+      'No treino: tabela de séries com a série da última vez, RIR/RPE por série, temporizador de descanso e discos por lado. Novos tipos de série: drop set e rest-pause.',
+      'Progressão: RIR 0 no topo do intervalo trava a subida; progressão tripla (+1 série até +2); sugestão de deload ao estagnar.',
+      'Corpo (peso, medidas, fotos), Ferramentas (1RM, percentagens, discos), equilíbrio de força entre os levantamentos com barra e mapa de recuperação muscular.',
+    ],
+    en: [
+      'Version 2: new look and organisation. Tabs Home · Plan · ▶ · Progress · Exercises; ▶ starts or resumes the workout; everything else is in More (grid icon at the top). Shortcuts on Home, which you choose and order.',
+      'Bring your version 1 data: Settings → Bring data from version 1. Plans, workouts and progression move with a report that confirms nothing was lost. Version 1 does not change.',
+      'Library of 1324 exercises (exercises-dataset) with names and instructions in Portuguese; images and animations download to the phone.',
+      'In the workout: set table with the same set last time, RIR/RPE per set, rest timer and plates per side. New set types: drop set and rest-pause.',
+      'Progression: RIR 0 at the top of the range holds the increase; triple progression (+1 set up to +2); a deload suggestion when you stall.',
+      'Body (weight, measurements, photos), Tools (1RM, percentages, plates), strength balance between the barbell lifts and a muscle recovery map.',
+    ],
+  },
+  {
     date: '2026-11-14',
     pt: ['Vista rápida do treino: no treino, toca no ícone de lista no topo para ver todos os exercícios e séries num só ecrã. Toca no ✓ para marcar a série (mantém premido para saltar) e no valor para mudar a carga ou as reps. Uma nova carga passa para as séries seguintes.'],
     en: ['Quick view of the workout: in a workout, tap the list icon at the top to see every exercise and set on one screen. Tap ✓ to mark a set (press and hold to skip) and tap the value to change the load or reps. A new load goes to the next sets.'],

@@ -331,7 +331,7 @@ export function PlanEdit() {
             </button>
           </div>
           {day.items.length > 0 && (
-            <button className="primary xl" style={{ marginTop: '0.75rem' }} onClick={() => void startDay()}>
+            <button className="primary xl" style={{ margin: '0.75rem 0' }} onClick={() => void startDay()}>
               <Icon name="play" /> {t('plan.startDay')}
             </button>
           )}

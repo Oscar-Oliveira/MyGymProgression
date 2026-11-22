@@ -48,6 +48,8 @@ const TAB_PATHS: Record<string, string[]> = {
   exercises: ['/exercises'],
 };
 
+const PROGRESS_VIEWS = ['/history', '/body'];
+
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
   if (pathname.startsWith('/workout/')) return '/history';
@@ -115,7 +117,8 @@ function Shell() {
   // On a main tab, a horizontal swipe opens the tab to the left or right.
   const nav = useNavigate();
   const touch = useRef<{ x: number; y: number; t: number }>(undefined);
-  const tab = TABS.findIndex(([to]) => to === pathname);
+  // History and Body are views of Progress, like Reports (Progress switch): no "back", same swipes.
+  const tab = TABS.findIndex(([to]) => to === pathname || (to === '/reports' && PROGRESS_VIEWS.includes(pathname)));
   // Pages below a tab have "back" (a button, and a swipe to the right); not the workout being logged.
   const sub = tab < 0 && !focus;
   // In a game a swipe is a move, not "back".
