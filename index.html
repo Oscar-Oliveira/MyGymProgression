@@ -10,27 +10,29 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="GymProg" />
     <title>MyGymProgression</title>
-    <style>#splash{z-index:100;color:#f3f4fa;pointer-events:none;background:#08090f;flex-direction:column;justify-content:center;align-items:center;gap:.6rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:opacity .35s;display:flex;position:fixed;inset:0}#splash strong{letter-spacing:-.02em;margin-top:.4rem;font-size:1.5rem;font-weight:800}#splash em{color:#c4c8d8;text-align:center;overflow-wrap:anywhere;max-width:90vw;margin-top:-.4rem;font-size:1rem;font-style:normal;font-weight:600}#splash span{color:#9298ad;font-variant-numeric:tabular-nums;font-size:.85rem}#splash.hide{opacity:0}@media (prefers-reduced-motion:reduce){#splash{transition:none}}</style>
-    <script type="module" crossorigin src="/MyGymProgression/assets/index-WMRgrqP_.js"></script>
+    <style>#splash{z-index:100;color:#f5f5f7;pointer-events:none;background:#0a0a0b;flex-direction:column;justify-content:center;align-items:center;gap:.35rem;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:opacity .3s;display:flex;position:fixed;inset:0}[data-theme=light] #splash{color:#1c1c1e;background:#f2f2f7}#splash img{border-radius:18px;width:76px;height:76px;margin-bottom:.65rem;animation:.45s ease-out both splash-in}#splash strong{letter-spacing:-.01em;font-size:1.35rem;font-weight:600;animation:.45s ease-out 80ms both splash-in}#splash em{opacity:.6;text-align:center;overflow-wrap:anywhere;max-width:90vw;font-size:.95rem;font-style:normal;font-weight:500}#splash span{bottom:calc(1.75rem + env(safe-area-inset-bottom));opacity:.45;font-variant-numeric:tabular-nums;font-size:.78rem;position:absolute}#splash.hide{opacity:0}@keyframes splash-in{0%{opacity:0;transform:translateY(6px)}}@media (prefers-reduced-motion:reduce){#splash,#splash img,#splash strong{transition:none;animation:none}}</style>
+    <script type="module" crossorigin src="/MyGymProgression/assets/index-ZfuCUX32.js"></script>
     <link rel="modulepreload" crossorigin href="/MyGymProgression/assets/rolldown-runtime-XKyaHtl9.js">
-    <link rel="modulepreload" crossorigin href="/MyGymProgression/assets/ActionMenu-DKTtB-rr.js">
-    <link rel="stylesheet" crossorigin href="/MyGymProgression/assets/index-KdvsaNBW.css">
+    <link rel="modulepreload" crossorigin href="/MyGymProgression/assets/ActionMenu-C75Dl2qL.js">
+    <link rel="stylesheet" crossorigin href="/MyGymProgression/assets/index-CouoDRKV.css">
   <link rel="manifest" href="/MyGymProgression/manifest.webmanifest"></head>
   <body>
     <div id="splash">
       <img src="/MyGymProgression/icon.svg" width="88" height="88" alt="" aria-hidden="true" />
       <strong>MyGymProgression</strong>
       <em id="splash-gym" hidden></em>
-      <span>v2.0.0</span>
+      <span>v2.1.0</span>
       <script>
-        // The gym name (D80) from the last start, so it shows before the app loads. SplashCrew keeps it up to date.
+        // The theme and the gym name (D80) of the last start, so they show before the app loads. App keeps them up to date.
         try {
+          var theme = localStorage.getItem('v2:theme');
+          if (theme) document.documentElement.dataset.theme = theme;
           var gym = localStorage.getItem('gymName');
           var el = document.getElementById('splash-gym');
           if (gym) (el.textContent = '@ ' + gym), (el.hidden = false);
         } catch (e) {}
       </script>
     </div>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
