@@ -1317,7 +1317,7 @@ test('v2: an exercise has its own bar weight; the plates per side use it (V2-D26
   await expect(squat.locator('.plates')).toContainText('Bar 10 kg');
 });
 
-test('v2: the actions under the sets are in three groups (V2-D27)', async ({ page }) => {
+test('v2: actions and flags under the sets (V2-D27); notes and setup in the tools row at the top (V2-D29)', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   await expect(chest.getByRole('button', { name: 'Set', exact: true })).toBeVisible();
@@ -1327,7 +1327,45 @@ test('v2: the actions under the sets are in three groups (V2-D27)', async ({ pag
   await flags.getByRole('button', { name: 'Pain' }).click();
   await expect(flags.getByRole('button', { name: 'Pain' })).toHaveAttribute('aria-pressed', 'true');
   await expect(flags.getByRole('button', { name: 'Technique' })).toBeInViewport();
-  await expect(chest.getByRole('button', { name: 'Setup', exact: true })).toBeInViewport();
+  // The tools row: one panel at a time, right under the icons; the setup note is saved when its panel closes.
+  const tools = chest.getByRole('toolbar', { name: 'Tip, notes and setup' });
+  await tools.getByRole('button', { name: 'Notes' }).click();
+  await chest.getByRole('textbox', { name: 'Notes' }).fill('Felt strong');
+  await tools.getByRole('button', { name: 'Setup' }).click();
+  await expect(chest.getByRole('textbox', { name: 'Notes' })).toHaveCount(0);
+  await expect(chest.getByRole('textbox', { name: 'Setup' })).toBeFocused();
+  await chest.getByRole('textbox', { name: 'Setup' }).fill('Seat 4');
+  await tools.getByRole('button', { name: 'Setup' }).click();
+  await expect(chest.getByRole('textbox', { name: 'Setup' })).toHaveCount(0);
+  await expect(chest.getByRole('button', { name: 'Setup: Seat 4' })).toBeVisible();
+  await tools.getByRole('button', { name: 'Notes' }).click();
+  await expect(chest.getByRole('textbox', { name: 'Notes' })).toHaveValue('Felt strong');
+});
+
+test('v2: the tip opens from the bulb in the tools row; one panel at a time (V2-D29)', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add starter exercises' }).click();
+  const tips = ['Keep the shoulder blades back on the pad.', 'Push the handles out without locking the elbows.'];
+  await importLibraryFile(page, { ...LIBRARY, exercises: [{ ...rec('5', 'Machine Chest Press', ['Chest']), tips }] });
+  await expect(page.getByText(/added, \d+ updated\./)).toBeVisible();
+  await plans(page);
+  await page.getByRole('button', { name: 'New plan' }).click();
+  await page.getByLabel('Plan name').fill('Push');
+  await page.getByRole('button', { name: 'Day' }).click();
+  await page.getByRole('button', { name: 'Add exercise' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Machine Chest Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Machine Chest Press/ }).first().click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('button', { name: /Start this day/ }).click();
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  const tools = chest.getByRole('toolbar', { name: 'Tip, notes and setup' });
+  await tools.getByRole('button', { name: 'Technique tip' }).click();
+  const tip = chest.getByRole('note', { name: 'Technique tip' });
+  await expect(tip).toContainText(tips[0]);
+  await tip.getByRole('button', { name: 'Another tip (1/2)' }).click();
+  await expect(tip).toContainText(tips[1]);
+  await tools.getByRole('button', { name: 'Notes' }).click();
+  await expect(tip).toHaveCount(0);
+  await expect(chest.getByRole('textbox', { name: 'Notes' })).toBeVisible();
 });
 
 test('v2: the quick view sets the effort (RIR) of a set (V2-D28)', async ({ page }) => {

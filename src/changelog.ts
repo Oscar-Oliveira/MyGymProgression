@@ -9,13 +9,22 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-23',
     pt: [
+      'No treino, por baixo do nome do exercício: ícones para a dica (lâmpada), as notas deste treino e o setup. Cada um abre logo por baixo; o setup guarda-se ao fechar e fica à vista.',
+    ],
+    en: [
+      'In the workout, under the exercise name: icons for the tip (bulb), the notes of this workout and the setup. Each one opens right below; the setup is saved when it closes and stays in view.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    pt: [
       'Peso da barra por exercício: em Editar exercício (vazio = o valor de Definições → Barras e discos). Os discos por lado no treino usam-no. No equipamento também há Barra EZ e Barra hexagonal.',
-      'No treino, por baixo das séries: + Série e Substituir em botões grandes, Dor e Técnica em "Assinalar" e depois as notas. Tudo à vista, sem deslizar.',
+      'No treino, por baixo das séries: + Série e Substituir em botões grandes e Dor e Técnica em "Assinalar". Tudo à vista, sem deslizar.',
       'Vista rápida: escolhe o RIR (ou RPE) de cada série, com os mesmos botões do ecrã normal; o valor aparece na linha da série.',
     ],
     en: [
       'Bar weight per exercise: in Edit exercise (empty = the value in Settings → Bars and plates). The plates per side in the workout use it. The equipment list now has EZ bar and Trap bar too.',
-      'In the workout, under the sets: + Set and Substitute as large buttons, Pain and Technique under "Flag", then the notes. Everything in view, no swiping.',
+      'In the workout, under the sets: + Set and Substitute as large buttons and Pain and Technique under "Flag". Everything in view, no swiping.',
       'Quick view: choose the RIR (or RPE) of each set, with the same buttons as the normal view; the value shows on the set line.',
     ],
   },

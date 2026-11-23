@@ -795,8 +795,13 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 
 /* Setup note, trainer tip and "short on time" in the workout (D39, D48, D40) */
 .setup-note { display: block; width: 100%; min-height: 0; margin: 0 0 0.6rem; padding: 0.5rem 0.75rem; border-radius: var(--radius); border: 1px dashed var(--border); background: var(--surface-2); color: var(--text); font-weight: 600; text-align: left; }
-.setup-edit { display: block; margin-bottom: 0.6rem; }
-.setup-edit textarea { margin-top: 0.3rem; }
+/* Tools of the exercise (V2-D29): round icons under the header; the open one has its panel right below. A dot = it holds something. */
+.ex-tools { display: flex; gap: 0.5rem; margin: 0.75rem 0 0.6rem; }
+.ex-tools button { position: relative; border-radius: 50%; border-color: var(--border); color: var(--muted); font-size: 1.2rem; }
+.ex-tools button.on { background: var(--tone-soft); border-color: var(--tone); color: var(--tone-text); }
+.ex-tools button.has::after { content: ''; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
+.tool-panel { display: block; margin-bottom: 0.6rem; }
+.tool-panel textarea { margin-top: 0.3rem; }
 .coach.tip { padding: 0.5rem 0.6rem; margin-bottom: 0.6rem; }
 .coach.tip p { font-weight: 600; font-size: 0.92rem; }
 .short-chip { margin: 0 0 0.75rem; }
@@ -846,8 +851,6 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .item-row { display: flex; align-items: center; }
 .item-row .item-toggle { flex: 1; min-width: 0; }
 .ex-chips { margin-top: 0.6rem; }
-.tip-btn { min-height: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; font-size: 1rem; line-height: 1.4; vertical-align: middle; }
-.tip-btn.on { background: var(--warn-bg); border-color: var(--warn); }
 .coach.tip { align-items: flex-start; }
 .tip-body { flex: 1; min-width: 0; }
 .tip-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--warn-bg); color: var(--warn); }

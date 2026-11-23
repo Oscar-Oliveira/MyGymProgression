@@ -147,7 +147,7 @@ export const en = {
   workout: {
     colSet: 'Set', colBefore: 'Before', before: 'last time {{value}}',
     quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
-    addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique', flags: 'Flag', flagsHelp: 'no increase this time',
+    addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique', flags: 'Flag', flagsHelp: 'no increase this time', toolsLabel: 'Tip, notes and setup', notesHelp: 'Notes for this workout.',
     prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
     pause: 'Pause', pauseLong: 'Pause — continue later', pauseHelp: 'The workout stays open. Continue it from Home or History.',
     resume: 'Resume workout', resumeHelp: 'Resuming undoes the progression changes of this workout; it is evaluated again when you finish it.',

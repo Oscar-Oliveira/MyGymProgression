@@ -218,6 +218,8 @@ function SetList({
   );
 }
 
+type Tool = 'tip' | 'notes' | 'setup';
+
 /**
  * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
  * `tips`: technique tips of the exercise (D48, D54, D75): a bulb button opens one in a bubble (the trainer's, when it is on); "another tip" goes to the next.
@@ -256,14 +258,40 @@ export function EntryFocus({
   const { t } = useTranslation();
   const s = useSettings();
   const [chosen, setChosen] = useState<string>();
-  const [notes, setNotes] = useState(!!entry.notes);
-  const [editSetup, setEditSetup] = useState(false);
-  // The open tip (index), or none.
-  const [tip, setTip] = useState<number>();
-  const showTip = (i: number | undefined) => {
+  // Tools of the exercise (V2-D29): one panel open at a time, right under the icons. Notes already written start open.
+  const [panel, setPanel] = useState<Tool | undefined>(entry.notes ? 'notes' : undefined);
+  const [tip, setTip] = useState(0);
+  const showTip = (i: number) => {
     setTip(i);
-    if (i !== undefined && tips) onTip?.(tips[i]);
+    setPanel('tip');
+    if (tips) onTip?.(tips[i]);
   };
+  // The setup note is saved when its panel closes (another icon, the same icon, or leaving the text field).
+  const [setupDraft, setSetupDraft] = useState('');
+  const saveSetup = () => {
+    if (panel === 'setup' && setupDraft.trim() !== (setup ?? '').trim()) onSetup?.(setupDraft.trim());
+  };
+  const toggle = (p: Tool) => {
+    saveSetup();
+    if (panel === p) return setPanel(undefined);
+    if (p === 'tip') return showTip(0);
+    if (p === 'setup') setSetupDraft(setup ?? '');
+    setPanel(p);
+  };
+  /** Icon of the tools row. `has`: it holds something (a dot shows). A press keeps the focus in the text field, so it does not close first. */
+  const tool = (p: Tool, icon: 'bulb' | 'note' | 'pin', label: string, has = false) => (
+    <button
+      type="button"
+      className={`icon outline ${panel === p ? 'on' : ''} ${has ? 'has' : ''}`}
+      aria-expanded={panel === p}
+      aria-label={label}
+      title={label}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => toggle(p)}
+    >
+      <Icon name={icon} />
+    </button>
+  );
   const firstPending = entry.sets.find((x) => x.status === 'pending')?.id;
   const chosenSet = entry.sets.find((x) => x.id === chosen);
   // The chosen set stays open until it is marked done or skipped; otherwise the first pending set is open.
@@ -278,11 +306,6 @@ export function EntryFocus({
           <h1 className="ex-title">
             {entry.exercise.name}
             {info && <InfoButton id={entry.exerciseId} name={entry.exercise.name} />}
-            {tips && tips.length > 0 && (
-              <button type="button" className={`tip-btn ${tip !== undefined ? 'on' : ''}`} aria-expanded={tip !== undefined} aria-label={t('workout.tip')} onClick={() => showTip(tip === undefined ? 0 : undefined)}>
-                <Icon name="bulb" />
-              </button>
-            )}
           </h1>
           <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
           <div className="ex-last">
@@ -290,27 +313,31 @@ export function EntryFocus({
           </div>
         </div>
       </div>
-      {setup && !editSetup && (
-        <button type="button" className="setup-note" onClick={() => setEditSetup(true)} aria-label={`${t('workout.setup')}: ${setup}`}>
-          <Icon name="pin" /> {setup}
-        </button>
+      <div className="ex-tools" role="toolbar" aria-label={t('workout.toolsLabel')}>
+        {tips && tips.length > 0 && tool('tip', 'bulb', t('workout.tip'))}
+        {tool('notes', 'note', t('common.notes'), !!entry.notes)}
+        {onSetup && tool('setup', 'pin', t('workout.setup'), !!setup)}
+      </div>
+      {panel === 'notes' && (
+        <label className="tool-panel">
+          <span className="help">{t('workout.notesHelp')}</span>
+          <textarea aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />
+        </label>
       )}
-      {editSetup && onSetup && (
-        <label className="setup-edit">
+      {panel === 'setup' && onSetup && (
+        <label className="tool-panel">
           <span className="help">{t('workout.setupHelp')}</span>
           <textarea
             autoFocus
             aria-label={t('workout.setup')}
-            defaultValue={setup}
+            value={setupDraft}
             placeholder={t('workout.setupPlaceholder')}
-            onBlur={(e) => {
-              setEditSetup(false);
-              if (e.target.value.trim() !== (setup ?? '').trim()) onSetup(e.target.value.trim());
-            }}
+            onChange={(e) => setSetupDraft(e.target.value)}
+            onBlur={() => (saveSetup(), setPanel(undefined))}
           />
         </label>
       )}
-      {tip !== undefined && tips?.[tip] && (
+      {panel === 'tip' && tips?.[tip] && (
         <div className="coach tip" role="note" aria-label={t('workout.tip')}>
           {coach ? <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={32} /> : <span className="tip-ico"><Icon name="bulb" /></span>}
           <div className="tip-body">
@@ -329,10 +356,16 @@ export function EntryFocus({
               </button>
             )}
           </div>
-          <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => showTip(undefined)}>
+          <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => setPanel(undefined)}>
             <Icon name="close" />
           </button>
         </div>
+      )}
+      {/* The saved setup note stays in view (seat, grip...); a tap edits it. */}
+      {setup && panel !== 'setup' && (
+        <button type="button" className="setup-note" onClick={() => toggle('setup')} aria-label={`${t('workout.setup')}: ${setup}`}>
+          <Icon name="pin" /> {setup}
+        </button>
       )}
       {entry.short && <p className="help"><Icon name="timer" /> {t('reason.short')}</p>}
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
@@ -355,7 +388,7 @@ export function EntryFocus({
         }}
       />
 
-      {/* Three groups (V2-D27): actions on the exercise, flags for the progression, notes. Every button stays in view. */}
+      {/* Under the sets (V2-D27): actions on the exercise, then flags for the progression. Notes and setup are at the top (V2-D29). */}
       <div className="wk-tools">
         <div className="wk-act">
           <button className="outline" onClick={() => onChange(addSet(entry, 'working'))}>
@@ -380,19 +413,7 @@ export function EntryFocus({
             </button>
           </div>
         </div>
-        <div className="row wrap">
-          <button className={`chip ${notes ? 'on' : ''}`} onClick={() => setNotes(!notes)}>
-            {t('common.notes')}
-          </button>
-          {onSetup && (
-            // Opens the note; leaving the text field saves and closes it.
-            <button className={`chip ${editSetup || setup ? 'on' : ''}`} onClick={() => setEditSetup(true)}>
-              <Icon name="pin" /> {t('workout.setup')}
-            </button>
-          )}
-        </div>
       </div>
-      {notes && <textarea style={{ marginTop: '0.6rem' }} aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />}
     </section>
   );
 }

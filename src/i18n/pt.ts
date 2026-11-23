@@ -149,7 +149,7 @@ export const pt: Resources = {
   workout: {
     colSet: 'Série', colBefore: 'Antes', before: 'última vez {{value}}',
     quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
-    addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica', flags: 'Assinalar', flagsHelp: 'desta vez não sobe',
+    addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica', flags: 'Assinalar', flagsHelp: 'desta vez não sobe', toolsLabel: 'Dica, notas e setup', notesHelp: 'Notas deste treino.',
     prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
     pause: 'Pausar', pauseLong: 'Pausar — continuar mais tarde', pauseHelp: 'O treino fica aberto. Continua-o no Início ou no Histórico.',
     resume: 'Retomar treino', resumeHelp: 'Retomar anula as alterações de progressão deste treino; é avaliado de novo quando o terminares.',
