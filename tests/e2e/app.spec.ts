@@ -225,6 +225,14 @@ async function planAndStart(page: Page, exercises: string[], goal?: 'Strength') 
   await page.getByRole('button', { name: /Start this day/ }).click();
 }
 
+/** Finishes the workout on its last page (V2-D30): the Finish tab (in the quick view, its Finish button), then the button there. */
+async function finishWorkout(page: Page) {
+  const tab = page.getByRole('tab', { name: 'Finish', exact: true });
+  if (await tab.isVisible()) await tab.click();
+  else await page.getByRole('button', { name: 'Finish workout' }).click();
+  await page.getByRole('region', { name: 'Finish workout' }).getByRole('button', { name: 'Finish workout' }).click();
+}
+
 test('plan goal is saved; a mixed plan sets the type of each day', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   await plans(page);
@@ -286,7 +294,7 @@ test('circuit: built in the plan, done once at the end of the whole circuit', as
   await expect(page.getByText('0/4 sets')).toBeVisible();
   await circuit.getByRole('button', { name: 'Circuit done' }).click();
   await expect(page.getByText('4/4 sets')).toBeVisible();
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('heading', { name: 'Next time' })).toBeVisible();
 });
 
@@ -456,7 +464,7 @@ test('hypertrophy: top of the range → choose reps up → next workout 9–13 a
 
   await expect(page.getByText('Do 12 reps in every set → then choose: load 22.5 kg or reps 9–13.')).toBeVisible();
   await logChest(page, [12, 12, 12]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
 
   await expect(page.getByRole('region', { name: 'Treadmill Warm-up' }).getByText('Done as planned', { exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Ready to progress — load or reps?', { exact: true })).toBeVisible();
@@ -475,7 +483,7 @@ test('hypertrophy: top of the range → choose reps up → next workout 9–13 a
 test('hypertrophy: choose load up → next workout at the new load, goal = range minimum', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [12, 12, 12]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await page.getByRole('button', { name: 'Load 22.5 kg' }).click();
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Up to 22.5 kg', { exact: true })).toBeVisible();
   await tab(page, 'Home');
@@ -492,7 +500,7 @@ test('strength (fixed 5×5): all sets done → load goes up automatically, undo 
   await expect(page.getByText('Do 5 reps in every set → next time 22.5 kg.')).toBeVisible();
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   for (let i = 0; i < 5; i++) await chest.getByRole('button', { name: 'Set done' }).click();
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Up to 22.5 kg', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Kept at 20 kg (increase undone)', { exact: true })).toBeVisible();
@@ -520,14 +528,14 @@ test('quick view: all sets on one screen; a new load goes to the next sets; long
   await expect(chest.getByLabel('Load', { exact: true })).toHaveValue('17.5');
   // A new workout opens in the normal view.
   await chest.getByRole('button', { name: 'Set done' }).click();
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('button', { name: 'Quick view' })).toHaveCount(0);
 });
 
 test('missed reps → asks keep or step back → step back lowers the load', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [9, 7, 6]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Missed reps — keep or step back?', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Keep 20 kg' })).toBeVisible();
   await page.getByRole('button', { name: 'Down to 17.5 kg' }).click();
@@ -538,7 +546,7 @@ test('within the range with skipped set → keeps the load without asking', asyn
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 9]);
   await page.getByRole('button', { name: 'Skip set' }).click();
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Keep 20 kg', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Down to/ })).toHaveCount(0);
 });
@@ -736,8 +744,7 @@ test('interrupted: resume keeps the done sets and reopens the others', async ({ 
 test('correction: not-done sets stand out, and the status can be changed', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
-  await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'OK' }).click();
+  await finishWorkout(page);
   await expect(page.getByText('Partially completed')).toBeVisible();
   await menu(page, 'Correct records');
   await expect(page.getByText('2 sets not done')).toBeVisible();
@@ -749,7 +756,7 @@ test('correction: not-done sets stand out, and the status can be changed', async
 test('correction: an increase the corrected sets no longer support is undone only when the user agrees', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press'], 'Strength');
   await logChest(page, [5, 5, 5, 5, 5]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
   await expect(chest.getByText(/^Up to /)).toBeVisible();
   await menu(page, 'Correct records');
@@ -764,7 +771,7 @@ test('correction: an increase the corrected sets no longer support is undone onl
 test('correction: "Use the current plan" updates the exercises from the plan, then saving works', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 10, 10]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await menu(page, 'Correct records');
   await page.getByRole('button', { name: 'Use the current plan' }).click();
   await expect(page.getByText('1 exercise updated from the current plan.')).toBeVisible();
@@ -789,7 +796,7 @@ test('exercise editor: leaving with unsaved changes asks first; saving does not 
 test('correction: leaving with unsaved changes asks first', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 10, 10]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await menu(page, 'Correct records');
   await page.getByRole('region', { name: 'Machine Chest Press' }).getByLabel('Reps 1', { exact: true }).fill('8');
   await page.locator('.back-btn').click();
@@ -944,7 +951,7 @@ test('loads across plans: hypertrophy load up → asks to update the strength pl
   }
   await page.getByRole('button', { name: /Start this day/ }).click();
   await logChest(page, [12, 12, 12]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await page.getByRole('button', { name: 'Load 22.5 kg' }).click();
   // 20 kg × 12 → 1RM 28 kg → 5 reps 24 kg → 22.5 kg.
   await expect(page.getByRole('heading', { name: 'Loads across plans' })).toBeVisible();
@@ -979,7 +986,8 @@ test('workout: short on time, do it later and the setup note', async ({ page }) 
   await page.getByRole('button', { name: 'Workout options' }).click();
   await page.getByRole('button', { name: 'Do it later' }).click();
   await expect(selected).toHaveAccessibleName('Barbell Back Squat');
-  await expect(page.getByRole('tablist').getByRole('tab').last()).toHaveAccessibleName('Machine Chest Press');
+  // Last of the three exercises; the Finish tab (V2-D30) comes after them.
+  await expect(page.getByRole('tablist').getByRole('tab').nth(2)).toHaveAccessibleName('Machine Chest Press');
 
   await page.getByRole('button', { name: 'Short on time' }).click();
   await page.getByRole('dialog', { name: 'Confirm' }).getByRole('button', { name: 'Shorten' }).click();
@@ -987,8 +995,10 @@ test('workout: short on time, do it later and the setup note', async ({ page }) 
   await expect(page.getByText('Short on time: one set less, no increase this time.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Setup', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Setup' }).fill('Safety bars on 5');
-  await page.getByRole('button', { name: 'Set done' }).focus();
+  const sheet = page.getByRole('dialog', { name: 'Setup' });
+  await expect(sheet.getByRole('textbox', { name: 'Setup' })).toBeFocused();
+  await sheet.getByRole('textbox', { name: 'Setup' }).fill('Safety bars on 5');
+  await sheet.getByRole('button', { name: 'OK' }).click();
   await expect(page.getByRole('button', { name: 'Setup: Safety bars on 5' })).toBeVisible();
 });
 
@@ -1145,7 +1155,7 @@ test('plan balance (D72): closed by default; shows the planned sets and updates 
 test('achievements (D73): the first workout earns a medal on its summary; the page lists earned and not yet; off in Settings', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 10, 10]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await expect(page.getByRole('heading', { name: 'New achievements' })).toBeVisible();
   await expect(page.getByText('First workout')).toBeVisible();
 
@@ -1242,7 +1252,7 @@ test('plans (D77, V2-D24): a card per plan; its page has a tab per day with musc
 test('correction (D82): start and end times change the duration', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   await logChest(page, [10, 10, 10]);
-  await page.getByRole('button', { name: 'Finish workout' }).click();
+  await finishWorkout(page);
   await menu(page, 'Correct records');
   await page.getByLabel('Start', { exact: true }).fill('10:00');
   await page.getByLabel('End', { exact: true }).fill('11:15');
@@ -1317,32 +1327,44 @@ test('v2: an exercise has its own bar weight; the plates per side use it (V2-D26
   await expect(squat.locator('.plates')).toContainText('Bar 10 kg');
 });
 
-test('v2: actions and flags under the sets (V2-D27); notes and setup in the tools row at the top (V2-D29)', async ({ page }) => {
+test('v2: workout layout: Substitute in the header, + Set and the flags under the table, setup and notes on one line (V2-D30)', async ({ page }) => {
   await planAndStart(page, ['Machine Chest Press']);
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
-  await expect(chest.getByRole('button', { name: 'Set', exact: true })).toBeVisible();
-  await expect(chest.getByRole('button', { name: 'Substitute', exact: true })).toBeVisible();
+  await expect(chest.getByRole('button', { name: 'Substitute' })).toBeInViewport();
+  await chest.getByRole('button', { name: 'Set', exact: true }).click();
+  await expect(chest.locator('.st-row')).toHaveCount(4);
   const flags = chest.getByRole('group', { name: 'Flag' });
-  await expect(flags).toContainText('no increase this time');
   await flags.getByRole('button', { name: 'Pain' }).click();
   await expect(flags.getByRole('button', { name: 'Pain' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(flags.getByRole('button', { name: 'Technique' })).toBeInViewport();
-  // The tools row: one panel at a time, right under the icons; the setup note is saved when its panel closes.
-  const tools = chest.getByRole('toolbar', { name: 'Tip, notes and setup' });
-  await tools.getByRole('button', { name: 'Notes' }).click();
-  await chest.getByRole('textbox', { name: 'Notes' }).fill('Felt strong');
-  await tools.getByRole('button', { name: 'Setup' }).click();
-  await expect(chest.getByRole('textbox', { name: 'Notes' })).toHaveCount(0);
-  await expect(chest.getByRole('textbox', { name: 'Setup' })).toBeFocused();
-  await chest.getByRole('textbox', { name: 'Setup' }).fill('Seat 4');
-  await tools.getByRole('button', { name: 'Setup' }).click();
-  await expect(chest.getByRole('textbox', { name: 'Setup' })).toHaveCount(0);
-  await expect(chest.getByRole('button', { name: 'Setup: Seat 4' })).toBeVisible();
-  await tools.getByRole('button', { name: 'Notes' }).click();
-  await expect(chest.getByRole('textbox', { name: 'Notes' })).toHaveValue('Felt strong');
+  // Notes and setup: one line; a tap edits in a sheet, the line then shows the text.
+  await chest.getByRole('button', { name: 'Notes', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Notes' });
+  await sheet.getByRole('textbox', { name: 'Notes' }).fill('Felt strong');
+  await sheet.getByRole('button', { name: 'OK' }).click();
+  await expect(chest.getByRole('button', { name: 'Notes: Felt strong' })).toBeVisible();
+  // Previous / Next at the end of the page, not fixed on the screen.
+  await expect(page.locator('.wk-nav')).toHaveCSS('position', 'static');
 });
 
-test('v2: the tip opens from the bulb in the tools row; one panel at a time (V2-D29)', async ({ page }) => {
+test('v2: the last page shows what was done; a tap opens an exercise; the menu leads there too; its button finishes (V2-D30)', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press', 'Barbell Back Squat']);
+  await logChest(page, [10, 10]);
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('tab', { name: 'Finish', exact: true })).toHaveAttribute('aria-selected', 'true');
+  const last = page.getByRole('region', { name: 'Finish workout' });
+  await expect(last.locator('.finish-stats')).toContainText('2/6');
+  await expect(last.locator('.finish-stats')).toContainText('400 kg');
+  await expect(last).toContainText('4 sets not done: they count as skipped.');
+  await last.getByRole('button', { name: /Barbell Back Squat/ }).click();
+  await expect(page.getByRole('heading', { name: 'Barbell Back Squat' })).toBeVisible();
+  await page.getByRole('button', { name: 'Workout options' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Finish workout' }).click();
+  await last.getByRole('button', { name: 'Finish workout' }).click();
+  await expect(page.getByText('Partially completed')).toBeVisible();
+});
+
+test('v2: the tip opens from the bulb by the name (V2-D30)', async ({ page }) => {
   await page.getByRole('button', { name: 'Add starter exercises' }).click();
   const tips = ['Keep the shoulder blades back on the pad.', 'Push the handles out without locking the elbows.'];
   await importLibraryFile(page, { ...LIBRARY, exercises: [{ ...rec('5', 'Machine Chest Press', ['Chest']), tips }] });
@@ -1357,15 +1379,14 @@ test('v2: the tip opens from the bulb in the tools row; one panel at a time (V2-
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await page.getByRole('button', { name: /Start this day/ }).click();
   const chest = page.getByRole('region', { name: 'Machine Chest Press' });
-  const tools = chest.getByRole('toolbar', { name: 'Tip, notes and setup' });
-  await tools.getByRole('button', { name: 'Technique tip' }).click();
+  const bulb = chest.getByRole('heading', { name: /Machine Chest Press/ }).getByRole('button', { name: 'Technique tip' });
+  await bulb.click();
   const tip = chest.getByRole('note', { name: 'Technique tip' });
   await expect(tip).toContainText(tips[0]);
   await tip.getByRole('button', { name: 'Another tip (1/2)' }).click();
   await expect(tip).toContainText(tips[1]);
-  await tools.getByRole('button', { name: 'Notes' }).click();
+  await bulb.click();
   await expect(tip).toHaveCount(0);
-  await expect(chest.getByRole('textbox', { name: 'Notes' })).toBeVisible();
 });
 
 test('v2: the quick view sets the effort (RIR) of a set (V2-D28)', async ({ page }) => {

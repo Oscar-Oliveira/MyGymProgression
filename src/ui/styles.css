@@ -286,8 +286,9 @@ button.st-main:active { transform: none; }
 .st-row.active .st-cell, .st-row.active .st-eff { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--tone); }
 .st-check { width: 2.75rem; height: 2.75rem; min-height: 0; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--muted); }
 .st-check.on { background: var(--up); color: var(--surface); }
-.st-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; margin: 0.45rem 0.2rem 0; font-size: 0.78rem; color: var(--muted); }
-.st-legend b { margin-right: 0.3rem; }
+/* Under the set table (V2-D30): + Set on the left, the flags on the right. */
+.st-under { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.6rem; }
+.st-flags { display: flex; gap: 0.4rem; }
 /* The open set: steppers, plates, effort and "Set done", under the table. */
 .set { display: flex; align-items: center; justify-content: flex-start; gap: 0.75rem; padding: 0.7rem 0.8rem; border-radius: 16px; background: var(--surface-2); border: 1px solid transparent; width: 100%; text-align: left; font-weight: 500; min-height: 56px; color: var(--text); }
 .set .n { width: 1.6rem; height: 1.6rem; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; background: var(--surface); color: var(--muted); }
@@ -305,13 +306,18 @@ button.st-main:active { transform: none; }
 .wk-actions { display: flex; gap: 0.45rem; margin-top: 0.9rem; overflow-x: auto; scrollbar-width: none; }
 .wk-actions::-webkit-scrollbar { display: none; }
 .wk-actions .chip { flex: none; }
-/* Actions under the sets (V2-D27): two wide buttons, then the flags, then the notes; nothing hidden off screen. */
-.wk-tools { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.9rem; }
-.wk-act { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-.wk-flags .eyebrow { margin-bottom: 0.3rem; }
 /* Sticky action bar: a floating panel (like the tab bar), so it never cuts the content behind it. */
 .wk-nav { position: sticky; z-index: 10; bottom: calc(0.6rem + env(safe-area-inset-bottom)); display: flex; gap: 0.5rem; margin-top: 1rem; padding: 0.45rem; border-radius: 22px; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px); border: 1px solid var(--border); box-shadow: 0 8px 30px rgb(10 12 30 / 0.16); }
 .wk-nav button { min-height: 50px; border-radius: 16px; }
+/* In the workout (V2-D30): Previous / Next at the end of the page, not fixed on the screen. */
+.wk-nav.flow { position: static; margin-top: 1.2rem; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Last page of a workout (V2-D30). */
+.finish-stats { display: grid; gap: 0.6rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0.4rem 0 0.8rem; }
+@media (min-width: 700px) { .finish-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.finish-stats .value small { font-size: 0.9rem; color: var(--muted); }
+.finish-step .wk-list { margin-bottom: 1rem; }
+.finish-step .wk-list .done .idx { background: var(--up-bg); color: var(--up); }
+.finish-left { color: var(--warn); font-weight: 600; font-size: 0.85rem; }
 /* Quick view (D85): every set of the workout on one screen. */
 button.icon.on { background: var(--tone-soft); color: var(--tone-text); }
 .quick { display: flex; flex-direction: column; gap: 0.7rem; }
@@ -795,13 +801,15 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 
 /* Setup note, trainer tip and "short on time" in the workout (D39, D48, D40) */
 .setup-note { display: block; width: 100%; min-height: 0; margin: 0 0 0.6rem; padding: 0.5rem 0.75rem; border-radius: var(--radius); border: 1px dashed var(--border); background: var(--surface-2); color: var(--text); font-weight: 600; text-align: left; }
-/* Tools of the exercise (V2-D29): round icons under the header; the open one has its panel right below. A dot = it holds something. */
-.ex-tools { display: flex; gap: 0.5rem; margin: 0.75rem 0 0.6rem; }
-.ex-tools button { position: relative; border-radius: 50%; border-color: var(--border); color: var(--muted); font-size: 1.2rem; }
-.ex-tools button.on { background: var(--tone-soft); border-color: var(--tone); color: var(--tone-text); }
-.ex-tools button.has::after { content: ''; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
-.tool-panel { display: block; margin-bottom: 0.6rem; }
-.tool-panel textarea { margin-top: 0.3rem; }
+/* Exercise header (V2-D30): Substitute on the right; under it one small line with the setup and the notes (a tap edits them in a sheet). */
+.ex-head-text { flex: 1; min-width: 0; }
+.ex-head .ex-sub { flex: none; align-self: flex-start; border-radius: 50%; border-color: var(--border); color: var(--muted); font-size: 1.2rem; }
+.ex-notes { display: flex; align-items: center; gap: 0.2rem 1rem; margin: 0.4rem 0 0.5rem; min-width: 0; }
+.ex-notes button { flex: 0 1 auto; min-width: 0; min-height: 36px; padding: 0 0.1rem; justify-content: flex-start; gap: 0.35rem; background: transparent; font-size: 0.88rem; color: var(--text); }
+.ex-notes button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ex-notes button.blank { color: var(--muted); font-weight: 500; }
+.note-edit { display: block; margin-bottom: 0.8rem; }
+.note-edit textarea { margin-top: 0.3rem; min-height: 6rem; }
 .coach.tip { padding: 0.5rem 0.6rem; margin-bottom: 0.6rem; }
 .coach.tip p { font-weight: 600; font-size: 0.92rem; }
 .short-chip { margin: 0 0 0.75rem; }
@@ -840,6 +848,7 @@ label.setting-row > input.switch:checked::after { transform: translateX(1.25rem)
 .ex-sheet .setup-note { margin: 0.75rem 0 0; }
 .info-btn { flex: none; min-height: 0; min-width: 0; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 1rem; line-height: 1.4; vertical-align: middle; }
 .info-btn:hover { color: var(--accent); border-color: var(--accent); }
+.info-btn.on { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
 .xitem .info-btn, .pick-row .info-btn, .item-row .info-btn { padding: 0.35rem 0.5rem; }
 /* Favourite star (D83): outline when off, filled amber when on. */
 .fav-btn { flex: none; min-width: 44px; min-height: 44px; padding: 0.4rem; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); }

@@ -7,9 +7,10 @@ import { db } from '../data/db';
 import { repo } from '../data/repo';
 import { canDecide, canRevert } from '../domain/workout';
 import { currentTarget, EXTRA_SETS, MAX_EXTRA_SETS } from '../domain/progression';
-import type { Exercise, MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, WorkoutEntry } from '../domain/types';
+import type { Exercise, MetricDef, MetricKey, ProgressionEvent, Reason, SetRecord, Settings, WorkoutEntry } from '../domain/types';
+import type { RecordHit } from '../domain/analysis';
 import { NumInput } from './components/NumInput';
-import { fmtNum, fmtValue, metricLabel, reasonText, useSettings, useThumbs } from './util';
+import { distOut, fmtNum, fmtSeconds, fmtValue, loadOut, metricLabel, reasonText, useSettings, useThumbs } from './util';
 import { ExerciseItem } from './components/ExerciseItem';
 import { Icon, type IconName } from './components/Icon';
 
@@ -31,6 +32,40 @@ const unitOf = (metrics: MetricDef[], k: MetricKey) => metrics.find((m) => m.key
 export const fmtMetric = (metrics: MetricDef[], k: MetricKey, v: number | undefined, lang: string) => fmtValue(v, unitOf(metrics, k), lang);
 
 /** "12 · 11 · 10 × 40 kg" for reps+load, otherwise the values of each set joined. */
+/** A record value as shown: time, distance, reps or load, in the units of the settings. */
+export function recordText(r: Pick<RecordHit, 'kind'>, v: number, s: Settings): string {
+  if (r.kind === 'maxDuration') return fmtSeconds(v);
+  if (r.kind === 'maxDistance') return `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}`;
+  if (r.kind === 'maxReps') return fmtNum(v, s.language);
+  return `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}`;
+}
+
+/** New records of a workout, each with the value before. `link`: a row opens the exercise page. */
+export function RecordsCard({ records, link }: { records: RecordHit[]; link?: boolean }) {
+  const { t } = useTranslation();
+  const s = useSettings();
+  const thumbOf = useThumbs();
+  if (!records.length) return null;
+  return (
+    <section className="card up">
+      <h2>
+        <Icon name="trophy" /> {t('workout.records')}
+      </h2>
+      {records.map((r) => (
+        <ExerciseItem
+          key={`${r.exerciseId}:${r.kind}`}
+          name={r.name}
+          thumb={thumbOf(r.exerciseId)}
+          sub={`${t(`workout.recordKind.${r.kind}`)} · ${t('workout.recordWas', { value: recordText(r, r.previous, s) })}`}
+          size="sm"
+          to={link ? `/exercises/${r.exerciseId}` : undefined}
+          trailing={<strong className="num">{recordText(r, r.value, s)}</strong>}
+        />
+      ))}
+    </section>
+  );
+}
+
 export function setsLine(sets: SetRecord[], metrics: MetricDef[], lang: string): string {
   const done = sets.filter((s) => s.kind === 'working' && s.status === 'done');
   if (!done.length) return '—';

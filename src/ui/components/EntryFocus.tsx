@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CoachSettings, LoadMode, MetricDef, SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
@@ -11,6 +11,7 @@ import { progressHint, rxLine, setsLine, setText } from '../progress';
 import { buzz, fmtNum, metricLabel, useSettings } from '../util';
 import { Icon } from './Icon';
 import { InfoButton } from './ExerciseSheet';
+import { Modal } from './Modal';
 import { PlateLine } from './PlateLine';
 
 export function stepFor(m: MetricDef): number {
@@ -118,9 +119,11 @@ function SetList({
   };
   // "Before" keeps room for a short value; the value columns share the rest (up to 4 values, e.g. a treadmill).
   const cols = `2rem minmax(3.5rem, 1fr) repeat(${metrics.length}, minmax(2.4rem, 3.4rem))${showEffort ? ' 2.6rem' : ''}`;
-  const kinds = [...new Set(entry.sets.map((x) => x.kind))].filter((k) => k !== 'working');
   const set = entry.sets.find((x) => x.id === activeId);
   const before = set && beforeOf(entry, set, previous);
+  // "No increase this time" only when the app raises the targets by itself and these flags stop it.
+  const blocks = entry.progression.strategy !== 'none' && entry.progression.strategy !== 'manual' && (entry.progression.criteria.blockOnPain || entry.progression.criteria.blockOnTechnique);
+  const flagsTitle = blocks ? `${t('workout.flags')} · ${t('workout.flagsHelp')}` : t('workout.flags');
 
   return (
     <>
@@ -172,17 +175,20 @@ function SetList({
           );
         })}
       </div>
-      {(kinds.length > 0 || showEffort) && (
-        <p className="st-legend">
-          {kinds.map((k) => (
-            <span key={k}>
-              <b className={`k-${k}`}>{t(`setKind.${k}`).slice(0, 1)}</b>
-              {t(`setKind.${k}`)}
-            </span>
-          ))}
-          {showEffort && <span>{t(scale === 'rpe' ? 'effort.rpeLong' : 'effort.rirLong')}</span>}
-        </p>
-      )}
+      {/* Under the table (V2-D30): + Set on the left, the flags for the progression on the right. */}
+      <div className="st-under">
+        <button type="button" className="outline sm" onClick={() => onChange(addSet(entry, 'working'))}>
+          <Icon name="plus" /> {t('workout.addSet')}
+        </button>
+        <div className="st-flags" role="group" aria-label={t('workout.flags')} title={flagsTitle}>
+          <button type="button" className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
+            {t('workout.pain')}
+          </button>
+          <button type="button" className={`chip ${entry.technique ? 'on' : ''}`} aria-pressed={entry.technique} onClick={() => onChange({ ...entry, technique: !entry.technique })}>
+            {t('workout.technique')}
+          </button>
+        </div>
+      </div>
       {set && (
         <div className="set active" role="group" aria-label={t('workout.setN', { n: labels.get(set.id) })}>
           <div className="top">
@@ -218,12 +224,12 @@ function SetList({
   );
 }
 
-type Tool = 'tip' | 'notes' | 'setup';
-
 /**
  * One exercise of the workout. `setup`: the setup note of the exercise (D39), edited here and saved with `onSetup`.
- * `tips`: technique tips of the exercise (D48, D54, D75): a bulb button opens one in a bubble (the trainer's, when it is on); "another tip" goes to the next.
+ * `tips`: technique tips of the exercise (D48, D54, D75): the bulb by ⓘ opens one in a bubble (the trainer's, when it is on); "another tip" goes to the next.
  * `onTip`: called with the tip shown (the voice reads it). `info`: the exercise is in the library, so its sheet can open.
+ * Layout (V2-D30): ⓘ and the bulb by the name, Substitute on the right of the header, then one small line with the setup and the notes
+ * (a tap edits them in a sheet); + Set and the flags are under the set table.
  */
 export function EntryFocus({
   entry,
@@ -258,40 +264,31 @@ export function EntryFocus({
   const { t } = useTranslation();
   const s = useSettings();
   const [chosen, setChosen] = useState<string>();
-  // Tools of the exercise (V2-D29): one panel open at a time, right under the icons. Notes already written start open.
-  const [panel, setPanel] = useState<Tool | undefined>(entry.notes ? 'notes' : undefined);
-  const [tip, setTip] = useState(0);
-  const showTip = (i: number) => {
+  // The open tip (index), or none.
+  const [tip, setTip] = useState<number>();
+  const showTip = (i: number | undefined) => {
     setTip(i);
-    setPanel('tip');
-    if (tips) onTip?.(tips[i]);
+    if (i !== undefined && tips) onTip?.(tips[i]);
   };
-  // The setup note is saved when its panel closes (another icon, the same icon, or leaving the text field).
-  const [setupDraft, setSetupDraft] = useState('');
-  const saveSetup = () => {
-    if (panel === 'setup' && setupDraft.trim() !== (setup ?? '').trim()) onSetup?.(setupDraft.trim());
+  // The note edited in a sheet: the setup note (saved in the exercise) or the notes of this workout. Closing the sheet saves.
+  const [editing, setEditing] = useState<'setup' | 'notes'>();
+  const [draft, setDraft] = useState('');
+  const edit = (what: 'setup' | 'notes') => {
+    setDraft((what === 'setup' ? setup : entry.notes) ?? '');
+    setEditing(what);
   };
-  const toggle = (p: Tool) => {
-    saveSetup();
-    if (panel === p) return setPanel(undefined);
-    if (p === 'tip') return showTip(0);
-    if (p === 'setup') setSetupDraft(setup ?? '');
-    setPanel(p);
+  const closeEdit = () => {
+    const text = draft.trim();
+    if (editing === 'setup' && text !== (setup ?? '').trim()) onSetup?.(text);
+    if (editing === 'notes' && text !== (entry.notes ?? '').trim()) onChange({ ...entry, notes: text });
+    setEditing(undefined);
   };
-  /** Icon of the tools row. `has`: it holds something (a dot shows). A press keeps the focus in the text field, so it does not close first. */
-  const tool = (p: Tool, icon: 'bulb' | 'note' | 'pin', label: string, has = false) => (
-    <button
-      type="button"
-      className={`icon outline ${panel === p ? 'on' : ''} ${has ? 'has' : ''}`}
-      aria-expanded={panel === p}
-      aria-label={label}
-      title={label}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={() => toggle(p)}
-    >
-      <Icon name={icon} />
-    </button>
-  );
+  const editLabel = editing === 'setup' ? t('workout.setup') : t('common.notes');
+  // The sheet opens with the text field ready (after the sheet itself takes the focus).
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (editing) noteRef.current?.focus();
+  }, [editing]);
   const firstPending = entry.sets.find((x) => x.status === 'pending')?.id;
   const chosenSet = entry.sets.find((x) => x.id === chosen);
   // The chosen set stays open until it is marked done or skipped; otherwise the first pending set is open.
@@ -302,42 +299,36 @@ export function EntryFocus({
       {entry.group && <span className="badge">{t('plan.group')} {entry.group}</span>}
       <div className="ex-head">
         <Thumb src={thumbOf(entry.exerciseId) ?? entry.exercise.thumb} name={entry.exercise.name} size={76} />
-        <div style={{ minWidth: 0 }}>
+        <div className="ex-head-text">
           <h1 className="ex-title">
             {entry.exercise.name}
             {info && <InfoButton id={entry.exerciseId} name={entry.exercise.name} />}
+            {tips && tips.length > 0 && (
+              <button type="button" className={`info-btn ${tip !== undefined ? 'on' : ''}`} aria-expanded={tip !== undefined} aria-label={t('workout.tip')} title={t('workout.tip')} onClick={() => showTip(tip === undefined ? 0 : undefined)}>
+                <Icon name="bulb" />
+              </button>
+            )}
           </h1>
           <div className="ex-meta num">{rxLine(entry, t, s.language)}</div>
           <div className="ex-last">
             {t('workout.lastTime')}: {previous ? setsLine(previous.sets, previous.exercise.metrics, s.language) : t('workout.firstTime')}
           </div>
         </div>
+        <button type="button" className="icon outline ex-sub" aria-label={t('workout.substitute')} title={t('workout.substitute')} onClick={onSubstitute}>
+          <Icon name="swap" />
+        </button>
       </div>
-      <div className="ex-tools" role="toolbar" aria-label={t('workout.toolsLabel')}>
-        {tips && tips.length > 0 && tool('tip', 'bulb', t('workout.tip'))}
-        {tool('notes', 'note', t('common.notes'), !!entry.notes)}
-        {onSetup && tool('setup', 'pin', t('workout.setup'), !!setup)}
+      <div className="ex-notes">
+        {onSetup && (
+          <button type="button" className={setup ? '' : 'blank'} aria-label={setup ? `${t('workout.setup')}: ${setup}` : t('workout.setup')} onClick={() => edit('setup')}>
+            <Icon name="pin" /> <span>{setup || t('workout.setup')}</span>
+          </button>
+        )}
+        <button type="button" className={entry.notes ? '' : 'blank'} aria-label={entry.notes ? `${t('common.notes')}: ${entry.notes}` : t('common.notes')} onClick={() => edit('notes')}>
+          <Icon name="note" /> <span>{entry.notes || t('common.notes')}</span>
+        </button>
       </div>
-      {panel === 'notes' && (
-        <label className="tool-panel">
-          <span className="help">{t('workout.notesHelp')}</span>
-          <textarea aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />
-        </label>
-      )}
-      {panel === 'setup' && onSetup && (
-        <label className="tool-panel">
-          <span className="help">{t('workout.setupHelp')}</span>
-          <textarea
-            autoFocus
-            aria-label={t('workout.setup')}
-            value={setupDraft}
-            placeholder={t('workout.setupPlaceholder')}
-            onChange={(e) => setSetupDraft(e.target.value)}
-            onBlur={() => (saveSetup(), setPanel(undefined))}
-          />
-        </label>
-      )}
-      {panel === 'tip' && tips?.[tip] && (
+      {tip !== undefined && tips?.[tip] && (
         <div className="coach tip" role="note" aria-label={t('workout.tip')}>
           {coach ? <CoachAvatar style={coach.style} gender={coach.gender} look={coach.look} size={32} /> : <span className="tip-ico"><Icon name="bulb" /></span>}
           <div className="tip-body">
@@ -356,16 +347,10 @@ export function EntryFocus({
               </button>
             )}
           </div>
-          <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => setPanel(undefined)}>
+          <button type="button" className="ghost sm" aria-label={t('common.close')} onClick={() => showTip(undefined)}>
             <Icon name="close" />
           </button>
         </div>
-      )}
-      {/* The saved setup note stays in view (seat, grip...); a tap edits it. */}
-      {setup && panel !== 'setup' && (
-        <button type="button" className="setup-note" onClick={() => toggle('setup')} aria-label={`${t('workout.setup')}: ${setup}`}>
-          <Icon name="pin" /> {setup}
-        </button>
       )}
       {entry.short && <p className="help"><Icon name="timer" /> {t('reason.short')}</p>}
       {entry.substitutedFor && <p className="help">{t('workout.substituted')}</p>}
@@ -388,32 +373,17 @@ export function EntryFocus({
         }}
       />
 
-      {/* Under the sets (V2-D27): actions on the exercise, then flags for the progression. Notes and setup are at the top (V2-D29). */}
-      <div className="wk-tools">
-        <div className="wk-act">
-          <button className="outline" onClick={() => onChange(addSet(entry, 'working'))}>
-            <Icon name="plus" /> {t('workout.addSet')}
+      {editing && (
+        <Modal title={editLabel} onClose={closeEdit}>
+          <label className="note-edit">
+            <span className="help">{t(editing === 'setup' ? 'workout.setupHelp' : 'workout.notesHelp')}</span>
+            <textarea ref={noteRef} aria-label={editLabel} value={draft} placeholder={editing === 'setup' ? t('workout.setupPlaceholder') : undefined} onChange={(e) => setDraft(e.target.value)} />
+          </label>
+          <button type="button" className="primary xl" onClick={closeEdit}>
+            {t('dialog.ok')}
           </button>
-          <button className="outline" onClick={onSubstitute}>
-            <Icon name="swap" /> {t('workout.substitute')}
-          </button>
-        </div>
-        <div className="wk-flags" role="group" aria-label={t('workout.flags')}>
-          <p className="eyebrow">
-            {t('workout.flags')}
-            {/* Only when the app raises the targets by itself and these flags stop it. */}
-            {entry.progression.strategy !== 'none' && entry.progression.strategy !== 'manual' && (entry.progression.criteria.blockOnPain || entry.progression.criteria.blockOnTechnique) && ` · ${t('workout.flagsHelp')}`}
-          </p>
-          <div className="row wrap">
-            <button className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
-              {t('workout.pain')}
-            </button>
-            <button className={`chip ${entry.technique ? 'on' : ''}`} aria-pressed={entry.technique} onClick={() => onChange({ ...entry, technique: !entry.technique })}>
-              {t('workout.technique')}
-            </button>
-          </div>
-        </div>
-      </div>
+        </Modal>
+      )}
     </section>
   );
 }

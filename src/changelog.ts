@@ -9,6 +9,21 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-23',
     pt: [
+      'Treino: nova página final "Terminar", depois do último exercício, com duração, séries, volume, reps, recordes e o que falta em cada exercício; o botão dela termina o treino.',
+      'Anterior / Seguinte ficam no fim da página, já não fixos no ecrã.',
+      'Substituir passa para o topo, ao lado do nome; a dica (lâmpada) fica junto ao ⓘ; o setup e as notas numa só linha pequena (um toque edita).',
+      '+ Série e Dor / Técnica ficam logo por baixo da tabela das séries.',
+    ],
+    en: [
+      'Workout: a new last page "Finish", after the last exercise, with duration, sets, volume, reps, records and what is left in each exercise; its button finishes the workout.',
+      'Previous / Next are at the end of the page, no longer fixed on the screen.',
+      'Substitute moves to the top, by the name; the tip (bulb) is next to ⓘ; the setup and the notes on one small line (a tap edits).',
+      '+ Set and Pain / Technique are right under the set table.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    pt: [
       'No treino, por baixo do nome do exercício: ícones para a dica (lâmpada), as notas deste treino e o setup. Cada um abre logo por baixo; o setup guarda-se ao fechar e fica à vista.',
     ],
     en: [

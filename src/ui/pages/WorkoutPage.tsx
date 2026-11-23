@@ -19,17 +19,18 @@ import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { Modal } from '../components/Modal';
 import { Thumb } from '../components/Thumb';
-import { DecisionCard, fmtMetric, rxLine, setsLine, setText, SyncCard } from '../progress';
+import { DecisionCard, fmtMetric, recordText, RecordsCard, rxLine, setsLine, setText, SyncCard } from '../progress';
 import { EXTRA_SETS } from '../../domain/progression';
 import { restAfterChange } from '../../domain/rest';
 import { RestBar } from '../components/RestBar';
-import { distOut, fmtDate, fmtNum, fmtSeconds, loadOut, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
+import { fmtDate, fmtNum, fmtSeconds, useSettings, useThumbs, useUnsavedGuard, useWakeLock } from '../util';
 import { workoutRecords, type RecordHit } from '../../domain/analysis';
 import { achievements, achievementsOn } from '../../domain/achievements';
 import { Medals } from '../components/Medals';
 import { ExerciseItem } from '../components/ExerciseItem';
 import { toneStyle, useTones } from '../colors';
 import { EntryFocus } from '../components/EntryFocus';
+import { FinishStep } from '../components/FinishStep';
 import { CoachCard, coachIncrease, PageCoach } from '../components/CoachCard';
 import { CircuitFocus } from '../components/CircuitFocus';
 import { QuickView } from '../components/QuickView';
@@ -123,7 +124,9 @@ export function WorkoutPage() {
   // Steps: one per exercise, or one per circuit (its exercises together).
   const steps = workoutSteps(draft.entries);
   type Step = (typeof steps)[number];
-  const step: Step | undefined = steps[Math.min(cur, steps.length - 1)];
+  // The last page (V2-D30): after the last step, what was done and the button that finishes.
+  const atFinish = steps.length > 0 && cur >= steps.length;
+  const step: Step | undefined = atFinish ? undefined : steps[Math.min(cur, steps.length - 1)];
   const stepEntries = (st: Step) => st.indexes.map((i) => draft.entries[i]);
   const entry = step && !step.circuit ? draft.entries[step.indexes[0]] : undefined;
   const entryDone = (e: WorkoutEntry) => e.sets.length > 0 && e.sets.every((x) => x.status !== 'pending');
@@ -161,6 +164,14 @@ export function WorkoutPage() {
   const stepDone = (st: Step) => stepEntries(st).every(entryDone);
   const stepName = (st: Step) => st.circuit?.name ?? draft.entries[st.indexes[0]].exercise.name;
   const pendingSets = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.status === 'pending').length, 0);
+  /** Opens the last page; a workout without exercises has nothing to show, so it finishes. */
+  const toFinish = () => {
+    setMenu(false);
+    setQuick(false);
+    if (!steps.length) return void finish();
+    setCur(steps.length);
+    window.scrollTo(0, 0);
+  };
   const doneWorking = draft.entries.reduce((a, e) => a + e.sets.filter((x) => x.kind === 'working' && x.status === 'done').length, 0);
   const totalWorking = draft.entries.reduce((a, e) => a + e.prescription.filter((x) => x.kind === 'working').length, 0);
 
@@ -188,8 +199,8 @@ export function WorkoutPage() {
     update({ ...draft, entries: draft.entries.filter((x) => x.id !== e.id) });
     setCur(Math.max(0, cur - 1));
   };
+  // The last page shows the sets not done, so finishing there needs no other question.
   const finish = async (interrupted = false) => {
-    if (!interrupted && pendingSets > 0 && !(await dialog.confirm(t('workout.finishPending', { count: pendingSets })))) return;
     setMenu(false);
     await repo.finishWorkout(draft, interrupted);
     window.scrollTo(0, 0);
@@ -240,6 +251,14 @@ export function WorkoutPage() {
                 </button>
               );
             })}
+            {steps.length > 0 && (
+              <button role="tab" aria-selected={atFinish} aria-label={t('workout.finishTab')} className={`wk-chip ${atFinish ? 'cur' : ''}`} onClick={() => setCur(steps.length)}>
+                <span className="chip-ico">
+                  <Icon name="check" />
+                </span>
+                <span>{t('workout.finishTab')}</span>
+              </button>
+            )}
           </div>}
         </div>
 
@@ -259,12 +278,14 @@ export function WorkoutPage() {
               onOpen={(i) => (setCur(i), setQuick(false))}
               thumbOf={thumbOf}
             />
-            <div className="wk-nav">
-              <button className={pendingSets === 0 ? 'primary' : 'outline'} onClick={() => void finish()}>
+            <div className="wk-nav flow">
+              <button className={pendingSets === 0 ? 'primary' : 'outline'} onClick={toFinish}>
                 <Icon name="check" /> {t('workout.finish')}
               </button>
             </div>
           </>
+        ) : atFinish ? (
+          <FinishStep workout={draft} earlier={ctx.others} thumbOf={thumbOf} onOpen={setCur} onFinish={() => void finish()} />
         ) : step?.circuit ? (
           <CircuitFocus key={step.circuit.id} circuit={step.circuit} entries={stepEntries(step)} onChange={upEntries} thumbOf={thumbOf} />
         ) : entry ? (
@@ -303,20 +324,22 @@ export function WorkoutPage() {
         )}
 
         {active && !quick && <RestBar workout={draft} onChange={update} />}
-        {!quick && <div className="wk-nav">
+        {!quick && <div className="wk-nav flow">
           {cur > 0 && (
             <button className="outline" onClick={() => setCur(cur - 1)}>
               <Icon name="chevronLeft" /> {t('workout.prev')}
             </button>
           )}
-          {cur < steps.length - 1 ? (
-            <button className={step && stepDone(step) ? 'primary' : 'outline'} onClick={() => setCur(cur + 1)}>
-              {t('workout.next')} <Icon name="chevronRight" />
-            </button>
-          ) : (
-            <button className={pendingSets === 0 ? 'primary' : 'outline'} onClick={() => void finish()}>
+          {!steps.length ? (
+            <button className="outline" onClick={() => void finish()}>
               <Icon name="check" /> {t('workout.finish')}
             </button>
+          ) : (
+            !atFinish && (
+              <button className={step && stepDone(step) ? 'primary' : 'outline'} onClick={() => setCur(cur + 1)}>
+                {t('workout.next')} <Icon name="chevronRight" />
+              </button>
+            )
           )}
         </div>}
 
@@ -332,7 +355,7 @@ export function WorkoutPage() {
                   {t('workout.removeEntry')}
                 </button>
               )}
-              <button onClick={() => void finish(false)}><Icon name="check" /> {t('workout.finish')}</button>
+              <button onClick={toFinish}><Icon name="check" /> {t('workout.finish')}</button>
               <button onClick={() => void finish(true)}>{t('workout.interrupt')}</button>
               <button
                 className="danger"
@@ -422,14 +445,7 @@ export function WorkoutPage() {
   // "You vs 3 months ago" (D49, D57): only for the latest workout, when the rival is on.
   const rival = rivalOn(s) && ctx.latest === draft.id ? rivalWorkout(draft, ctx.others) : undefined;
   const rivalList = rival ? rivalRows(draft, rival) : [];
-  const fmtRecord = (r: RecordHit, v: number) =>
-    r.kind === 'maxDuration'
-      ? fmtSeconds(v)
-      : r.kind === 'maxDistance'
-        ? `${fmtNum(distOut(v, s), s.language)} ${s.distanceUnit}`
-        : r.kind === 'maxReps'
-          ? fmtNum(v, s.language)
-          : `${fmtNum(loadOut(v, s), s.language)} ${s.loadUnit}`;
+  const fmtRecord = (r: RecordHit, v: number) => recordText(r, v, s);
   /** The workout as an image (D44), with the trainer when it is on. */
   const shareCard = async () => {
     const done = draft.entries.filter((e) => e.sets.some((x) => x.kind === 'working' && x.status === 'done'));
@@ -591,22 +607,7 @@ export function WorkoutPage() {
               <div className="label">{t('analysis.duration')}</div>
             </div>
           </div>
-          {records.length > 0 && (
-            <section className="card up">
-              <h2><Icon name="trophy" /> {t('workout.records')}</h2>
-              {records.map((r) => (
-                <ExerciseItem
-                  key={`${r.exerciseId}:${r.kind}`}
-                  name={r.name}
-                  thumb={thumbOf(r.exerciseId)}
-                  sub={`${t(`workout.recordKind.${r.kind}`)} · ${t('workout.recordWas', { value: fmtRecord(r, r.previous) })}`}
-                  size="sm"
-                  to={`/exercises/${r.exerciseId}`}
-                  trailing={<strong className="num">{fmtRecord(r, r.value)}</strong>}
-                />
-              ))}
-            </section>
-          )}
+          <RecordsCard records={records} link />
           {medals.length > 0 && (
             <section className="card up">
               <h2><Icon name="trophy" /> {t('achievements.newOnes')}</h2>
