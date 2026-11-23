@@ -6,6 +6,7 @@ import type { Settings } from '../../domain/types';
 import { reviewYears, yearReview, type YearReview } from '../../domain/year';
 import { Empty } from '../components/Bits';
 import { BodyMap } from '../components/BodyMap';
+import { SegSmall } from '../components/Controls';
 import { Icon } from '../components/Icon';
 import { achievementName } from '../components/Medals';
 import { fmtNum, fmtVolume, loadOut, tr, useSettings } from '../util';
@@ -50,18 +51,7 @@ export function YearTab() {
   if (!review) return <Empty>{t('year.empty')}</Empty>;
   return (
     <>
-      {years.length > 1 && (
-        <label>
-          {t('year.pick')}
-          <select value={year} onChange={(e) => setPicked(Number(e.target.value))}>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      {years.length > 1 && <SegSmall label={t('year.pick')} value={String(year)} onPick={(v) => setPicked(Number(v))} options={years.map((y) => ({ value: String(y), label: String(y) }))} />}
       <section className="hero year-hero">
         <p className="eyebrow">{review.year === new Date().getFullYear() ? t('year.soFar') : review.year}</p>
         <h1>{t('year.title', { year: review.year })}</h1>

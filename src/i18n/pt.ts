@@ -1,7 +1,8 @@
 import type { Resources } from './en';
 
 export const pt: Resources = {
-  nav: { main: 'Principal', home: 'Início', plan: 'Plano', progress: 'Progresso', scan: 'Ler QR', moreOptions: 'Mais opções', searchExercises: 'Procurar exercícios', tools: 'Ferramentas', body: 'Corpo', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
+  nav: { main: 'Principal', summary: 'Resumo', home: 'Início', plan: 'Plano', progress: 'Progresso', scan: 'Ler QR', moreOptions: 'Mais opções', searchExercises: 'Procurar exercícios', tools: 'Ferramentas', body: 'Corpo', train: 'Treinar', history: 'Histórico', more: 'Mais', exercises: 'Exercícios', plans: 'Planos', reports: 'Relatórios', settings: 'Definições', about: 'Sobre', games: 'Jogos', challenges: 'Desafio semanal', achievements: 'Conquistas', coach: 'PT' },
+  filters: { label: 'Filtros', clear: 'Limpar {{name}}', all: 'Todos' },
   more: { plans: 'Dias, exercícios, séries e cargas', exercises: 'Biblioteca e recordes', reports: 'Análise, relatório da semana e tu vs há 3 meses', settings: 'Unidades, idioma, cópias e importação', about: 'Versão, novidades e créditos', games: 'Mini jogos com os PTs', challenges: 'Desafio desta semana e anteriores', achievements: 'Medalhas pelo teu histórico', coach: 'Estilo, mensagens e voz' },
   about: {
     version: 'Versão {{version}}', built: 'compilada a {{date}}', tagline: 'Planos, registo de treinos e progressão. Uso pessoal, sem conta.',
@@ -167,7 +168,7 @@ export const pt: Resources = {
   dialog: { confirm: 'Confirmar', notice: 'Aviso', ok: 'OK' },
   history: { title: 'Histórico', empty: 'Ainda não há treinos.', count: '{{count}} treinos', count_one: '{{count}} treino', page: 'Página {{page}} de {{pages}}', pages: 'Páginas do histórico', prev: 'Anterior', next: 'Seguinte' },
   exercise: {
-    info: 'Sobre {{name}}', favorites: 'Favoritos', favAdd: 'Marcar {{name}} como favorito', favRemove: 'Tirar {{name}} dos favoritos', favHint: 'Os teus favoritos. Escreve para procurar todos os exercícios.', mediaCredit: 'Imagens e animações © Gym visual — gymvisual.com · Dados: exercises-dataset (MIT)', fullPage: 'Página completa: histórico, gráficos e metas',
+    info: 'Sobre {{name}}', favorites: 'Favoritos', mine: 'Os meus', library: 'Biblioteca', group: 'Grupo', inactiveFilter: 'Inativos', openLibrary: 'Abrir a biblioteca', searchLibrary: 'Procurar na biblioteca ({{count}})', mineEmpty: 'Aqui aparecem os exercícios dos teus planos e treinos, os teus e os favoritos. Encontra mais na biblioteca.', favAdd: 'Marcar {{name}} como favorito', favRemove: 'Tirar {{name}} dos favoritos', favHint: 'Os teus favoritos. Escreve para procurar todos os exercícios.', mediaCredit: 'Imagens e animações © Gym visual — gymvisual.com · Dados: exercises-dataset (MIT)', fullPage: 'Página completa: histórico, gráficos e metas',
     title: 'Exercícios', new: 'Novo exercício', edit: 'Editar exercício', aliases: 'Outros nomes (separados por vírgulas)', primary: 'Músculos principais', secondary: 'Músculos secundários',
     equipment: 'Equipamento', category: 'Categoria', instructions: 'Instruções / técnica', safety: 'Notas de segurança', personal: 'Notas pessoais', tags: 'Etiquetas (separadas por vírgulas)',
     links: 'Imagens, vídeos, ligações', linkLabel: 'Etiqueta', linkUrl: 'URL', active: 'Ativo', inactive: 'Inativo', showInactive: 'Mostrar inativos',
@@ -187,7 +188,7 @@ export const pt: Resources = {
   },
   plan: {
     rangeReason: 'Faixa de reps alterada no plano', rangeHelp: 'Os treinos usam {{range}} (depois de “subir reps”). Se mudares as reps aqui, volta a valer a faixa do plano.',
-    title: 'Planos', count: '{{count}} planos ativos', count_one: '{{count}} plano ativo', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
+    title: 'Planos', activeTab: 'Ativos', archivedTab: 'Arquivados', daysN: '{{count}} dias', daysN_one: '{{count}} dia', lastWorkout: 'Último treino: {{date}}', notTrained: 'Ainda sem treinos', startNamed: 'Começar {{day}}', duplicated: 'Cópia feita: {{name}}', count: '{{count}} planos ativos', count_one: '{{count}} plano ativo', new: 'Novo plano', name: 'Nome do plano', phase: 'Fase de treino', more: 'Mais opções', day: 'Dia', addDay: 'Dia', dayName: 'Nome do dia', weekday: 'Dia da semana',
     color: 'Cor do plano', dayColor: 'Cor do dia', samePlanColor: 'Igual ao plano', daySummary: '{{count}} exercícios · {{sets}} séries', daySummary_one: '{{count}} exercício · {{sets}} séries',
     removeDay: 'Remover este dia', removeDayConfirm: 'Remover o dia "{{name}}" do plano? Sai quando guardares.', addExercise: 'Adicionar exercício', sets: 'Séries', reps: 'Reps', repsMin: 'reps mín', repsMax: 'reps máx', increment: 'Incremento', current: 'atual',
     advanced: 'Avançado', setBySet: 'Série a série', group: 'Superset', role: 'Função', substitutes: 'Substitutos',
@@ -337,7 +338,8 @@ export const pt: Resources = {
     },
   },
   reports: {
-    title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Semana', rival: 'Tu vs 3 meses', year: 'Ano' },
+    title: 'Relatórios', tabs: { analysis: 'Análise', week: 'Relatório da semana', rival: 'Tu vs há 3 meses', year: 'O teu ano' },
+    sub: { week: 'A semana até agora e os relatórios de domingo', rival: 'O último treino contra o mesmo dia há 3 meses', year: 'O teu ano, ecrã a ecrã' },
     reportOnSub: 'Todos os domingos, no Início: a tua semana. Os relatórios de domingo ficam guardados aqui. Com o PT ligado, tem um comentário dele.',
     rivalOnSub: 'No resumo do treino: o mesmo dia do plano há cerca de 3 meses, exercício a exercício.',
     thisWeek: 'Esta semana, até agora', earlier: 'Semanas anteriores', noReports: 'Ainda não há relatórios anteriores. Com "Relatório da semana" ligado nas Definições, cada relatório de domingo fica guardado aqui.',
@@ -413,27 +415,6 @@ export const pt: Resources = {
       sergeant: { won: 'BATESTE O TEU EU ANTIGO. É ISSO QUE EU QUERO!', lost: 'O TEU EU ANTIGO GANHOU. INACEITÁVEL. MAIS ESFORÇO!', tie: 'EMPATE NÃO É VITÓRIA. PUXA MAIS!' },
       energy: { won: 'Bateste o teu eu antigo!! LENDA! 🏆', lost: 'Hoje ganhou o teu eu antigo, mas a desforra vem aí! Bora!', tie: 'Empate! A desforra vai ser épica!' },
     },
-  },
-  splash: {
-    tap: 'Toca para começar',
-    say: {
-      support: ['Que bom ver-te!', 'Uma série de cada vez.', 'Quando quiseres, estou pronto.', 'Orgulho em ti por vires.', 'Hoje conta.'],
-      spite: ['Ah, vieste. Que surpresa.', 'Desculpas? Hoje não.', 'Disseram que ias desistir.', 'O sofá tem saudades. Ignora-o.', 'Prova que estão errados.'],
-      stoic: ['Começa.', 'Faz o trabalho.', 'Calma. Depois, peso.', 'A barra tem paciência.', 'Disciplina é liberdade.'],
-      sergeant: ['ACORDA, RECRUTA!', 'DE PÉ!', 'SEM DESCULPAS!', 'VINTE FLEXÕES, JÁ!', 'MEXE-TE!'],
-      energy: ['BORA LÁÁÁ!', 'Festa no rack de agachamento!', 'Hoje é ÉPICO!', 'Energia a 100%!', 'Uhuu, hora de treinar!'],
-    },
-    tips: [
-      'Dica: controla a descida; também conta.',
-      'Dica: escreve o banco e a pega na nota de setup.',
-      'Dica: pouco tempo? Usa "Pouco tempo" no treino.',
-      'Dica: cria uma meta de carga na Análise para veres a data prevista.',
-      'Dica: dormir e beber água também te deixam mais forte.',
-      'Dica: máquina ocupada? "Fazer depois" no menu ⋯.',
-      'Dica: guarda uma cópia de segurança de vez em quando (Definições).',
-      'Dica: toca num PT aqui. Vá.',
-    ],
-    stat: { month: '{{count}} treinos este mês. Continua!', month_one: '{{count}} treino este mês. Continua!', total: '{{count}} treinos com esta app.', total_one: '{{count}} treino com esta app.', streak: '{{count}} semanas seguidas!', streak_one: '{{count}} semana seguida!' },
   },
   migrate: {
     title: 'Trazer dados da versão 1', intro: 'Planos, treinos e progressão passam para a v2. A versão 1 fica exatamente como está.',

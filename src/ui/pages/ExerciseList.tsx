@@ -1,21 +1,23 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
-import { exerciseGroup } from '../../domain/library';
+import { exerciseGroup, mineIds } from '../../domain/library';
 import { MUSCLE_GROUPS, type MuscleGroup } from '../../domain/types';
 import { matches } from '../components/ExercisePicker';
-import { ExerciseItem, ThumbStack } from '../components/ExerciseItem';
-import { Empty, PageHead } from '../components/Bits';
+import { ExerciseItem } from '../components/ExerciseItem';
+import { Empty, HeadAction, PageHead } from '../components/Bits';
+import { FilterChip, FilterRow, OptionSheet, ViewTabs } from '../components/Controls';
 import { tr } from '../util';
-import { Icon } from '../components/Icon';
 
 const PAGE = 60;
+type Tab = 'mine' | 'lib';
 
-/** The filters kept in the URL. */
+/** The view and the filters, kept in the URL. */
 const fromUrl = (params: URLSearchParams) => ({
+  tab: (params.get('tab') === 'lib' ? 'lib' : 'mine') as Tab,
   q: params.get('q') ?? '',
   group: (params.get('group') ?? '') as MuscleGroup | '',
   equip: params.get('equip') ?? '',
@@ -24,9 +26,16 @@ const fromUrl = (params: URLSearchParams) => ({
   n: Math.max(PAGE, Number(params.get('n')) || PAGE),
 });
 
+/**
+ * Exercises (V2-D22): Mine (in a plan or a workout, own, favourite) and the Library, as tabs; a search and filter chips
+ * (group, equipment, favourites, inactive) on both.
+ */
 export function ExerciseList() {
   const { t } = useTranslation();
-  const all = useLiveQuery(() => db.exercises.toArray(), []);
+  const data = useLiveQuery(async () => {
+    const [all, versions, workouts] = await Promise.all([db.exercises.toArray(), db.planVersions.toArray(), db.workouts.toArray()]);
+    return { all, mine: mineIds(all, versions, workouts) };
+  }, []);
   // The filters are copied to the URL, so "back" from an exercise returns to the same search.
   // Typing writes the URL (replace) and does not read it back: the URL changes after a short delay, and typing must not wait for it.
   // A new URL from elsewhere (a link, back or forward) sets the filters again.
@@ -39,11 +48,12 @@ export function ExerciseList() {
     // Only a new page of history counts, not each update of the URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-  const { q, group, equip, inactive, fav, n: limit } = filters;
+  const { tab, q, group, equip, inactive, fav, n: limit } = filters;
   const set = (next: Partial<typeof filters>) => {
     const v = { ...filters, n: PAGE, ...next };
     setFilters(v);
     const out: Record<string, string> = {};
+    if (v.tab === 'lib') out.tab = 'lib';
     if (v.q) out.q = v.q;
     if (v.group) out.group = v.group;
     if (v.equip) out.equip = v.equip;
@@ -52,33 +62,37 @@ export function ExerciseList() {
     if (v.n > PAGE) out.n = String(v.n);
     setParams(out, { replace: true });
   };
+  const [sheet, setSheet] = useState<'group' | 'equip'>();
   const [busy, setBusy] = useState(false);
 
+  const all = data?.all;
+  const inTab = useMemo(() => (data ? data.all.filter((e) => data.mine.has(e.id) === (tab === 'mine')) : []), [data, tab]);
   const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const e of all ?? []) if (e.active || inactive) c[exerciseGroup(e)] = (c[exerciseGroup(e)] ?? 0) + 1;
+    const c = { mine: 0, lib: 0 };
+    for (const e of data?.all ?? []) if (e.active) c[data!.mine.has(e.id) ? 'mine' : 'lib']++;
     return c;
-  }, [all, inactive]);
-  // Three images per group, from common exercises (those with a translated name first).
-  const samples = useMemo(() => {
-    const out: Record<string, { name: string; thumb?: string }[]> = {};
-    for (const e of [...(all ?? [])].sort((a, b) => Number(!!b.aliases.length) - Number(!!a.aliases.length))) {
-      if (!e.thumb || !e.active) continue;
-      const g = exerciseGroup(e);
-      if ((out[g] ??= []).length < 3) out[g].push({ name: e.name, thumb: e.thumb });
-    }
-    return out;
-  }, [all]);
-  const equipment = useMemo(() => [...new Set((all ?? []).map((e) => e.equipment).filter(Boolean))].sort(), [all]);
+  }, [data]);
+  const visible = (e: (typeof inTab)[number]) => inactive || e.active;
+  const groupCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const e of inTab) if (visible(e)) c[exerciseGroup(e)] = (c[exerciseGroup(e)] ?? 0) + 1;
+    return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inTab, inactive]);
+  const equipment = useMemo(() => [...new Set(inTab.map((e) => e.equipment).filter(Boolean))].sort(), [inTab]);
   const list = useMemo(
     () =>
-      (all ?? [])
-        .filter((e) => (inactive || e.active) && (!fav || e.favorite) && (!group || exerciseGroup(e) === group) && (!equip || e.equipment === equip) && matches(e, q))
-        .sort((a, b) => Number(!!b.thumb) - Number(!!a.thumb) || a.name.localeCompare(b.name)),
-    [all, q, group, equip, inactive, fav],
+      inTab
+        .filter((e) => visible(e) && (!fav || e.favorite) && (!group || exerciseGroup(e) === group) && (!equip || e.equipment === equip) && matches(e, q))
+        // Mine: favourites first; the library: exercises with an image first.
+        .sort((a, b) => (tab === 'mine' ? Number(!!b.favorite) - Number(!!a.favorite) : Number(!!b.thumb) - Number(!!a.thumb)) || a.name.localeCompare(b.name)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inTab, q, group, equip, inactive, fav, tab],
   );
   if (!all) return null;
-  const showing = q || group || equip || fav ? list.slice(0, limit) : [];
+  const showing = list.slice(0, limit);
+  // Nothing in Mine for this search: how many the library has, to search there instead.
+  const inLibrary = tab === 'mine' && !list.length && q ? all.filter((e) => !data!.mine.has(e.id) && (inactive || e.active) && matches(e, q)).length : 0;
   const importLib = async () => {
     setBusy(true);
     await repo.seedLibrary();
@@ -90,77 +104,65 @@ export function ExerciseList() {
       <PageHead
         title={t('exercise.title')}
         more
-        count={t('exercise.count', { count: all.filter((e) => e.active).length })}
-        aside={
-          <Link className="btn primary" to="/exercises/new">
-            <Icon name="plus" /> {t('exercise.new')}
-          </Link>
-        }
+        count={t('exercise.count', { count: counts.mine + counts.lib })}
+        actions={<HeadAction icon="plus" label={t('exercise.new')} to="/exercises/new" primary />}
       />
 
-      <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => set({ q: e.target.value })} />
-
       {all.length === 0 ? (
-        <div style={{ marginTop: '1rem' }}>
-          <Empty
-            action={
-              <button className="primary" disabled={busy} onClick={() => void importLib()}>
-                {busy ? '…' : t('settings.seed')}
-              </button>
-            }
-          >
-            {t('dashboard.emptyLibrary')}
-          </Empty>
-        </div>
+        <Empty
+          action={
+            <button className="primary" disabled={busy} onClick={() => void importLib()}>
+              {busy ? '…' : t('settings.seed')}
+            </button>
+          }
+        >
+          {t('dashboard.emptyLibrary')}
+        </Empty>
       ) : (
         <>
-          <div className="seg" role="tablist" aria-label={t('exercise.groups')} style={{ margin: '0.75rem 0 0.5rem' }}>
-            <button role="tab" aria-selected={!group} className={!group ? 'on' : ''} onClick={() => set({ group: '' })}>
-              {t('common.all')}
-            </button>
-            {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-              <button key={g} role="tab" aria-selected={group === g} className={group === g ? 'on' : ''} onClick={() => set({ group: g })}>
-                {t(`group.${g}`)} <small style={{ color: 'inherit', opacity: 0.7 }}>{counts[g]}</small>
-              </button>
-            ))}
-          </div>
-          <div className="row wrap" style={{ marginBottom: '0.5rem' }}>
-            <select aria-label={t('exercise.equipment')} value={equip} onChange={(e) => set({ equip: e.target.value })}>
-              <option value="">{t('exercise.allEquipment')}</option>
-              {equipment.map((m) => (
-                <option key={m} value={m}>
-                  {tr(t, 'equipment', m)}
-                </option>
-              ))}
-            </select>
-            <label className="check">
-              <input type="checkbox" checked={inactive} onChange={(e) => set({ inactive: e.target.checked })} /> {t('exercise.showInactive')}
-            </label>
-            {(fav || all.some((e) => e.favorite)) && (
-              <label className="check">
-                <input type="checkbox" checked={fav} onChange={(e) => set({ fav: e.target.checked })} /> {t('exercise.favorites')}
-              </label>
+          <ViewTabs
+            label={t('exercise.title')}
+            active={tab}
+            onPick={(k) => set({ tab: k as Tab, group: '', equip: '' })}
+            items={[
+              { key: 'mine', label: t('exercise.mine'), count: counts.mine },
+              { key: 'lib', label: t('exercise.library'), count: counts.lib },
+            ]}
+          />
+          <input type="search" style={{ width: '100%' }} value={q} placeholder={t('picker.placeholder')} aria-label={t('common.search')} onChange={(e) => set({ q: e.target.value })} />
+          <FilterRow label={t('filters.label')}>
+            <FilterChip label={t('exercise.group')} value={group ? t(`group.${group}`) : undefined} onOpen={() => setSheet('group')} onClear={() => set({ group: '' })} />
+            {equipment.length > 0 && (
+              <FilterChip label={t('exercise.equipment')} value={equip ? tr(t, 'equipment', equip) : undefined} onOpen={() => setSheet('equip')} onClear={() => set({ equip: '' })} />
             )}
-          </div>
+            {(fav || all.some((e) => e.favorite)) && <FilterChip label={t('exercise.favorites')} icon="star" pressed={fav} onToggle={() => set({ fav: !fav })} />}
+            {(inactive || all.some((e) => !e.active)) && <FilterChip label={t('exercise.inactiveFilter')} pressed={inactive} onToggle={() => set({ inactive: !inactive })} />}
+          </FilterRow>
 
-          {!q && !group && !equip && !fav ? (
-            <section className="card">
-              <h2>{t('exercise.groups')}</h2>
-              {MUSCLE_GROUPS.filter((g) => counts[g]).map((g) => (
-                <button key={g} className="nav-row group-row" onClick={() => set({ group: g })}>
-                  <ThumbStack items={samples[g] ?? []} />
-                  <span className="main">
-                    <span className="title">{t(`group.${g}`)}</span>
-                    <span className="meta">{t('exercise.count', { count: counts[g] })}</span>
-                  </span>
-                  <span className="chev" aria-hidden="true">
-                    <Icon name="chevronRight" />
-                  </span>
-                </button>
-              ))}
-            </section>
-          ) : !list.length ? (
-            <Empty>{t('exercise.noResults')}</Empty>
+          {!list.length ? (
+            tab === 'mine' && !q && !group && !equip && !fav ? (
+              <Empty
+                action={
+                  <button className="outline" onClick={() => set({ tab: 'lib' })}>
+                    {t('exercise.openLibrary')}
+                  </button>
+                }
+              >
+                {t('exercise.mineEmpty')}
+              </Empty>
+            ) : (
+              <Empty
+                action={
+                  inLibrary > 0 && (
+                    <button className="outline" onClick={() => set({ tab: 'lib', group: '', equip: '', fav: false })}>
+                      {t('exercise.searchLibrary', { count: inLibrary })}
+                    </button>
+                  )
+                }
+              >
+                {t('exercise.noResults')}
+              </Empty>
+            )
           ) : (
             <section className="card">
               <p className="muted">{t('exercise.count', { count: list.length })}</p>
@@ -182,8 +184,27 @@ export function ExerciseList() {
             </section>
           )}
           {/* Attribution of the v2 library media, shown only in the Exercises area (V2-D4). */}
-          {all?.some((e) => e.source?.name.startsWith('exercises-dataset')) && <p className="privacy-note">{t('exercise.mediaCredit')}</p>}
+          {all.some((e) => e.source?.name.startsWith('exercises-dataset')) && <p className="privacy-note">{t('exercise.mediaCredit')}</p>}
         </>
+      )}
+
+      {sheet === 'group' && (
+        <OptionSheet
+          title={t('exercise.group')}
+          value={group}
+          onPick={(v) => set({ group: v as MuscleGroup | '' })}
+          onClose={() => setSheet(undefined)}
+          options={[{ value: '', label: t('filters.all') }, ...MUSCLE_GROUPS.filter((g) => groupCounts[g]).map((g) => ({ value: g, label: t(`group.${g}`), count: groupCounts[g] }))]}
+        />
+      )}
+      {sheet === 'equip' && (
+        <OptionSheet
+          title={t('exercise.equipment')}
+          value={equip}
+          onPick={(v) => set({ equip: v })}
+          onClose={() => setSheet(undefined)}
+          options={[{ value: '', label: t('filters.all') }, ...equipment.map((m) => ({ value: m, label: tr(t, 'equipment', m) }))]}
+        />
       )}
     </div>
   );

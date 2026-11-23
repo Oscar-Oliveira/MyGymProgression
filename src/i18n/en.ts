@@ -1,5 +1,6 @@
 export const en = {
-  nav: { main: 'Main', home: 'Home', plan: 'Plan', progress: 'Progress', scan: 'Scan QR', moreOptions: 'More options', searchExercises: 'Search exercises', tools: 'Tools', body: 'Body', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
+  nav: { main: 'Main', summary: 'Summary', home: 'Home', plan: 'Plan', progress: 'Progress', scan: 'Scan QR', moreOptions: 'More options', searchExercises: 'Search exercises', tools: 'Tools', body: 'Body', train: 'Train', history: 'History', more: 'More', exercises: 'Exercises', plans: 'Plans', reports: 'Reports', settings: 'Settings', about: 'About', games: 'Games', challenges: 'Weekly challenge', achievements: 'Achievements', coach: 'Personal trainer' },
+  filters: { label: 'Filters', clear: 'Clear {{name}}', all: 'All' },
   more: { plans: 'Days, exercises, sets and loads', exercises: 'Library and personal records', reports: 'Analysis, week report and you vs 3 months ago', settings: 'Units, language, backup and import', about: 'Version, what is new and credits', games: 'Mini games with the trainers', challenges: 'This week and earlier challenges', achievements: 'Medals for your history', coach: 'Style, messages and voice' },
   about: {
     version: 'Version {{version}}', built: 'built on {{date}}', tagline: 'Plans, workout logging and progression. Personal use, no account.',
@@ -165,7 +166,7 @@ export const en = {
   dialog: { confirm: 'Confirm', notice: 'Notice', ok: 'OK' },
   history: { title: 'History', empty: 'No workouts yet.', count: '{{count}} workouts', count_one: '{{count}} workout', page: 'Page {{page}} of {{pages}}', pages: 'History pages', prev: 'Previous', next: 'Next' },
   exercise: {
-    favorites: 'Favourites', favAdd: 'Mark {{name}} as favourite', favRemove: 'Remove {{name}} from favourites', favHint: 'Your favourites. Type to search all exercises.', mediaCredit: 'Images and animations © Gym visual — gymvisual.com · Data: exercises-dataset (MIT)',
+    favorites: 'Favourites', mine: 'Mine', library: 'Library', group: 'Group', inactiveFilter: 'Inactive', openLibrary: 'Open the library', searchLibrary: 'Search the library ({{count}})', mineEmpty: 'The exercises of your plans and workouts show here, with your own and your favourites. Find more in the library.', favAdd: 'Mark {{name}} as favourite', favRemove: 'Remove {{name}} from favourites', favHint: 'Your favourites. Type to search all exercises.', mediaCredit: 'Images and animations © Gym visual — gymvisual.com · Data: exercises-dataset (MIT)',
     title: 'Exercises', new: 'New exercise', edit: 'Edit exercise', aliases: 'Other names (comma separated)', primary: 'Main muscles', secondary: 'Secondary muscles',
     equipment: 'Equipment', category: 'Category', instructions: 'Instructions / technique', safety: 'Safety notes', personal: 'Personal notes', tags: 'Tags (comma separated)',
     links: 'Images, videos, links', linkLabel: 'Label', linkUrl: 'URL', active: 'Active', inactive: 'Inactive', showInactive: 'Show inactive',
@@ -186,7 +187,7 @@ export const en = {
   },
   plan: {
     rangeReason: 'Rep range changed in the plan', rangeHelp: 'The workouts use {{range}} (after “reps up”). Changing the reps here makes the plan range apply again.',
-    title: 'Plans', count: '{{count}} active plans', count_one: '{{count}} active plan', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
+    title: 'Plans', activeTab: 'Active', archivedTab: 'Archived', daysN: '{{count}} days', daysN_one: '{{count}} day', lastWorkout: 'Last workout: {{date}}', notTrained: 'Not trained yet', startNamed: 'Start {{day}}', duplicated: 'Copy made: {{name}}', count: '{{count}} active plans', count_one: '{{count}} active plan', new: 'New plan', name: 'Plan name', phase: 'Training phase', more: 'More options', day: 'Day', addDay: 'Day', dayName: 'Day name', weekday: 'Weekday',
     color: 'Plan colour', dayColor: 'Day colour', samePlanColor: 'Same as plan', daySummary: '{{count}} exercises · {{sets}} sets', daySummary_one: '{{count}} exercise · {{sets}} sets',
     removeDay: 'Remove this day', removeDayConfirm: 'Remove the day "{{name}}" from the plan? It is gone when you save.', addExercise: 'Add exercise', sets: 'Sets', reps: 'Reps', repsMin: 'reps min', repsMax: 'reps max', increment: 'Increment', current: 'current',
     advanced: 'Advanced', setBySet: 'Set by set', group: 'Superset', role: 'Role', substitutes: 'Substitutes',
@@ -336,7 +337,8 @@ export const en = {
     },
   },
   reports: {
-    title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week', rival: 'You vs 3 months', year: 'Year' },
+    title: 'Reports', tabs: { analysis: 'Analysis', week: 'Week report', rival: 'You vs 3 months ago', year: 'Year in review' },
+    sub: { week: 'This week so far and the Sunday reports', rival: 'Your last workout against the same day 3 months ago', year: 'Your year, screen by screen' },
     reportOnSub: 'Every Sunday on Home: your week. Sunday reports are kept here. With the personal trainer on, it adds a comment.',
     rivalOnSub: 'On the workout summary: the same plan day about 3 months ago, exercise by exercise.',
     thisWeek: 'This week so far', earlier: 'Earlier weeks', noReports: 'No earlier reports yet. With "Week report" on in Settings, each Sunday report is kept here.',
@@ -412,27 +414,6 @@ export const en = {
       sergeant: { won: 'YOU BEAT YOUR PAST SELF. THAT IS WHAT I WANT!', lost: 'YOUR PAST SELF WON. UNACCEPTABLE. MORE EFFORT!', tie: 'A TIE IS NOT A WIN. PUSH HARDER!' },
       energy: { won: 'You beat the old you!! LEGEND! 🏆', lost: 'The old you won today, but the rematch is coming! Let us go!', tie: 'A tie! The rematch will be epic!' },
     },
-  },
-  splash: {
-    tap: 'Tap to start',
-    say: {
-      support: ['Good to see you!', 'One set at a time.', 'Ready when you are.', 'Proud of you for coming.', 'Today counts.'],
-      spite: ['Oh, you came. Surprising.', 'Excuses? Not today.', 'They said you would quit.', 'The sofa misses you. Ignore it.', 'Prove them wrong.'],
-      stoic: ['Begin.', 'Do the work.', 'Calm. Then heavy.', 'The bar is patient.', 'Discipline is freedom.'],
-      sergeant: ['WAKE UP, RECRUIT!', 'ON YOUR FEET!', 'NO EXCUSES!', 'DROP AND GIVE ME TWENTY!', 'MOVE IT!'],
-      energy: ['LET US GOOO!', 'Party at the squat rack!', 'Today is EPIC!', 'Energy at 100%!', 'Woohoo, workout time!'],
-    },
-    tips: [
-      'Tip: control the way down; it counts too.',
-      'Tip: write the seat and grip in the setup note.',
-      'Tip: short on time? Use "Short on time" in the workout.',
-      'Tip: set a load goal in Analysis to see the projected date.',
-      'Tip: sleep and water also make you stronger.',
-      'Tip: a machine is busy? "Do it later" in the menu ⋯.',
-      'Tip: save a backup now and then (Settings).',
-      'Tip: tap a trainer here. Go on.',
-    ],
-    stat: { month: '{{count}} workouts this month. Keep going!', month_one: '{{count}} workout this month. Keep going!', total: '{{count}} workouts with this app.', total_one: '{{count}} workout with this app.', streak: '{{count}} weeks in a row!', streak_one: '{{count}} week in a row!' },
   },
   migrate: {
     title: 'Bring data from version 1', intro: 'Plans, workouts and progression move to v2. Version 1 stays exactly as it is.',

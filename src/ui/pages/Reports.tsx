@@ -1,18 +1,17 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
+import { repo } from '../../data/repo';
 import { weekKey } from '../../domain/challenge';
 import { reportOn, rivalOn, rivalRows, rivalWorkout, weekReport } from '../../domain/trainer';
 import type { Settings } from '../../domain/types';
 import { Empty, PageHead, Pager, ProgressSwitch, usePage } from '../components/Bits';
+import { Icon, type IconName } from '../components/Icon';
 import { ReportCard, RivalCard } from '../components/TrainerBits';
 import { fmtDate, useSettings } from '../util';
 import { Analysis } from './Analysis';
 import { YearTab } from './YearReview';
-
-const TABS = ['analysis', 'week', 'rival', 'year'] as const;
-type Tab = (typeof TABS)[number];
 
 /** This week so far (made here, not stored), then the stored Sunday reports of earlier weeks. */
 function WeekTab({ s }: { s: Settings }) {
@@ -73,29 +72,60 @@ function RivalTab({ s }: { s: Settings }) {
   );
 }
 
-/** Reports (D57, D74): Analysis, the week report, "you vs 3 months ago" and the year in review, one tab each. The tab is kept in the URL. */
+const REPORTS = ['week', 'rival', 'year'] as const;
+type Report = (typeof REPORTS)[number];
+const REPORT_ICON: Record<Report, IconName> = { week: 'calendar', rival: 'swords', year: 'trophy' };
+/** The reports whose feature is on (D78). */
+const reportsOn = (s: Settings) => REPORTS.filter((x) => (x === 'week' ? reportOn(s) : x === 'rival' ? rivalOn(s) : true));
+
+/** Progress → Summary (V2-D23): the analysis, and the other reports as links to their own pages. */
 export function Reports() {
   const { t } = useTranslation();
   const s = useSettings();
-  const [params, setParams] = useSearchParams();
-  // A tab whose feature is off is not shown (D78).
-  const tabs = TABS.filter((x) => (x === 'week' ? reportOn(s) : x === 'rival' ? rivalOn(s) : true));
-  const tab: Tab = tabs.find((x) => x === params.get('tab')) ?? 'analysis';
   return (
     <div>
       <PageHead title={t('nav.progress')} more />
       <ProgressSwitch on="reports" />
-      <div className="seg" role="tablist" style={{ marginBottom: '1rem' }} aria-label={t('reports.title')}>
-        {tabs.map((x) => (
-          <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? 'on' : ''} onClick={() => setParams(x === 'analysis' ? {} : { tab: x }, { replace: true })}>
-            {t(`reports.tabs.${x}`)}
-          </button>
-        ))}
-      </div>
-      {tab === 'analysis' && <Analysis />}
-      {tab === 'week' && <WeekTab s={s} />}
-      {tab === 'rival' && <RivalTab s={s} />}
-      {tab === 'year' && <YearTab />}
+      <Analysis
+        after={
+          <section className="card reports-card" aria-labelledby="reports-h">
+            <h2 id="reports-h">{t('reports.title')}</h2>
+            {reportsOn(s).map((x) => (
+              <Link key={x} to={`/reports/${x}`} className="nav-row">
+                <span className="nav-ico" aria-hidden="true">
+                  <Icon name={REPORT_ICON[x]} />
+                </span>
+                <span className="main">
+                  <span className="title">{t(`reports.tabs.${x}`)}</span>
+                  <span className="meta">{t(`reports.sub.${x}`)}</span>
+                </span>
+                <span className="chev" aria-hidden="true">
+                  <Icon name="chevronRight" />
+                </span>
+              </Link>
+            ))}
+          </section>
+        }
+      />
+    </div>
+  );
+}
+
+/** One report on its own page (V2-D23): the week, "you vs 3 months ago" or the year in review. */
+export function ReportPage() {
+  const { t } = useTranslation();
+  // The stored settings, not the defaults shown while they load: a report that is on must not send the page away.
+  const s = useLiveQuery(() => repo.getSettings(), []);
+  const { report } = useParams();
+  if (!s) return null;
+  const x = reportsOn(s).find((r) => r === report);
+  if (!x) return <Navigate to="/reports" replace />;
+  return (
+    <div>
+      <PageHead title={t(`reports.tabs.${x}`)} />
+      {x === 'week' && <WeekTab s={s} />}
+      {x === 'rival' && <RivalTab s={s} />}
+      {x === 'year' && <YearTab />}
     </div>
   );
 }

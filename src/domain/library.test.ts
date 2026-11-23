@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, newExercise } from './factory';
-import { exerciseGroup, mergeLibrary, muscleKeys, parseLibraryFile, relatedOf, toExercise, type LibraryRecord } from './library';
+import { exerciseGroup, mergeLibrary, mineIds, muscleKeys, parseLibraryFile, relatedOf, toExercise, type LibraryRecord } from './library';
 
 const rec = (over: Partial<LibraryRecord> = {}): LibraryRecord => ({
   sid: '2',
@@ -198,5 +198,23 @@ describe('library import', () => {
     expect(muscleKeys(['Latissimus Dorsi', 'Biceps Brachii', 'Gluteus Maximus', 'Adductor Magnus'])).toEqual(['back', 'biceps', 'glutes', 'adductors']);
     expect(exerciseGroup({ primaryMuscles: ['quads'], category: 'compound' })).toBe('legs');
     expect(exerciseGroup({ primaryMuscles: [], category: 'warmup' })).toBe('cardio');
+  });
+});
+
+describe('mine and library (V2-D22)', () => {
+  it('mine = in a plan (also as a substitute) or a workout, own, or favourite; the rest is the library', () => {
+    const mk = (name: string, over: Partial<Parameters<typeof newExercise>[2]> = {}) => newExercise('reps_load', DEFAULT_SETTINGS, { name, ...over });
+    const lib = { name: 'exercises-dataset', id: '1', url: '' };
+    const inPlan = mk('In plan', { source: lib });
+    const sub = mk('Substitute', { source: lib });
+    const done = mk('In a workout', { tags: ['seed'] });
+    const own = mk('Own');
+    const fav = mk('Favourite', { source: lib, favorite: true });
+    const seed = mk('Starter', { tags: ['seed'] });
+    const other = mk('Library only', { source: lib });
+    const versions = [{ days: [{ items: [{ exerciseId: inPlan.id, substitutes: [sub.id] }] }] }] as never;
+    const workouts = [{ entries: [{ exerciseId: done.id }] }] as never;
+    const mine = mineIds([inPlan, sub, done, own, fav, seed, other], versions, workouts);
+    expect([...mine].sort()).toEqual([inPlan.id, sub.id, done.id, own.id, fav.id].sort());
   });
 });

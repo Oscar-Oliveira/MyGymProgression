@@ -1,6 +1,6 @@
 // Conversion of an exercise library file (any source; format in docs/data-format.md) into app exercises.
 import { newExercise, nowIso } from './factory';
-import type { Exercise, ExerciseCategory, MuscleGroup, Settings } from './types';
+import type { Exercise, ExerciseCategory, MuscleGroup, PlanVersion, Settings, Workout } from './types';
 import type { MeasurementPreset } from './units';
 
 export interface LibraryRecord {
@@ -342,4 +342,20 @@ export function exerciseGroup(ex: Pick<Exercise, 'group' | 'primaryMuscles' | 'c
     quads: 'legs', hamstrings: 'legs', glutes: 'legs', calves: 'legs', adductors: 'legs', core: 'core', cardio: 'cardio', neck: 'shoulders',
   };
   return (m && map[m]) || 'other';
+}
+
+/**
+ * Exercises that are "mine" (V2-D22): in a plan (any version, also as a substitute) or in a workout, made by the user
+ * (no library source and not a starter exercise), or a favourite. The others are the library.
+ */
+export function mineIds(exercises: Exercise[], versions: PlanVersion[], workouts: Workout[]): Set<string> {
+  const used = new Set<string>();
+  for (const v of versions)
+    for (const d of v.days)
+      for (const i of d.items) {
+        used.add(i.exerciseId);
+        for (const x of i.substitutes) used.add(x);
+      }
+  for (const w of workouts) for (const e of w.entries) used.add(e.exerciseId);
+  return new Set(exercises.filter((e) => used.has(e.id) || e.favorite || (!e.source && !e.tags.includes('seed'))).map((e) => e.id));
 }

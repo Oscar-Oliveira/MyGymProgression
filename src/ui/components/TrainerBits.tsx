@@ -69,7 +69,7 @@ export function ReportCard({ report, coach, onClose }: { report: CoachReport; co
           {t(`trainer.reportSay.${coach.style}.${reportMood(report)}`, { workouts: report.workouts, ups: report.ups })}
         </p>
       )}
-      <div className="grid3">
+      <div className="statbar">
         {rows.map(([label, value]) => (
           <div key={label} className="stat">
             <div className="value">{value}</div>

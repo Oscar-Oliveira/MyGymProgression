@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../data/db';
 import { Link } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { ExerciseItem } from '../components/ExerciseItem';
 import { Empty } from '../components/Bits';
 import { PageCoach } from '../components/CoachCard';
 import { BodyMap } from '../components/BodyMap';
+import { FilterChip, OptionSheet, SegSmall } from '../components/Controls';
 import { StrengthBalance } from '../components/StrengthBalance';
 import { Consistency } from '../components/Consistency';
 import { Goals } from '../components/Goals';
@@ -121,12 +122,14 @@ function Spark({ values }: { values: number[] }) {
 }
 
 /** The Analysis tab of Reports (D57); the page title is in Reports. */
-export function Analysis() {
+/** Progress → Summary (V2-D23). `after`: content shown after the numbers of the period (the Reports card). */
+export function Analysis({ after }: { after?: ReactNode }) {
   const { t } = useTranslation();
   const s = useSettings();
   const thumbOf = useThumbs();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(84);
   const [planId, setPlanId] = useState('');
+  const [planSheet, setPlanSheet] = useState(false);
   const data = useLiveQuery(
     async () => ({ workouts: await db.workouts.toArray(), plans: await db.plans.toArray(), versions: await db.planVersions.toArray(), states: await db.progressionStates.toArray() }),
     [],
@@ -190,31 +193,27 @@ export function Analysis() {
   return (
     <div>
       <PageCoach place="analysis" />
-      <div className="seg fill" role="tablist" aria-label={t('analysis.period')}>
-        {PERIODS.map((p) => (
-          <button key={p} role="tab" aria-selected={days === p} className={days === p ? 'on' : ''} onClick={() => setDays(p)}>
-            {t(`analysis.p${p}`)}
-          </button>
-        ))}
+      {/* One line of filters (V2-D23): the period and, with more than one plan, the plan. */}
+      <div className="filter-line">
+        <SegSmall label={t('analysis.period')} value={String(days)} options={PERIODS.map((p) => ({ value: String(p), label: t(`analysis.p${p}`) }))} onPick={(v) => setDays(Number(v) as (typeof PERIODS)[number])} />
+        {data.plans.length > 1 && (
+          <FilterChip label={t('analysis.plan')} value={planId ? data.plans.find((p) => p.id === planId)?.name : undefined} onOpen={() => setPlanSheet(true)} onClear={() => setPlanId('')} />
+        )}
       </div>
       <p className="period-range num">
         {fmtDate(start.toISOString(), s.language)} – {fmtDate(new Date().toISOString(), s.language)}
       </p>
-      {data.plans.length > 1 && (
-        <label style={{ margin: '0.6rem 0' }}>
-          {t('analysis.plan')}
-          <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
-            <option value="">{t('common.all')}</option>
-            {data.plans.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      {planSheet && (
+        <OptionSheet
+          title={t('analysis.plan')}
+          value={planId}
+          onPick={setPlanId}
+          onClose={() => setPlanSheet(false)}
+          options={[{ value: '', label: t('filters.all') }, ...data.plans.map((p) => ({ value: p.id, label: p.name }))]}
+        />
       )}
 
-      <div className="grid3" style={{ margin: '0.8rem 0' }}>
+      <div className="statbar" style={{ margin: '0.8rem 0' }}>
         <div className="stat">
           <div className="value">{summary.workouts}</div>
           <div className="label">{t('analysis.workouts')}</div>
@@ -236,6 +235,7 @@ export function Analysis() {
           {t('analysis.vsPrevious', { from: fmtDate(`${prev.range.from}T00:00:00`, s.language), to: fmtDate(`${prev.range.to}T00:00:00`, s.language) })}
         </p>
       )}
+      {after}
 
       {summary.workouts > 0 && <WeekBars weeks={weeks} lang={s.language} />}
       {data.workouts.some((w) => w.status !== 'in_progress') && <Consistency workouts={data.workouts} />}

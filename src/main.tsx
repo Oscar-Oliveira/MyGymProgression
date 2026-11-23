@@ -5,7 +5,6 @@ import i18n from './i18n';
 import { db } from './data/db';
 import './ui/styles.css';
 import { App } from './ui/App';
-import { SplashCrew } from './ui/components/SplashCrew';
 
 registerSW({ immediate: true });
 // A new version can upgrade the database. An older open page then closes its connection and reloads (to the new version).
@@ -33,19 +32,17 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// The splash (index.html) shows the trainers (D51). It stays until a tap outside a trainer, or Enter, Space or Escape.
+// The splash (index.html, V2-D25) goes by itself when the app is ready: the database is open, after at least 0.4 s
+// (no flash); never longer than 2.5 s.
 const splash = document.getElementById('splash');
-const crew = splash && createRoot(splash.appendChild(document.createElement('div')));
-crew?.render(<SplashCrew />);
+const shownAt = Date.now();
 const hide = () => {
   if (!splash || splash.classList.contains('hide')) return;
   splash.classList.add('hide');
-  removeEventListener('keydown', onKey);
-  setTimeout(() => (crew?.unmount(), splash.remove()), 400);
+  setTimeout(() => splash.remove(), 350);
 };
-const onKey = (e: KeyboardEvent) => ['Enter', ' ', 'Escape'].includes(e.key) && (e.preventDefault(), hide());
-if (splash) {
-  splash.style.pointerEvents = 'auto';
-  splash.addEventListener('click', hide);
-  addEventListener('keydown', onKey);
-}
+void db
+  .open()
+  .catch(() => undefined)
+  .then(() => setTimeout(hide, Math.max(0, 400 - (Date.now() - shownAt))));
+setTimeout(hide, 2500);

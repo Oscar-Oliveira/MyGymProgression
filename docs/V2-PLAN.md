@@ -27,6 +27,11 @@ Goal: a more professional app. New design, clearer organisation (shortcut icons,
 | V2-D18 | After the progression rules: PT-PT instructions for the 1324 exercises. | 2026-11-22 |
 | V2-D19 | Structural balance = strength ratios (volume balance already exists: D71, D72). Best estimated 1RM (Epley, RIR counts) of the barbell squat, deadlift, bench press, overhead press and row in the last 12 weeks; pairs bench/squat 65–85 %, deadlift/squat 105–135 %, overhead press/bench 55–75 %, row/bench 70–100 % (rough guidelines). Shown in Tools and Reports. | 2026-11-22 |
 | V2-D20 | Muscle recovery map: working sets per muscle (primary 1, secondary 0.5) fading linearly to zero in 72 h from the end of the workout; recovering from 2, tired from 5. Body map on Home (This week / Recovery) and a hint per day in the start sheet. | 2026-11-22 |
+| V2-D21 | UI rules for the whole app (2026-11-23): views of a page = underlined tabs (one level); filters = search + chips that open a sheet, a chosen value shows in its chip with ✕; period = small compact selector; counts = plain text under the title; page action (new…) = icon button in the header; read-only numbers = one summary card with dividers; shortcuts = icon buttons. Every page that shows one of these follows the rule. | 2026-11-23 |
+| V2-D22 | Exercises: tabs Mine (in a plan or a workout, own, favourite) and Library; search; chips Group, Equipment, Favourites, Inactive; the muscle-group list goes. | 2026-11-23 |
+| V2-D23 | Progress: tabs Summary · History · Body; Summary has one row with the period and a Plan chip; the week report, "you vs 3 months ago" and the year in review open from a Reports card as their own pages. | 2026-11-23 |
+| V2-D24 | Plans: the Plan tab lists one card per plan (Active · Archived), with the next day and a Start button; a plan opens its own page with one tab per day. | 2026-11-23 |
+| V2-D25 | Entry: a clean splash (logo, name, gym) that goes by itself when the app is ready; no "tap to start", tips or trainers on it (D51 replaced). | 2026-11-23 |
 | V2-D12 | Exercise media URLs point to jsDelivr, pinned to dataset commit `7455efae41b330c265e7cd4b78dfa848e7ce5ebd` (CORS allowed, immutable cache). Images use `crossorigin="anonymous"` so cached responses are not opaque (opaque responses use about 7 MB of quota each in Chrome). | 2026-11-22 |
 
 ## 2. Findings that shaped the plan
@@ -127,6 +132,30 @@ F5 done.
 Result: `scripts/data/exercises-dataset-pt-steps.tsv` holds the PT-PT steps of all 1324 exercises (own translation, `tu` imperative, same number of steps as the English text; fixed phrases for repeated steps). The import script puts them in `pt.steps` of each record; the app shows them when the language is Portuguese (English otherwise). Library file: 1324 PT names and 1324 PT step lists, 2.0 MB. Fix found on the way: the QR code of a plan day leaves out empty tables (the reader fills them in), so the code is smaller; the new body tables had made it too dense to read from a 1:1 desktop screenshot. Tests: 326 unit tests pass.
 
 Left in F6 (after user acceptance): version 2.0.0 and its "What's new" entry (About still lists only v1 changes), final checks, publish on the same URL.
+
+### G — v2.1 redesign (2026-11-23)
+
+Asked: Exercises and Progress are weak in how menus and filters show; a more professional entry; Plan is hard to read (which plans exist, what belongs to each); shortcuts and the month numbers look the same; one change of a pattern must reach every page that uses it.
+
+| Step | What |
+|---|---|
+| G0 | Building blocks (V2-D21): underlined tabs, filter chip + option sheet, compact selector, header actions, count as text, summary card |
+| G1 | Exercises (V2-D22) |
+| G2 | Progress (V2-D23) |
+| G3 | Plans list + plan page (V2-D24) |
+| G4 | Entry splash (V2-D25) |
+| G5 | Home: numbers in one summary card, shortcuts as icon buttons |
+| G6 | Sweep of the other pages for the same patterns |
+| G7 | Unit and e2e tests, docs, version 2.1.0 |
+
+Result (2026-11-23):
+- G0 `components/Controls.tsx` (ViewTabs, FilterRow, FilterChip, OptionSheet, SegSmall); `PageHead` shows the count as text and has `actions`; `HeadAction` (icon button); `.statbar` for read-only numbers (Home, Summary, consistency, trainer report).
+- G1 `ExerciseList.tsx`: Mine | Library (`mineIds` in `domain/library.ts`, tested); chips Group and Equipment open a sheet, Favourites and Inactive toggle; a search with no result in Mine offers the library; the muscle-group list is gone.
+- G2 Progress: `ProgressSwitch` = tabs Summary · History · Body; Summary = the analysis with one line (period + Plan chip) and a Reports card; `/reports/week|rival|year` are pages with Back.
+- G3 `Train.tsx` = plan cards (Active | Archived), next day, last workout, Start; `PlanPage.tsx` (`/train/:id`) = one tab per day, Start, plan balance, Edit and ⋯; shared actions in `ui/planActions.tsx`. Scan QR moved under the list (and More).
+- G4 `index.html` + `main.tsx`: clean splash that goes by itself (0.4–2.5 s), light or dark as the last start; `SplashCrew` and its texts removed.
+- G5 Home: shortcuts are icon buttons; the month numbers are one card with dividers.
+- G6 Sweep: plan editor days and the Home "This week | Recovery" switch and the year picker use the new controls; counts of Achievements, Challenges and History are text. Form fields (selects in settings, editors, tools) stay as they are.
 
 ## 4. Open points
 

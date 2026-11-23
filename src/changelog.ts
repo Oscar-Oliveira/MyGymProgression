@@ -7,6 +7,23 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-23',
+    pt: [
+      'Exercícios: separadores "Os meus" (dos teus planos e treinos, os teus e os favoritos) e "Biblioteca". Filtra por grupo, equipamento, favoritos ou inativos com os botões por baixo da pesquisa.',
+      'Planos: cada plano é um cartão com os dias, o próximo dia e o último treino, e um botão para começar. Toca no plano para ver a página dele, com um separador por dia.',
+      'Progresso: separadores Resumo, Histórico e Corpo. No Resumo, o período e o plano ficam numa só linha; o relatório da semana, o "tu vs há 3 meses" e o teu ano estão no cartão Relatórios.',
+      'Entrada mais limpa: o logótipo e o nome do ginásio, e a app abre sozinha.',
+      'Início: os atalhos são botões com ícone e os números do mês estão num só cartão.',
+    ],
+    en: [
+      'Exercises: tabs "Mine" (from your plans and workouts, your own and your favourites) and "Library". Filter by group, equipment, favourites or inactive with the buttons under the search.',
+      'Plans: each plan is a card with its days, the next day and the last workout, and a button to start. Tap the plan to see its page, with one tab per day.',
+      'Progress: tabs Summary, History and Body. In Summary, the period and the plan are on one line; the week report, "you vs 3 months ago" and your year are in the Reports card.',
+      'A cleaner start screen: the logo and the gym name, and the app opens by itself.',
+      'Home: shortcuts are icon buttons and the month numbers are in one card.',
+    ],
+  },
+  {
     date: '2026-11-22',
     pt: [
       'Versão 2: novo visual e nova organização. Separadores Início · Plano · ▶ · Progresso · Exercícios; o ▶ começa ou retoma o treino; o resto está em Mais (ícone de grelha no topo). Atalhos no Início, que escolhes e ordenas.',

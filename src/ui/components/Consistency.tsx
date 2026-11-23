@@ -25,7 +25,7 @@ export function Consistency({ workouts }: { workouts: Workout[] }) {
       <div className="section-head" style={{ marginTop: 0 }}>
         <h2>{t('analysis.consistency')}</h2>
       </div>
-      <div className="grid3" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', marginBottom: '0.8rem' }}>
+      <div className="statbar" style={{ marginBottom: '0.8rem' }}>
         <div className="stat">
           <div className="value">{t('analysis.weeksN', { count: streak.current })}</div>
           <div className="label">{t('analysis.streak')}</div>

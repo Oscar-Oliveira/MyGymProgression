@@ -2,7 +2,8 @@ import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Outcome, ProgressionStrategy } from '../../domain/types';
-import { Icon } from './Icon';
+import { ViewTabs } from './Controls';
+import { Icon, type IconName } from './Icon';
 import { MoreButton } from './NavSheets';
 
 const TONE: Record<Outcome, string> = {
@@ -26,8 +27,27 @@ export function OutcomeBadge({ outcome, strategy }: { outcome: Outcome; strategy
   return <span className={`badge ${TONE[outcome]}`}>{t(`outcome.${key}`)}</span>;
 }
 
-/** Title of every page: an optional line above, a subtitle below, a count and other content on the right. */
-export function PageHead({ eyebrow, title, sub, count, aside, more }: { eyebrow?: ReactNode; title: ReactNode; sub?: ReactNode; count?: ReactNode; aside?: ReactNode; more?: boolean }) {
+/**
+ * Title of every page: an optional line above; under the title a subtitle and a count, as text (V2-D21);
+ * `actions` (icon buttons, e.g. "new") next to the title; `aside` for other content below.
+ */
+export function PageHead({
+  eyebrow,
+  title,
+  sub,
+  count,
+  aside,
+  actions,
+  more,
+}: {
+  eyebrow?: ReactNode;
+  title: ReactNode;
+  sub?: ReactNode;
+  count?: ReactNode;
+  aside?: ReactNode;
+  actions?: ReactNode;
+  more?: boolean;
+}) {
   return (
     <div className="page-head">
       <div className="page-title">
@@ -35,17 +55,32 @@ export function PageHead({ eyebrow, title, sub, count, aside, more }: { eyebrow?
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           <h1>{title}</h1>
           {sub && <small>{sub}</small>}
+          {count !== undefined && <small className="page-count">{count}</small>}
         </div>
         {/* Main pages (tabs) have the "More" grid in the header (V2-D10). */}
-        {more && <MoreButton />}
+        {(actions || more) && (
+          <div className="head-actions">
+            {actions}
+            {more && <MoreButton />}
+          </div>
+        )}
       </div>
-      {(count !== undefined || aside) && (
-        <div className="row wrap">
-          {count !== undefined && <span className="pill">{count}</span>}
-          {aside}
-        </div>
-      )}
+      {aside && <div className="row wrap">{aside}</div>}
     </div>
+  );
+}
+
+/** An icon button for the page header (V2-D21): a link or a button, always with a name for screen readers. */
+export function HeadAction({ icon, label, to, onClick, primary }: { icon: IconName; label: string; to?: string; onClick?: () => void; primary?: boolean }) {
+  const cls = `icon-btn ${primary ? 'primary' : ''}`;
+  return to ? (
+    <Link to={to} className={cls} aria-label={label} title={label}>
+      <Icon name={icon} />
+    </Link>
+  ) : (
+    <button type="button" className={cls} aria-label={label} title={label} onClick={onClick}>
+      <Icon name={icon} />
+    </button>
   );
 }
 
@@ -115,20 +150,18 @@ export function Pager({ page, pages, label, pageKey = 'page' }: { page: number; 
   );
 }
 
-/** Progress tab (V2-D10): reports and history, one switch on top of both pages. */
+/** Progress tab (V2-D23): Summary, History and Body, as underlined tabs on top of the three pages. */
 export function ProgressSwitch({ on }: { on: 'reports' | 'history' | 'body' }) {
   const { t } = useTranslation();
   return (
-    <nav className="seg fill progress-switch" aria-label={t('nav.progress')}>
-      <Link to="/reports" className={on === 'reports' ? 'on' : ''} aria-current={on === 'reports' ? 'page' : undefined}>
-        {t('nav.reports')}
-      </Link>
-      <Link to="/history" className={on === 'history' ? 'on' : ''} aria-current={on === 'history' ? 'page' : undefined}>
-        {t('nav.history')}
-      </Link>
-      <Link to="/body" className={on === 'body' ? 'on' : ''} aria-current={on === 'body' ? 'page' : undefined}>
-        {t('nav.body')}
-      </Link>
-    </nav>
+    <ViewTabs
+      label={t('nav.progress')}
+      active={on}
+      items={[
+        { key: 'reports', label: t('nav.summary'), to: '/reports' },
+        { key: 'history', label: t('nav.history'), to: '/history' },
+        { key: 'body', label: t('nav.body'), to: '/body' },
+      ]}
+    />
   );
 }

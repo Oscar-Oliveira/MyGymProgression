@@ -21,6 +21,7 @@ import { backupDue } from '../../domain/backup';
 import { localDay, muscleSetsPerWeek } from '../../domain/analysis';
 import { muscleFatigue, RECOVERY_HOURS } from '../../domain/recovery';
 import { BodyMap } from '../components/BodyMap';
+import { SegSmall } from '../components/Controls';
 import { MoreButton } from '../components/NavSheets';
 import { ShortcutGrid } from '../components/Shortcuts';
 import { Icon } from '../components/Icon';
@@ -267,7 +268,7 @@ export function Home() {
       )}
 
       {finished.length > 0 && (
-        <div className="grid3 stats">
+        <div className="statbar stats">
           <div className="stat">
             <div className="value">{month.length}</div>
             <div className="label">{t('home.statWorkouts')}</div>
@@ -285,13 +286,7 @@ export function Home() {
 
       {finished.length > 0 && (
         <Section id="home-muscles" title={t(muscleView === 'recovery' ? 'recovery.title' : 'bodyMap.week')} extra={<Link to="/reports">{t('nav.reports')} <Icon name="chevronRight" /></Link>}>
-          <div className="seg fill" role="tablist" aria-label={t('bodyMap.title')}>
-            {(['week', 'recovery'] as const).map((v) => (
-              <button key={v} type="button" role="tab" aria-selected={muscleView === v} className={muscleView === v ? 'on' : ''} onClick={() => pickMuscleView(v)}>
-                {t(`recovery.view.${v}`)}
-              </button>
-            ))}
-          </div>
+          <SegSmall label={t('bodyMap.title')} value={muscleView} onPick={pickMuscleView} options={(['week', 'recovery'] as const).map((v) => ({ value: v, label: t(`recovery.view.${v}`) }))} />
           {muscleView === 'recovery' ? (
             <>
               <p className="help">{t('recovery.help', { hours: RECOVERY_HOURS })}</p>

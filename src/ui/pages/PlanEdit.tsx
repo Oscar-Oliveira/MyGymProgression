@@ -220,13 +220,16 @@ export function PlanEdit() {
       </details>
       {version.locked && dirty && <p className="help">{t('plan.versionLocked', { next: version.number + 1 })}</p>}
 
-      <div className="seg" role="tablist" style={{ margin: '0.75rem 0' }}>
+      {/* The days of the plan, as tabs (V2-D21); each day underlined in its colour. */}
+      <div className="vtabs" role="tablist" aria-label={t('plan.days')} style={{ marginTop: '0.75rem' }}>
         {days.map((d, i) => (
           <button key={d.id} role="tab" aria-selected={d.id === day?.id} className={`toned ${d.id === day?.id ? 'on' : ''}`} style={toneStyle(d.color)} onClick={() => (setDayIdx(i), setOpenId(undefined))}>
             {d.name || '—'}
           </button>
         ))}
-        <button onClick={addDay}><Icon name="plus" /> {t('plan.addDay')}</button>
+        <button type="button" onClick={addDay}>
+          <Icon name="plus" /> {t('plan.addDay')}
+        </button>
       </div>
 
       {!day ? (

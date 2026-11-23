@@ -9,13 +9,14 @@ import { ToastHost } from './components/Toast';
 import { ExerciseSheetHost } from './components/ExerciseSheet';
 import { Home } from './pages/Home';
 import { Train } from './pages/Train';
+import { PlanPage } from './pages/PlanPage';
 import { More } from './pages/More';
 import { ExerciseList } from './pages/ExerciseList';
 import { ExerciseEdit } from './pages/ExerciseEdit';
 import { PlanEdit } from './pages/PlanEdit';
 import { WorkoutPage } from './pages/WorkoutPage';
 import { History } from './pages/History';
-import { Reports } from './pages/Reports';
+import { ReportPage, Reports } from './pages/Reports';
 import { SettingsPage } from './pages/SettingsPage';
 import { About } from './pages/About';
 import { ShareImport } from './pages/ShareImport';
@@ -186,6 +187,7 @@ function Shell() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/train" element={<Train />} />
+            <Route path="/train/:id" element={<PlanPage />} />
             <Route path="/more" element={<More />} />
             <Route path="/exercises" element={<ExerciseList />} />
             <Route path="/exercises/new" element={<ExerciseEdit />} />
@@ -198,6 +200,7 @@ function Shell() {
             <Route path="/workout/:id" element={<WorkoutPage />} />
             <Route path="/history" element={<History />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/reports/:report" element={<ReportPage />} />
             {/* Analysis is a tab of Reports (D57); old links still open it. */}
             <Route path="/analysis" element={<Navigate to="/reports" replace />} />
             <Route path="/settings" element={<SettingsPage />} />
@@ -234,6 +237,19 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme ?? 'dark';
   }, [settings.theme]);
+  // The splash (V2-D25) of the next start shows this theme and gym name (D80) before the app loads.
+  useEffect(() => {
+    const gym = settings.gymName?.trim();
+    try {
+      localStorage.setItem('v2:theme', settings.theme ?? 'dark');
+      if (gym) localStorage.setItem('gymName', gym);
+      else localStorage.removeItem('gymName');
+    } catch {
+      // No storage: the splash uses the defaults.
+    }
+    const el = document.getElementById('splash-gym');
+    if (el) (el.textContent = gym ? `@ ${gym}` : ''), (el.hidden = !gym);
+  }, [settings.theme, settings.gymName]);
   // The "1987" look of the About easter egg (D59), over any theme.
   useEffect(() => {
     if (settings.retro) document.documentElement.dataset.retro = 'on';
