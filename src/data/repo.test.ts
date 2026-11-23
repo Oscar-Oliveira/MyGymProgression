@@ -529,3 +529,50 @@ describe('load sync between plans (D36)', () => {
     expect(v.days[0].items[1].sets.filter((s) => s.kind === 'working').map((s) => s.targets.load?.value)).toEqual([70, 70, 70, 70, 70]);
   });
 });
+
+describe('swapping the exercise of a plan item (V2-D32)', () => {
+  it('moves only the history of that item to the new exercise, in every version of the plan', async () => {
+    const t = await setupPlan();
+    const right = newExercise('reps_load', DEFAULT_SETTINGS, { name: 'Machine Bench' });
+    await repo.saveExercise(right);
+    await doSession(t.plan.id, t.day.id, [5, 5, 5, 5, 5]);
+    // A plan edit after a workout makes a new version; the old one keeps the wrong exercise until the swap.
+    const v1 = (await db.planVersions.get((await db.plans.get(t.plan.id))!.currentVersionId))!;
+    const days = structuredClone(v1.days);
+    days[0].items[0].substitutes = [right.id];
+    await repo.savePlan((await db.plans.get(t.plan.id))!, days);
+    await doSession(t.plan.id, t.day.id, [5, 5, 5, 5, 5]);
+    // The wrong exercise in another plan keeps its own history.
+    const q = newPlan('Q');
+    const qDay = newDay('B');
+    qDay.items.push(newPlanItem(t.ex));
+    q.version.days.push(qDay);
+    await repo.createPlan(q.plan, q.version);
+    await doSession(q.plan.id, qDay.id, [5, 5, 5]);
+    const lineage = t.day.items[0].lineageId;
+    await db.progressionStates.put({ lineageId: lineage, exerciseId: t.ex.id, targets: { load: 45 }, updatedAt: '2026-11-23T00:00:00.000Z' });
+    expect(await db.progressionEvents.where('lineageId').equals(lineage).count()).toBeGreaterThan(0);
+
+    expect(await repo.swapPreview(lineage, t.ex.id, right.id)).toMatchObject({ workouts: 2, sameMetrics: true });
+    await repo.swapExercise(lineage, t.ex.id, right.id);
+
+    const versions = (await db.planVersions.where('planId').equals(t.plan.id).toArray()).flatMap((v) => v.days[0].items);
+    expect(versions.length).toBeGreaterThanOrEqual(2);
+    expect(versions.every((i) => i.exerciseId === right.id && !i.substitutes.includes(right.id))).toBe(true);
+    const entries = (await db.workouts.toArray()).flatMap((w) => w.entries);
+    const moved = entries.filter((e) => e.lineageId === lineage);
+    expect(moved).toHaveLength(2);
+    expect(moved.every((e) => e.exerciseId === right.id && e.exercise.name === 'Machine Bench')).toBe(true);
+    expect(entries.filter((e) => e.exerciseId === t.ex.id)).toHaveLength(1);
+    expect((await db.progressionEvents.where('lineageId').equals(lineage).toArray()).every((e) => e.exerciseId === right.id)).toBe(true);
+    expect((await db.progressionStates.get(lineage))?.exerciseId).toBe(right.id);
+    expect(await db.exercises.get(t.ex.id)).toBeDefined();
+  });
+
+  it('says when the two exercises do not measure the same things', async () => {
+    const t = await setupPlan();
+    const plank = newExercise('duration', DEFAULT_SETTINGS, { name: 'Plank' });
+    await repo.saveExercise(plank);
+    expect(await repo.swapPreview(t.day.items[0].lineageId, t.ex.id, plank.id)).toMatchObject({ workouts: 0, sameMetrics: false });
+  });
+});

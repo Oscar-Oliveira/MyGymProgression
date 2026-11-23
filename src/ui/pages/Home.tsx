@@ -234,10 +234,6 @@ export function Home() {
           <p className="eyebrow">{t('home.getStarted')}</p>
           <h1>{t('home.welcome')}</h1>
           <p className="muted">{t('home.welcomeText')}</p>
-          {/* v2: bring the plans and history of version 1 (F3). */}
-          <Link className="btn primary xl" to="/migrate">
-            <Icon name="download" /> {t('migrate.entry')}
-          </Link>
           {exercises.length === 0 && (
             <button className="outline xl" onClick={() => void repo.seedLibrary()}>
               {t('home.seed')}

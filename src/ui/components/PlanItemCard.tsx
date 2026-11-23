@@ -41,6 +41,8 @@ interface ItemProps {
   onRemove: () => void;
   onMove: (d: -1 | 1) => void;
   onAddSubstitute: () => void;
+  /** Swaps the exercise for the right one, with its history in this plan (V2-D32). */
+  onSwap: () => void;
   /** Collapsed: one line with image, name and summary; open: the editor. */
   open: boolean;
   onToggle: () => void;
@@ -49,7 +51,7 @@ interface ItemProps {
   onCircuit: (circuitId: string | undefined) => void;
 }
 
-export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute, open, onToggle, circuits, onCircuit }: ItemProps) {
+export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute, onSwap, open, onToggle, circuits, onCircuit }: ItemProps) {
   const { t } = useTranslation();
   const s = useSettings();
   const inCircuit = circuits.some((c) => c.id === item.circuitId);
@@ -109,6 +111,9 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
           </span>
         </button>
         <InfoButton id={ex.id} name={ex.name} />
+        <button className="ghost sm" aria-label={`${t('plan.swap')} ${ex.name}`} title={t('plan.swap')} onClick={onSwap}>
+          <Icon name="swap" />
+        </button>
         <button className="ghost sm" aria-label={t('common.moveUp')} onClick={() => onMove(-1)}>
           <Icon name="arrowUp" />
         </button>

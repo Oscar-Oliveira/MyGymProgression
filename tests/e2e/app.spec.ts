@@ -331,6 +331,38 @@ test('join a duplicate exercise: the plan uses the kept one and the old name sti
   await expect(page.getByRole('link', { name: /^Barbell Bench Press/ })).toBeVisible();
 });
 
+test('plan editor: swap an exercise for the right one; its workouts in the plan move to the new one (V2-D32)', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await logChest(page, [12, 12, 12]);
+  await finishWorkout(page);
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).getByText('Ready to progress — load or reps?', { exact: true })).toBeVisible();
+
+  await plans(page);
+  await menu(page, 'Edit');
+  await page.getByRole('button', { name: /^Machine Chest Press/ }).click();
+  await page.getByRole('button', { name: 'Swap exercise Machine Chest Press' }).click();
+  await page.getByPlaceholder('Search by name, other name or tag').fill('Barbell Bench Press');
+  await page.getByRole('dialog').getByRole('button', { name: /^Barbell Bench Press/ }).click();
+  const confirm = page.getByRole('dialog', { name: 'Confirm' });
+  await expect(confirm).toContainText('1 workouts');
+  await expect(confirm).not.toContainText('does not measure');
+  await confirm.getByRole('button', { name: 'Swap', exact: true }).click();
+  await expect(page.locator('.toast')).toContainText('swapped for');
+  await expect(page.getByRole('region', { name: 'Barbell Bench Press' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled(); // already saved
+
+  // The workout done with the wrong exercise is now in the history of the right one.
+  await more(page, /^Exercises/);
+  await page.getByRole('searchbox').fill('Barbell Bench Press');
+  await page.getByRole('link', { name: /^Barbell Bench Press/ }).first().click();
+  await expect(page.getByText('No sessions yet.')).toHaveCount(0);
+  await page.goBack();
+  await page.getByRole('searchbox').fill('Machine Chest Press');
+  await page.getByRole('tab', { name: /^Library/ }).click();
+  await page.getByRole('link', { name: /^Machine Chest Press/ }).first().click();
+  await expect(page.getByText('No sessions yet.').first()).toBeVisible();
+});
+
 test('personal trainer: off by default; when on, a message shows at the start of a workout and can be closed', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByRole('button', { name: /Start workout/ }).click();

@@ -43,8 +43,8 @@ export function PlanEdit() {
   const [days, setDays] = useState<PlanDay[]>([]);
   const [dayIdx, setDayIdx] = useState(0);
   const [edits, setEdits] = useState<Record<string, Targets>>({});
-  // Picker target: substitutes of an item, a circuit, or the day.
-  const [picker, setPicker] = useState<{ item?: string; circuit?: string }>();
+  // Picker target: substitutes of an item, the item's exercise (swap), a circuit, or the day.
+  const [picker, setPicker] = useState<{ item?: string; swap?: string; circuit?: string }>();
   const [openId, setOpenId] = useState<string>();
   const [nameError, setNameError] = useState(false);
   const unsaved = useUnsavedGuard();
@@ -137,8 +137,28 @@ export function PlanEdit() {
       unsaved.current = false; // just saved; the page has not reloaded the plan yet
       return true;
     });
+  /** Swaps the exercise of an item (V2-D32). A saved item moves its history to the new exercise, after a confirmation. */
+  const swap = async (it: PlanItem, to: Exercise) => {
+    const from = exercises.get(it.exerciseId);
+    if (!from || from.id === to.id) return;
+    if (version.days.some((d) => d.items.some((i) => i.lineageId === it.lineageId))) {
+      const p = await repo.swapPreview(it.lineageId, from.id, to.id);
+      if (!p) return;
+      const text = [t('plan.swapConfirm', { from: from.name, to: to.name, ...p }), !p.sameMetrics && t('plan.swapMetrics', { from: from.name, to: to.name })].filter(Boolean).join('\n\n');
+      if (!(await dialog.confirm(text, { ok: t('plan.swapOk') }))) return;
+      await repo.swapExercise(it.lineageId, from.id, to.id);
+    }
+    upItem({ ...it, exerciseId: to.id, substitutes: it.substitutes.filter((s) => s !== to.id) });
+    toast(t('plan.swapDone', { from: from.name, to: to.name }));
+  };
   const pick = async (ex: Exercise) => {
     if (!picker) return;
+    if (picker.swap) {
+      const it = day.items.find((x) => x.id === picker.swap);
+      setPicker(undefined);
+      if (it) await swap(it, ex);
+      return;
+    }
     if (picker.item) {
       const it = day.items.find((x) => x.id === picker.item);
       if (it) upItem({ ...it, substitutes: [...it.substitutes, ex.id] });
@@ -174,6 +194,7 @@ export function PlanEdit() {
         onRemove={() => upDay((d) => ({ ...d, items: d.items.filter((x) => x.id !== it.id) }))}
         onMove={(dd) => upDay((d) => moveItem(d, it.id, dd))}
         onAddSubstitute={() => setPicker({ item: it.id })}
+        onSwap={() => setPicker({ swap: it.id })}
         open={openId === it.id}
         onToggle={() => setOpenId(openId === it.id ? undefined : it.id)}
         circuits={day.circuits ?? []}
@@ -352,7 +373,7 @@ export function PlanEdit() {
         </button>
       </div>
 
-      {picker && <ExercisePicker onPick={pick} onClose={() => setPicker(undefined)} />}
+      {picker && <ExercisePicker onPick={pick} onClose={() => setPicker(undefined)} exclude={picker.swap ? day.items.filter((x) => x.id === picker.swap).map((x) => x.exerciseId) : []} />}
     </div>
   );
 }

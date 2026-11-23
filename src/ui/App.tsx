@@ -24,7 +24,6 @@ import { PlanScan } from './pages/PlanScan';
 import { Challenges } from './pages/Challenges';
 import { Achievements } from './pages/Achievements';
 import { CoachPage } from './pages/CoachPage';
-import { MigrationPage } from './pages/MigrationPage';
 import { ToolsPage } from './pages/ToolsPage';
 import { BodyPage } from './pages/BodyPage';
 import { StartSheet } from './components/NavSheets';
@@ -54,7 +53,7 @@ const PROGRESS_VIEWS = ['/history', '/body'];
 /** Where "back" goes when the app has no earlier page (opened from a link or reloaded): the page above this one. */
 function parentOf(pathname: string): string {
   if (pathname.startsWith('/workout/')) return '/history';
-  if (pathname === '/share' || pathname === '/migrate') return '/';
+  if (pathname === '/share') return '/';
   if (pathname.startsWith('/plans')) return '/train';
   const up = pathname.replace(/\/[^/]+$/, '');
   return up && up !== pathname ? up : '/more';
@@ -211,7 +210,6 @@ function Shell() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/coach" element={<CoachPage />} />
-            <Route path="/migrate" element={<MigrationPage />} />
             <Route path="/tools" element={<ToolsPage />} />
             <Route path="/body" element={<BodyPage />} />
           </Routes>

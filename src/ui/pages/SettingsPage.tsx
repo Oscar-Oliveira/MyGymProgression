@@ -2,7 +2,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { backupDue } from '../../domain/backup';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { eventsCsv, setsCsv, workoutsCsv } from '../../domain/csv';
@@ -230,7 +229,6 @@ function ImportPanel() {
 export function SettingsPage() {
   const { t } = useTranslation();
   const s = useSettings();
-  const nav = useNavigate();
   const [persisted, setPersisted] = useState<boolean>();
   const loadSync = s.loadSync ?? DEFAULT_LOAD_SYNC;
   const workouts = useLiveQuery(() => db.workouts.where('status').notEqual('in_progress').count(), [], 0);
@@ -482,7 +480,6 @@ export function SettingsPage() {
       </div>
       <section className="card">
         <div className="act-list">
-          <ActionRow icon="upload" tone="accent" title={t('migrate.entry')} sub={t('migrate.entrySub')} onClick={() => nav('/migrate')} />
           <ActionRow icon="download" tone="accent" title={t('settings.openLibrary')} sub={t('settings.openLibrarySub')} onClick={() => void openLibrary()} />
           <ActionRow
             icon="download"

@@ -9,6 +9,17 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-23',
     pt: [
+      'Planos: novo botão "Trocar exercício" (setas) no exercício aberto, em Editar plano. Serve para corrigir um engano: os treinos e a progressão desse exercício no plano passam para o exercício certo e mostram o novo nome.',
+      'Sai a opção "Trazer dados da versão 1": os dados já estão na v2. A versão 1 fica intacta.',
+    ],
+    en: [
+      'Plans: a new "Swap exercise" button (arrows) on the open exercise, in Edit plan. It fixes a wrong choice: the workouts and progression of that exercise in the plan move to the right exercise and show its name.',
+      'The "Bring data from version 1" option is gone: the data is already in v2. Version 1 stays untouched.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    pt: [
       'Treino: nova página final "Terminar", depois do último exercício, com duração, séries, volume, reps, recordes e o que falta em cada exercício; o botão dela termina o treino.',
       'Anterior / Seguinte ficam no fim da página, já não fixos no ecrã.',
       'Substituir passa para o topo, ao lado do nome; a dica (lâmpada) fica junto ao ⓘ; o setup e as notas numa só linha pequena (um toque edita).',

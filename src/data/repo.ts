@@ -6,6 +6,7 @@ import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
 import { mergeLibrary, type LibraryRecord } from '../domain/library';
 import { mergeExercises } from '../domain/merge';
+import { swapPlanExercise } from '../domain/swap';
 import { deloadEvent } from '../domain/deload';
 import { LIBRARY_PT } from '../domain/library-pt';
 import { createChallenge, settleChallenges, weekKey } from '../domain/challenge';
@@ -57,6 +58,19 @@ export function createRepo(db: GymDB) {
       db.revisions.toArray(),
     ]);
     return { keep, drop, versions, workouts, states, events, revisions };
+  }
+
+  async function swapInput(lineageId: string, fromId: string, toId: string) {
+    const [from, to] = await db.exercises.bulkGet([fromId, toId]);
+    if (!from || !to || fromId === toId) return undefined;
+    const [versions, workouts, states, events, revisions] = await Promise.all([
+      db.planVersions.toArray(),
+      db.workouts.toArray(),
+      db.progressionStates.where('lineageId').equals(lineageId).toArray(),
+      db.progressionEvents.where('lineageId').equals(lineageId).toArray(),
+      db.revisions.toArray(),
+    ]);
+    return { lineageId, fromId, to, fromMetrics: from.metrics, versions, workouts, states, events, revisions };
   }
 
   async function importLibraryNow(records: LibraryRecord[]) {
@@ -205,6 +219,28 @@ export function createRepo(db: GymDB) {
         await db.progressionStates.bulkPut(r.states);
         await db.exercises.put(r.exercise);
         await db.exercises.delete(dropId);
+      });
+    },
+
+    /** What swapping the exercise of a plan item would change (V2-D32), to show before confirming. */
+    async swapPreview(lineageId: string, fromId: string, toId: string) {
+      const input = await swapInput(lineageId, fromId, toId);
+      if (!input) return undefined;
+      const r = swapPlanExercise(input);
+      return { ...r.counts, sameMetrics: r.sameMetrics };
+    },
+
+    /** Swaps the exercise of a plan item and moves the item's history to the new exercise (V2-D32). One transaction. */
+    async swapExercise(lineageId: string, fromId: string, toId: string) {
+      await db.transaction('rw', [db.exercises, db.planVersions, db.workouts, db.progressionStates, db.progressionEvents, db.revisions], async () => {
+        const input = await swapInput(lineageId, fromId, toId);
+        if (!input) throw new Error('exercise_missing');
+        const r = swapPlanExercise(input);
+        await db.planVersions.bulkPut(r.versions);
+        await db.workouts.bulkPut(r.workouts);
+        await db.revisions.bulkPut(r.revisions);
+        await db.progressionEvents.bulkPut(r.events);
+        await db.progressionStates.bulkPut(r.states);
       });
     },
 
