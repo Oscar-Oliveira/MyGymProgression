@@ -305,6 +305,10 @@ button.st-main:active { transform: none; }
 .wk-actions { display: flex; gap: 0.45rem; margin-top: 0.9rem; overflow-x: auto; scrollbar-width: none; }
 .wk-actions::-webkit-scrollbar { display: none; }
 .wk-actions .chip { flex: none; }
+/* Actions under the sets (V2-D27): two wide buttons, then the flags, then the notes; nothing hidden off screen. */
+.wk-tools { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.9rem; }
+.wk-act { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.wk-flags .eyebrow { margin-bottom: 0.3rem; }
 /* Sticky action bar: a floating panel (like the tab bar), so it never cuts the content behind it. */
 .wk-nav { position: sticky; z-index: 10; bottom: calc(0.6rem + env(safe-area-inset-bottom)); display: flex; gap: 0.5rem; margin-top: 1rem; padding: 0.45rem; border-radius: 22px; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px); border: 1px solid var(--border); box-shadow: 0 8px 30px rgb(10 12 30 / 0.16); }
 .wk-nav button { min-height: 50px; border-radius: 16px; }

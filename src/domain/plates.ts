@@ -1,5 +1,5 @@
 // Plate math (V2-D6): plates per side for a bar load, from the plates the user has; loads rounded to what can be loaded.
-import type { Settings } from './types';
+import type { Exercise, Settings } from './types';
 
 export interface Equipment {
   /** Bar weight per bar type, in the load unit. */
@@ -20,6 +20,12 @@ export const equipmentOf = (s: Pick<Settings, 'loadUnit' | 'equipment'>): Equipm
 /** Bar type of an exercise equipment, or undefined when it is not loaded on a bar with plates. */
 export const barOf = (equipment: string): keyof Equipment['bars'] | undefined =>
   equipment === 'barbell' || equipment === 'ez_bar' || equipment === 'trap_bar' ? equipment : undefined;
+
+/** Bar weight of an exercise (V2-D26): its own, else the setting for its bar type; undefined when it is not on a bar. */
+export function barWeightOf(ex: Pick<Exercise, 'equipment' | 'barWeight'>, s: Pick<Settings, 'loadUnit' | 'equipment'>): number | undefined {
+  const bar = barOf(ex.equipment);
+  return bar ? (ex.barWeight ?? equipmentOf(s).bars[bar]) : undefined;
+}
 
 const cents = (x: number) => Math.round(x * 100);
 

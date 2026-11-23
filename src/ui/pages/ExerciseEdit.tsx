@@ -4,17 +4,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../../data/db';
 import { repo } from '../../data/repo';
 import { newExercise } from '../../domain/factory';
+import { barOf, equipmentOf } from '../../domain/plates';
 import type { Exercise, ExerciseCategory, LoadMode } from '../../domain/types';
 import { MEASUREMENT_PRESETS, presetDefaults, presetMetrics, type MeasurementPreset } from '../../domain/units';
 import { MetricsEditor, PrescriptionEditor, ProgressionEditor } from '../components/Editors';
-import { splitList, useSettings, useUnsavedGuard } from '../util';
+import { fmtNum, splitList, useSettings, useUnsavedGuard } from '../util';
 import { Empty, PageHead } from '../components/Bits';
 import { dialog } from '../components/Dialog';
 import { Icon } from '../components/Icon';
+import { NumInput } from '../components/NumInput';
 
 const CATS: ExerciseCategory[] = ['compound', 'isolation', 'cardio', 'warmup', 'mobility', 'other'];
 const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'core', 'quads', 'hamstrings', 'glutes', 'calves', 'adductors', 'neck', 'cardio', 'full_body'];
-const EQUIPMENT = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'band', 'treadmill', 'bike', 'rower', 'other'];
+const EQUIPMENT = ['barbell', 'ez_bar', 'trap_bar', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'band', 'treadmill', 'bike', 'rower', 'other'];
 
 function Chips({ value, onChange, label }: { value: string[]; onChange: (v: string[]) => void; label: string }) {
   const { t } = useTranslation();
@@ -79,6 +81,10 @@ export function ExerciseEdit() {
     up({ metrics: presetMetrics(p, s.loadUnit, s.distanceUnit), defaultSets: d.sets, progression: d.progression });
   };
 
+  // Bar weight from the settings for the bar type, when the exercise is loaded on a bar (V2-D26).
+  const bar = ex.metrics.some((m) => m.key === 'load') ? barOf(ex.equipment) : undefined;
+  const settingBar = bar && fmtNum(equipmentOf(s).bars[bar], s.language);
+
   const unitChanged = original && original.metrics.some((m) => ex.metrics.find((x) => x.key === m.key && x.unit !== m.unit));
 
   const save = async () => {
@@ -119,7 +125,8 @@ export function ExerciseEdit() {
         </label>
         <label>
           {t('exercise.equipment')}
-          <select value={ex.equipment} onChange={(e) => up({ equipment: e.target.value })}>
+          {/* Another equipment: the own bar weight no longer applies. */}
+          <select value={ex.equipment} onChange={(e) => up({ equipment: e.target.value, barWeight: undefined })}>
             <option value="">—</option>
             {[...new Set([...EQUIPMENT, ex.equipment].filter(Boolean))].map((q) => (
               <option key={q} value={q}>
@@ -128,6 +135,13 @@ export function ExerciseEdit() {
             ))}
           </select>
         </label>
+        {bar && (
+          <label>
+            {t('exercise.barWeight', { unit: s.loadUnit })}
+            <NumInput label={t('exercise.barWeight', { unit: s.loadUnit })} value={ex.barWeight} placeholder={settingBar} onChange={(v) => up({ barWeight: v !== undefined && v >= 0 ? v : undefined })} />
+            <small className="help">{t('exercise.barWeightHelp', { value: settingBar, unit: s.loadUnit })}</small>
+          </label>
+        )}
         <label>
           {t('exercise.tags')}
           <input value={ex.tags.join(', ')} onChange={(e) => up({ tags: splitList(e.target.value) })} />

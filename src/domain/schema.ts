@@ -43,6 +43,7 @@ export const exerciseSchema = z.object({
   variationOf: z.string().optional(),
   metrics: z.array(metricDef),
   loadMode,
+  barWeight: z.number().nonnegative().optional(),
   defaultSets: z.array(setPrescriptionSchema),
   progression: progressionSchema,
   group: z.enum(['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio', 'other']).optional(),

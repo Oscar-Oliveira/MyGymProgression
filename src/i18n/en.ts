@@ -147,7 +147,7 @@ export const en = {
   workout: {
     colSet: 'Set', colBefore: 'Before', before: 'last time {{value}}',
     quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
-    addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique',
+    addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique', flags: 'Flag', flagsHelp: 'no increase this time',
     prev: 'Previous', next: 'Next', finish: 'Finish workout', menu: 'Workout options', addExercise: 'Add exercise', removeEntryConfirm: 'Remove {{name}} from this workout? Its {{count}} logged sets are lost.', removeEntryConfirm_one: 'Remove {{name}} from this workout? Its logged set is lost.', removeEntry: 'Remove this exercise',
     pause: 'Pause', pauseLong: 'Pause — continue later', pauseHelp: 'The workout stays open. Continue it from Home or History.',
     resume: 'Resume workout', resumeHelp: 'Resuming undoes the progression changes of this workout; it is evaluated again when you finish it.',
@@ -168,7 +168,7 @@ export const en = {
   exercise: {
     favorites: 'Favourites', mine: 'Mine', library: 'Library', group: 'Group', inactiveFilter: 'Inactive', openLibrary: 'Open the library', searchLibrary: 'Search the library ({{count}})', mineEmpty: 'The exercises of your plans and workouts show here, with your own and your favourites. Find more in the library.', favAdd: 'Mark {{name}} as favourite', favRemove: 'Remove {{name}} from favourites', favHint: 'Your favourites. Type to search all exercises.', mediaCredit: 'Images and animations © Gym visual — gymvisual.com · Data: exercises-dataset (MIT)',
     title: 'Exercises', new: 'New exercise', edit: 'Edit exercise', aliases: 'Other names (comma separated)', primary: 'Main muscles', secondary: 'Secondary muscles',
-    equipment: 'Equipment', category: 'Category', instructions: 'Instructions / technique', safety: 'Safety notes', personal: 'Personal notes', tags: 'Tags (comma separated)',
+    equipment: 'Equipment', barWeight: 'Bar weight ({{unit}})', barWeightHelp: 'Empty = {{value}} {{unit}}, from Settings → Bars and plates.', category: 'Category', instructions: 'Instructions / technique', safety: 'Safety notes', personal: 'Personal notes', tags: 'Tags (comma separated)',
     links: 'Images, videos, links', linkLabel: 'Label', linkUrl: 'URL', active: 'Active', inactive: 'Inactive', showInactive: 'Show inactive',
     variation: 'Copy as variation', variationOf: 'Variation of {{name}}', variationName: '{{name}} (variation)',
     metrics: 'What you record', metric: 'Metric', addMetric: 'Add metric', unit: 'Unit', required: 'Required', customLabel: 'Metric name',

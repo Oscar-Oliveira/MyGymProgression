@@ -149,7 +149,7 @@ export const pt: Resources = {
   workout: {
     colSet: 'Série', colBefore: 'Antes', before: 'última vez {{value}}',
     quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
-    addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica',
+    addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica', flags: 'Assinalar', flagsHelp: 'desta vez não sobe',
     prev: 'Anterior', next: 'Seguinte', finish: 'Terminar treino', menu: 'Opções do treino', addExercise: 'Adicionar exercício', removeEntryConfirm: 'Remover {{name}} deste treino? As {{count}} séries registadas perdem-se.', removeEntryConfirm_one: 'Remover {{name}} deste treino? A série registada perde-se.', removeEntry: 'Remover este exercício',
     pause: 'Pausar', pauseLong: 'Pausar — continuar mais tarde', pauseHelp: 'O treino fica aberto. Continua-o no Início ou no Histórico.',
     resume: 'Retomar treino', resumeHelp: 'Retomar anula as alterações de progressão deste treino; é avaliado de novo quando o terminares.',
@@ -170,7 +170,7 @@ export const pt: Resources = {
   exercise: {
     info: 'Sobre {{name}}', favorites: 'Favoritos', mine: 'Os meus', library: 'Biblioteca', group: 'Grupo', inactiveFilter: 'Inativos', openLibrary: 'Abrir a biblioteca', searchLibrary: 'Procurar na biblioteca ({{count}})', mineEmpty: 'Aqui aparecem os exercícios dos teus planos e treinos, os teus e os favoritos. Encontra mais na biblioteca.', favAdd: 'Marcar {{name}} como favorito', favRemove: 'Tirar {{name}} dos favoritos', favHint: 'Os teus favoritos. Escreve para procurar todos os exercícios.', mediaCredit: 'Imagens e animações © Gym visual — gymvisual.com · Dados: exercises-dataset (MIT)', fullPage: 'Página completa: histórico, gráficos e metas',
     title: 'Exercícios', new: 'Novo exercício', edit: 'Editar exercício', aliases: 'Outros nomes (separados por vírgulas)', primary: 'Músculos principais', secondary: 'Músculos secundários',
-    equipment: 'Equipamento', category: 'Categoria', instructions: 'Instruções / técnica', safety: 'Notas de segurança', personal: 'Notas pessoais', tags: 'Etiquetas (separadas por vírgulas)',
+    equipment: 'Equipamento', barWeight: 'Peso da barra ({{unit}})', barWeightHelp: 'Vazio = {{value}} {{unit}}, de Definições → Barras e discos.', category: 'Categoria', instructions: 'Instruções / técnica', safety: 'Notas de segurança', personal: 'Notas pessoais', tags: 'Etiquetas (separadas por vírgulas)',
     links: 'Imagens, vídeos, ligações', linkLabel: 'Etiqueta', linkUrl: 'URL', active: 'Ativo', inactive: 'Inativo', showInactive: 'Mostrar inativos',
     variation: 'Copiar como variação', variationOf: 'Variação de {{name}}', variationName: '{{name}} (variação)',
     metrics: 'O que registas', metric: 'Métrica', addMetric: 'Adicionar métrica', unit: 'Unidade', required: 'Obrigatória', customLabel: 'Nome da métrica',

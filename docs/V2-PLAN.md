@@ -32,6 +32,9 @@ Goal: a more professional app. New design, clearer organisation (shortcut icons,
 | V2-D23 | Progress: tabs Summary · History · Body; Summary has one row with the period and a Plan chip; the week report, "you vs 3 months ago" and the year in review open from a Reports card as their own pages. | 2026-11-23 |
 | V2-D24 | Plans: the Plan tab lists one card per plan (Active · Archived), with the next day and a Start button; a plan opens its own page with one tab per day. | 2026-11-23 |
 | V2-D25 | Entry: a clean splash (logo, name, gym) that goes by itself when the app is ready; no "tap to start", tips or trainers on it (D51 replaced). | 2026-11-23 |
+| V2-D26 | Bar weight per exercise: optional `barWeight` (load unit) in Edit exercise when the equipment is a bar (barbell, EZ bar, trap bar; the last two now in the list); empty = the setting for the bar type. The plates per side use it. Not shared with a plan; cleared when the equipment changes. | 2026-11-23 |
+| V2-D27 | Workout actions under the sets in three groups, all in view (no hidden scroll): two wide buttons (+ Set, Substitute); "Flag" with Pain and Technique (with "no increase this time" when the progression is automatic and blocks on them); then Notes and Setup. | 2026-11-23 |
+| V2-D28 | Quick view: the set editor has the RIR/RPE chips of the normal view (not for warm-ups or sets without reps); the set line shows the effort, e.g. "8 × 20 kg · RIR 2". | 2026-11-23 |
 | V2-D12 | Exercise media URLs point to jsDelivr, pinned to dataset commit `7455efae41b330c265e7cd4b78dfa848e7ce5ebd` (CORS allowed, immutable cache). Images use `crossorigin="anonymous"` so cached responses are not opaque (opaque responses use about 7 MB of quota each in Chrome). | 2026-11-22 |
 
 ## 2. Findings that shaped the plan

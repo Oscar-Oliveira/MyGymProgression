@@ -4,9 +4,10 @@ import { workoutSteps } from '../../domain/circuit';
 import type { SetRecord, WorkoutEntry } from '../../domain/types';
 import { validateValue } from '../../domain/units';
 import { editSet } from '../../domain/workout';
+import { effortScale, effortText } from '../../domain/effort';
 import { setText } from '../progress';
 import { buzz, metricLabel, useSettings } from '../util';
-import { stepFor } from './EntryFocus';
+import { EffortPicker, stepFor } from './EntryFocus';
 import { Icon } from './Icon';
 import { NumInput } from './NumInput';
 import { Thumb } from './Thumb';
@@ -96,6 +97,9 @@ function QuickSet({
   const blocked = metrics.some((m) => validateValue(m, set.values[m.key]));
   const status = (x: SetRecord['status']) => onChange({ ...entry, sets: entry.sets.map((y) => (y.id === set.id ? { ...y, status: x } : y)) });
   const setValue = (key: string, v: number | undefined) => onChange(editSet(entry, set.id, { ...set.values, [key]: v }));
+  // Effort (V2-D28), as in the normal view: sets with reps, not warm-ups.
+  const scale = effortScale(s);
+  const effort = scale && set.kind !== 'warmup' && metrics.some((m) => m.key === 'reps') ? scale : undefined;
   // Long press on ✓: skipped. The click that follows the long press does nothing.
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const long = useRef(false);
@@ -108,7 +112,8 @@ function QuickSet({
     }, LONG_PRESS_MS);
   };
   const release = () => clearTimeout(timer.current);
-  const text = set.status === 'skipped' ? t('setStatus.skipped') : setText(set, metrics, s.language) || '—';
+  const values = setText(set, metrics, s.language) || '—';
+  const text = set.status === 'skipped' ? t('setStatus.skipped') : effort && set.rir !== undefined ? `${values} · ${effortText(set.rir, effort)}` : values;
   const who = name ? `${name} ${t('workout.setN', { n: label })}` : t('workout.setN', { n: label });
 
   return (
@@ -164,6 +169,14 @@ function QuickSet({
               </div>
             );
           })}
+          {effort && (
+            <EffortPicker
+              scale={effort}
+              value={set.rir}
+              target={entry.prescription[entry.sets.indexOf(set)]?.rir}
+              onChange={(rir) => onChange({ ...entry, sets: entry.sets.map((y) => (y.id === set.id ? { ...y, rir } : y)) })}
+            />
+          )}
           <div className="row between">
             {set.status === 'pending' ? (
               <button type="button" className="ghost sm" onClick={() => (status('skipped'), onToggle())}>

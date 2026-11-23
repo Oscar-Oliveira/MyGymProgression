@@ -282,6 +282,7 @@ export function WorkoutPage() {
             coach={coach}
             info={ctx.exercises.has(entry.exerciseId)}
             equipment={ctx.exercises.get(entry.exerciseId)?.equipment}
+            barWeight={ctx.exercises.get(entry.exerciseId)?.barWeight}
           />
         ) : (
           <Empty>{t('workout.noEntries')}</Empty>

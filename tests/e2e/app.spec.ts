@@ -1298,6 +1298,53 @@ test('v2: effort (RIR), rest timer and plates per side in the workout', async ({
   await expect(squat.getByRole('button', { name: 'Set 3 done' })).toBeVisible();
 });
 
+test('v2: an exercise has its own bar weight; the plates per side use it (V2-D26)', async ({ page }) => {
+  await planAndStart(page, ['Barbell Back Squat']);
+  const squat = page.getByRole('region', { name: 'Barbell Back Squat' });
+  await squat.getByLabel('Load', { exact: true }).fill('60');
+  await expect(squat.locator('.plates b')).toHaveText('20');
+  // Edit the exercise from its sheet: a 10 kg bar instead of the 20 kg of the settings.
+  await squat.getByRole('button', { name: 'About Barbell Back Squat' }).click();
+  await page.getByRole('dialog').getByRole('link', { name: /^Full page/ }).click();
+  await page.getByRole('link', { name: 'Edit', exact: true }).click();
+  const bar = page.getByLabel('Bar weight (kg)', { exact: true });
+  await expect(bar).toHaveAttribute('placeholder', '20');
+  await bar.fill('10');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Continue' }).click();
+  await expect(squat.getByLabel('Load', { exact: true })).toHaveValue('60');
+  await expect(squat.locator('.plates b')).toHaveText('25');
+  await expect(squat.locator('.plates')).toContainText('Bar 10 kg');
+});
+
+test('v2: the actions under the sets are in three groups (V2-D27)', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  const chest = page.getByRole('region', { name: 'Machine Chest Press' });
+  await expect(chest.getByRole('button', { name: 'Set', exact: true })).toBeVisible();
+  await expect(chest.getByRole('button', { name: 'Substitute', exact: true })).toBeVisible();
+  const flags = chest.getByRole('group', { name: 'Flag' });
+  await expect(flags).toContainText('no increase this time');
+  await flags.getByRole('button', { name: 'Pain' }).click();
+  await expect(flags.getByRole('button', { name: 'Pain' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(flags.getByRole('button', { name: 'Technique' })).toBeInViewport();
+  await expect(chest.getByRole('button', { name: 'Setup', exact: true })).toBeInViewport();
+});
+
+test('v2: the quick view sets the effort (RIR) of a set (V2-D28)', async ({ page }) => {
+  await planAndStart(page, ['Machine Chest Press']);
+  await page.getByRole('button', { name: 'Quick view' }).click();
+  const quick = page.getByRole('region', { name: 'Quick view' });
+  await quick.getByRole('button', { name: /^Change Set 1:/ }).click();
+  await quick.getByRole('button', { name: 'RIR 2', exact: true }).click();
+  await expect(quick.getByRole('button', { name: 'RIR 2', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await quick.getByRole('button', { name: 'OK' }).click();
+  await expect(quick.getByRole('button', { name: /^Change Set 1:.* 20 kg · RIR 2$/ })).toBeVisible();
+  await quick.getByRole('button', { name: 'Set 1 done' }).click();
+  // The normal view shows the same effort in the set table.
+  await page.getByRole('button', { name: 'Quick view' }).click();
+  await expect(page.getByRole('region', { name: 'Machine Chest Press' }).locator('.st-eff').first()).toHaveText('2');
+});
+
 test('v2: tools estimate the 1RM and the plates per side', async ({ page }) => {
   await more(page, /^Tools/);
   await page.getByLabel('Load (kg)', { exact: true }).fill('100');

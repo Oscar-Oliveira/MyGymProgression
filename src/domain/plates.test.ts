@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barOf, DEFAULT_EQUIPMENT, equipmentOf, platesPerSide, roundToPlates } from './plates';
+import { barOf, barWeightOf, DEFAULT_EQUIPMENT, equipmentOf, platesPerSide, roundToPlates } from './plates';
 
 const KG = DEFAULT_EQUIPMENT.kg.plates;
 
@@ -27,5 +27,14 @@ describe('plate math', () => {
     expect(barOf('ez_bar')).toBe('ez_bar');
     expect(barOf('dumbbell')).toBeUndefined();
     expect(equipmentOf({ loadUnit: 'lb' }).bars.barbell).toBe(45);
+  });
+
+  it('an exercise can have its own bar weight (V2-D26)', () => {
+    const kg = { loadUnit: 'kg' as const };
+    expect(barWeightOf({ equipment: 'barbell' }, kg)).toBe(20);
+    expect(barWeightOf({ equipment: 'ez_bar' }, kg)).toBe(10);
+    expect(barWeightOf({ equipment: 'barbell', barWeight: 15 }, kg)).toBe(15);
+    expect(barWeightOf({ equipment: 'barbell', barWeight: 0 }, kg)).toBe(0);
+    expect(barWeightOf({ equipment: 'dumbbell', barWeight: 15 }, kg)).toBeUndefined();
   });
 });

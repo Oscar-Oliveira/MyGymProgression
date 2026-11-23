@@ -46,7 +46,7 @@ function BigStepper({ def, metrics, loadMode, value, goal, onChange }: { def: Me
 }
 
 /** Effort of the open set (V2-D6): one tap for 0…5+ reps in reserve (or the RPE equivalent); tap again to clear. */
-function EffortPicker({ scale, value, target, onChange }: { scale: 'rir' | 'rpe'; value?: number; target?: number; onChange: (rir: number | undefined) => void }) {
+export function EffortPicker({ scale, value, target, onChange }: { scale: 'rir' | 'rpe'; value?: number; target?: number; onChange: (rir: number | undefined) => void }) {
   const { t } = useTranslation();
   return (
     <div className="effort" role="group" aria-label={t('effort.label')}>
@@ -86,6 +86,7 @@ function SetList({
   entry,
   previous,
   equipment,
+  barWeight,
   activeId,
   onActivate,
   onChange,
@@ -93,6 +94,7 @@ function SetList({
   entry: WorkoutEntry;
   previous?: WorkoutEntry;
   equipment?: string;
+  barWeight?: number;
   activeId?: string;
   onActivate: (id: string) => void;
   onChange: (e: WorkoutEntry) => void;
@@ -193,7 +195,7 @@ function SetList({
               <BigStepper key={m.key} def={m} metrics={metrics} loadMode={entry.exercise.loadMode} value={set.values[m.key]} goal={m.key === 'reps' ? set.goal?.reps : undefined} onChange={(v) => up(set.id, { values: { ...set.values, [m.key]: v } })} />
             ))}
           </div>
-          <PlateLine load={set.values.load} equipment={equipment} loadMode={entry.exercise.loadMode} />
+          <PlateLine load={set.values.load} equipment={equipment} barWeight={barWeight} loadMode={entry.exercise.loadMode} />
           {showEffort && scale && set.kind !== 'warmup' && <EffortPicker scale={scale} value={set.rir} target={entry.prescription[entry.sets.indexOf(set)]?.rir} onChange={(rir) => up(set.id, { rir })} />}
           <div className="row">
             <button className="primary xl" disabled={invalid(set)} onClick={() => (buzz(), up(set.id, { status: 'done' }))}>
@@ -234,6 +236,7 @@ export function EntryFocus({
   coach,
   info,
   equipment,
+  barWeight,
 }: {
   entry: WorkoutEntry;
   previous?: WorkoutEntry;
@@ -246,8 +249,9 @@ export function EntryFocus({
   onTip?: (tip: string) => void;
   coach?: CoachSettings;
   info?: boolean;
-  /** Equipment of the exercise (for the plates of a bar). */
+  /** Equipment of the exercise and its own bar weight (for the plates of a bar). */
   equipment?: string;
+  barWeight?: number;
 }) {
   const { t } = useTranslation();
   const s = useSettings();
@@ -338,6 +342,7 @@ export function EntryFocus({
         entry={entry}
         previous={previous}
         equipment={equipment}
+        barWeight={barWeight}
         activeId={activeId}
         onActivate={(id) => {
           const x = entry.sets.find((y) => y.id === id);
@@ -350,28 +355,42 @@ export function EntryFocus({
         }}
       />
 
-      <div className="wk-actions">
-        <button className="chip" onClick={() => onChange(addSet(entry, 'working'))}>
-          <Icon name="plus" /> {t('workout.addSet')}
-        </button>
-        <button className="chip" onClick={onSubstitute}>
-          <Icon name="swap" /> {t('workout.substitute')}
-        </button>
-        <button className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
-          {t('workout.pain')}
-        </button>
-        <button className={`chip ${entry.technique ? 'on' : ''}`} aria-pressed={entry.technique} onClick={() => onChange({ ...entry, technique: !entry.technique })}>
-          {t('workout.technique')}
-        </button>
-        <button className={`chip ${notes ? 'on' : ''}`} onClick={() => setNotes(!notes)}>
-          {t('common.notes')}
-        </button>
-        {onSetup && (
-          // Opens the note; leaving the text field saves and closes it.
-          <button className={`chip ${editSetup || setup ? 'on' : ''}`} onClick={() => setEditSetup(true)}>
-            <Icon name="pin" /> {t('workout.setup')}
+      {/* Three groups (V2-D27): actions on the exercise, flags for the progression, notes. Every button stays in view. */}
+      <div className="wk-tools">
+        <div className="wk-act">
+          <button className="outline" onClick={() => onChange(addSet(entry, 'working'))}>
+            <Icon name="plus" /> {t('workout.addSet')}
           </button>
-        )}
+          <button className="outline" onClick={onSubstitute}>
+            <Icon name="swap" /> {t('workout.substitute')}
+          </button>
+        </div>
+        <div className="wk-flags" role="group" aria-label={t('workout.flags')}>
+          <p className="eyebrow">
+            {t('workout.flags')}
+            {/* Only when the app raises the targets by itself and these flags stop it. */}
+            {entry.progression.strategy !== 'none' && entry.progression.strategy !== 'manual' && (entry.progression.criteria.blockOnPain || entry.progression.criteria.blockOnTechnique) && ` · ${t('workout.flagsHelp')}`}
+          </p>
+          <div className="row wrap">
+            <button className={`chip ${entry.pain ? 'on' : ''}`} aria-pressed={entry.pain} onClick={() => onChange({ ...entry, pain: !entry.pain })}>
+              {t('workout.pain')}
+            </button>
+            <button className={`chip ${entry.technique ? 'on' : ''}`} aria-pressed={entry.technique} onClick={() => onChange({ ...entry, technique: !entry.technique })}>
+              {t('workout.technique')}
+            </button>
+          </div>
+        </div>
+        <div className="row wrap">
+          <button className={`chip ${notes ? 'on' : ''}`} onClick={() => setNotes(!notes)}>
+            {t('common.notes')}
+          </button>
+          {onSetup && (
+            // Opens the note; leaving the text field saves and closes it.
+            <button className={`chip ${editSetup || setup ? 'on' : ''}`} onClick={() => setEditSetup(true)}>
+              <Icon name="pin" /> {t('workout.setup')}
+            </button>
+          )}
+        </div>
       </div>
       {notes && <textarea style={{ marginTop: '0.6rem' }} aria-label={t('common.notes')} value={entry.notes} onChange={(e) => onChange({ ...entry, notes: e.target.value })} />}
     </section>

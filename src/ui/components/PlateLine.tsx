@@ -1,19 +1,19 @@
 // Plates per side for the load of a set on a bar (V2-D6): "Bar 20 kg · per side 20 + 1.25", with a small drawing.
 import { useTranslation } from 'react-i18next';
-import { barOf, equipmentOf, platesPerSide } from '../../domain/plates';
+import { barWeightOf, equipmentOf, platesPerSide } from '../../domain/plates';
 import type { LoadMode } from '../../domain/types';
 import { fmtNum, useSettings } from '../util';
 
 /** Drawn height of a plate: heavier plates are taller. */
 const height = (p: number, max: number) => Math.round(12 + 30 * Math.sqrt(p / max));
 
-export function PlateLine({ load, equipment, loadMode }: { load?: number; equipment?: string; loadMode: LoadMode }) {
+/** `barWeight`: the exercise's own bar weight (V2-D26); not set = the setting for its bar type. */
+export function PlateLine({ load, equipment, barWeight, loadMode }: { load?: number; equipment?: string; barWeight?: number; loadMode: LoadMode }) {
   const { t } = useTranslation();
   const s = useSettings();
-  const bar = equipment ? barOf(equipment) : undefined;
-  if (!bar || !load) return null;
+  const barKg = equipment ? barWeightOf({ equipment, barWeight }, s) : undefined;
+  if (barKg === undefined || !load) return null;
   const eq = equipmentOf(s);
-  const barKg = eq.bars[bar];
   const perSide = loadMode === 'perSide';
   if (!perSide && load <= barKg) return null;
   const { plates, rest } = platesPerSide(load, barKg, eq.plates, perSide);

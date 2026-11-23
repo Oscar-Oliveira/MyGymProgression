@@ -94,6 +94,8 @@ export interface Exercise {
   variationOf?: string;
   metrics: MetricDef[];
   loadMode: LoadMode;
+  /** Weight of the bar this exercise uses, in the load unit (V2-D26). Not set = the setting for its bar type. */
+  barWeight?: number;
   defaultSets: SetPrescription[];
   progression: ProgressionConfig;
   /** Library fields (optional). */

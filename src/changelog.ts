@@ -9,6 +9,19 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-23',
     pt: [
+      'Peso da barra por exercício: em Editar exercício (vazio = o valor de Definições → Barras e discos). Os discos por lado no treino usam-no. No equipamento também há Barra EZ e Barra hexagonal.',
+      'No treino, por baixo das séries: + Série e Substituir em botões grandes, Dor e Técnica em "Assinalar" e depois as notas. Tudo à vista, sem deslizar.',
+      'Vista rápida: escolhe o RIR (ou RPE) de cada série, com os mesmos botões do ecrã normal; o valor aparece na linha da série.',
+    ],
+    en: [
+      'Bar weight per exercise: in Edit exercise (empty = the value in Settings → Bars and plates). The plates per side in the workout use it. The equipment list now has EZ bar and Trap bar too.',
+      'In the workout, under the sets: + Set and Substitute as large buttons, Pain and Technique under "Flag", then the notes. Everything in view, no swiping.',
+      'Quick view: choose the RIR (or RPE) of each set, with the same buttons as the normal view; the value shows on the set line.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    pt: [
       'Exercícios: separadores "Os meus" (dos teus planos e treinos, os teus e os favoritos) e "Biblioteca". Filtra por grupo, equipamento, favoritos ou inativos com os botões por baixo da pesquisa.',
       'Planos: cada plano é um cartão com os dias, o próximo dia e o último treino, e um botão para começar. Toca no plano para ver a página dele, com um separador por dia.',
       'Progresso: separadores Resumo, Histórico e Corpo. No Resumo, o período e o plano ficam numa só linha; o relatório da semana, o "tu vs há 3 meses" e o teu ano estão no cartão Relatórios.',
