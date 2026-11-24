@@ -43,6 +43,8 @@ interface ItemProps {
   onAddSubstitute: () => void;
   /** Swaps the exercise for the right one, with its history in this plan (V2-D32). */
   onSwap: () => void;
+  /** Moves the item to a day of another plan (V2-D35). */
+  onMovePlan?: () => void;
   /** Collapsed: one line with image, name and summary; open: the editor. */
   open: boolean;
   onToggle: () => void;
@@ -51,7 +53,7 @@ interface ItemProps {
   onCircuit: (circuitId: string | undefined) => void;
 }
 
-export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute, onSwap, open, onToggle, circuits, onCircuit }: ItemProps) {
+export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, onTarget, onRemove, onMove, onAddSubstitute, onSwap, onMovePlan, open, onToggle, circuits, onCircuit }: ItemProps) {
   const { t } = useTranslation();
   const s = useSettings();
   const inCircuit = circuits.some((c) => c.id === item.circuitId);
@@ -231,6 +233,11 @@ export function ItemCard({ plan, item, ex, state, edits, exercises, onChange, on
           </label>
         </div>
       </details>
+      {onMovePlan && (
+        <button className="ghost" onClick={onMovePlan}>
+          <Icon name="external" /> {t('plan.moveToPlan')}
+        </button>
+      )}
     </section>
   );
 }

@@ -134,7 +134,7 @@ export const pt: Resources = {
   weekday: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
   home: {
     dayDone: 'Feito', dayPlanned: 'Planeado para este dia', noWorkoutDay: 'Sem treino neste dia.', nothingPlanned: 'Nenhum dia do plano está atribuído a este dia da semana (define-o no plano, em cada dia).', finishFirst: 'Termina primeiro o treino em curso.',
-    next: 'Próximo treino', start: 'Começar treino', inProgress: 'Treino em curso', continue: 'Continuar',
+    coachToggle: 'Personal trainer: ligar ou desligar', coachOn: 'Personal trainer ligado.', coachOff: 'Personal trainer desligado.', next: 'Próximo treino', start: 'Começar treino', inProgress: 'Treino em curso', continue: 'Continuar',
     week: 'Esta semana', size: '{{count}} exercícios · {{sets}} séries', size_one: '{{count}} exercício · {{sets}} séries', andMore: '+ {{count}} exercícios',
     statWorkouts: 'treinos este mês', statSets: 'séries este mês', statUps: 'subidas este mês',
     setsProgress: '{{done}} de {{total}} séries', decide: 'Decidir para a próxima vez', last: 'Último treino',
@@ -147,7 +147,7 @@ export const pt: Resources = {
   start: { inProgress: 'O treino "{{name}}" está em curso. Termina-o antes de começares outro.', continue: 'Continuar esse treino', bar: 'Treino em curso' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
-    addDay: 'Adicionar dia do plano', addDayHelp: 'Os exercícios do dia vão para o fim do treino, com as metas e a progressão do plano. O treino conta como feito para esse dia.', addDayNone: 'Não há outros dias nos planos ativos.', dayAdded: 'Adicionado: {{day}}',
+    exercisesN: '{{count}} exercícios', exercisesN_one: '{{count}} exercício', addDay: 'Adicionar dia do plano', addDayHelp: 'Os exercícios do dia vão para o fim do treino, com as metas e a progressão do plano. O treino conta como feito para esse dia.', addDayNone: 'Não há outros dias nos planos ativos.', dayAdded: 'Adicionado: {{day}}',
     colSet: 'Série', colBefore: 'Antes', before: 'última vez {{value}}',
     quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
     addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica', flags: 'Assinalar', flagsHelp: 'desta vez não sobe', finishTab: 'Terminar', finishLeft: '{{count}} séries por fazer: contam como saltadas.', finishLeft_one: '{{count}} série por fazer: conta como saltada.', leftN: 'faltam {{count}}', leftN_one: 'falta {{count}}', notesHelp: 'Notas deste treino.',
@@ -198,6 +198,7 @@ export const pt: Resources = {
     swapMetrics: 'Atenção: «{{to}}» não mede o mesmo que «{{from}}». Os valores antigos ficam; os que «{{to}}» não usa deixam de aparecer.',
     version: 'Versão {{n}}', versionLocked: 'Ao guardar é criada a versão {{next}}. Os treinos anteriores não mudam.', editReason: 'Alterado no editor do plano',
     archived: 'Arquivado', showArchived: 'Mostrar arquivados', empty: 'Ainda não há planos.', duplicateName: '{{name}} (cópia)', noDays: 'Adiciona um dia de treino.', noItems: 'Ainda sem exercícios.',
+    fromWorkout: 'Criar plano com este treino', fromWorkoutSub: 'Um plano novo com estes exercícios e o que fizeste', fromWorkoutName: 'Treino livre · {{date}}', fromWorkoutDone: 'Plano criado: {{name}}. Está em Plano.', moveToPlan: 'Mover para outro plano', moveTitle: 'Mover {{name}} para', moveHelp: 'O exercício sai deste plano e vai para o fim do dia escolhido, com a progressão e o histórico.', moveNone: 'Não há outros planos ativos com dias.', moveDone: '{{name}} passou para {{plan}} · {{day}}.',
     startDay: 'Começar este dia', copyText: 'Copiar como texto', copyAll: 'Copiar todos os planos ativos como texto', days: 'dias', actions: 'Opções de',
     dayGoal: 'Tipo deste dia', dayFree: 'Livre',
     goalHelp: {

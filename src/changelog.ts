@@ -9,6 +9,19 @@ export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-11-24',
     pt: [
+      'Treino livre: novo "Criar plano com este treino" (menu ⋯, durante ou depois). Planos: novo "Mover para outro plano" no exercício aberto, com a progressão e o histórico.',
+      'Início: novo ícone no topo para ligar ou desligar o personal trainer num toque.',
+      'Treino livre vazio: "Adicionar exercício" e "Adicionar dia do plano" com o mesmo aspeto; a escolha do dia é uma lista como a dos exercícios.',
+    ],
+    en: [
+      'Free workout: new "Create plan from this workout" (⋯ menu, during or after). Plans: new "Move to another plan" on the open exercise, with its progression and history.',
+      'Home: a new icon at the top turns the personal trainer on or off in one tap.',
+      'Empty free workout: "Add exercise" and "Add plan day" look the same; choosing a day is a list like the exercise picker.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    pt: [
       'Treino: novo "Adicionar dia do plano" (menu ⋯ e treino livre vazio). Junta os exercícios de outro dia, com metas e progressão; dá para fazer dois dias intercalados. O treino conta para os dois dias.',
       'Planos: Copiar como texto e Ler QR passam para ícones no topo. O menu Mais tem um novo ícone (três linhas) e já não repete o que está em Progresso e Planos.',
       'Ferramentas: os discos mostram o mesmo desenho da barra que no treino. Início: sai o link "Outro dia ou treino livre". O ecrã de arranque fica igual ao do Android.',

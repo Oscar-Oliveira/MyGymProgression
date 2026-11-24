@@ -1,6 +1,6 @@
 // Storage use-cases. Each multi-table change runs in one transaction.
 import { db as defaultDb, type GymDB } from './db';
-import { DEFAULT_SETTINGS, newPlanItem, nowIso, saveVersion, uid } from '../domain/factory';
+import { DEFAULT_SETTINGS, moveItemToPlan, newPlanItem, nowIso, planFromWorkout, saveVersion, uid } from '../domain/factory';
 import { dayGoal } from '../domain/goals';
 import { emptyDataSet, TABLES, type DataSet } from '../domain/interchange';
 import { seedExercises } from '../domain/seed';
@@ -275,6 +275,34 @@ export function createRepo(db: GymDB) {
         const next = saveVersion(current, days);
         await db.planVersions.put(next);
         await db.plans.put({ ...plan, currentVersionId: next.id, updatedAt: nowIso() });
+      });
+    },
+
+    /** A new plan from a workout (V2-D35): one day with its exercises and what was done. Returns the new plan's id. */
+    async createPlanFromWorkout(w: Workout, planName: string, dayName: string): Promise<string> {
+      const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
+      const { plan, version } = planFromWorkout(w, exercises, planName, dayName);
+      await db.transaction('rw', db.plans, db.planVersions, async () => {
+        await db.plans.add(plan);
+        await db.planVersions.add(version);
+      });
+      return plan.id;
+    },
+
+    /** Moves a plan item to a day of another plan (V2-D35); its progression and history go with it. Both plans get a new version if locked. */
+    async moveItemToPlan(fromPlanId: string, itemId: string, toPlanId: string, toDayId: string) {
+      await db.transaction('rw', db.plans, db.planVersions, async () => {
+        const fromPlan = await db.plans.get(fromPlanId);
+        const toPlan = await db.plans.get(toPlanId);
+        const fromV = fromPlan && (await db.planVersions.get(fromPlan.currentVersionId));
+        const toV = toPlan && (await db.planVersions.get(toPlan.currentVersionId));
+        const res = fromV && toV && fromPlan.id !== toPlan.id ? moveItemToPlan(fromV.days, itemId, toV.days, toDayId) : undefined;
+        if (!fromPlan || !toPlan || !fromV || !toV || !res) throw new Error('not_found');
+        const nextFrom = saveVersion(fromV, res.from);
+        const nextTo = saveVersion(toV, res.to);
+        await db.planVersions.bulkPut([nextFrom, nextTo]);
+        const now = nowIso();
+        await db.plans.bulkPut([{ ...fromPlan, currentVersionId: nextFrom.id, updatedAt: now }, { ...toPlan, currentVersionId: nextTo.id, updatedAt: now }]);
       });
     },
 

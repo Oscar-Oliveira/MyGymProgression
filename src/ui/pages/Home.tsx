@@ -26,6 +26,8 @@ import { MoreButton } from '../components/NavSheets';
 import { ShortcutGrid } from '../components/Shortcuts';
 import { Icon } from '../components/Icon';
 import { shareDayImage } from '../dayImage';
+import { NO_COACH } from './CoachPage';
+import { toast } from '../components/Toast';
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
@@ -176,6 +178,21 @@ export function Home() {
             <h1>{t(`hello.${now.getHours() < 12 ? 'morning' : now.getHours() < 20 ? 'afternoon' : 'evening'}`)}</h1>
           </div>
           <div className="head-icons">
+            {/* The personal trainer on or off in one tap (V2-D36); the rest of its settings stay in Personal trainer. */}
+            <button
+              type="button"
+              className={`icon-btn ${s.coach?.enabled ? 'on' : ''}`}
+              aria-pressed={!!s.coach?.enabled}
+              aria-label={t('home.coachToggle')}
+              title={t('home.coachToggle')}
+              onClick={() => {
+                const on = !s.coach?.enabled;
+                void repo.saveSettings({ coach: { ...(s.coach ?? NO_COACH), enabled: on } });
+                toast(t(on ? 'home.coachOn' : 'home.coachOff'));
+              }}
+            >
+              <Icon name="user" />
+            </button>
             <Link to="/exercises" className="icon-btn" aria-label={t('nav.searchExercises')}>
               <Icon name="search" />
             </Link>

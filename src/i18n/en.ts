@@ -132,7 +132,7 @@ export const en = {
   weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   home: {
     dayDone: 'Done', dayPlanned: 'Planned for this day', noWorkoutDay: 'No workout on this day.', nothingPlanned: 'No plan day is set for this weekday (set it in the plan, on each day).', finishFirst: 'Finish the workout in progress first.',
-    next: 'Next workout', start: 'Start workout', inProgress: 'Workout in progress', continue: 'Continue',
+    coachToggle: 'Personal trainer: on or off', coachOn: 'Personal trainer on.', coachOff: 'Personal trainer off.', next: 'Next workout', start: 'Start workout', inProgress: 'Workout in progress', continue: 'Continue',
     week: 'This week', size: '{{count}} exercises · {{sets}} sets', size_one: '{{count}} exercise · {{sets}} sets', andMore: '+ {{count}} more exercises',
     statWorkouts: 'workouts this month', statSets: 'sets this month', statUps: 'increases this month',
     setsProgress: '{{done}} of {{total}} sets', decide: 'Decide for next time', last: 'Last workout',
@@ -145,7 +145,7 @@ export const en = {
   start: { inProgress: 'The workout "{{name}}" is in progress. Finish it before you start another one.', continue: 'Continue that workout', bar: 'Workout in progress' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
-    addDay: 'Add plan day', addDayHelp: 'The exercises of the day go to the end of the workout, with the targets and progression of the plan. The workout counts as done for that day.', addDayNone: 'There are no other days in the active plans.', dayAdded: 'Added: {{day}}',
+    exercisesN: '{{count}} exercises', exercisesN_one: '{{count}} exercise', addDay: 'Add plan day', addDayHelp: 'The exercises of the day go to the end of the workout, with the targets and progression of the plan. The workout counts as done for that day.', addDayNone: 'There are no other days in the active plans.', dayAdded: 'Added: {{day}}',
     colSet: 'Set', colBefore: 'Before', before: 'last time {{value}}',
     quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
     addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique', flags: 'Flag', flagsHelp: 'no increase this time', finishTab: 'Finish', finishLeft: '{{count}} sets not done: they count as skipped.', finishLeft_one: '{{count}} set not done: it counts as skipped.', leftN: '{{count}} left', leftN_one: '{{count}} left', notesHelp: 'Notes for this workout.',
@@ -197,6 +197,7 @@ export const en = {
     swapMetrics: 'Note: «{{to}}» does not measure the same things as «{{from}}». The old values stay; the ones «{{to}}» does not use no longer show.',
     version: 'Version {{n}}', versionLocked: 'Saving creates version {{next}}. Past workouts are not changed.', editReason: 'Changed in the plan editor',
     archived: 'Archived', showArchived: 'Show archived', empty: 'No plans yet.', duplicateName: '{{name}} (copy)', noDays: 'Add a training day.', noItems: 'No exercises yet.',
+    fromWorkout: 'Create plan from this workout', fromWorkoutSub: 'A new plan with these exercises and what you did', fromWorkoutName: 'Free workout · {{date}}', fromWorkoutDone: 'Plan created: {{name}}. It is in Plan.', moveToPlan: 'Move to another plan', moveTitle: 'Move {{name}} to', moveHelp: 'The exercise leaves this plan and goes to the end of the chosen day, with its progression and history.', moveNone: 'There are no other active plans with days.', moveDone: '{{name}} moved to {{plan}} · {{day}}.',
     startDay: 'Start this day', copyText: 'Copy as text', copyAll: 'Copy all active plans as text', days: 'days', actions: 'Options for',
     dayGoal: 'Type of this day', dayFree: 'Free',
     goalHelp: {

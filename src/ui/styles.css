@@ -1015,6 +1015,8 @@ svg.glyph-more, svg.glyph-alert { stroke-width: 3; }
 .page-count { display: block; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .head-actions { display: flex; gap: 0.5rem; flex: none; }
 .icon-btn.primary { background: var(--tone); color: #fff; }
+/* A header toggle that is on (V2-D36: personal trainer on Home). */
+.icon-btn.on { background: var(--accent-soft); color: var(--accent); }
 /* Views of a page: underlined tabs. */
 .vtabs { display: flex; gap: 1.25rem; margin: 0 0 1rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
 .vtabs::-webkit-scrollbar { display: none; }
@@ -1067,3 +1069,10 @@ button.vtab:active, .vtabs > button:active { transform: none; }
 .plan-days { margin: 0; font-size: 0.92rem; }
 .plan-last { margin: 0; }
 .plan-card button.xl { margin-top: 0.2rem; }
+
+/* Empty free workout (V2-D33): the two ways to add, the same size and style, one per line. */
+.empty-actions { display: grid; gap: 0.6rem; width: 100%; }
+button.nav-row { width: 100%; margin: 0; padding: 0.8rem 0; border: 0; border-radius: 0; background: transparent; text-align: left; justify-content: flex-start; font-weight: inherit; }
+button.nav-row + button.nav-row { border-top: 1px solid var(--border); }
+/* Day in "Add plan day": a square the size of an exercise image in the picker, in the colour of the day. */
+.day-tile { flex: none; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border); background: var(--tone-soft); color: var(--tone-text); font-size: 1.2rem; }

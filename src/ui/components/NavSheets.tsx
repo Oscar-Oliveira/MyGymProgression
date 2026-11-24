@@ -126,36 +126,44 @@ export function StartSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** "Add plan day" in a workout (V2-D33): the days of the active plans that are not in the workout yet. */
-export function AddDaySheet({ workout, onPick, onClose }: { workout: Workout; onPick: (planId: string, dayId: string) => void; onClose: () => void }) {
+/**
+ * A list of plan days to pick from, the same look as the exercise picker: "Add plan day" in a workout (V2-D33) and
+ * "Move to another plan" in the plan editor (V2-D35). Only active plans, days with exercises unless `emptyDays`.
+ */
+export function DayPickSheet({ title, help, none, skip, emptyDays, onPick, onClose }: { title: string; help: string; none: string; skip: (planId: string, dayId: string) => boolean; emptyDays?: boolean; onPick: (planId: string, dayId: string) => void; onClose: () => void }) {
   const { t } = useTranslation();
   const data = useLiveQuery(async () => {
     const [plans, versions] = await Promise.all([db.plans.toArray(), db.planVersions.toArray()]);
     return { plans: plans.filter((p) => p.status === 'active'), versions };
   });
   if (!data) return null;
-  const used = new Set(workoutDays(workout).map((d) => d.dayId));
-  const groups = data.plans
-    .map((p) => ({ plan: p, days: (data.versions.find((x) => x.id === p.currentVersionId)?.days ?? []).filter((d) => d.items.length > 0 && !used.has(d.id)) }))
-    .filter((g) => g.days.length > 0);
+  const days = data.plans.flatMap((p) =>
+    (data.versions.find((x) => x.id === p.currentVersionId)?.days ?? []).filter((d) => (emptyDays || d.items.length > 0) && !skip(p.id, d.id)).map((d) => ({ plan: p, day: d })),
+  );
   return (
-    <Modal title={t('workout.addDay')} onClose={onClose}>
-      <div className="start-sheet">
-        <p className="help">{groups.length ? t('workout.addDayHelp') : t('workout.addDayNone')}</p>
-        {groups.map(({ plan, days }) => (
-          <section key={plan.id} className="start-plan">
-            <p className="eyebrow">{plan.name}</p>
-            <div className="start-days">
-              {days.map((d) => (
-                <button key={d.id} type="button" className="start-day toned" style={toneStyle(toneOf(plan, d))} onClick={() => onPick(plan.id, d.id)}>
-                  <span className="dot" aria-hidden="true" />
-                  <span className="start-day-text">{d.name}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+    <Modal title={title} onClose={onClose}>
+      <p className="help">{days.length ? help : none}</p>
+      {days.map(({ plan, day }) => (
+        <button key={day.id} type="button" className="nav-row toned" style={toneStyle(toneOf(plan, day))} onClick={() => onPick(plan.id, day.id)}>
+          <span className="day-tile" aria-hidden="true">
+            <Icon name="calendar" />
+          </span>
+          <span className="main">
+            <span className="title">{day.name}</span>
+            <span className="meta">{[plan.name, t('workout.exercisesN', { count: day.items.length })].join(' · ')}</span>
+          </span>
+          <span className="chev" aria-hidden="true">
+            <Icon name="plus" />
+          </span>
+        </button>
+      ))}
     </Modal>
   );
+}
+
+/** "Add plan day" in a workout (V2-D33): the days not in the workout yet. */
+export function AddDaySheet({ workout, onPick, onClose }: { workout: Workout; onPick: (planId: string, dayId: string) => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  const used = new Set(workoutDays(workout).map((d) => d.dayId));
+  return <DayPickSheet title={t('workout.addDay')} help={t('workout.addDayHelp')} none={t('workout.addDayNone')} skip={(_p, d) => used.has(d)} onPick={onPick} onClose={onClose} />;
 }

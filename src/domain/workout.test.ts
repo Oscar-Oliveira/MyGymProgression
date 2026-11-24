@@ -518,3 +518,39 @@ describe('add a plan day to a workout (V2-D33)', () => {
     expect(w.planId).toBe(plan.id);
   });
 });
+
+describe('plan from a workout and move to another plan (V2-D35)', () => {
+  it('makes one day with the exercises in order; done sets become targets, the rep range stays', async () => {
+    const { planFromWorkout } = await import('./factory');
+    const { bench, warm, exercises, states, lastEntry } = setup();
+    const w = startWorkout(undefined, undefined, undefined, { exercises, states, lastEntry });
+    w.entries = [entryAdHoc(bench), entryAdHoc(warm)];
+    w.entries[0].sets = w.entries[0].sets.slice(0, 2).map((x, i) => ({ ...x, kind: 'working', values: { reps: 10 + i, load: 50 }, status: 'done' }));
+    const { plan, version } = planFromWorkout(w, exercises, 'Mine', 'A');
+    expect(plan.name).toBe('Mine');
+    const [day] = version.days;
+    expect(day.items.map((i) => i.exerciseId)).toEqual([bench.id, warm.id]);
+    const working = day.items[0].sets.filter((x) => x.kind === 'working');
+    expect(working).toHaveLength(2);
+    expect(working[0].targets).toEqual({ load: { value: 50 }, reps: { min: 8, max: 12 } });
+    // Nothing done: the prescription of the workout.
+    expect(day.items[1].sets).toEqual(w.entries[1].prescription);
+    // New lineages: the new plan has its own progression.
+    expect(day.items[0].lineageId).not.toBe(w.entries[0].lineageId);
+  });
+
+  it('moves an item with its lineage, out of its circuit', async () => {
+    const { moveItemToPlan } = await import('./factory');
+    const { version } = setup();
+    const item = { ...version.days[0].items[1], circuitId: 'c1', group: 'A' };
+    const from = [{ ...version.days[0], items: [version.days[0].items[0], item] }];
+    const to = [newDay('X'), newDay('Y')];
+    const res = moveItemToPlan(from, item.id, to, to[1].id)!;
+    expect(res.from[0].items.map((i) => i.id)).toEqual([version.days[0].items[0].id]);
+    expect(res.to[1].items).toHaveLength(1);
+    expect(res.to[1].items[0]).toMatchObject({ id: item.id, lineageId: item.lineageId });
+    expect(res.to[1].items[0].circuitId).toBeUndefined();
+    expect(res.to[1].items[0].group).toBeUndefined();
+    expect(moveItemToPlan(from, 'nope', to, to[1].id)).toBeUndefined();
+  });
+});

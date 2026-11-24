@@ -186,6 +186,14 @@ export function WorkoutPage() {
     update({ ...draft, entries: [...draft.entries, e] });
     setCur(steps.length);
   };
+  /** A new plan from this free workout (V2-D35). During the workout it only says so; a finished one opens the new plan. */
+  const toPlan = async () => {
+    setMenu(false);
+    const name = t('plan.fromWorkoutName', { date: fmtDate(draft.startedAt, s.language) });
+    const planId = await repo.createPlanFromWorkout(draft, name, `${t('plan.day')} A`);
+    if (draft.status === 'in_progress') notify(t('plan.fromWorkoutDone', { name }));
+    else nav(`/plans/${planId}`);
+  };
   /** Adds a plan day (V2-D33) and opens its first exercise. */
   const addDay = async (planId: string, dayId: string) => {
     setAddingDay(false);
@@ -275,7 +283,7 @@ export function WorkoutPage() {
 
         {coach && !quick && <CoachCard storageKey={`coach:${draft.id}`} message={coachLine(draft.id)} style={coach.style} gender={coach.gender} look={coach.look} name={coach.name} />}
         {coach?.voice && !quick && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && <Speak text={coachLine(draft.id)} lang={s.language} coach={coach} />}
-        {!draft.short && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
+        {!draft.short && draft.entries.length > 0 && !draft.entries.some((e) => e.sets.some((x) => x.status !== 'pending')) && (
           <button className="chip short-chip" onClick={() => void shorten()}>
             <Icon name="timer" /> {t('workout.short')}
           </button>
@@ -320,11 +328,11 @@ export function WorkoutPage() {
           // A free workout starts empty: add exercises or a plan day (V2-D33) from here or from the ⋯ menu.
           <Empty
             action={
-              <div className="row wrap">
-                <button className="primary" onClick={() => setPicker('add')}>
+              <div className="empty-actions">
+                <button className="outline xl" onClick={() => setPicker('add')}>
                   <Icon name="plus" /> {t('workout.addExercise')}
                 </button>
-                <button className="outline" onClick={() => setAddingDay(true)}>
+                <button className="outline xl" onClick={() => setAddingDay(true)}>
                   <Icon name="calendar" /> {t('workout.addDay')}
                 </button>
               </div>
@@ -374,6 +382,7 @@ export function WorkoutPage() {
               <button onClick={() => nav('/')}><Icon name="pause" /> {t('workout.pauseLong')}</button>
               <button onClick={() => (setMenu(false), setPicker('add'))}><Icon name="plus" /> {t('workout.addExercise')}</button>
               <button onClick={() => (setMenu(false), setAddingDay(true))}><Icon name="calendar" /> {t('workout.addDay')}</button>
+              {!draft.planId && draft.entries.length > 0 && <button onClick={() => void toPlan()}><Icon name="copy" /> {t('plan.fromWorkout')}</button>}
               {!quick && step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}><Icon name="download" /> {t('workout.later')}</button>}
               {!draft.short && <button onClick={() => void shorten()}><Icon name="timer" /> {t('workout.short')}</button>}
               {!quick && entry && (
@@ -526,6 +535,7 @@ export function WorkoutPage() {
               actions={[
                 { label: t('workout.correct'), icon: 'edit', sub: t('menu.correctSub'), onClick: () => setEditing(true) },
                 { label: t('workout.copyText'), icon: 'note', sub: t('menu.copyTextSub'), onClick: () => void copyText() },
+                ...(!draft.planId && draft.entries.length > 0 ? [{ label: t('plan.fromWorkout'), icon: 'copy' as const, sub: t('plan.fromWorkoutSub'), onClick: () => void toPlan() }] : []),
                 {
                   label: t('common.delete'),
                   icon: 'trash',

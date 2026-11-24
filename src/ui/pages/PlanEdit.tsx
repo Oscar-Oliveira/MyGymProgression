@@ -20,6 +20,7 @@ import { dialog } from '../components/Dialog';
 import { ItemCard, working, type Targets } from '../components/PlanItemCard';
 import { Icon } from '../components/Icon';
 import { PlanAuditCard } from '../components/PlanAuditCard';
+import { DayPickSheet } from '../components/NavSheets';
 import { useStart } from '../start';
 
 const GOALS: PlanGoal[] = ['hypertrophy', 'strength', 'mixed'];
@@ -46,6 +47,8 @@ export function PlanEdit() {
   // Picker target: substitutes of an item, the item's exercise (swap), a circuit, or the day.
   const [picker, setPicker] = useState<{ item?: string; swap?: string; circuit?: string }>();
   const [openId, setOpenId] = useState<string>();
+  // The item being moved to another plan (V2-D35).
+  const [moving, setMoving] = useState<PlanItem>();
   const [nameError, setNameError] = useState(false);
   const unsaved = useUnsavedGuard();
   const start = useStart();
@@ -151,6 +154,21 @@ export function PlanEdit() {
     upItem({ ...it, exerciseId: to.id, substitutes: it.substitutes.filter((s) => s !== to.id) });
     toast(t('plan.swapDone', { from: from.name, to: to.name }));
   };
+  /** Moves an item to a day of another plan (V2-D35): saves this plan first, then moves it with its progression and history. */
+  const moveToPlan = async (it: PlanItem, toPlanId: string, toDayId: string) => {
+    setMoving(undefined);
+    if (dirty) {
+      if (!plan.name.trim()) return setNameError(true);
+      await save();
+    }
+    await repo.moveItemToPlan(plan.id, it.id, toPlanId, toDayId);
+    const fresh = await db.plans.get(plan.id);
+    const v = fresh && (await db.planVersions.get(fresh.currentVersionId));
+    if (fresh && v) (setPlan(fresh), setDays(structuredClone(v.days)));
+    const to = await db.plans.get(toPlanId);
+    const toDay = to && (await db.planVersions.get(to.currentVersionId))?.days.find((d) => d.id === toDayId);
+    toast(t('plan.moveDone', { name: exercises.get(it.exerciseId)?.name ?? '', plan: to?.name ?? '', day: toDay?.name ?? '' }));
+  };
   const pick = async (ex: Exercise) => {
     if (!picker) return;
     if (picker.swap) {
@@ -195,6 +213,7 @@ export function PlanEdit() {
         onMove={(dd) => upDay((d) => moveItem(d, it.id, dd))}
         onAddSubstitute={() => setPicker({ item: it.id })}
         onSwap={() => setPicker({ swap: it.id })}
+        onMovePlan={() => setMoving(it)}
         open={openId === it.id}
         onToggle={() => setOpenId(openId === it.id ? undefined : it.id)}
         circuits={day.circuits ?? []}
@@ -373,6 +392,17 @@ export function PlanEdit() {
         </button>
       </div>
 
+      {moving && (
+        <DayPickSheet
+          title={t('plan.moveTitle', { name: exercises.get(moving.exerciseId)?.name ?? '' })}
+          help={t('plan.moveHelp')}
+          none={t('plan.moveNone')}
+          emptyDays
+          skip={(p) => p === plan.id}
+          onPick={(p, d) => void moveToPlan(moving, p, d)}
+          onClose={() => setMoving(undefined)}
+        />
+      )}
       {picker && <ExercisePicker onPick={pick} onClose={() => setPicker(undefined)} exclude={picker.swap ? day.items.filter((x) => x.id === picker.swap).map((x) => x.exerciseId) : []} />}
     </div>
   );
