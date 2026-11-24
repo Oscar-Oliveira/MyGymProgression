@@ -459,7 +459,7 @@ test('personal trainer "after every exercise": a message appears when an exercis
 test('analysis: period dates and workouts per week; a week lists its workouts', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await expect(page.getByRole('heading', { name: 'Workouts per week' })).toBeVisible();
   await expect(page.locator('.period-range')).toContainText('–');
   await page.getByRole('button', { name: /^Week of .*: 2 workouts$/ }).first().click();
@@ -597,7 +597,7 @@ test('demo data → analysis → export → delete all → import restores data'
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await expect(page.getByText('Decide for next time')).toBeVisible();
 
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await expect(page.getByRole('heading', { name: 'By exercise' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Treadmill Warm-up.*Fixed/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Romanian Deadlift.*50 kg/ })).toBeVisible();
@@ -739,7 +739,7 @@ test('v2 library: installs from the app; images come from the source, with the a
 test('analysis: weekly sets per muscle with the guideline, and comparison with the previous period', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await expect(page.getByRole('heading', { name: 'Sets per muscle per week' })).toBeVisible();
   await expect(page.locator('.mbar .guide').first()).toBeVisible();
   // 4 weeks: the demo has 6 weeks, so the 4 weeks before have workouts to compare with.
@@ -1046,7 +1046,7 @@ test('automatic warm-up: warm-up sets before the first compound exercise when on
 test('analysis: consistency map and a goal with its status; the goal also shows on the exercise page', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await expect(page.getByRole('heading', { name: 'Consistency' })).toBeVisible();
   await expect(page.getByText('Weeks in a row')).toBeVisible();
   const goals = page.getByRole('region', { name: 'Goals' });
@@ -1064,7 +1064,7 @@ test('reports without the trainer: tabs, the Sunday report on Home, the rival on
   await page.clock.setFixedTime(new Date('2026-11-01T18:00:00'));
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await page.getByText('Decide for next time').waitFor();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await expect(page.getByRole('heading', { name: 'Progress', level: 1 })).toBeVisible();
   // Off: they are not in the Reports card (D78, V2-D23).
   const reports = page.getByRole('region', { name: 'Reports' });
@@ -1074,7 +1074,7 @@ test('reports without the trainer: tabs, the Sunday report on Home, the rival on
   await more(page, /^Settings/);
   await page.getByLabel(/^Week report/).click();
   await page.getByLabel(/^You vs 3 months ago/).click();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await reports.getByRole('link', { name: /^Week report/ }).click();
   await expect(page.getByRole('heading', { name: 'Week report', level: 1 })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Week report' })).toBeVisible();
@@ -1155,7 +1155,7 @@ test('body map (D71): this week on Home and the period in Analysis; tapping a mu
   await expect(page.getByRole('heading', { name: 'Muscles this week' })).toBeVisible();
   await expect(page.getByRole('group', { name: 'Body map' })).toBeVisible();
 
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   const map = page.getByRole('group', { name: 'Body map' });
   const chest = map.getByRole('button', { name: /^Chest: \d/ }).first();
   await chest.click();
@@ -1211,7 +1211,7 @@ test('achievements (D73): the first workout earns a medal on its summary; the pa
 test('year in review (D74): its page in the Reports card opens screens one by one; the last one shares an image; Escape closes', async ({ page }) => {
   await page.getByRole('button', { name: 'Try with example data' }).click();
   await expect(page.getByText('Next workout')).toBeVisible();
-  await more(page, /^Reports/);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Progress' }).click(); // Reports = Progress → Summary (not in More, V2-D34)
   await page.getByRole('region', { name: 'Reports' }).getByRole('link', { name: /^Year in review/ }).click();
   const year = new Date().getFullYear();
   await expect(page.getByRole('heading', { name: `Your ${year} in the gym` })).toBeVisible();

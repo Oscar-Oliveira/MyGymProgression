@@ -143,6 +143,24 @@ export function startWorkout(plan: Plan | undefined, version: PlanVersion | unde
   };
 }
 
+/** The plan days a workout counts for (V2-D33): its own day, then the days added during it. */
+export function workoutDays(w: Workout): { planId: string; dayId: string }[] {
+  return [...(w.planId && w.dayId ? [{ planId: w.planId, dayId: w.dayId }] : []), ...(w.addedDays ?? [])];
+}
+
+/**
+ * Adds the exercises of a plan day at the end of a workout (V2-D33), with their targets and progression, as at a start.
+ * A workout without a plan day becomes that day; else the day is added to `addedDays` and to the name ("Push + Pull").
+ * `prepare` changes the new entries before they are added (warm-up sets). A day already in the workout is not added again.
+ */
+export function addPlanDay(w: Workout, plan: Plan, version: PlanVersion, day: PlanDay, ctx: StartContext, prepare: (entries: WorkoutEntry[]) => WorkoutEntry[] = (e) => e): Workout {
+  if (workoutDays(w).some((d) => d.dayId === day.id)) return w;
+  const entries = [...w.entries, ...prepare(startWorkout(plan, version, day, ctx).entries)];
+  if (!w.dayId) return { ...w, planId: plan.id, planVersionId: version.id, dayId: day.id, planName: plan.name, dayName: day.name, entries };
+  const added = { planId: plan.id, planVersionId: version.id, dayId: day.id, planName: plan.name, dayName: day.name };
+  return { ...w, dayName: `${w.dayName ?? ''} + ${day.name}`, addedDays: [...(w.addedDays ?? []), added], entries };
+}
+
 /**
  * "Use the current plan" in a correction (D70): each entry whose plan item is still in `version` gets the prescription and
  * progression rule of that item now. Done sets are kept. When this workout's own change (increase or reps up) is still the
@@ -456,7 +474,7 @@ export function daysUntil(day: PlanDay, workouts: Workout[], now: Date): number 
   if (day.weekday === undefined) return undefined;
   const d = (day.weekday - ((now.getDay() + 6) % 7) + 7) % 7;
   const today = now.toLocaleDateString('sv');
-  const doneToday = workouts.some((w) => w.dayId === day.id && w.status !== 'in_progress' && new Date(w.startedAt).toLocaleDateString('sv') === today);
+  const doneToday = workouts.some((w) => w.status !== 'in_progress' && workoutDays(w).some((x) => x.dayId === day.id) && new Date(w.startedAt).toLocaleDateString('sv') === today);
   return d === 0 && doneToday ? 7 : d;
 }
 
@@ -470,10 +488,11 @@ export function nextDay(version: PlanVersion, workouts: Workout[], now = new Dat
     return d === undefined ? [] : [{ day, d }];
   });
   if (scheduled.length) return scheduled.reduce((a, b) => (b.d < a.d ? b : a)).day;
+  // A workout with two days of this plan (V2-D33) counts as the later one in plan order.
   const last = workouts
-    .filter((w) => w.planId === version.planId && w.status !== 'in_progress' && w.dayId)
+    .filter((w) => w.status !== 'in_progress' && workoutDays(w).some((x) => x.planId === version.planId))
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
-  const i = last ? version.days.findIndex((d) => d.id === last.dayId) : -1;
+  const i = last ? Math.max(...workoutDays(last).filter((x) => x.planId === version.planId).map((x) => version.days.findIndex((d) => d.id === x.dayId))) : -1;
   return version.days[(i + 1) % Math.max(1, version.days.length)];
 }
 
@@ -489,6 +508,10 @@ export function nextPlanned(plans: Plan[], versions: PlanVersion[], workouts: Wo
   });
   const scheduled = options.filter((o) => o.d !== undefined);
   if (scheduled.length) return scheduled.reduce((a, b) => (b.d! < a.d! ? b : a));
-  const recent = workouts.filter((w) => w.status !== 'in_progress').sort((a, b) => b.startedAt.localeCompare(a.startedAt)).find((w) => options.some((o) => o.plan.id === w.planId));
+  const recent = workouts
+    .filter((w) => w.status !== 'in_progress')
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .flatMap(workoutDays)
+    .find((d) => options.some((o) => o.plan.id === d.planId));
   return options.find((o) => o.plan.id === recent?.planId) ?? options[0];
 }

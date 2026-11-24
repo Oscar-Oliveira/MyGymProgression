@@ -484,3 +484,37 @@ describe('withTime (D82)', () => {
     expect(new Date(back.startedAt).getDate()).toBe(5);
   });
 });
+
+describe('add a plan day to a workout (V2-D33)', () => {
+  it('a free workout becomes the day; a planned one keeps it and adds the next', async () => {
+    const { addPlanDay, nextDay } = await import('./workout');
+    const { plan, version, day, exercises, states, lastEntry, bench } = setup();
+    const b = newDay('B');
+    b.items.push(newPlanItem(bench));
+    version.days.push(b);
+    const ctx = { exercises, states, lastEntry };
+    const free = startWorkout(undefined, undefined, undefined, ctx);
+    const asDay = addPlanDay(free, plan, version, day, ctx);
+    expect([asDay.planId, asDay.dayId, asDay.dayName, asDay.entries.length, asDay.addedDays]).toEqual([plan.id, day.id, 'A', 2, undefined]);
+    const both = addPlanDay(asDay, plan, version, b, ctx);
+    expect([both.dayName, both.entries.length, both.addedDays?.map((d) => d.dayId)]).toEqual(['A + B', 3, [b.id]]);
+    // The entries of B keep their own plan item (progression per item).
+    expect(both.entries[2].lineageId).toBe(b.items[0].lineageId);
+    // The same day twice: nothing changes.
+    expect(addPlanDay(both, plan, version, b, ctx)).toBe(both);
+    // A finished workout with A and B counts as B in the rotation: C is next.
+    version.days.push(newDay('C'));
+    expect(nextDay(version, [{ ...both, status: 'completed' }])?.name).toBe('C');
+  });
+
+  it('a day added from another plan moves that plan too', async () => {
+    const { addPlanDay, nextDay } = await import('./workout');
+    const { plan, version, day, exercises, states, lastEntry } = setup();
+    const other = newPlan('Legs');
+    other.version.days = [newDay('L1'), newDay('L2')];
+    const ctx = { exercises, states, lastEntry };
+    const w = addPlanDay(startWorkout(plan, version, day, ctx), other.plan, other.version, other.version.days[0], ctx);
+    expect(nextDay(other.version, [{ ...w, status: 'completed' }])?.name).toBe('L2');
+    expect(w.planId).toBe(plan.id);
+  });
+});

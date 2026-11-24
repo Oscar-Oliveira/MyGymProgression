@@ -172,6 +172,7 @@ export const workoutSchema = z.object({
   entries: z.array(entry),
   updatedAt: iso,
   short: z.boolean().optional(),
+  addedDays: z.array(z.object({ planId: z.string(), planVersionId: z.string(), dayId: z.string(), planName: z.string(), dayName: z.string() })).optional(),
   restUntil: iso.optional(),
   restTotal: z.number().min(0).optional(),
 });

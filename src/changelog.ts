@@ -7,6 +7,19 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: '2026-11-24',
+    pt: [
+      'Treino: novo "Adicionar dia do plano" (menu ⋯ e treino livre vazio). Junta os exercícios de outro dia, com metas e progressão; dá para fazer dois dias intercalados. O treino conta para os dois dias.',
+      'Planos: Copiar como texto e Ler QR passam para ícones no topo. O menu Mais tem um novo ícone (três linhas) e já não repete o que está em Progresso e Planos.',
+      'Ferramentas: os discos mostram o mesmo desenho da barra que no treino. Início: sai o link "Outro dia ou treino livre". O ecrã de arranque fica igual ao do Android.',
+    ],
+    en: [
+      'Workout: new "Add plan day" (⋯ menu and empty free workout). It adds the exercises of another day, with targets and progression; you can do two days interleaved. The workout counts for both days.',
+      'Plans: Copy as text and Read QR are now icons at the top. The More menu has a new icon (three lines) and no longer repeats what is in Progress and Plans.',
+      'Tools: plates show the same bar drawing as in the workout. Home: the "Other day or free workout" link is gone. The start screen now matches the Android one.',
+    ],
+  },
+  {
     date: '2026-11-23',
     pt: [
       'Planos: novo botão "Trocar exercício" (setas) no exercício aberto, em Editar plano. Serve para corrigir um engano: os treinos e a progressão desse exercício no plano passam para o exercício certo e mostram o novo nome.',

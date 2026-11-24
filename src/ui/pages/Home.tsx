@@ -224,11 +224,7 @@ export function Home() {
           </Link>
         </section>
       ) : preview && plan && day ? (
-        <DayCard hero eyebrow={t('home.next')} plan={plan} day={day} entries={preview.entries} exercises={ctx.exercises} showPlan onStart={() => void startDay(plan.id, day.id)} onShare={() => void shareDayImage(plan, day, preview.entries, t, s.language)}>
-          <Link to="/train" className="btn ghost xl">
-            {t('home.otherDay')}
-          </Link>
-        </DayCard>
+        <DayCard hero eyebrow={t('home.next')} plan={plan} day={day} entries={preview.entries} exercises={ctx.exercises} showPlan onStart={() => void startDay(plan.id, day.id)} onShare={() => void shareDayImage(plan, day, preview.entries, t, s.language)} />
       ) : (
         <section className="hero stack">
           <p className="eyebrow">{t('home.getStarted')}</p>

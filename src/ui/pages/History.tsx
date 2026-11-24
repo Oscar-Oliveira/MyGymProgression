@@ -53,8 +53,10 @@ export function History() {
 
   return (
     <div>
-      <PageHead title={t('nav.progress')} count={total > 0 ? t('history.count', { count: total }) : undefined} more />
+      {/* Same header as the other Progress views, so the tabs do not move; the count goes under them. */}
+      <PageHead title={t('nav.progress')} more />
       <ProgressSwitch on="history" />
+      {total > 0 && <p className="page-count">{t('history.count', { count: total })}</p>}
       {total > 0 && <PageCoach place="history" />}
       {total === 0 ? (
         <Empty

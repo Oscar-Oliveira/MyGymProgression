@@ -6,6 +6,7 @@ import { barOf, equipmentOf, platesPerSide, type Equipment } from '../../domain/
 import { loadFor, oneRmOf, percentTable, roundTo } from '../../domain/tools';
 import { PageHead } from '../components/Bits';
 import { NumInput } from '../components/NumInput';
+import { PlatesRow } from '../components/PlateLine';
 import { StrengthBalance } from '../components/StrengthBalance';
 import { fmtNum, useSettings } from '../util';
 
@@ -34,7 +35,7 @@ export function ToolsPage() {
 
       <section className="card stack" aria-labelledby="t-1rm">
         <h2 id="t-1rm">{t('tools.oneRm')}</h2>
-        <div className="form-grid">
+        <div className="form-grid tool-inputs">
           <label>
             {t('metric.load')} ({s.loadUnit})
             <NumInput label={`${t('metric.load')} (${s.loadUnit})`} value={load} onChange={setLoad} />
@@ -115,7 +116,7 @@ export function ToolsPage() {
 
       <section className="card stack" id="plates" aria-labelledby="t-plates">
         <h2 id="t-plates">{t('plates.title')}</h2>
-        <div className="form-grid">
+        <div className="form-grid tool-inputs">
           <label>
             {t('tools.total')} ({s.loadUnit})
             <NumInput label={`${t('tools.total')} (${s.loadUnit})`} value={total} onChange={setTotal} />
@@ -132,10 +133,7 @@ export function ToolsPage() {
           </label>
         </div>
         {side && side.plates.length > 0 ? (
-          <p className="tool-result">
-            {t('plates.perSide')} <b className="num">{side.plates.map(n).join(' + ')}</b>
-            {side.rest > 0 && <span className="pl-rest"> · {t('plates.rest', { rest: n(side.rest), unit: s.loadUnit })}</span>}
-          </p>
+          <PlatesRow bar={eq.bars[bar]} plates={side.plates} rest={side.rest} max={Math.max(...eq.plates)} />
         ) : (
           total !== undefined && <p className="help">{t('tools.onlyBar')}</p>
         )}

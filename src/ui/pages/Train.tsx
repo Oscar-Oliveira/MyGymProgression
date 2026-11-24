@@ -47,7 +47,12 @@ export function Train() {
         more
         count={active.length > 0 ? t('plan.count', { count: active.length }) : undefined}
         actions={
-<HeadAction icon="plus" label={t('plan.new')} onClick={() => !creating && void create()} primary />
+          <>
+            {/* Copy as text and Read QR (a plan shared by QR, D60) are header icons. */}
+            {active.length > 1 && <HeadAction icon="note" label={t('plan.copyAll')} onClick={() => void copyText(active)} />}
+            <HeadAction icon="qr" label={t('scan.open')} to="/plans/scan" />
+            <HeadAction icon="plus" label={t('plan.new')} onClick={() => !creating && void create()} primary />
+          </>
         }
       />
       {old.length > 0 && (
@@ -82,15 +87,6 @@ export function Train() {
           <button className="ghost xl" onClick={() => void start()}>
             <Icon name="plus" /> {t('workout.free')}
           </button>
-          {/* A plan shared by QR (D60); also in More. */}
-          <Link className="btn ghost xl" to="/plans/scan">
-            <Icon name="qr" /> {t('scan.open')}
-          </Link>
-          {active.length > 1 && (
-            <button className="ghost" onClick={() => void copyText(active)}>
-              {t('plan.copyAll')}
-            </button>
-          )}
         </>
       )}
       {sheets}

@@ -9,7 +9,6 @@ const height = (p: number, max: number) => Math.round(12 + 30 * Math.sqrt(p / ma
 
 /** `barWeight`: the exercise's own bar weight (V2-D26); not set = the setting for its bar type. */
 export function PlateLine({ load, equipment, barWeight, loadMode }: { load?: number; equipment?: string; barWeight?: number; loadMode: LoadMode }) {
-  const { t } = useTranslation();
   const s = useSettings();
   const barKg = equipment ? barWeightOf({ equipment, barWeight }, s) : undefined;
   if (barKg === undefined || !load) return null;
@@ -18,10 +17,16 @@ export function PlateLine({ load, equipment, barWeight, loadMode }: { load?: num
   if (!perSide && load <= barKg) return null;
   const { plates, rest } = platesPerSide(load, barKg, eq.plates, perSide);
   if (!plates.length) return null;
-  const max = Math.max(...eq.plates);
+  return <PlatesRow bar={barKg} showBar={!perSide} plates={plates} rest={rest} max={Math.max(...eq.plates)} />;
+}
+
+/** The plates line itself, the same in the workout and in Tools: the drawing, the bar (if given) and the plates per side. */
+export function PlatesRow({ bar, showBar = true, plates, rest, max }: { bar: number; showBar?: boolean; plates: number[]; rest: number; max: number }) {
+  const { t } = useTranslation();
+  const s = useSettings();
   const n = (x: number) => fmtNum(x, s.language);
   return (
-    <p className="plates" aria-label={t('plates.line', { bar: n(barKg), unit: s.loadUnit, plates: plates.map(n).join(' + ') })}>
+    <p className="plates" aria-label={t('plates.line', { bar: n(bar), unit: s.loadUnit, plates: plates.map(n).join(' + ') })}>
       <span className="pl-vis" aria-hidden="true">
         <span className="pl-bar" />
         {plates.map((p, i) => (
@@ -29,7 +34,7 @@ export function PlateLine({ load, equipment, barWeight, loadMode }: { load?: num
         ))}
       </span>
       <span className="num">
-        {!perSide && `${t('plates.bar', { bar: n(barKg), unit: s.loadUnit })} · `}
+        {showBar && `${t('plates.bar', { bar: n(bar), unit: s.loadUnit })} · `}
         {t('plates.perSide')} <b>{plates.map(n).join(' + ')}</b>
         {rest > 0 && <span className="pl-rest"> · {t('plates.rest', { rest: n(rest), unit: s.loadUnit })}</span>}
       </span>

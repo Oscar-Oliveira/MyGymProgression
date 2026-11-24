@@ -14,7 +14,7 @@ import { DEFAULT_LOAD_SYNC, raisesLoad, syncEvents, syncItems, withStartLoad } f
 import { reportOn, reportWeek, weekReport } from '../domain/trainer';
 import { addWarmups } from '../domain/warmup';
 import type { Exercise, GameId, Goal, MeasurePart, Plan, PlanDay, PlanItem, PlanVersion, ProgressionEvent, Settings, Workout, WorkoutEntry } from '../domain/types';
-import { canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, withCurrentPlan, type DecisionInput } from '../domain/workout';
+import { addPlanDay, canRevert, decide, evaluateWorkout, eventsFor, finishWorkout, lastEntryFinder, manualAdjust, reopenWorkout, resetRepsRange, startWorkout, withCurrentPlan, type DecisionInput } from '../domain/workout';
 
 export function createRepo(db: GymDB) {
   // Library imports run one at a time (app start and a button click may overlap); otherwise both would add the same exercises.
@@ -281,7 +281,9 @@ export function createRepo(db: GymDB) {
     async deletePlan(id: string) {
       // Workouts keep plan name and version id, so history stays meaningful. Versions referenced by workouts are kept.
       await db.transaction('rw', db.plans, db.planVersions, db.workouts, async () => {
-        const used = new Set((await db.workouts.where('planId').equals(id).toArray()).map((w) => w.planVersionId));
+        // Also the versions of days added to other workouts (V2-D33).
+        const all = await db.workouts.toArray();
+        const used = new Set([...all.filter((w) => w.planId === id).map((w) => w.planVersionId), ...all.flatMap((w) => w.addedDays ?? []).filter((d) => d.planId === id).map((d) => d.planVersionId)]);
         const versions = await db.planVersions.where('planId').equals(id).toArray();
         await db.planVersions.bulkDelete(versions.filter((v) => !used.has(v.id)).map((v) => v.id));
         await db.plans.delete(id);
@@ -304,6 +306,28 @@ export function createRepo(db: GymDB) {
         if (version && !version.locked) await db.planVersions.put({ ...version, locked: true });
         await db.workouts.add(w);
         return w.id;
+      });
+    },
+
+    /**
+     * Adds the exercises of a plan day to the workout in progress `w` (V2-D33), as a start would make them (targets, warm-up sets).
+     * Saves and returns the new workout; the workout page keeps it as its draft.
+     */
+    async addPlanDay(w: Workout, planId: string, dayId: string): Promise<Workout | undefined> {
+      return db.transaction('rw', db.tables, async () => {
+        const plan = await db.plans.get(planId);
+        const version = plan ? await db.planVersions.get(plan.currentVersionId) : undefined;
+        const day = version?.days.find((d) => d.id === dayId);
+        if (w.status !== 'in_progress' || !plan || !version || !day) return undefined;
+        const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
+        const states = new Map((await db.progressionStates.toArray()).map((s) => [s.lineageId, s]));
+        const lastEntry = lastEntryFinder(await db.workouts.toArray());
+        // Warm-up sets only for muscles that the exercises before them did not warm up.
+        const warmup = (await getSettings()).warmup;
+        const next = addPlanDay(w, plan, version, day, { exercises, states, lastEntry }, (entries) => (warmup ? addWarmups({ ...w, entries: [...w.entries, ...entries] }).entries.slice(w.entries.length) : entries));
+        if (!version.locked) await db.planVersions.put({ ...version, locked: true });
+        await db.workouts.put({ ...next, updatedAt: nowIso() });
+        return next;
       });
     },
 

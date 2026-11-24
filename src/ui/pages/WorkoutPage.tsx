@@ -14,6 +14,7 @@ import { speak } from '../voice';
 import { dialog } from '../components/Dialog';
 import { ActionMenu } from '../components/ActionMenu';
 import { toast as notify } from '../components/Toast';
+import { AddDaySheet } from '../components/NavSheets';
 import { Empty, PageHead } from '../components/Bits';
 import { CoachAvatar, CoachName } from '../components/CoachAvatar';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -62,6 +63,7 @@ export function WorkoutPage() {
   const [cur, setCur] = useState(0);
   const [editing, setEditing] = useState(false);
   const [picker, setPicker] = useState<'add' | 'sub'>();
+  const [addingDay, setAddingDay] = useState(false);
   const [menu, setMenu] = useState(false);
   const [list, setList] = useState(false);
   // Quick view (D85): all sets on one screen. Each workout opens in the normal view.
@@ -183,6 +185,15 @@ export function WorkoutPage() {
     const e = entryAdHoc(ex, await db.progressionStates.get(lineage), await repo.lastEntry(lineage));
     update({ ...draft, entries: [...draft.entries, e] });
     setCur(steps.length);
+  };
+  /** Adds a plan day (V2-D33) and opens its first exercise. */
+  const addDay = async (planId: string, dayId: string) => {
+    setAddingDay(false);
+    const next = await repo.addPlanDay(draft, planId, dayId);
+    if (!next) return;
+    setDraft(next);
+    setCur(steps.length);
+    notify(t('workout.dayAdded', { day: next.addedDays?.at(-1)?.dayName ?? next.dayName }));
   };
   const shorten = async () => {
     setMenu(false);
@@ -306,7 +317,21 @@ export function WorkoutPage() {
             barWeight={ctx.exercises.get(entry.exerciseId)?.barWeight}
           />
         ) : (
-          <Empty>{t('workout.noEntries')}</Empty>
+          // A free workout starts empty: add exercises or a plan day (V2-D33) from here or from the ⋯ menu.
+          <Empty
+            action={
+              <div className="row wrap">
+                <button className="primary" onClick={() => setPicker('add')}>
+                  <Icon name="plus" /> {t('workout.addExercise')}
+                </button>
+                <button className="outline" onClick={() => setAddingDay(true)}>
+                  <Icon name="calendar" /> {t('workout.addDay')}
+                </button>
+              </div>
+            }
+          >
+            {t('workout.noEntries')}
+          </Empty>
         )}
 
         {toast && !quick && (
@@ -348,6 +373,7 @@ export function WorkoutPage() {
             <div className="sheet">
               <button onClick={() => nav('/')}><Icon name="pause" /> {t('workout.pauseLong')}</button>
               <button onClick={() => (setMenu(false), setPicker('add'))}><Icon name="plus" /> {t('workout.addExercise')}</button>
+              <button onClick={() => (setMenu(false), setAddingDay(true))}><Icon name="calendar" /> {t('workout.addDay')}</button>
               {!quick && step && cur < steps.length - 1 && !stepDone(step) && <button onClick={() => (setMenu(false), update(moveToEnd(draft, step.indexes)))}><Icon name="download" /> {t('workout.later')}</button>}
               {!draft.short && <button onClick={() => void shorten()}><Icon name="timer" /> {t('workout.short')}</button>}
               {!quick && entry && (
@@ -405,6 +431,7 @@ export function WorkoutPage() {
             </ul>
           </Modal>
         )}
+        {addingDay && <AddDaySheet workout={draft} onPick={(planId, dayId) => void addDay(planId, dayId)} onClose={() => setAddingDay(false)} />}
         {picker === 'add' && <ExercisePicker onPick={(ex) => void pick(ex)} onClose={() => setPicker(undefined)} />}
         {picker === 'sub' && <ExercisePicker preferred={subs} onPick={(ex) => void pick(ex)} onClose={() => setPicker(undefined)} />}
       </div>

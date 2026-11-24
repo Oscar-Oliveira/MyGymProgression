@@ -132,7 +132,7 @@ export const en = {
   weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   home: {
     dayDone: 'Done', dayPlanned: 'Planned for this day', noWorkoutDay: 'No workout on this day.', nothingPlanned: 'No plan day is set for this weekday (set it in the plan, on each day).', finishFirst: 'Finish the workout in progress first.',
-    next: 'Next workout', start: 'Start workout', otherDay: 'Other day or free workout', inProgress: 'Workout in progress', continue: 'Continue',
+    next: 'Next workout', start: 'Start workout', inProgress: 'Workout in progress', continue: 'Continue',
     week: 'This week', size: '{{count}} exercises · {{sets}} sets', size_one: '{{count}} exercise · {{sets}} sets', andMore: '+ {{count}} more exercises',
     statWorkouts: 'workouts this month', statSets: 'sets this month', statUps: 'increases this month',
     setsProgress: '{{done}} of {{total}} sets', decide: 'Decide for next time', last: 'Last workout',
@@ -145,6 +145,7 @@ export const en = {
   start: { inProgress: 'The workout "{{name}}" is in progress. Finish it before you start another one.', continue: 'Continue that workout', bar: 'Workout in progress' },
   train: { title: 'Train', noPlans: 'No plans yet.', exercises: '{{count}} exercises', exercises_one: '{{count}} exercise', exercises_other: '{{count}} exercises', next: 'next' },
   workout: {
+    addDay: 'Add plan day', addDayHelp: 'The exercises of the day go to the end of the workout, with the targets and progression of the plan. The workout counts as done for that day.', addDayNone: 'There are no other days in the active plans.', dayAdded: 'Added: {{day}}',
     colSet: 'Set', colBefore: 'Before', before: 'last time {{value}}',
     quick: 'Quick view', quickOpen: 'Open {{name}}', quickEdit: 'Change {{set}}', quickDone: '{{set}} done', free: 'Free workout', lastTime: 'Last time', firstTime: 'first time', goal: 'goal {{value}}', setN: 'Set {{n}}', setDone: 'Set done', skip: 'Skip set',
     addSet: 'Set', substitute: 'Substitute', substituted: 'Substituted today — no increase this time.', pain: 'Pain', technique: 'Technique', flags: 'Flag', flagsHelp: 'no increase this time', finishTab: 'Finish', finishLeft: '{{count}} sets not done: they count as skipped.', finishLeft_one: '{{count}} set not done: it counts as skipped.', leftN: '{{count}} left', leftN_one: '{{count}} left', notesHelp: 'Notes for this workout.',
@@ -153,7 +154,7 @@ export const en = {
     resume: 'Resume workout', resumeHelp: 'Resuming undoes the progression changes of this workout; it is evaluated again when you finish it.',
     otherInProgress: 'Another workout is open. Finish or discard it first.', statusLabel: 'Status', startTime: 'Start', endTime: 'End', notDone: '{{count}} sets not done', notDone_one: '{{count}} set not done',
     interrupt: 'End early (interrupted)', discard: 'Discard workout', discardConfirm: 'Discard this workout? Nothing will be saved.',
-    noEntries: 'No exercises. Add one from the menu ⋯.',
+    noEntries: 'No exercises yet.',
     status: { in_progress: 'Paused', completed: 'Completed', partial: 'Partially completed', interrupted: 'Interrupted' },
     records: 'New records', recordWas: 'was {{value}}',
     recordKind: { topLoad: 'Heaviest set', bestE1rm: 'Estimated 1RM', maxReps: 'Most reps', maxDuration: 'Longest set', maxDistance: 'Distance' },

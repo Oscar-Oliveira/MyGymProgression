@@ -293,6 +293,15 @@ export interface WorkoutEntry {
   extraSets?: number;
 }
 
+/** A plan day added to a workout (V2-D33), with its names at that time. */
+export interface AddedDay {
+  planId: string;
+  planVersionId: string;
+  dayId: string;
+  planName: string;
+  dayName: string;
+}
+
 export type WorkoutStatus = 'in_progress' | 'completed' | 'partial' | 'interrupted';
 
 export interface Workout {
@@ -310,6 +319,8 @@ export interface Workout {
   updatedAt: string;
   /** "Short on time" was used (D40). */
   short?: boolean;
+  /** Plan days added during this workout (V2-D33): it counts as done for them too. */
+  addedDays?: AddedDay[];
   /** Rest timer running: when it ends, and its length in seconds (V2-D6). */
   restUntil?: string;
   restTotal?: number;

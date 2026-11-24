@@ -7,23 +7,22 @@ import { db } from '../../data/db';
 import { achievementsOn } from '../../domain/achievements';
 import { dayMuscles } from '../../domain/audit';
 import { muscleFatigue, recoveryLevel } from '../../domain/recovery';
-import type { PlanDay, Settings } from '../../domain/types';
-import { nextPlanned } from '../../domain/workout';
+import type { PlanDay, Settings, Workout } from '../../domain/types';
+import { nextPlanned, workoutDays } from '../../domain/workout';
 import { toneOf, toneStyle } from '../colors';
 import { useStart } from '../start';
 import { tr, useSettings } from '../util';
 import { Icon, type IconName } from './Icon';
 import { Modal } from './Modal';
 
-/** Everything that is not a tab, in one place. A feature that is off is not listed (D78). */
+/**
+ * Everything that is not a tab or a view of one, in one place. A feature that is off is not listed (D78).
+ * Not here: History, Reports and Body (views of Progress) and Read QR (in the Plan header).
+ */
 export const MORE_ITEMS: { to: string; key: string; icon: IconName; shown?: (s: Settings) => boolean }[] = [
   { to: '/settings', key: 'settings', icon: 'sliders' },
-  { to: '/history', key: 'history', icon: 'history' },
-  { to: '/reports', key: 'reports', icon: 'chart' },
   { to: '/exercises', key: 'exercises', icon: 'dumbbell' },
-  { to: '/body', key: 'body', icon: 'scale' },
   { to: '/tools', key: 'tools', icon: 'calc' },
-  { to: '/plans/scan', key: 'scan', icon: 'qr' },
   { to: '/achievements', key: 'achievements', icon: 'medal', shown: achievementsOn },
   { to: '/challenges', key: 'challenges', icon: 'trophy', shown: (s) => !!s.challenge },
   { to: '/coach', key: 'coach', icon: 'user', shown: (s) => !!s.coach?.enabled },
@@ -50,14 +49,14 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Round icon button for page headers: opens the "More" grid. */
+/** Round icon button for page headers: opens the "More" grid. A menu icon, not a grid (a grid looks like the QR icon). */
 export function MoreButton() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" className="icon-btn" aria-label={t('nav.moreOptions')} aria-haspopup="dialog" onClick={() => setOpen(true)}>
-        <Icon name="grid" />
+        <Icon name="menu" />
       </button>
       {open && <MoreSheet onClose={() => setOpen(false)} />}
     </>
@@ -122,6 +121,40 @@ export function StartSheet({ onClose }: { onClose: () => void }) {
         <button type="button" className="outline xl" onClick={() => go()}>
           <Icon name="plus" /> {t('workout.free')}
         </button>
+      </div>
+    </Modal>
+  );
+}
+
+/** "Add plan day" in a workout (V2-D33): the days of the active plans that are not in the workout yet. */
+export function AddDaySheet({ workout, onPick, onClose }: { workout: Workout; onPick: (planId: string, dayId: string) => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  const data = useLiveQuery(async () => {
+    const [plans, versions] = await Promise.all([db.plans.toArray(), db.planVersions.toArray()]);
+    return { plans: plans.filter((p) => p.status === 'active'), versions };
+  });
+  if (!data) return null;
+  const used = new Set(workoutDays(workout).map((d) => d.dayId));
+  const groups = data.plans
+    .map((p) => ({ plan: p, days: (data.versions.find((x) => x.id === p.currentVersionId)?.days ?? []).filter((d) => d.items.length > 0 && !used.has(d.id)) }))
+    .filter((g) => g.days.length > 0);
+  return (
+    <Modal title={t('workout.addDay')} onClose={onClose}>
+      <div className="start-sheet">
+        <p className="help">{groups.length ? t('workout.addDayHelp') : t('workout.addDayNone')}</p>
+        {groups.map(({ plan, days }) => (
+          <section key={plan.id} className="start-plan">
+            <p className="eyebrow">{plan.name}</p>
+            <div className="start-days">
+              {days.map((d) => (
+                <button key={d.id} type="button" className="start-day toned" style={toneStyle(toneOf(plan, d))} onClick={() => onPick(plan.id, d.id)}>
+                  <span className="dot" aria-hidden="true" />
+                  <span className="start-day-text">{d.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </Modal>
   );

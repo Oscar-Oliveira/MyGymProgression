@@ -47,7 +47,7 @@ const PATHS = {
   joystick: 'M12 4a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM12 9v6M4 15h16v5H4z',
   // v2 (F4): navigation and shortcuts.
   search: 'M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM20 20l-4.8-4.8',
-  grid: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  menu: 'M4 7h16M4 12h16M4 17h16',
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z',
   calendar: 'M4 6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 10h16M8 3v4M16 3v4M8 14h3M8 17h6',
   chart: 'M5 19V11M10 19V5M15 19v-6M20 19V9',

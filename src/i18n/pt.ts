@@ -134,7 +134,7 @@ export const pt: Resources = {
   weekday: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
   home: {
     dayDone: 'Feito', dayPlanned: 'Planeado para este dia', noWorkoutDay: 'Sem treino neste dia.', nothingPlanned: 'Nenhum dia do plano está atribuído a este dia da semana (define-o no plano, em cada dia).', finishFirst: 'Termina primeiro o treino em curso.',
-    next: 'Próximo treino', start: 'Começar treino', otherDay: 'Outro dia ou treino livre', inProgress: 'Treino em curso', continue: 'Continuar',
+    next: 'Próximo treino', start: 'Começar treino', inProgress: 'Treino em curso', continue: 'Continuar',
     week: 'Esta semana', size: '{{count}} exercícios · {{sets}} séries', size_one: '{{count}} exercício · {{sets}} séries', andMore: '+ {{count}} exercícios',
     statWorkouts: 'treinos este mês', statSets: 'séries este mês', statUps: 'subidas este mês',
     setsProgress: '{{done}} de {{total}} séries', decide: 'Decidir para a próxima vez', last: 'Último treino',
@@ -147,6 +147,7 @@ export const pt: Resources = {
   start: { inProgress: 'O treino "{{name}}" está em curso. Termina-o antes de começares outro.', continue: 'Continuar esse treino', bar: 'Treino em curso' },
   train: { title: 'Treinar', noPlans: 'Ainda não há planos.', exercises: '{{count}} exercícios', exercises_one: '{{count}} exercício', exercises_other: '{{count}} exercícios', next: 'próximo' },
   workout: {
+    addDay: 'Adicionar dia do plano', addDayHelp: 'Os exercícios do dia vão para o fim do treino, com as metas e a progressão do plano. O treino conta como feito para esse dia.', addDayNone: 'Não há outros dias nos planos ativos.', dayAdded: 'Adicionado: {{day}}',
     colSet: 'Série', colBefore: 'Antes', before: 'última vez {{value}}',
     quick: 'Vista rápida', quickOpen: 'Abrir {{name}}', quickEdit: 'Mudar {{set}}', quickDone: '{{set}} feita', free: 'Treino livre', lastTime: 'Última vez', firstTime: 'primeira vez', goal: 'meta {{value}}', setN: 'Série {{n}}', setDone: 'Série feita', skip: 'Saltar série',
     addSet: 'Série', substitute: 'Substituir', substituted: 'Substituído hoje — desta vez não sobe.', pain: 'Dor', technique: 'Técnica', flags: 'Assinalar', flagsHelp: 'desta vez não sobe', finishTab: 'Terminar', finishLeft: '{{count}} séries por fazer: contam como saltadas.', finishLeft_one: '{{count}} série por fazer: conta como saltada.', leftN: 'faltam {{count}}', leftN_one: 'falta {{count}}', notesHelp: 'Notas deste treino.',
@@ -155,7 +156,7 @@ export const pt: Resources = {
     resume: 'Retomar treino', resumeHelp: 'Retomar anula as alterações de progressão deste treino; é avaliado de novo quando o terminares.',
     otherInProgress: 'Há outro treino aberto. Termina-o ou descarta-o primeiro.', statusLabel: 'Estado', startTime: 'Início', endTime: 'Fim', notDone: '{{count}} séries por fazer', notDone_one: '{{count}} série por fazer',
     interrupt: 'Terminar antes (interrompido)', discard: 'Descartar treino', discardConfirm: 'Descartar este treino? Nada será guardado.',
-    noEntries: 'Sem exercícios. Adiciona um no menu ⋯.',
+    noEntries: 'Ainda sem exercícios.',
     status: { in_progress: 'Em pausa', completed: 'Concluído', partial: 'Parcialmente concluído', interrupted: 'Interrompido' },
     records: 'Novos recordes', recordWas: 'antes {{value}}',
     recordKind: { topLoad: 'Série mais pesada', bestE1rm: '1RM estimado', maxReps: 'Mais reps', maxDuration: 'Série mais longa', maxDistance: 'Distância' },

@@ -35,8 +35,9 @@ export default defineConfig({
         name: 'MyGymProgression',
         short_name: 'GymProg',
         description: 'Training plans, workout logging and progression',
-        theme_color: '#5b4cf5',
-        background_color: '#5b4cf5',
+        // The same background as the app splash (index.html), so the Android splash and the app splash look like one.
+        theme_color: '#0a0a0b',
+        background_color: '#0a0a0b',
         display: 'fullscreen',
         start_url: '.',
         icons: [
